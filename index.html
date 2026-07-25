@@ -1096,8 +1096,8 @@
   }
   .timer-delete-btn:hover{ background:#fdecea; color:#c0392b; }
 
-  /* ===== Stats, Calendar, Drafts & Theme Buttons ===== */
-  .stats-trigger-btn, .calendar-trigger-btn, .drafts-trigger-btn, .theme-trigger-btn{
+  /* ===== Stats, Calendar, Drafts, Account & Theme Buttons ===== */
+  .stats-trigger-btn, .calendar-trigger-btn, .drafts-trigger-btn, .account-trigger-btn, .theme-trigger-btn{
     position: absolute;
     top: 14px;
     width: 38px; height: 38px;
@@ -1113,10 +1113,95 @@
   }
   .stats-trigger-btn{ left: 14px; }
   .calendar-trigger-btn{ left: 60px; }
+  .account-trigger-btn{ left: 106px; }
   .drafts-trigger-btn{ right: 60px; }
   .theme-trigger-btn{ right: 14px; }
-  .stats-trigger-btn:hover, .calendar-trigger-btn:hover, .drafts-trigger-btn:hover, .theme-trigger-btn:hover{ background: var(--done-soft); color: var(--done); }
-  .stats-trigger-btn:active, .calendar-trigger-btn:active, .drafts-trigger-btn:active, .theme-trigger-btn:active{ transform: scale(0.92); }
+  .stats-trigger-btn:hover, .calendar-trigger-btn:hover, .drafts-trigger-btn:hover, .account-trigger-btn:hover, .theme-trigger-btn:hover{ background: var(--done-soft); color: var(--done); }
+  .stats-trigger-btn:active, .calendar-trigger-btn:active, .drafts-trigger-btn:active, .account-trigger-btn:active, .theme-trigger-btn:active{ transform: scale(0.92); }
+  .account-trigger-btn.is-linked{ color: var(--done); }
+
+  /* ===== Account Modal ===== */
+  .account-status{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--paper);
+    border:1px solid var(--paper-line);
+    border-radius:10px;
+    padding:12px 14px;
+    margin-bottom:16px;
+  }
+  .account-status .material-icons{ color:var(--pen); font-size:22px; }
+  .account-status.is-linked .material-icons{ color:var(--done); }
+  .account-status-text strong{ display:block; font-size:0.92rem; color:var(--ink); }
+  .account-status-text span{ font-size:0.78rem; color:var(--ink-soft); }
+  .account-form{ display:flex; flex-direction:column; gap:10px; }
+  .account-input{
+    border:1.5px solid var(--paper-line);
+    background:var(--paper);
+    border-radius:8px;
+    padding:11px 12px;
+    font-family:'Tajawal';
+    font-size:0.92rem;
+    color:var(--ink);
+    width:100%;
+  }
+  .account-input:focus{ outline:2px solid var(--pen); outline-offset:1px; border-color: var(--pen); }
+  .account-primary-btn{
+    background:var(--pen);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    padding:11px;
+    font-family:'Tajawal';
+    font-weight:700;
+    font-size:0.92rem;
+    cursor:pointer;
+  }
+  .account-primary-btn:hover{ filter:brightness(0.94); }
+  .account-secondary-btn{
+    background:transparent;
+    color:var(--ink-soft);
+    border:1.5px solid var(--paper-line);
+    border-radius:8px;
+    padding:11px;
+    font-family:'Tajawal';
+    font-weight:700;
+    font-size:0.88rem;
+    cursor:pointer;
+  }
+  .account-secondary-btn:hover{ background:var(--paper); color:var(--ink); }
+  .account-switch-line{
+    text-align:center;
+    font-size:0.82rem;
+    color:var(--ink-soft);
+    margin-top:4px;
+  }
+  .account-switch-line button{
+    background:none;
+    border:none;
+    color:var(--pen);
+    font-family:'Tajawal';
+    font-weight:700;
+    font-size:0.82rem;
+    cursor:pointer;
+    text-decoration:underline;
+    padding:0;
+  }
+  .account-error{
+    background:#fdecea;
+    color:#c0392b;
+    border-radius:8px;
+    padding:9px 12px;
+    font-size:0.82rem;
+  }
+  body.dark-mode .account-error{ background:#3d1f1f; color:#ff6b6b; }
+  .account-hint{
+    font-size:0.78rem;
+    color:var(--ink-soft);
+    line-height:1.6;
+    margin: -4px 0 4px;
+  }
 
   .modal-overlay{
     display:none;
@@ -1307,6 +1392,9 @@
     <button class="drafts-trigger-btn" id="draftsBtn" title="المهام المؤرشفة (Drafts)">
       <span class="material-icons">drafts</span>
     </button>
+    <button class="account-trigger-btn" id="accountBtn" title="الحساب">
+      <span class="material-icons" id="accountIcon">person_outline</span>
+    </button>
     <button class="theme-trigger-btn" id="themeBtn" title="الوضع الليلي">
       <span class="material-icons" id="themeIcon">dark_mode</span>
     </button>
@@ -1370,6 +1458,17 @@
         <!-- سيتم تعبئتها ديناميكياً -->
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Modal الحساب: ربط الحساب المجهول بإيميل/باسورد أو تسجيل الدخول -->
+<div class="modal-overlay" id="accountOverlay">
+  <div class="modal-card" style="max-width: 420px;">
+    <div class="modal-header">
+      <h2>الحساب</h2>
+      <button class="icon-btn" id="closeAccountBtn" title="إغلاق"><span class="material-icons">close</span></button>
+    </div>
+    <div class="modal-body" id="accountBody"></div>
   </div>
 </div>
 
@@ -1447,27 +1546,52 @@
 
   const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   let currentUserId = null; // بيتحدد بعد تسجيل الدخول (مجهول أو حقيقي)
+  let isAnonymousUser = true; // هل الحساب الحالي مجهول ولا مربوط بإيميل حقيقي
+  let currentUserEmail = null;
+  let accountModalMode = 'save'; // 'save' = ربط الحساب المجهول | 'signin' = دخول لحساب موجود
   const LOCAL_BACKUP_KEY = 'habit-data-v2'; // نسخة احتياطية محلية في حالة قطع النت
 
   /* تسجيل دخول مجهول تلقائي (Anonymous Auth):
      ده بيدي كل جهاز/متصفح هوية ثابتة (user_id) في Supabase من غير ما نحتاج
      نبني شاشة تسجيل دخول دلوقتي. البيانات بتتخزن على السيرفر مرتبطة بالهوية دي.
-     لاحقًا لما تحب تضيف تسجيل دخول حقيقي (إيميل/باسورد أو Google)، تقدر تستخدم
-     supabaseClient.auth.linkIdentity(...) أو تحول الحساب المجهول لحساب دائم
-     من غير ما تفقد بيانات المستخدم. */
+     المستخدم بعدين يقدر "يربط" الحساب المجهول ده بإيميل وباسورد حقيقيين
+     (من نافذة الحساب) من غير ما يفقد أي بيانات. */
   async function ensureAuth(){
     try{
       const { data: { session } } = await supabaseClient.auth.getSession();
       if(session && session.user){
-        currentUserId = session.user.id;
+        applyAuthUser(session.user);
         return;
       }
       const { data, error } = await supabaseClient.auth.signInAnonymously();
       if(error) throw error;
-      currentUserId = data.user.id;
+      applyAuthUser(data.user);
     }catch(e){
       console.error('Auth error:', e);
       currentUserId = null;
+    }
+  }
+
+  function applyAuthUser(user){
+    if(!user) return;
+    currentUserId = user.id;
+    isAnonymousUser = !!user.is_anonymous;
+    currentUserEmail = user.email || null;
+    updateAccountIcon();
+  }
+
+  function updateAccountIcon(){
+    const icon = document.getElementById('accountIcon');
+    const btn = document.getElementById('accountBtn');
+    if(!icon || !btn) return;
+    if(!isAnonymousUser && currentUserEmail){
+      icon.textContent = 'account_circle';
+      btn.classList.add('is-linked');
+      btn.title = currentUserEmail;
+    } else {
+      icon.textContent = 'person_outline';
+      btn.classList.remove('is-linked');
+      btn.title = 'الحساب';
     }
   }
 
@@ -2000,6 +2124,151 @@
     `;
 
     document.getElementById('statsBody').innerHTML = html;
+  }
+
+  // ===== إدارة نافذة الحساب (ربط/تسجيل دخول/خروج) =====
+  function renderAccountModal(errorMsg){
+    const bodyEl = document.getElementById('accountBody');
+    if(!bodyEl) return;
+
+    // حالة 1: مسجل بحساب حقيقي بالفعل
+    if(!isAnonymousUser && currentUserEmail){
+      bodyEl.innerHTML = `
+        <div class="account-status is-linked">
+          <span class="material-icons">account_circle</span>
+          <div class="account-status-text">
+            <strong>${currentUserEmail}</strong>
+            <span>حسابك متزامن ومتاح من أي جهاز</span>
+          </div>
+        </div>
+        <button class="account-secondary-btn" id="signOutBtn" style="width:100%;">تسجيل الخروج</button>
+      `;
+      const signOutBtn = document.getElementById('signOutBtn');
+      if(signOutBtn) signOutBtn.onclick = signOutUser;
+      return;
+    }
+
+    // حالة 2: مستخدم مجهول - نعرض فورم "احفظ حسابك" أو "دخول لحساب موجود"
+    const errorHtml = errorMsg ? `<div class="account-error">${errorMsg}</div>` : '';
+
+    if(accountModalMode === 'signin'){
+      bodyEl.innerHTML = `
+        <div class="account-status">
+          <span class="material-icons">person_outline</span>
+          <div class="account-status-text">
+            <strong>ضيف حالياً</strong>
+            <span>بياناتك محفوظة على الجهاز ده بس</span>
+          </div>
+        </div>
+        <div class="account-hint">تسجيل الدخول لحساب موجود هيوديك لبيانات الحساب ده، مش بيانات الجهاز الحالي.</div>
+        ${errorHtml}
+        <div class="account-form">
+          <input type="email" class="account-input" id="accEmail" placeholder="الإيميل" />
+          <input type="password" class="account-input" id="accPassword" placeholder="كلمة المرور" />
+          <button class="account-primary-btn" id="accSubmitBtn">تسجيل الدخول</button>
+        </div>
+        <div class="account-switch-line">مفيش حساب محفوظ لسه؟ <button id="accSwitchMode">احفظ الحساب الحالي بدل كده</button></div>
+      `;
+      document.getElementById('accSubmitBtn').onclick = () => {
+        const email = document.getElementById('accEmail').value.trim();
+        const password = document.getElementById('accPassword').value;
+        signInExisting(email, password);
+      };
+      document.getElementById('accSwitchMode').onclick = () => { accountModalMode = 'save'; renderAccountModal(); };
+    } else {
+      bodyEl.innerHTML = `
+        <div class="account-status">
+          <span class="material-icons">person_outline</span>
+          <div class="account-status-text">
+            <strong>ضيف حالياً</strong>
+            <span>بياناتك متخزنة، بس لو مسحت بيانات المتصفح هتفقدها</span>
+          </div>
+        </div>
+        <div class="account-hint">احفظ إيميل وباسورد عشان توصل لبياناتك دي من أي جهاز تاني، ومتفقدهاش لو مسحت الكاش.</div>
+        ${errorHtml}
+        <div class="account-form">
+          <input type="email" class="account-input" id="accEmail" placeholder="الإيميل" />
+          <input type="password" class="account-input" id="accPassword" placeholder="كلمة المرور (6 أحرف على الأقل)" />
+          <button class="account-primary-btn" id="accSubmitBtn">احفظ الحساب</button>
+        </div>
+        <div class="account-switch-line">عندك حساب محفوظ بالفعل؟ <button id="accSwitchMode">سجّل دخول بيه</button></div>
+      `;
+      document.getElementById('accSubmitBtn').onclick = () => {
+        const email = document.getElementById('accEmail').value.trim();
+        const password = document.getElementById('accPassword').value;
+        linkEmailAccount(email, password);
+      };
+      document.getElementById('accSwitchMode').onclick = () => { accountModalMode = 'signin'; renderAccountModal(); };
+    }
+  }
+
+  async function linkEmailAccount(email, password){
+    if(!email || !password){
+      renderAccountModal('اكتب الإيميل وكلمة المرور الأول');
+      return;
+    }
+    if(password.length < 6){
+      renderAccountModal('كلمة المرور لازم تكون 6 أحرف على الأقل');
+      return;
+    }
+    try{
+      const { error } = await supabaseClient.auth.updateUser({ email, password });
+      if(error) throw error;
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      applyAuthUser(user);
+      showToast('تم حفظ الحساب. لو Supabase محتاج تأكيد إيميل، تحقق من بريدك');
+      renderAccountModal();
+    }catch(e){
+      console.error('Link account error:', e);
+      renderAccountModal(e.message || 'حصل خطأ، حاول تاني');
+    }
+  }
+
+  async function signInExisting(email, password){
+    if(!email || !password){
+      renderAccountModal('اكتب الإيميل وكلمة المرور الأول');
+      return;
+    }
+    try{
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if(error) throw error;
+      applyAuthUser(data.user);
+      showToast('تم تسجيل الدخول');
+      closeAccountModal();
+      await loadData();
+      render();
+    }catch(e){
+      console.error('Sign in error:', e);
+      renderAccountModal(e.message === 'Invalid login credentials' ? 'الإيميل أو كلمة المرور غلط' : (e.message || 'حصل خطأ، حاول تاني'));
+    }
+  }
+
+  async function signOutUser(){
+    if(!confirm('متأكد من تسجيل الخروج؟ هتحتاج تسجّل دخول تاني عشان توصل لنفس البيانات.')) return;
+    try{
+      await supabaseClient.auth.signOut();
+      currentUserId = null;
+      isAnonymousUser = true;
+      currentUserEmail = null;
+      accountModalMode = 'save';
+      await ensureAuth();
+      closeAccountModal();
+      await loadData();
+      render();
+      showToast('تم تسجيل الخروج');
+    }catch(e){
+      console.error('Sign out error:', e);
+      showToast('حصل خطأ أثناء تسجيل الخروج');
+    }
+  }
+
+  function openAccountModal(){
+    accountModalMode = 'save';
+    renderAccountModal();
+    document.getElementById('accountOverlay').classList.add('open');
+  }
+  function closeAccountModal(){
+    document.getElementById('accountOverlay').classList.remove('open');
   }
 
   function openStatsModal(){
@@ -2845,6 +3114,13 @@
       if(e.target === draftsOverlay) closeDraftsModal();
     });
 
+    document.getElementById('accountBtn').onclick = openAccountModal;
+    document.getElementById('closeAccountBtn').onclick = closeAccountModal;
+    const accountOverlay = document.getElementById('accountOverlay');
+    accountOverlay.addEventListener('click', (e) => {
+      if(e.target === accountOverlay) closeAccountModal();
+    });
+
     const draftsSearchInput = document.getElementById('draftsSearchInput');
     const draftsSearchClear = document.getElementById('draftsSearchClear');
     if(draftsSearchInput){
@@ -2928,6 +3204,7 @@
         if(statsOverlay.classList.contains('open')) closeStatsModal();
         if(calendarOverlay.classList.contains('open')) closeCalendarModal();
         if(draftsOverlay.classList.contains('open')) closeDraftsModal();
+        if(accountOverlay.classList.contains('open')) closeAccountModal();
         if(pickerOverlay.classList.contains('open')) closeDurationPicker();
         if(addChoiceOverlay.classList.contains('open')) closeAddChoiceModal();
       }
