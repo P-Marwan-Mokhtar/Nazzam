@@ -75,12 +75,16 @@
   let activeFilter = 'all';
   let bankOpen = true;
   let justOpenedBank = true;
+  let justChangedFilter = false; // true لمرة واحدة بس لما تتغيّر الفلتر، عشان مهام البنك اللي تحتها تعمل fade-in
   let closingBank = false;
   let bankCloseTimeoutId = null;
   let bankSearchQuery = '';
   let draftsSearchQuery = '';
   let bankDisplayLimit = 10;
   let timerPanelRenderedForDate = null;
+  let statsViewOpen = false; // لما تبقى true، #content بيعرض شاشة الإحصائيات بدل مهام اليوم
+  let justReturnedFromStats = false; // true لمرة واحدة بس لما نرجع من شاشة الإحصائيات، عشان نشغّل أنيميشن الدخول مرة واحدة فقط
+  let statsChartInstances = []; // مراجع لكل الـ Chart.js instances عشان نقدر نمسحها قبل كل رسم جديد
 
   let pendingTaskName = '';
   let pendingTaskFilterId = null;
@@ -534,14 +538,22 @@
     let totalTaskCount = 0;
     const taskTimeMap = {};
     const dayTotals = {};
+    const dayTaskCounts = {};
+    const dayDoneCounts = {};
+    const filterTotals = {}; // filterId -> ms (لرسم توزيع الوقت حسب التصنيف)
     let longestTask = null;
+
+    // خريطة من اسم المهمة لتصنيفها (filterId) بناءً على بنك المهام
+    const nameToFilterId = {};
+    state.keywords.forEach(k => { if(k.filterId) nameToFilterId[k.name] = k.filterId; });
 
     weekDays.forEach(date => {
       const tasks = state.days[date] || [];
       let dayMs = 0;
+      let dayDone = 0;
       tasks.forEach(t => {
         totalTaskCount++;
-        if(t.done) doneCount++;
+        if(t.done){ doneCount++; dayDone++; }
         const ms = parseDurationToMinutes(t.duration) * 60000;
         if(ms > 0){
           totalMs += ms;
@@ -550,19 +562,27 @@
           if(!longestTask || ms > longestTask.ms){
             longestTask = { ms, name: t.name, date };
           }
+          const fId = nameToFilterId[t.name];
+          if(fId) filterTotals[fId] = (filterTotals[fId] || 0) + ms;
         }
       });
       dayTotals[date] = dayMs;
+      dayTaskCounts[date] = tasks.length;
+      dayDoneCounts[date] = dayDone;
     });
 
+    // بنحسب الأيام السابقة (من غير النهاردة) اللي خلصت فيها كل مهامها بالكامل
     let streak = 0;
-    let cursor = todayStr();
+    let cursor = addDays(todayStr(), -1);
     while(true){
       const tasks = state.days[cursor] || [];
       if(tasks.length === 0 || !tasks.every(t => t.done)) break;
       streak++;
       cursor = addDays(cursor, -1);
     }
+    // لو النهاردة كمان خلصت كل مهامها، بتتضاف للسلسلة. لو لسه ما خلصتش، السلسلة بتفضل زي ما هي (ومش بترجع صفر إلا بكرة لو النهاردة فاتت من غير ما تخلص)
+    const todayTasksForStreak = state.days[todayStr()] || [];
+    if(todayTasksForStreak.length > 0 && todayTasksForStreak.every(t => t.done)) streak++;
 
     let bestDay = null, bestDayMs = -1;
     weekDays.forEach(date => {
@@ -586,95 +606,272 @@
     return {
       totalMs, doneCount, totalTaskCount,
       topTasks, longestTask, streak, bestDay, bestDayMs,
-      topFrequent, neglected
+      topFrequent, neglected,
+      weekDays, dayTotals, dayTaskCounts, dayDoneCounts, filterTotals
     };
   }
 
-  function renderStatsModal(){
+  // يمسح كل الـ Chart.js instances القديمة قبل ما نرسم شارتات جديدة (عشان نتجنب تسريب الذاكرة/أخطاء إعادة استخدام الـ canvas)
+  function destroyStatsCharts(){
+    statsChartInstances.forEach(c => { try{ c.destroy(); }catch(e){} });
+    statsChartInstances = [];
+  }
+
+  // شاشة الإحصائيات: بتتعرض مكان مهام اليوم في #content، وبترسم كل البيانات بشارتات Chart.js
+  function renderStatsView(){
     const s = computeWeekStats();
     const completionPct = s.totalTaskCount > 0 ? Math.round((s.doneCount / s.totalTaskCount) * 100) : 0;
-    const avgDailyMs = s.totalMs / 7;
+
+    // بنجيب الألوان مباشرة بناءً على state.darkMode (بدل ما نعتمد على قراءة الـ CSS variables من المتصفح)
+    // عشان نضمن ألوان صح ١٠٠٪ في كل وضع من غير أي مشاكل توقيت أو قراءة خاطئة
+    const isDark = !!state.darkMode;
+    const penColor = isDark ? '#e06046' : '#C5482E';
+    const doneColor = isDark ? '#489970' : '#3E7A5C';
+    const inkColor = isDark ? '#e6edf3' : '#22303D';
+    const inkSoftColor = isDark ? '#8b98a5' : '#5B6B78';
+    const paperLineColor = isDark ? '#2c333c' : '#DCD8C8';
+    const penSoftColor = isDark ? '#38221e' : '#E8DCD6';
+
+    const shortDayLabel = (dateStr) => DAY_NAMES[fromISO(dateStr).getDay()];
+
+    const weekLabels = s.weekDays.map(shortDayLabel);
+    const weekHours = s.weekDays.map(d => +(s.dayTotals[d] / 3600000).toFixed(2));
+    const weekTaskCounts = s.weekDays.map(d => s.dayTaskCounts[d] || 0);
+    const weekCompletionPct = s.weekDays.map(d => {
+      const total = s.dayTaskCounts[d] || 0;
+      const done = s.dayDoneCounts[d] || 0;
+      return total > 0 ? Math.round((done / total) * 100) : 0;
+    });
+
+    const topTasksLabels = s.topTasks.map(([name]) => name);
+    const topTasksHours = s.topTasks.map(([,ms]) => +(ms / 3600000).toFixed(2));
+
+    const filterEntries = state.filters
+      .map(f => ({ name: f.name, ms: s.filterTotals[f.id] || 0 }))
+      .filter(f => f.ms > 0);
 
     let html = `
-      <div class="stat-block">
-        <div class="stat-block-title"><span class="material-icons">local_fire_department</span>أكتر مهمة قضيت وقت عليها الأسبوع دا</div>
-        ${s.topTasks.length ? `
-          <ul class="stat-list">
-            ${s.topTasks.map(([name, ms]) => `
-              <li><span class="stat-list-name">${escapeHtml(name)}</span><span class="stat-list-value">${formatHM(ms)}</span></li>
-            `).join('')}
-          </ul>
-        ` : `<div class="stat-empty">لسه محددتش مدة لأي مهمة الأسبوع دا</div>`}
-      </div>
-    `;
-
-    html += `
-      <div class="stat-cols">
-        <div class="stat-block">
-          <div class="stat-block-title"><span class="material-icons">schedule</span>إجمالي الوقت</div>
-          <div class="stat-highlight">${formatHM(s.totalMs)}</div>
-          <div class="stat-sub">متوسط ${formatHM(avgDailyMs)} في اليوم</div>
+      <div class="stats-view">
+        <div class="stats-view-header">
+          <button class="nav-btn" id="statsBackBtn" aria-label="رجوع لمهام اليوم"><span class="material-icons">arrow_forward</span></button>
+          <h2>إحصائيات الأسبوع</h2>
+          <span style="width:36px;"></span>
         </div>
+
+        <div class="stats-summary-row">
+          <div class="stats-summary-pill">
+            <span class="material-icons">schedule</span>
+            <strong>${formatHM(s.totalMs)}</strong>
+            <small>إجمالي الوقت</small>
+          </div>
+          <div class="stats-summary-pill">
+            <span class="material-icons">task_alt</span>
+            <strong>${completionPct}%</strong>
+            <small>نسبة الإنجاز</small>
+          </div>
+          <div class="stats-summary-pill">
+            <span class="material-icons">bolt</span>
+            <strong>${s.streak}</strong>
+            <small>${s.streak === 1 ? 'يوم متتالي' : 'أيام متتالية'}</small>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-card-title"><span class="material-icons">task_alt</span>نسبة الإنجاز الأسبوعي</div>
+            <div class="chart-card-body">
+              ${s.totalTaskCount ? `<canvas id="chartCompletion"></canvas>` : `<div class="stat-empty">مفيش مهام مسجلة الأسبوع دا</div>`}
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-title"><span class="material-icons">local_fire_department</span>أكتر مهام قضيت عليها وقت</div>
+            <div class="chart-card-body">
+              ${topTasksLabels.length ? `<canvas id="chartTopTasks"></canvas>` : `<div class="stat-empty">لسه محددتش مدة لأي مهمة الأسبوع دا</div>`}
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-title"><span class="material-icons">show_chart</span>اتجاه الوقت خلال الأسبوع</div>
+            <div class="chart-card-body"><canvas id="chartWeekTrend"></canvas></div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-title"><span class="material-icons">insights</span>أداء يومي (عدد المهام / الإنجاز)</div>
+            <div class="chart-card-body"><canvas id="chartDailyPerf"></canvas></div>
+          </div>
+
+          ${filterEntries.length >= 3 ? `
+          <div class="chart-card chart-card-wide">
+            <div class="chart-card-title"><span class="material-icons">category</span>توزيع الوقت حسب التصنيف</div>
+            <div class="chart-card-body"><canvas id="chartFilters"></canvas></div>
+          </div>` : ``}
+        </div>
+
         <div class="stat-block">
-          <div class="stat-block-title"><span class="material-icons">task_alt</span>نسبة الإنجاز</div>
-          <div class="stat-highlight">${completionPct}%</div>
-          <div class="stat-sub">${s.doneCount} من ${s.totalTaskCount} مهمة</div>
+          <div class="stat-block-title"><span class="material-icons">inventory_2</span>مهام في البنك ملهاش نصيب مؤخرًا</div>
+          ${s.neglected.length ? `
+            <ul class="stat-list">
+              ${s.neglected.map(k => `<li><span class="stat-list-name">${escapeHtml(k.name)}</span></li>`).join('')}
+            </ul>
+          ` : `<div class="stat-empty">كل مهام البنك بتتضاف بانتظام 👌</div>`}
         </div>
       </div>
     `;
 
-    html += `
-      <div class="stat-cols">
-        <div class="stat-block">
-          <div class="stat-block-title"><span class="material-icons">timer</span>أطول مهمة</div>
-          ${s.longestTask ? `
-            <div class="stat-highlight">${formatHM(s.longestTask.ms)}</div>
-            <div class="stat-sub">${escapeHtml(s.longestTask.name)} - ${fmtDay(s.longestTask.date)}</div>
-          ` : `<div class="stat-empty">لا يوجد بعد</div>`}
-        </div>
-        <div class="stat-block">
-          <div class="stat-block-title"><span class="material-icons">emoji_events</span>أكتر يوم إنتاجية</div>
-          ${s.bestDay ? `
-            <div class="stat-highlight">${formatHM(s.bestDayMs)}</div>
-            <div class="stat-sub">${fmtDay(s.bestDay)}</div>
-          ` : `<div class="stat-empty">لا يوجد بعد</div>`}
-        </div>
-      </div>
-    `;
+    contentEl.innerHTML = html;
 
-    html += `
-      <div class="stat-block">
-        <div class="stat-block-title"><span class="material-icons">bolt</span>سلسلة الإنجاز</div>
-        <div class="stat-highlight">${s.streak} ${s.streak === 1 ? 'يوم' : 'أيام'} متتالية</div>
-        <div class="stat-sub">${s.streak > 0 ? 'خلّصت فيهم كل مهامك المحددة' : 'خلص كل مهامك النهاردة عشان تبدأ سلسلة'}</div>
-      </div>
-    `;
+    const backBtn = document.getElementById('statsBackBtn');
+    if(backBtn) backBtn.onclick = () => { statsViewOpen = false; justReturnedFromStats = true; render(); };
 
-    html += `
-      <div class="stat-block">
-        <div class="stat-block-title"><span class="material-icons">repeat</span>أكتر مهام بتتكرر</div>
-        ${s.topFrequent.length ? `
-          <ul class="stat-list">
-            ${s.topFrequent.map(([name, count]) => `
-              <li><span class="stat-list-name">${escapeHtml(name)}</span><span class="stat-list-value">${count} ${count === 1 ? 'مرة' : 'مرات'}</span></li>
-            `).join('')}
-          </ul>
-        ` : `<div class="stat-empty">لا توجد بيانات كفاية</div>`}
-      </div>
-    `;
+    destroyStatsCharts();
 
-    html += `
-      <div class="stat-block">
-        <div class="stat-block-title"><span class="material-icons">inventory_2</span>مهام في البنك ملهاش نصيب مؤخرًا</div>
-        ${s.neglected.length ? `
-          <ul class="stat-list">
-            ${s.neglected.map(k => `<li><span class="stat-list-name">${escapeHtml(k.name)}</span></li>`).join('')}
-          </ul>
-        ` : `<div class="stat-empty">كل مهام البنك بتتضاف بانتظام 👌</div>`}
-      </div>
-    `;
+    if(typeof Chart === 'undefined') return; // لو مكتبة Chart.js متحملتش لأي سبب
 
-    document.getElementById('statsBody').innerHTML = html;
+    Chart.defaults.font.family = "'Tajawal', sans-serif";
+    Chart.defaults.color = inkColor;
+
+    // 1) دونات: نسبة الإنجاز
+    const ctxCompletion = document.getElementById('chartCompletion');
+    if(ctxCompletion){
+      statsChartInstances.push(new Chart(ctxCompletion, {
+        type: 'doughnut',
+        data: {
+          labels: ['تم إنجازها', 'لم تنجز بعد'],
+          datasets: [{
+            data: [s.doneCount, Math.max(0, s.totalTaskCount - s.doneCount)],
+            backgroundColor: [doneColor, penSoftColor],
+            borderColor: 'transparent'
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', rtl: true, labels: { color: inkColor, font: { size: 11 } } } }
+        }
+      }));
+    }
+
+    // 2) بار: أكتر مهام قضيت عليها وقت
+    const ctxTopTasks = document.getElementById('chartTopTasks');
+    if(ctxTopTasks){
+      statsChartInstances.push(new Chart(ctxTopTasks, {
+        type: 'bar',
+        data: {
+          labels: topTasksLabels,
+          datasets: [{
+            label: 'ساعات',
+            data: topTasksHours,
+            backgroundColor: penColor,
+            borderRadius: 6,
+            maxBarThickness: 40
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: inkColor } },
+            y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor } }
+          }
+        }
+      }));
+    }
+
+    // 3) خط: اتجاه الوقت خلال الأسبوع
+    const ctxTrend = document.getElementById('chartWeekTrend');
+    if(ctxTrend){
+      statsChartInstances.push(new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+          labels: weekLabels,
+          datasets: [{
+            label: 'ساعات في اليوم',
+            data: weekHours,
+            borderColor: penColor,
+            backgroundColor: penColor + '33',
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: penColor
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: inkColor } },
+            y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor } }
+          }
+        }
+      }));
+    }
+
+    // 4) بار + خط مدمج: عدد المهام ونسبة الإنجاز لكل يوم
+    const ctxDaily = document.getElementById('chartDailyPerf');
+    if(ctxDaily){
+      statsChartInstances.push(new Chart(ctxDaily, {
+        data: {
+          labels: weekLabels,
+          datasets: [
+            {
+              type: 'bar',
+              label: 'عدد المهام',
+              data: weekTaskCounts,
+              backgroundColor: inkSoftColor + '99',
+              borderRadius: 6,
+              yAxisID: 'y'
+            },
+            {
+              type: 'line',
+              label: 'نسبة الإنجاز %',
+              data: weekCompletionPct,
+              borderColor: penColor,
+              backgroundColor: penColor,
+              tension: 0.4,
+              yAxisID: 'y1'
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', rtl: true, labels: { color: inkColor, font: { size: 11 } } } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: inkColor } },
+            y: { beginAtZero: true, position: 'left', grid: { color: paperLineColor }, ticks: { color: inkColor, precision: 0 } },
+            y1: { beginAtZero: true, max: 100, position: 'right', grid: { display: false }, ticks: { color: inkColor, callback: v => v + '%' } }
+          }
+        }
+      }));
+    }
+
+    // 5) رادار: توزيع الوقت حسب التصنيف (لو فيه 3 تصنيفات أو أكتر بوقت مسجل)
+    const ctxFilters = document.getElementById('chartFilters');
+    if(ctxFilters){
+      statsChartInstances.push(new Chart(ctxFilters, {
+        type: 'radar',
+        data: {
+          labels: filterEntries.map(f => f.name),
+          datasets: [{
+            label: 'ساعات',
+            data: filterEntries.map(f => +(f.ms / 3600000).toFixed(2)),
+            borderColor: doneColor,
+            backgroundColor: doneColor + '33',
+            pointBackgroundColor: doneColor
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            r: {
+              grid: { color: paperLineColor },
+              angleLines: { color: paperLineColor },
+              pointLabels: { color: inkColor, font: { size: 11 } },
+              ticks: { color: inkColor, backdropColor: 'transparent' }
+            }
+          }
+        }
+      }));
+    }
   }
 
   // ===== إدارة نافذة الحساب (ربط/تسجيل دخول/خروج) =====
@@ -820,14 +1017,6 @@
   }
   function closeAccountModal(){
     document.getElementById('accountOverlay').classList.remove('open');
-  }
-
-  function openStatsModal(){
-    renderStatsModal();
-    document.getElementById('statsOverlay').classList.add('open');
-  }
-  function closeStatsModal(){
-    document.getElementById('statsOverlay').classList.remove('open');
   }
 
   // ===== إدارة نافذة الـ Drafts والبحث الذكي فيها =====
@@ -1374,14 +1563,20 @@
   function render(){
     hideDurationPopover();
     hideClockChoicePopover();
+    if(statsViewOpen){
+      renderStatsView();
+      return;
+    }
     const today = todayStr();
     const isToday = selectedDate === today;
     const dayTasks = state.days[selectedDate] || [];
     const doneCount = dayTasks.filter(t => t.done).length;
-    const totalMinutes = dayTasks.reduce((sum, t) => sum + (t.done ? parseDurationToMinutes(t.duration) : 0), 0);
-    const totalHoursText = formatMinutes(totalMinutes);
+    const totalActualMinutes = dayTasks.reduce((sum, t) => sum + parseDurationToMinutes(t.actualDuration), 0);
+    const totalHoursText = totalActualMinutes > 0 ? `الوقت الفعلي: ${formatMinutes(totalActualMinutes)}` : '';
 
     let html = '';
+
+    html += `<div class="day-view ${justReturnedFromStats ? 'animate-in' : ''}">`;
 
     html += `
       <div class="date-nav">
@@ -1456,7 +1651,7 @@
         html += `<div class="empty-state">${emptyMsg}</div>`;
       } else {
         const slicedKeywords = visibleKeywords.slice(0, bankDisplayLimit);
-        html += `<div class="keyword-list">`;
+        html += `<div class="keyword-list ${justChangedFilter ? 'animate-in' : ''}">`;
         slicedKeywords.forEach(k => {
           if(editingKeywordId === k.id){
              html += `
@@ -1544,9 +1739,13 @@
       html += `</div>`;
     }
 
+    html += `</div>`;
+
     contentEl.innerHTML = html;
     
     justOpenedBank = false;
+    justReturnedFromStats = false;
+    justChangedFilter = false;
 
     attachEvents();
     if(timerPanelRenderedForDate !== selectedDate){
@@ -1655,7 +1854,9 @@
         showToast('تمت الإضافة لمهام اليوم');
       }
       else if(action === 'select-filter'){
-        activeFilter = btn.dataset.filterId;
+        const newFilter = btn.dataset.filterId;
+        if(newFilter !== activeFilter) justChangedFilter = true;
+        activeFilter = newFilter;
         bankDisplayLimit = 10;
         render();
       }
@@ -1821,15 +2022,16 @@
       state.darkMode = !state.darkMode;
       document.body.classList.toggle('dark-mode', state.darkMode);
       document.getElementById('themeIcon').textContent = state.darkMode ? 'light_mode' : 'dark_mode';
+      if(statsViewOpen) renderStatsView(); // نعيد رسم الشارتات بالألوان الصح لو المستخدم بيبدّل الوضع وهو فاتح شاشة الإحصائيات
       await saveData();
     };
 
-    document.getElementById('statsBtn').onclick = openStatsModal;
-    document.getElementById('closeStatsBtn').onclick = closeStatsModal;
-    const statsOverlay = document.getElementById('statsOverlay');
-    statsOverlay.addEventListener('click', (e) => {
-      if(e.target === statsOverlay) closeStatsModal();
-    });
+    document.getElementById('statsBtn').onclick = () => {
+      const wasOpen = statsViewOpen;
+      statsViewOpen = !statsViewOpen;
+      if(wasOpen) justReturnedFromStats = true;
+      render();
+    };
 
     document.getElementById('calendarBtn').onclick = openCalendarModal;
     document.getElementById('closeCalendarBtn').onclick = closeCalendarModal;
@@ -1963,7 +2165,7 @@
 
     document.addEventListener('keydown', (e) => {
       if(e.key === 'Escape'){
-        if(statsOverlay.classList.contains('open')) closeStatsModal();
+        if(statsViewOpen){ statsViewOpen = false; justReturnedFromStats = true; render(); }
         if(calendarOverlay.classList.contains('open')) closeCalendarModal();
         if(draftsOverlay.classList.contains('open')) closeDraftsModal();
         if(accountOverlay.classList.contains('open')) closeAccountModal();

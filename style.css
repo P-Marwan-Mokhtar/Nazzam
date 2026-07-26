@@ -872,6 +872,8 @@
     width:auto;
     align-items:center;
     gap: 6px;
+  }
+  .bank-content.animate-in .keyword-row, .keyword-list.animate-in .keyword-row {
     animation: keywordFadeIn 0.25s ease;
   }
   @keyframes keywordFadeIn {
@@ -1443,6 +1445,104 @@
 
   @media (max-width: 480px){
     .stat-cols{ flex-direction: column; }
+  }
+
+  /* ===== شاشة الإحصائيات (تظهر مكان مهام اليوم داخل #content) ===== */
+  .stats-view, .day-view.animate-in{
+    animation: statsFadeIn .25s ease;
+  }
+  @keyframes statsFadeIn{
+    from{ opacity:0; transform: translateY(6px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+  .stats-view-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background: var(--paper);
+    border: 2px solid var(--paper-line);
+    border-radius: 18px;
+    padding: 8px 8px 8px 14px;
+    margin-bottom: 14px;
+  }
+  .stats-view-header h2{
+    font-family:'Rakkas', serif;
+    font-size: 1.25rem;
+    margin: 0;
+    color: var(--ink);
+  }
+  .stats-summary-row{
+    display:flex;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .stats-summary-pill{
+    flex: 1 1 0;
+    background: var(--paper);
+    border: 1px solid var(--paper-line);
+    border-radius: 14px;
+    padding: 12px 10px;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: 2px;
+  }
+  .stats-summary-pill .material-icons{
+    font-size: 18px;
+    color: var(--pen);
+    margin-bottom: 2px;
+  }
+  .stats-summary-pill strong{
+    font-size: 1.15rem;
+    color: var(--ink);
+  }
+  .stats-summary-pill small{
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+  }
+  .chart-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .chart-card{
+    background: var(--paper);
+    border: 1px solid var(--paper-line);
+    border-radius: 14px;
+    padding: 12px 14px 14px;
+    display:flex;
+    flex-direction:column;
+  }
+  .chart-card-wide{
+    grid-column: 1 / -1;
+  }
+  .chart-card-title{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .chart-card-title .material-icons{ font-size: 16px; color: var(--pen); }
+  .chart-card-body{
+    position: relative;
+    height: 220px;
+  }
+  .chart-card-body canvas{
+    max-width: 100%;
+  }
+
+  @media (max-width: 720px){
+    .chart-grid{ grid-template-columns: 1fr; }
+    .chart-card-body{ height: 200px; }
+  }
+  @media (max-width: 480px){
+    .stats-summary-row{ flex-wrap: wrap; }
+    .stats-summary-pill{ flex: 1 1 calc(33.333% - 8px); }
   }
 
   @media (max-width: 900px){
