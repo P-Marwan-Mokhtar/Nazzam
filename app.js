@@ -8,11 +8,18 @@
   const SUPABASE_URL = 'https://txdgfvxnjofpmiaiwsax.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_-yUhuWCFab5f0jLN6kY3kQ_SGJRPYgy';
 
+  /* ===== Cloudflare Turnstile Config =====
+     غيّر القيمة دي بالـ Site Key بتاعك من Cloudflare Dashboard > Turnstile
+     (السيكرت كي بتاع Turnstile بيتحط في Supabase Dashboard مش هنا) */
+  const TURNSTILE_SITE_KEY = '0x4AAAAAAD-WN3zH063FV-FK';
+  let turnstileWidgetId = null;
+
   const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   let currentUserId = null; // بيتحدد بعد تسجيل الدخول (مجهول أو حقيقي)
   let isAnonymousUser = true; // هل الحساب الحالي مجهول ولا مربوط بإيميل حقيقي
   let currentUserEmail = null;
-  let accountModalMode = 'save'; // 'save' = ربط الحساب المجهول | 'signin' = دخول لحساب موجود
+  let accountModalMode = 'save'; // 'save' | 'signin' | 'forgot' | 'forgot-sent'
+  let accountFormBusy = false; // true أثناء انتظار رد من Supabase
   const LOCAL_BACKUP_KEY = 'habit-data-v2'; // نسخة احتياطية محلية في حالة قطع النت
 
   /* تسجيل دخول مجهول تلقائي (Anonymous Auth):
@@ -58,6 +65,59 @@
       btn.title = 'الحساب';
     }
   }
+
+  /* ===== Cloudflare Turnstile (invisible CAPTCHA) =====
+     بيرندر widget مخفي مرة واحدة، وبيرجّع Promise بالتوكن كل ما نحتاجه
+     قبل أي عملية auth حساسة (sign in / sign up / password reset). */
+  function getTurnstileToken(){
+    return new Promise((resolve) => {
+      if(typeof turnstile === 'undefined' || TURNSTILE_SITE_KEY === 'YOUR_TURNSTILE_SITE_KEY'){
+        // لسه متظبطش الـ Site Key، أو المكتبة لسه بتتحمل - كمّل من غيره في وضع التطوير
+        resolve(null);
+        return;
+      }
+      const container = document.getElementById('turnstileContainer');
+      if(!container){ resolve(null); return; }
+
+      const onToken = (token) => resolve(token);
+      const onError = () => resolve(null);
+      const onExpire = () => resolve(null);
+
+      if(turnstileWidgetId === null){
+        turnstileWidgetId = turnstile.render(container, {
+          sitekey: TURNSTILE_SITE_KEY,
+          size: 'invisible',
+          retry: 'auto',
+          callback: onToken,
+          'error-callback': onError,
+          'expired-callback': onExpire
+        });
+      } else {
+        turnstile.remove(turnstileWidgetId);
+        turnstileWidgetId = turnstile.render(container, {
+          sitekey: TURNSTILE_SITE_KEY,
+          size: 'invisible',
+          retry: 'auto',
+          callback: onToken,
+          'error-callback': onError,
+          'expired-callback': onExpire
+        });
+      }
+      turnstile.execute(turnstileWidgetId);
+    });
+  }
+
+  /* بيتابع أي تغيير في حالة تسجيل الدخول - مهم عشان يمسك رجوع Google OAuth
+     للصفحة بعد ما المستخدم يوافق على حسابه، ويحدّث الواجهة تلقائيًا. */
+  supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    if(event === 'SIGNED_IN' && session && session.user && !session.user.is_anonymous){
+      applyAuthUser(session.user);
+      closeAccountModal();
+      showToast('تم تسجيل الدخول بنجاح');
+      await loadData();
+      render();
+    }
+  });
 
   const contentEl = document.getElementById('content');
   const toastEl = document.getElementById('toast');
@@ -875,6 +935,63 @@
   }
 
   // ===== إدارة نافذة الحساب (ربط/تسجيل دخول/خروج) =====
+  function isValidEmail(email){
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  function mapAuthError(e){
+    const msg = (e && e.message) || '';
+    if(msg.includes('Invalid login credentials')) return 'الإيميل أو كلمة المرور غلط';
+    if(msg.includes('already registered') || msg.includes('already been registered')) return 'الإيميل ده مستخدم بالفعل، جرب تسجّل دخول بدل كده';
+    if(msg.includes('Email not confirmed')) return 'لازم تأكد إيميلك الأول، شوف رسالة التأكيد في بريدك';
+    if(msg.includes('Password should be at least')) return 'كلمة المرور لازم تكون 6 أحرف على الأقل';
+    if(msg.toLowerCase().includes('rate limit') || msg.includes('Too Many') || msg.includes('429')) return 'محاولات كتير قوي في وقت قصير، استنى شوية وجرب تاني';
+    if(msg.toLowerCase().includes('captcha')) return 'تعذر التحقق الأمني، حدّث الصفحة وجرب تاني';
+    if(msg.includes('Failed to fetch') || msg.includes('NetworkError')) return 'تأكد من اتصال الإنترنت وحاول تاني';
+    return msg || 'حصل خطأ، حاول تاني';
+  }
+
+  function setAccountFormBusy(busy){
+    accountFormBusy = busy;
+    const btn = document.getElementById('accSubmitBtn');
+    if(btn){ btn.disabled = busy; btn.classList.toggle('is-loading', busy); }
+    const googleBtn = document.getElementById('accGoogleBtn');
+    if(googleBtn) googleBtn.disabled = busy;
+  }
+
+  function wirePasswordToggle(inputId, toggleId){
+    const input = document.getElementById(inputId);
+    const toggle = document.getElementById(toggleId);
+    if(!input || !toggle) return;
+    toggle.onclick = () => {
+      const isPass = input.type === 'password';
+      input.type = isPass ? 'text' : 'password';
+      toggle.querySelector('.material-icons').textContent = isPass ? 'visibility_off' : 'visibility';
+    };
+  }
+
+  function wireEnterSubmit(formSelector, submitFn){
+    const form = document.querySelector(formSelector);
+    if(!form) return;
+    form.querySelectorAll('input').forEach((inp) => {
+      inp.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter'){ e.preventDefault(); if(!accountFormBusy) submitFn(); }
+      });
+    });
+  }
+
+  const GOOGLE_ICON_SVG = `<svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.4 5.9 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.4 5.9 29.5 4 24 4c-7.5 0-13.9 4.2-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.2C29.3 35.4 26.8 36 24 36c-5.3 0-9.7-3.4-11.3-8.1l-6.5 5C9.9 39.7 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.6l6.3 5.2C40.9 36.3 44 30.8 44 24c0-1.2-.1-2.3-.4-3.5z"/></svg>`;
+
+  function googleBlockHtml(){
+    return `
+      <div class="account-divider"><span>أو</span></div>
+      <button class="account-google-btn" id="accGoogleBtn" type="button">
+        ${GOOGLE_ICON_SVG}
+        <span>المتابعة عبر Google</span>
+      </button>
+    `;
+  }
+
   function renderAccountModal(errorMsg){
     const bodyEl = document.getElementById('accountBody');
     if(!bodyEl) return;
@@ -896,9 +1013,43 @@
       return;
     }
 
-    // حالة 2: مستخدم مجهول - نعرض فورم "احفظ حسابك" أو "دخول لحساب موجود"
     const errorHtml = errorMsg ? `<div class="account-error">${errorMsg}</div>` : '';
 
+    // حالة: نسيت كلمة المرور
+    if(accountModalMode === 'forgot'){
+      bodyEl.innerHTML = `
+        <div class="account-hint">اكتب الإيميل المرتبط بحسابك، وهنبعتلك رابط لتصفير كلمة المرور.</div>
+        ${errorHtml}
+        <div class="account-form" id="accForm">
+          <input type="email" class="account-input" id="accEmail" placeholder="الإيميل" autocomplete="email" />
+          <button class="account-primary-btn" id="accSubmitBtn">إرسال رابط إعادة التعيين</button>
+        </div>
+        <div class="account-switch-line"><button id="accSwitchMode">رجوع لتسجيل الدخول</button></div>
+      `;
+      document.getElementById('accSwitchMode').onclick = () => { accountModalMode = 'signin'; renderAccountModal(); };
+      const submit = () => handleForgotPassword(document.getElementById('accEmail').value.trim());
+      document.getElementById('accSubmitBtn').onclick = submit;
+      wireEnterSubmit('#accForm', submit);
+      return;
+    }
+
+    // حالة: اتبعت رسالة تصفير الباسورد
+    if(accountModalMode === 'forgot-sent'){
+      bodyEl.innerHTML = `
+        <div class="account-status is-linked">
+          <span class="material-icons">mark_email_read</span>
+          <div class="account-status-text">
+            <strong>اتبعت الرابط</strong>
+            <span>افتح بريدك واضغط على رابط تصفير كلمة المرور</span>
+          </div>
+        </div>
+        <div class="account-switch-line"><button id="accSwitchMode">رجوع لتسجيل الدخول</button></div>
+      `;
+      document.getElementById('accSwitchMode').onclick = () => { accountModalMode = 'signin'; renderAccountModal(); };
+      return;
+    }
+
+    // حالة 2: مستخدم مجهول - نعرض فورم "احفظ حسابك" أو "دخول لحساب موجود"
     if(accountModalMode === 'signin'){
       bodyEl.innerHTML = `
         <div class="account-status">
@@ -910,19 +1061,29 @@
         </div>
         <div class="account-hint">تسجيل الدخول لحساب موجود هيوديك لبيانات الحساب ده، مش بيانات الجهاز الحالي.</div>
         ${errorHtml}
-        <div class="account-form">
-          <input type="email" class="account-input" id="accEmail" placeholder="الإيميل" />
-          <input type="password" class="account-input" id="accPassword" placeholder="كلمة المرور" />
+        <div class="account-form" id="accForm">
+          <input type="email" class="account-input" id="accEmail" placeholder="الإيميل" autocomplete="email" />
+          <div class="account-pass-wrap">
+            <input type="password" class="account-input" id="accPassword" placeholder="كلمة المرور" autocomplete="current-password" />
+            <button type="button" class="account-pass-toggle" id="accPassToggle" tabindex="-1"><span class="material-icons">visibility</span></button>
+          </div>
           <button class="account-primary-btn" id="accSubmitBtn">تسجيل الدخول</button>
         </div>
+        <div class="account-switch-line"><button id="accForgotBtn">نسيت كلمة المرور؟</button></div>
+        ${googleBlockHtml()}
         <div class="account-switch-line">مفيش حساب محفوظ لسه؟ <button id="accSwitchMode">احفظ الحساب الحالي بدل كده</button></div>
       `;
-      document.getElementById('accSubmitBtn').onclick = () => {
+      wirePasswordToggle('accPassword', 'accPassToggle');
+      const submit = () => {
         const email = document.getElementById('accEmail').value.trim();
         const password = document.getElementById('accPassword').value;
         signInExisting(email, password);
       };
+      document.getElementById('accSubmitBtn').onclick = submit;
+      wireEnterSubmit('#accForm', submit);
       document.getElementById('accSwitchMode').onclick = () => { accountModalMode = 'save'; renderAccountModal(); };
+      document.getElementById('accForgotBtn').onclick = () => { accountModalMode = 'forgot'; renderAccountModal(); };
+      document.getElementById('accGoogleBtn').onclick = signInWithGoogle;
     } else {
       bodyEl.innerHTML = `
         <div class="account-status">
@@ -934,31 +1095,54 @@
         </div>
         <div class="account-hint">احفظ إيميل وباسورد عشان توصل لبياناتك دي من أي جهاز تاني، ومتفقدهاش لو مسحت الكاش.</div>
         ${errorHtml}
-        <div class="account-form">
-          <input type="email" class="account-input" id="accEmail" placeholder="الإيميل" />
-          <input type="password" class="account-input" id="accPassword" placeholder="كلمة المرور (6 أحرف على الأقل)" />
+        <div class="account-form" id="accForm">
+          <input type="email" class="account-input" id="accEmail" placeholder="الإيميل" autocomplete="email" />
+          <div class="account-pass-wrap">
+            <input type="password" class="account-input" id="accPassword" placeholder="كلمة المرور (6 أحرف على الأقل)" autocomplete="new-password" />
+            <button type="button" class="account-pass-toggle" id="accPassToggle" tabindex="-1"><span class="material-icons">visibility</span></button>
+          </div>
+          <div class="account-pass-wrap">
+            <input type="password" class="account-input" id="accPasswordConfirm" placeholder="تأكيد كلمة المرور" autocomplete="new-password" />
+            <button type="button" class="account-pass-toggle" id="accPassConfirmToggle" tabindex="-1"><span class="material-icons">visibility</span></button>
+          </div>
           <button class="account-primary-btn" id="accSubmitBtn">احفظ الحساب</button>
         </div>
+        ${googleBlockHtml()}
         <div class="account-switch-line">عندك حساب محفوظ بالفعل؟ <button id="accSwitchMode">سجّل دخول بيه</button></div>
       `;
-      document.getElementById('accSubmitBtn').onclick = () => {
+      wirePasswordToggle('accPassword', 'accPassToggle');
+      wirePasswordToggle('accPasswordConfirm', 'accPassConfirmToggle');
+      const submit = () => {
         const email = document.getElementById('accEmail').value.trim();
         const password = document.getElementById('accPassword').value;
-        linkEmailAccount(email, password);
+        const passwordConfirm = document.getElementById('accPasswordConfirm').value;
+        linkEmailAccount(email, password, passwordConfirm);
       };
+      document.getElementById('accSubmitBtn').onclick = submit;
+      wireEnterSubmit('#accForm', submit);
       document.getElementById('accSwitchMode').onclick = () => { accountModalMode = 'signin'; renderAccountModal(); };
+      document.getElementById('accGoogleBtn').onclick = signInWithGoogle;
     }
   }
 
-  async function linkEmailAccount(email, password){
+  async function linkEmailAccount(email, password, passwordConfirm){
     if(!email || !password){
       renderAccountModal('اكتب الإيميل وكلمة المرور الأول');
+      return;
+    }
+    if(!isValidEmail(email)){
+      renderAccountModal('الإيميل مش صيغته صح');
       return;
     }
     if(password.length < 6){
       renderAccountModal('كلمة المرور لازم تكون 6 أحرف على الأقل');
       return;
     }
+    if(password !== passwordConfirm){
+      renderAccountModal('كلمة المرور وتأكيدها مش متطابقين');
+      return;
+    }
+    setAccountFormBusy(true);
     try{
       const { error } = await supabaseClient.auth.updateUser({ email, password });
       if(error) throw error;
@@ -968,7 +1152,9 @@
       renderAccountModal();
     }catch(e){
       console.error('Link account error:', e);
-      renderAccountModal(e.message || 'حصل خطأ، حاول تاني');
+      renderAccountModal(mapAuthError(e));
+    }finally{
+      setAccountFormBusy(false);
     }
   }
 
@@ -977,8 +1163,17 @@
       renderAccountModal('اكتب الإيميل وكلمة المرور الأول');
       return;
     }
+    if(!isValidEmail(email)){
+      renderAccountModal('الإيميل مش صيغته صح');
+      return;
+    }
+    setAccountFormBusy(true);
     try{
-      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      const captchaToken = await getTurnstileToken();
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email, password,
+        options: captchaToken ? { captchaToken } : undefined
+      });
       if(error) throw error;
       applyAuthUser(data.user);
       showToast('تم تسجيل الدخول');
@@ -987,7 +1182,46 @@
       render();
     }catch(e){
       console.error('Sign in error:', e);
-      renderAccountModal(e.message === 'Invalid login credentials' ? 'الإيميل أو كلمة المرور غلط' : (e.message || 'حصل خطأ، حاول تاني'));
+      renderAccountModal(mapAuthError(e));
+    }finally{
+      setAccountFormBusy(false);
+    }
+  }
+
+  async function handleForgotPassword(email){
+    if(!email || !isValidEmail(email)){
+      renderAccountModal('اكتب إيميل صحيح الأول');
+      return;
+    }
+    setAccountFormBusy(true);
+    try{
+      const captchaToken = await getTurnstileToken();
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.href,
+        captchaToken: captchaToken || undefined
+      });
+      if(error) throw error;
+      accountModalMode = 'forgot-sent';
+      renderAccountModal();
+    }catch(e){
+      console.error('Forgot password error:', e);
+      renderAccountModal(mapAuthError(e));
+    }finally{
+      setAccountFormBusy(false);
+    }
+  }
+
+  async function signInWithGoogle(){
+    try{
+      const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.href }
+      });
+      if(error) throw error;
+      // المتصفح هيتحول لصفحة Google تلقائيًا؛ الرجوع هيتمسك في onAuthStateChange فوق
+    }catch(e){
+      console.error('Google sign-in error:', e);
+      renderAccountModal(mapAuthError(e));
     }
   }
 

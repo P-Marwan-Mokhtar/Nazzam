@@ -1344,6 +1344,64 @@
     margin: -4px 0 4px;
   }
 
+  /* حقل الباسورد مع زرار الإظهار/الإخفاء */
+  .account-pass-wrap{ position:relative; display:flex; }
+  .account-pass-wrap .account-input{ padding-left:40px; }
+  .account-pass-toggle{
+    position:absolute;
+    left:6px; top:50%; transform:translateY(-50%);
+    background:none; border:none; cursor:pointer;
+    color:var(--ink-soft);
+    display:flex; align-items:center; justify-content:center;
+    width:28px; height:28px; border-radius:6px;
+  }
+  .account-pass-toggle:hover{ background:var(--paper); color:var(--ink); }
+  .account-pass-toggle .material-icons{ font-size:19px; }
+
+  /* زرار "تسجيل الدخول" في حالة انتظار الرد */
+  .account-primary-btn:disabled, .account-google-btn:disabled{ opacity:0.7; cursor:not-allowed; }
+  .account-primary-btn.is-loading{ color:transparent; position:relative; }
+  .account-primary-btn.is-loading::after{
+    content:"";
+    position:absolute; top:50%; left:50%;
+    width:16px; height:16px;
+    margin:-8px 0 0 -8px;
+    border:2px solid rgba(255,255,255,0.4);
+    border-top-color:#fff;
+    border-radius:50%;
+    animation: acc-spin 0.7s linear infinite;
+  }
+  @keyframes acc-spin{ to{ transform:rotate(360deg); } }
+
+  /* فاصل "أو" بين تسجيل الدخول بالإيميل وGoogle */
+  .account-divider{
+    display:flex; align-items:center; gap:10px;
+    color:var(--ink-soft); font-size:0.78rem;
+    margin:14px 0;
+  }
+  .account-divider::before, .account-divider::after{
+    content:""; flex:1; height:1px; background:var(--paper-line);
+  }
+
+  /* زرار المتابعة عبر Google */
+  .account-google-btn{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    width:100%;
+    background:var(--paper);
+    color:var(--ink);
+    border:1.5px solid var(--paper-line);
+    border-radius:8px;
+    padding:10px;
+    font-family:'Tajawal';
+    font-weight:700;
+    font-size:0.88rem;
+    cursor:pointer;
+  }
+  .account-google-btn:hover{ background:var(--done-soft); }
+
+  /* حاوية Turnstile الغير مرئية - محتاجة تكون في الـ DOM بس مش هتاخد مساحة */
+  #turnstileContainer{ position:absolute; width:0; height:0; overflow:hidden; }
+
   .modal-overlay{
     display:none;
     position: fixed;
