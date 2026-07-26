@@ -13,6 +13,7 @@
      (السيكرت كي بتاع Turnstile بيتحط في Supabase Dashboard مش هنا) */
   const TURNSTILE_SITE_KEY = '0x4AAAAAAD-WN3zH063FV-FK';
   let turnstileWidgetId = null;
+  let turnstileResolve = null; // آخر resolve مفعّل - بيتغير مع كل نداء جديد لـ getTurnstileToken
 
   const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   let currentUserId = null; // بيتحدد بعد تسجيل الدخول (مجهول أو حقيقي)
@@ -83,31 +84,24 @@
       const container = document.getElementById('turnstileContainer');
       if(!container){ resolve(null); return; }
 
-      const onToken = (token) => resolve(token);
-      const onError = () => resolve(null);
-      const onExpire = () => resolve(null);
+      // آخر resolve هو اللي بيستحق التوكن الجديد؛ الكول باك ثابت ومربوط بالـ widget مرة واحدة بس
+      turnstileResolve = resolve;
 
       if(turnstileWidgetId === null){
         turnstileWidgetId = turnstile.render(container, {
           sitekey: TURNSTILE_SITE_KEY,
           size: 'invisible',
           retry: 'auto',
-          callback: onToken,
-          'error-callback': onError,
-          'expired-callback': onExpire
+          callback: (token) => { if(turnstileResolve) turnstileResolve(token); },
+          'error-callback': () => { if(turnstileResolve) turnstileResolve(null); },
+          'expired-callback': () => { if(turnstileResolve) turnstileResolve(null); }
         });
+        turnstile.execute(turnstileWidgetId);
       } else {
-        turnstile.remove(turnstileWidgetId);
-        turnstileWidgetId = turnstile.render(container, {
-          sitekey: TURNSTILE_SITE_KEY,
-          size: 'invisible',
-          retry: 'auto',
-          callback: onToken,
-          'error-callback': onError,
-          'expired-callback': onExpire
-        });
+        // إعادة استخدام نفس الـ widget: reset الأول عشان نمسح أي حالة تنفيذ سابقة، وبعدين execute
+        turnstile.reset(turnstileWidgetId);
+        turnstile.execute(turnstileWidgetId);
       }
-      turnstile.execute(turnstileWidgetId);
     });
   }
 
