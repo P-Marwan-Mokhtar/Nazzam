@@ -1526,10 +1526,14 @@
               <button class="clock-btn" data-action="toggle-duration" data-id="${t.id}" title="حدد الهدف أو الوقت الفعلي">
                 <span class="material-icons">schedule</span>
               </button>
-              ${t.duration ? `
-                <button class="duration-badge ${pct >= 100 ? 'over' : ''}" id="durationBadge_${t.id}" data-action="toggle-duration-view" data-id="${t.id}" title="اضغط لعرض الهدف والوقت الفعلي">
-                  <span class="duration-badge-bar"><span class="duration-badge-fill" id="taskBarFill_${t.id}" style="width:${barPct}%"></span></span>
-                  <span class="duration-badge-pct" id="taskBarPct_${t.id}">${pct}%</span>
+              ${(t.duration || t.actualDuration) ? `
+                <button class="duration-badge ${targetMin > 0 && pct >= 100 ? 'over' : ''}" id="durationBadge_${t.id}" data-action="toggle-duration-view" data-id="${t.id}" title="اضغط لعرض الهدف والوقت الفعلي">
+                  ${targetMin > 0 ? `
+                    <span class="duration-badge-bar"><span class="duration-badge-fill" id="taskBarFill_${t.id}" style="width:${barPct}%"></span></span>
+                    <span class="duration-badge-pct" id="taskBarPct_${t.id}">${pct}%</span>
+                  ` : `
+                    <span class="duration-badge-actual-only"><span class="material-icons">timelapse</span>${formatHM(actualMin*60000)}</span>
+                  `}
                 </button>
               ` : ``}
               <button class="icon-btn" data-action="delete-task" data-id="${t.id}" title="حذف من اليوم"><span class="material-icons">delete</span></button>

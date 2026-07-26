@@ -458,6 +458,18 @@
     direction: ltr;
   }
   .duration-badge.over .duration-badge-pct{ color: var(--done); }
+  .duration-badge-actual-only{
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    direction: ltr;
+  }
+  .duration-badge-actual-only .material-icons{ font-size: 15px; }
 
   /* ===== بوب أب الهدف / الوقت الفعلي ===== */
   .duration-popover{
