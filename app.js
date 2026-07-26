@@ -11,7 +11,7 @@
   /* ===== Cloudflare Turnstile Config =====
      غيّر القيمة دي بالـ Site Key بتاعك من Cloudflare Dashboard > Turnstile
      (السيكرت كي بتاع Turnstile بيتحط في Supabase Dashboard مش هنا) */
-  const TURNSTILE_SITE_KEY = '0x4AAAAAAD-WN3zH063FV-FK';
+  const TURNSTILE_SITE_KEY = 'YOUR_TURNSTILE_SITE_KEY';
   let turnstileWidgetId = null;
 
   const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -34,7 +34,10 @@
         applyAuthUser(session.user);
         return;
       }
-      const { data, error } = await supabaseClient.auth.signInAnonymously();
+      const captchaToken = await getTurnstileToken();
+      const { data, error } = await supabaseClient.auth.signInAnonymously(
+        captchaToken ? { options: { captchaToken } } : undefined
+      );
       if(error) throw error;
       applyAuthUser(data.user);
     }catch(e){
