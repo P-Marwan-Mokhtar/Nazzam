@@ -84,6 +84,11 @@
 
   let pendingTaskName = '';
   let pendingTaskFilterId = null;
+  let pendingNewTimerName = ''; // اسم التايمر المنتظر اختيار نوعه (مفتوح / محدد)
+  let pickerMode = 'task'; // 'task' لتحديد هدف المهمة، 'timer' لتحديد مدة تايمر جديد
+  let alertAudioCtx = null;
+  let openDurationPopoverTaskId = null; // المهمة اللي فاتح لها بوب أب (الهدف/الوقت الفعلي) دلوقتي
+  let openClockChoiceTaskId = null; // المهمة اللي فاتح لها اختيار (هدف / وقت فعلي) من أيقونة الساعة
 
   const timerPanelEl = document.getElementById('timerPanel');
 
@@ -254,11 +259,15 @@
   function openDurationPicker(taskId){
     const task = state.days[selectedDate].find(t => t.id === taskId);
     if(!task) return;
+    pickerMode = 'task';
     pickerTaskId = taskId;
 
     const totalMin = parseDurationToMinutes(task.duration);
     const h = Math.min(23, Math.floor(totalMin / 60));
     const m = Math.min(59, Math.round(totalMin % 60));
+
+    const titleEl = document.getElementById('pickerTitle');
+    if(titleEl) titleEl.textContent = 'مدة المهمة';
 
     const hoursCol = document.getElementById('hoursWheel');
     const hoursList = document.getElementById('hoursWheelList');
@@ -273,24 +282,102 @@
     });
   }
 
+  // نفس عجلة اختيار المدة، لكن لتحديد "الوقت الفعلي" اللي اتقضى في المهمة يدويًا (ملهاش علاقة بالتايمر)
+  function openActualDurationPicker(taskId){
+    const task = state.days[selectedDate].find(t => t.id === taskId);
+    if(!task) return;
+    pickerMode = 'actual';
+    pickerTaskId = taskId;
+
+    const totalMin = parseDurationToMinutes(task.actualDuration);
+    const h = Math.min(23, Math.floor(totalMin / 60));
+    const m = Math.min(59, Math.round(totalMin % 60));
+
+    const titleEl = document.getElementById('pickerTitle');
+    if(titleEl) titleEl.textContent = 'الوقت الفعلي';
+
+    const hoursCol = document.getElementById('hoursWheel');
+    const hoursList = document.getElementById('hoursWheelList');
+    const minutesCol = document.getElementById('minutesWheel');
+    const minutesList = document.getElementById('minutesWheelList');
+
+    document.getElementById('durationPickerOverlay').classList.add('open');
+
+    requestAnimationFrame(() => {
+      initWheel(hoursCol, hoursList, 24, h);
+      initWheel(minutesCol, minutesList, 60, m);
+    });
+  }
+
+  // نفس عجلة اختيار المدة، لكن لتحديد مدة تايمر جديد (وقت محدد) بدل هدف مهمة
+  function openTimerDurationPicker(name){
+    pickerMode = 'timer';
+    pickerTaskId = null;
+
+    const titleEl = document.getElementById('pickerTitle');
+    if(titleEl) titleEl.textContent = 'مدة التايمر';
+
+    const hoursCol = document.getElementById('hoursWheel');
+    const hoursList = document.getElementById('hoursWheelList');
+    const minutesCol = document.getElementById('minutesWheel');
+    const minutesList = document.getElementById('minutesWheelList');
+
+    document.getElementById('durationPickerOverlay').classList.add('open');
+
+    requestAnimationFrame(() => {
+      initWheel(hoursCol, hoursList, 24, 0);
+      initWheel(minutesCol, minutesList, 60, 15); // افتراضي 15 دقيقة
+    });
+  }
+
   function closeDurationPicker(){
     document.getElementById('durationPickerOverlay').classList.remove('open');
     pickerTaskId = null;
+    if(pickerMode === 'timer') pendingNewTimerName = '';
+    pickerMode = 'task';
   }
 
   async function commitDurationPicker(){
-    if(!pickerTaskId) return;
     const hoursCol = document.getElementById('hoursWheel');
     const minutesCol = document.getElementById('minutesWheel');
     const h = hoursCol._value || 0;
     const m = minutesCol._value || 0;
 
+    if(pickerMode === 'timer'){
+      const targetMs = (h * 60 + m) * 60000;
+      if(targetMs <= 0){
+        showToast('حدد مدة أكبر من صفر');
+        return;
+      }
+      const name = pendingNewTimerName;
+      if(!name){ closeDurationPicker(); return; }
+      ensureAudioContext();
+      getDayTimers(selectedDate).push({
+        id: uid(),
+        name,
+        elapsedMs: 0,
+        running: true,
+        startedAt: Date.now(),
+        mode: 'countdown',
+        targetMs,
+        alerted: false
+      });
+      showToast(`بدأ تايمر محدد لـ "${name}"`);
+      pendingNewTimerName = '';
+      pickerMode = 'task';
+      document.getElementById('durationPickerOverlay').classList.remove('open');
+      renderTimerPanel();
+      timerPanelRenderedForDate = selectedDate;
+      await saveData();
+      return;
+    }
+
+    if(!pickerTaskId) return;
     const task = state.days[selectedDate].find(t => t.id === pickerTaskId);
     if(task){
-      if(h > 0 && m > 0) task.duration = `${h} ساعة و ${m} دقيقة`;
-      else if(h > 0) task.duration = `${h} ساعة`;
-      else if(m > 0) task.duration = `${m} دقيقة`;
-      else task.duration = '';
+      const label = h > 0 && m > 0 ? `${h} ساعة و ${m} دقيقة` : (h > 0 ? `${h} ساعة` : (m > 0 ? `${m} دقيقة` : ''));
+      if(pickerMode === 'actual') task.actualDuration = label;
+      else task.duration = label;
     }
     closeDurationPicker();
     render();
@@ -933,14 +1020,18 @@
     } else {
       html += `<div class="timer-list">`;
       timers.forEach(t => {
+        const isCountdown = t.mode === 'countdown';
+        const remainingMs = isCountdown ? Math.max(0, t.targetMs - getElapsedMs(t)) : getElapsedMs(t);
+        const ended = isCountdown && remainingMs <= 0;
         html += `
-          <div class="timer-item ${t.running ? 'running' : ''}">
+          <div class="timer-item ${t.running ? 'running' : ''} ${ended ? 'countdown-ended' : ''}">
             <div class="timer-item-top">
               <span class="timer-name">${escapeHtml(t.name)}</span>
+              ${isCountdown ? `<span class="timer-target-label"><span class="material-icons">hourglass_bottom</span>${formatHM(t.targetMs)}</span>` : ``}
               <span class="timer-status-dot"></span>
             </div>
             <div class="timer-item-bottom">
-              <span class="timer-clock" id="timerClock_${t.id}">${formatElapsed(getElapsedMs(t))}</span>
+              <span class="timer-clock" id="timerClock_${t.id}">${formatElapsed(remainingMs)}</span>
               <div class="timer-controls">
                 <button class="timer-btn timer-toggle-btn ${t.running ? 'is-running' : ''}" data-action="toggle-timer" data-id="${t.id}" title="${t.running ? 'إيقاف مؤقت' : 'تشغيل'}">
                   <span class="material-icons">${t.running ? 'pause' : 'play_arrow'}</span>
@@ -963,16 +1054,8 @@
     const handleAddTimer = async () => {
       const val = newInput.value.trim();
       if(!val) return;
-      getDayTimers(selectedDate).push({
-        id: uid(),
-        name: val,
-        elapsedMs: 0,
-        running: true,
-        startedAt: Date.now()
-      });
       newInput.value = '';
-      renderTimerPanel();
-      await saveData();
+      await requestNewTimer(val);
     };
     addBtn.onclick = handleAddTimer;
     newInput.onkeydown = (e) => { if(e.key === 'Enter') handleAddTimer(); };
@@ -986,11 +1069,17 @@
         if(!t) return;
 
         if(action === 'toggle-timer'){
+          ensureAudioContext();
           if(t.running){
             t.elapsedMs = getElapsedMs(t);
             t.running = false;
             t.startedAt = null;
           } else {
+            if(t.mode === 'countdown' && t.elapsedMs >= t.targetMs){
+              // التايمر خلص بالفعل، إعادة تشغيله تبدأ العد من الأول
+              t.elapsedMs = 0;
+              t.alerted = false;
+            }
             t.running = true;
             t.startedAt = Date.now();
           }
@@ -1008,15 +1097,97 @@
     });
   }
 
+  /* ===== صوت التنبيه لما التايمر المحدد يخلص ===== */
+  function ensureAudioContext(){
+    try{
+      if(!alertAudioCtx) alertAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if(alertAudioCtx.state === 'suspended') alertAudioCtx.resume();
+    }catch(e){ /* المتصفح مايدعمش الصوت */ }
+  }
+
+  function playAlertSound(){
+    try{
+      ensureAudioContext();
+      if(!alertAudioCtx) return;
+      const ctx = alertAudioCtx;
+      const now = ctx.currentTime;
+      [0, 0.24, 0.48].forEach(offset => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.0001, now + offset);
+        gain.gain.exponentialRampToValueAtTime(0.28, now + offset + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.2);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(now + offset);
+        osc.stop(now + offset + 0.22);
+      });
+    }catch(e){ /* تجاهل مشاكل الصوت */ }
+  }
+
+  /* ===== طلب تايمر جديد: يسأل مفتوح ولا محدد لو مفيش تايمر بنفس الاسم شغال ===== */
+  async function requestNewTimer(name){
+    const timers = getDayTimers(selectedDate);
+    let t = timers.find(x => x.name === name);
+    if(t){
+      ensureAudioContext();
+      if(t.running){
+        showToast(`تايمر "${name}" شغال بالفعل`);
+      } else {
+        if(t.mode === 'countdown' && t.elapsedMs >= t.targetMs){
+          t.elapsedMs = 0;
+          t.alerted = false;
+        }
+        t.running = true;
+        t.startedAt = Date.now();
+        showToast(`كمّلنا تايمر "${name}"`);
+      }
+      renderTimerPanel();
+      timerPanelRenderedForDate = selectedDate;
+      await saveData();
+      return;
+    }
+    pendingNewTimerName = name;
+    const displayEl = document.getElementById('pendingTimerNameDisplay');
+    if(displayEl) displayEl.textContent = `"${name}"`;
+    document.getElementById('timerTypeOverlay').classList.add('open');
+  }
+
+  function closeTimerTypeModal(){
+    document.getElementById('timerTypeOverlay').classList.remove('open');
+    pendingNewTimerName = '';
+  }
+
   function tickTimers(){
     const timers = state.timers[selectedDate];
-    if(!timers) return;
-    timers.forEach(t => {
-      if(t.running){
+    let timersChanged = false;
+    if(timers){
+      timers.forEach(t => {
+        if(!t.running) return;
+        const elapsed = getElapsedMs(t);
         const el = document.getElementById(`timerClock_${t.id}`);
-        if(el) el.textContent = formatElapsed(getElapsedMs(t));
-      }
-    });
+        if(t.mode === 'countdown'){
+          const remaining = t.targetMs - elapsed;
+          if(el) el.textContent = formatElapsed(Math.max(0, remaining));
+          if(remaining <= 0 && !t.alerted){
+            t.alerted = true;
+            t.running = false;
+            t.elapsedMs = t.targetMs;
+            t.startedAt = null;
+            timersChanged = true;
+            playAlertSound();
+            showToast(`⏰ خلص وقت "${t.name}"`);
+            renderTimerPanel();
+            timerPanelRenderedForDate = selectedDate;
+          }
+        } else {
+          if(el) el.textContent = formatElapsed(elapsed);
+        }
+      });
+    }
+
+    if(timersChanged) saveData();
   }
 
   function normalizeArabic(str){
@@ -1119,7 +1290,90 @@
     });
   }
 
+  /* ===== بوب أب الهدف / الوقت الفعلي (بيطلع فوق الشارة، ملوش علاقة بالتايمر) ===== */
+  function showDurationPopover(taskId, badgeEl){
+    const task = (state.days[selectedDate] || []).find(x => x.id === taskId);
+    if(!task) return;
+    const targetMin = parseDurationToMinutes(task.duration);
+    const targetMs = targetMin * 60000;
+    const actualMin = parseDurationToMinutes(task.actualDuration);
+    const actualMs = actualMin * 60000;
+    const isOver = targetMs > 0 && actualMs >= targetMs;
+
+    const pop = document.getElementById('durationPopover');
+    pop.innerHTML = `
+      <div class="duration-popover-row">
+        <span class="duration-popover-label"><span class="material-icons">flag</span>الهدف</span>
+        <span class="duration-popover-value">${formatHM(targetMs)}</span>
+      </div>
+      <div class="duration-popover-row ${isOver ? 'is-over' : ''}">
+        <span class="duration-popover-label"><span class="material-icons">timelapse</span>الوقت الفعلي</span>
+        <span class="duration-popover-value">${formatHM(actualMs)}</span>
+      </div>
+    `;
+
+    pop.classList.add('open');
+    const rect = badgeEl.getBoundingClientRect();
+    const popRect = pop.getBoundingClientRect();
+    let top = rect.top - popRect.height - 8;
+    if(top < 8) top = rect.bottom + 8; // لو مفيش مكان فوق، تظهر تحت الشارة
+    let left = rect.left + rect.width / 2 - popRect.width / 2;
+    left = Math.max(8, Math.min(left, window.innerWidth - popRect.width - 8));
+    pop.style.top = `${top}px`;
+    pop.style.left = `${left}px`;
+
+    openDurationPopoverTaskId = taskId;
+  }
+
+  function hideDurationPopover(){
+    const pop = document.getElementById('durationPopover');
+    if(pop) pop.classList.remove('open');
+    openDurationPopoverTaskId = null;
+  }
+
+  /* ===== بوب أب اختيار (الهدف / الوقت الفعلي) لما تدوس على أيقونة الساعة ===== */
+  function showClockChoicePopover(taskId, anchorEl){
+    const pop = document.getElementById('clockChoicePopover');
+    pop.innerHTML = `
+      <button class="clock-choice-btn" data-choice="target" type="button">
+        <span class="material-icons">flag</span>الهدف
+      </button>
+      <button class="clock-choice-btn" data-choice="actual" type="button">
+        <span class="material-icons">timelapse</span>الوقت الفعلي
+      </button>
+    `;
+    pop.classList.add('open');
+
+    const rect = anchorEl.getBoundingClientRect();
+    const popRect = pop.getBoundingClientRect();
+    let top = rect.top - popRect.height - 8;
+    if(top < 8) top = rect.bottom + 8;
+    let left = rect.left + rect.width / 2 - popRect.width / 2;
+    left = Math.max(8, Math.min(left, window.innerWidth - popRect.width - 8));
+    pop.style.top = `${top}px`;
+    pop.style.left = `${left}px`;
+
+    openClockChoiceTaskId = taskId;
+
+    pop.querySelector('[data-choice="target"]').onclick = () => {
+      hideClockChoicePopover();
+      openDurationPicker(taskId);
+    };
+    pop.querySelector('[data-choice="actual"]').onclick = () => {
+      hideClockChoicePopover();
+      openActualDurationPicker(taskId);
+    };
+  }
+
+  function hideClockChoicePopover(){
+    const pop = document.getElementById('clockChoicePopover');
+    if(pop) pop.classList.remove('open');
+    openClockChoiceTaskId = null;
+  }
+
   function render(){
+    hideDurationPopover();
+    hideClockChoicePopover();
     const today = todayStr();
     const isToday = selectedDate === today;
     const dayTasks = state.days[selectedDate] || [];
@@ -1256,6 +1510,11 @@
     } else {
       html += `<div class="task-list">`;
       dayTasks.forEach(t => {
+        const targetMin = parseDurationToMinutes(t.duration);
+        const actualMin = parseDurationToMinutes(t.actualDuration);
+        const pct = targetMin > 0 ? Math.round((actualMin / targetMin) * 100) : 0;
+        const barPct = Math.min(100, Math.max(0, pct));
+
         html += `
           <div class="task-row ${t.done?'done':''}" draggable="true" data-drag-id="${t.id}">
             <span class="drag-handle material-icons" title="اسحب لإعادة الترتيب">drag_indicator</span>
@@ -1264,10 +1523,15 @@
               <button class="icon-btn timer-start-btn" data-action="start-timer-from-task" data-id="${t.id}" title="ابدأ تايمر لهذه المهمة">
                 <span class="material-icons">play_circle_outline</span>
               </button>
-              <button class="clock-btn" data-action="toggle-duration" data-id="${t.id}" title="أضف/عدّل المدة">
+              <button class="clock-btn" data-action="toggle-duration" data-id="${t.id}" title="حدد الهدف أو الوقت الفعلي">
                 <span class="material-icons">schedule</span>
               </button>
-              ${t.duration ? `<span class="duration-text">: ${escapeHtml(t.duration)}</span>` : ``}
+              ${t.duration ? `
+                <button class="duration-badge ${pct >= 100 ? 'over' : ''}" id="durationBadge_${t.id}" data-action="toggle-duration-view" data-id="${t.id}" title="اضغط لعرض الهدف والوقت الفعلي">
+                  <span class="duration-badge-bar"><span class="duration-badge-fill" id="taskBarFill_${t.id}" style="width:${barPct}%"></span></span>
+                  <span class="duration-badge-pct" id="taskBarPct_${t.id}">${pct}%</span>
+                </button>
+              ` : ``}
               <button class="icon-btn" data-action="delete-task" data-id="${t.id}" title="حذف من اليوم"><span class="material-icons">delete</span></button>
             </div>
           </div>
@@ -1348,7 +1612,18 @@
         render();
       }
       else if(action === 'toggle-duration'){
-        openDurationPicker(id);
+        if(openClockChoiceTaskId === id){
+          hideClockChoicePopover();
+        } else {
+          showClockChoicePopover(id, btn);
+        }
+      }
+      else if(action === 'toggle-duration-view'){
+        if(openDurationPopoverTaskId === id){
+          hideDurationPopover();
+        } else {
+          showDurationPopover(id, btn);
+        }
       }
       else if(action === 'delete-task'){
         state.days[selectedDate] = state.days[selectedDate].filter(t => t.id !== id);
@@ -1360,24 +1635,7 @@
       else if(action === 'start-timer-from-task'){
         const task = state.days[selectedDate].find(x => x.id === id);
         if(!task) return;
-        const timers = getDayTimers(selectedDate);
-        let t = timers.find(x => x.name === task.name);
-        if(t){
-          if(t.running){
-            showToast(`تايمر "${task.name}" شغال بالفعل`);
-          } else {
-            t.running = true;
-            t.startedAt = Date.now();
-            showToast(`كمّلنا تايمر "${task.name}"`);
-          }
-        } else {
-          t = { id: uid(), name: task.name, elapsedMs: 0, running: true, startedAt: Date.now() };
-          timers.push(t);
-          showToast(`بدأ تايمر لـ "${task.name}"`);
-        }
-        renderTimerPanel();
-        timerPanelRenderedForDate = selectedDate;
-        await saveData();
+        await requestNewTimer(task.name);
       }
       else if(action === 'add-to-day'){
         const name = btn.dataset.name;
@@ -1545,8 +1803,14 @@
     await loadData();
     render();
     setInterval(tickTimers, 1000);
-    document.addEventListener('click', () => {
+    document.addEventListener('click', (e) => {
       document.querySelectorAll('.custom-select.open').forEach(s => s.classList.remove('open'));
+      if(openDurationPopoverTaskId && !e.target.closest('.duration-popover') && !e.target.closest('.duration-badge')){
+        hideDurationPopover();
+      }
+      if(openClockChoiceTaskId && !e.target.closest('.clock-choice-popover') && !e.target.closest('.clock-btn')){
+        hideClockChoicePopover();
+      }
     });
 
     document.getElementById('themeBtn').onclick = async () => {
@@ -1656,6 +1920,36 @@
       if(e.target === addChoiceOverlay) closeAddChoiceModal();
     });
 
+    // أحداث Modal اختيار نوع التايمر (مفتوح / محدد)
+    document.getElementById('timerTypeOpenBtn').onclick = async () => {
+      if(!pendingNewTimerName) return;
+      ensureAudioContext();
+      getDayTimers(selectedDate).push({
+        id: uid(),
+        name: pendingNewTimerName,
+        elapsedMs: 0,
+        running: true,
+        startedAt: Date.now(),
+        mode: 'open'
+      });
+      showToast(`بدأ تايمر مفتوح لـ "${pendingNewTimerName}"`);
+      closeTimerTypeModal();
+      renderTimerPanel();
+      timerPanelRenderedForDate = selectedDate;
+      await saveData();
+    };
+    document.getElementById('timerTypeFixedBtn').onclick = () => {
+      const name = pendingNewTimerName;
+      document.getElementById('timerTypeOverlay').classList.remove('open');
+      openTimerDurationPicker(name);
+      pendingNewTimerName = name; // يفضل محفوظ لحد ما يتم اختيار المدة
+    };
+    document.getElementById('closeTimerTypeBtn').onclick = closeTimerTypeModal;
+    const timerTypeOverlay = document.getElementById('timerTypeOverlay');
+    timerTypeOverlay.addEventListener('click', (e) => {
+      if(e.target === timerTypeOverlay) closeTimerTypeModal();
+    });
+
     const pickerOverlay = document.getElementById('durationPickerOverlay');
     document.getElementById('pickerCancelBtn').onclick = closeDurationPicker;
     document.getElementById('pickerDoneBtn').onclick = commitDurationPicker;
@@ -1671,6 +1965,9 @@
         if(accountOverlay.classList.contains('open')) closeAccountModal();
         if(pickerOverlay.classList.contains('open')) closeDurationPicker();
         if(addChoiceOverlay.classList.contains('open')) closeAddChoiceModal();
+        if(timerTypeOverlay.classList.contains('open')) closeTimerTypeModal();
+        if(openDurationPopoverTaskId) hideDurationPopover();
+        if(openClockChoiceTaskId) hideClockChoicePopover();
       }
     });
   })();

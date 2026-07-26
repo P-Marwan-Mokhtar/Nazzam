@@ -417,13 +417,137 @@
     font-size: 18px;
   }
   .clock-btn:hover{ opacity: 1; background: var(--done-soft); }
-  .duration-text{
-    flex: 0 0 auto;
-    font-size: 0.85rem;
-    color: var(--ink-soft);
-    white-space: nowrap;
-    cursor: default;
+  .duration-badge{
+    flex: 1 1 auto;
+    min-width: 64px;
+    max-width: 150px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: transparent;
+    border: none;
+    padding: 4px 2px;
+    cursor: pointer;
+    font-family: inherit;
   }
+  .duration-badge-bar{
+    position: relative;
+    flex: 1 1 auto;
+    height: 6px;
+    min-width: 34px;
+    border-radius: 999px;
+    background: var(--paper-line);
+    overflow: hidden;
+  }
+  .duration-badge-fill{
+    position: absolute;
+    inset: 0 auto 0 0;
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    background: var(--pen);
+    transition: width .3s ease;
+  }
+  .duration-badge.over .duration-badge-fill{ background: var(--done); }
+  .duration-badge-pct{
+    flex: 0 0 auto;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+    direction: ltr;
+  }
+  .duration-badge.over .duration-badge-pct{ color: var(--done); }
+
+  /* ===== بوب أب الهدف / الوقت الفعلي ===== */
+  .duration-popover{
+    position: fixed;
+    z-index: 40;
+    background: var(--card);
+    border: 1px solid var(--paper-line);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 10px 14px;
+    min-width: 150px;
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity .15s ease, transform .15s ease;
+    pointer-events: none;
+  }
+  .duration-popover.open{
+    display: flex;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .duration-popover-row{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    font-size: 0.85rem;
+  }
+  .duration-popover-label{
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--ink-soft);
+    font-weight: 700;
+  }
+  .duration-popover-label .material-icons{ font-size: 15px; }
+  .duration-popover-value{
+    font-weight: 800;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    direction: ltr;
+  }
+  .duration-popover-row.is-over .duration-popover-value{ color: var(--pen); }
+
+  /* ===== بوب أب اختيار الهدف / الوقت الفعلي (من أيقونة الساعة) ===== */
+  .clock-choice-popover{
+    position: fixed;
+    z-index: 40;
+    background: var(--card);
+    border: 1px solid var(--paper-line);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 6px;
+    min-width: 150px;
+    display: none;
+    flex-direction: column;
+    gap: 3px;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity .15s ease, transform .15s ease;
+    pointer-events: none;
+  }
+  .clock-choice-popover.open{
+    display: flex;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .clock-choice-btn{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 10px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: right;
+    width: 100%;
+  }
+  .clock-choice-btn:hover{ background: var(--paper); }
+  .clock-choice-btn .material-icons{ font-size: 17px; color: var(--pen); }
 
   /* ===== Wheel Picker (Drum Roller) ===== */
   .picker-overlay{
@@ -1024,6 +1148,20 @@
     color: var(--ink);
     overflow-wrap: anywhere;
   }
+  .timer-target-label{
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+    background: var(--paper);
+    border-radius: 999px;
+    padding: 2px 8px;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .timer-target-label .material-icons{ font-size: 13px; }
+  .timer-item.countdown-ended{ border-color: var(--pen); box-shadow: 0 0 0 3px var(--pen-soft); }
   .timer-status-dot{
     width: 8px; height: 8px;
     border-radius: 50%;

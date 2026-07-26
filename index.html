@@ -107,7 +107,7 @@
   <div class="picker-sheet">
     <div class="picker-header">
       <button class="picker-cancel" id="pickerCancelBtn">إلغاء</button>
-      <h3>مدة المهمة</h3>
+      <h3 id="pickerTitle">مدة المهمة</h3>
       <button class="picker-done" id="pickerDoneBtn">تم</button>
     </div>
     <div class="picker-body">
@@ -160,6 +160,39 @@
   </div>
 </div>
 
+<!-- Modal اختيار نوع التايمر: وقت مفتوح أو وقت محدد -->
+<div class="modal-overlay" id="timerTypeOverlay">
+  <div class="modal-card" style="max-width: 420px;">
+    <div class="modal-header">
+      <h2>نوع التايمر</h2>
+      <button class="icon-btn" id="closeTimerTypeBtn" title="إغلاق"><span class="material-icons">close</span></button>
+    </div>
+    <div class="modal-body">
+      <p style="color: var(--ink-soft); font-size: 0.95rem; margin-top: 0; margin-bottom: 16px; line-height: 1.5;">
+        عايز التايمر بتاع <strong id="pendingTimerNameDisplay" style="color: var(--pen);"></strong> يكون إزاي؟
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button class="choice-btn" id="timerTypeOpenBtn">
+          <span class="material-icons">all_inclusive</span>
+          <div class="choice-text">
+            <strong>وقت مفتوح</strong>
+            <span>يعدّ تصاعديًا من غير حد معين، توقفه إمتى ما حبيت</span>
+          </div>
+        </button>
+        <button class="choice-btn choice-both" id="timerTypeFixedBtn">
+          <span class="material-icons">hourglass_bottom</span>
+          <div class="choice-text">
+            <strong>وقت محدد</strong>
+            <span>تحدد مدة (زي 15 دقيقة) وهينبهك بصوت لما تخلص</span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="duration-popover" id="durationPopover"></div>
+<div class="clock-choice-popover" id="clockChoicePopover"></div>
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
