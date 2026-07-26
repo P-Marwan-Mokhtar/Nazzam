@@ -2240,7 +2240,8 @@
   }
 
   (async function init(){
-    await loadData();
+    // ارسم الواجهة فورًا بحالة فاضية عشان المستخدم الجديد يشوف الصفحة على طول
+    // من غير ما يستنى Turnstile + تسجيل الدخول المجهول + جلب البيانات من Supabase
     render();
     setInterval(tickTimers, 1000);
     document.addEventListener('click', (e) => {
@@ -2411,5 +2412,10 @@
         if(openClockChoiceTaskId) hideClockChoicePopover();
       }
     });
+
+    // دلوقتي بس نحمّل البيانات الحقيقية (Turnstile + anonymous auth + Supabase) في الخلفية،
+    // ولما توصل نعيد الرسم عشان تظهر مهام اليوم وبنك المهام الفعليين
+    await loadData();
+    render();
   })();
 })();
