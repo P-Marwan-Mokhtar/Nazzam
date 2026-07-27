@@ -2469,6 +2469,7 @@
     // دلوقتي بس نحمّل البيانات الحقيقية (Turnstile + anonymous auth + Supabase) في الخلفية،
     // ولما توصل نعيد الرسم عشان تظهر مهام اليوم وبنك المهام الفعليين
     await loadData();
+    timerPanelRenderedForDate = null; // نجبر لوحة التايمر تترسم تاني بالبيانات الحقيقية (كانت اترسمت فاضية قبل ما البيانات توصل)
     render();
     checkMissedTasksPopup();
   })();
