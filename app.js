@@ -1275,7 +1275,8 @@
   }
 
   function closeMissedTasksModal(){
-    document.getElementById('missedTasksOverlay').classList.remove('open');
+    const el = document.getElementById('missedTasksOverlay');
+    if(el) el.classList.remove('open');
   }
 
   function openAccountModal(){
@@ -2319,12 +2320,14 @@
       if(e.target === calendarOverlay) closeCalendarModal();
     });
 
-    document.getElementById('closeMissedTasksBtn').onclick = closeMissedTasksModal;
+    const closeMissedTasksBtn = document.getElementById('closeMissedTasksBtn');
     const missedTasksOverlay = document.getElementById('missedTasksOverlay');
-    missedTasksOverlay.addEventListener('click', (e) => {
-      if(e.target === missedTasksOverlay) closeMissedTasksModal();
-    });
-
+    if(closeMissedTasksBtn && missedTasksOverlay){
+      closeMissedTasksBtn.onclick = closeMissedTasksModal;
+      missedTasksOverlay.addEventListener('click', (e) => {
+        if(e.target === missedTasksOverlay) closeMissedTasksModal();
+      });
+    }
     // أحداث زر ونافذة الـ Drafts والبحث الذكي
     document.getElementById('draftsBtn').onclick = openDraftsModal;
     document.getElementById('closeDraftsBtn').onclick = closeDraftsModal;
@@ -2452,7 +2455,7 @@
       if(e.key === 'Escape'){
         if(statsViewOpen){ statsViewOpen = false; justReturnedFromStats = true; render(); }
         if(calendarOverlay.classList.contains('open')) closeCalendarModal();
-        if(missedTasksOverlay.classList.contains('open')) closeMissedTasksModal();
+        if(missedTasksOverlay && missedTasksOverlay.classList.contains('open')) closeMissedTasksModal();
         if(draftsOverlay.classList.contains('open')) closeDraftsModal();
         if(accountOverlay.classList.contains('open')) closeAccountModal();
         if(pickerOverlay.classList.contains('open')) closeDurationPicker();

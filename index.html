@@ -182,6 +182,22 @@
   </div>
 </div>
 
+<!-- Modal مهام امبارح اللي متعملتلهاش check -->
+<div class="modal-overlay" id="missedTasksOverlay">
+  <div class="modal-card" style="max-width: 420px;">
+    <div class="modal-header">
+      <h2>مهام امبارح</h2>
+      <button class="icon-btn" id="closeMissedTasksBtn" title="إغلاق"><span class="material-icons">close</span></button>
+    </div>
+    <div class="modal-body">
+      <p style="color: var(--ink-soft); font-size: 0.95rem; margin-top: 0; margin-bottom: 16px; line-height: 1.5;">
+        الحاجات دي كانت في جدول امبارح ومتعملتلهاش check:
+      </p>
+      <ul class="stat-list" id="missedTasksList"></ul>
+    </div>
+  </div>
+</div>
+
 <div class="duration-popover" id="durationPopover"></div>
 <div class="clock-choice-popover" id="clockChoicePopover"></div>
 <div class="toast" id="toast"></div>
