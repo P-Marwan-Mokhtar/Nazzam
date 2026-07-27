@@ -981,6 +981,20 @@
     font-size: 0.9rem;
     white-space: nowrap;
   }
+  .keyword-streak{
+    display:inline-flex;
+    align-items:center;
+    gap: 1px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--pen);
+    background: var(--pen-soft);
+    border-radius: 20px;
+    padding: 1px 6px 1px 7px;
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  .keyword-streak .material-icons{ font-size: 13px; }
 
   .edit-input{
     flex:1;

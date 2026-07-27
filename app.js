@@ -608,6 +608,10 @@
     const dayDoneCounts = {};
     const filterTotals = {}; // filterId -> ms (لرسم توزيع الوقت حسب التصنيف)
     let longestTask = null;
+    const taskTargetMap = {}; // name -> إجمالي الهدف (ms) للمهام اللي ليها هدف ووقت فعلي معًا هذا الأسبوع
+    const taskActualForEstMap = {}; // name -> إجمالي الوقت الفعلي (ms) لنفس المهام دي
+    let totalTargetMsWithActual = 0;
+    let totalActualMsForEst = 0;
 
     // خريطة من اسم المهمة لتصنيفها (filterId) بناءً على بنك المهام
     const nameToFilterId = {};
@@ -632,6 +636,15 @@
           }
           const fId = nameToFilterId[t.name];
           if(fId) filterTotals[fId] = (filterTotals[fId] || 0) + ms;
+
+          // دقة تقدير الوقت: بس للمهام اللي محدد لها هدف (duration) وعندها وقت فعلي في نفس الوقت
+          const targetMs = parseDurationToMinutes(t.duration) * 60000;
+          if(targetMs > 0){
+            taskTargetMap[t.name] = (taskTargetMap[t.name] || 0) + targetMs;
+            taskActualForEstMap[t.name] = (taskActualForEstMap[t.name] || 0) + ms;
+            totalTargetMsWithActual += targetMs;
+            totalActualMsForEst += ms;
+          }
         }
       });
       dayTotals[date] = dayMs;
@@ -671,12 +684,42 @@
     });
     const neglected = state.keywords.filter(k => !recentNames.has(k.name)).slice(0, 8);
 
+    // دقة تقدير الوقت: نسبة الوقت الفعلي إلى الهدف المحدد، على مستوى الأسبوع وعلى مستوى كل مهمة
+    const estimationAccuracyPct = totalTargetMsWithActual > 0
+      ? Math.round((totalActualMsForEst / totalTargetMsWithActual) * 100)
+      : null;
+    const estimationTasks = Object.keys(taskTargetMap)
+      .map(name => ({ name, targetMs: taskTargetMap[name], actualMs: taskActualForEstMap[name] }))
+      .sort((a,b) => (b.targetMs + b.actualMs) - (a.targetMs + a.actualMs))
+      .slice(0, 5);
+
     return {
       totalMs, doneCount, totalTaskCount, missedCount,
       topTasks, longestTask, streak, bestDay, bestDayMs,
       topFrequent, neglected,
-      weekDays, dayTotals, dayTaskCounts, dayDoneCounts, filterTotals
+      weekDays, dayTotals, dayTaskCounts, dayDoneCounts, filterTotals,
+      estimationAccuracyPct, estimationTasks
     };
+  }
+
+  // بيحسب عدد الأيام المتتالية اللي المستخدم "أنجز" فيها مهمة معينة (بالاسم)، بنفس منطق سلسلة الأيام العامة أعلاه.
+  // النهاردة بيتحسب في السلسلة لو خلصت المهمة، وبيتجاهل (من غير ما يكسر السلسلة) لو لسه ما خلصتش لأن اليوم لسه ما خلصش.
+  function computeTaskStreak(name){
+    let streak = 0;
+    const today = todayStr();
+    const todayTasks = state.days[today] || [];
+    const todayTask = todayTasks.find(t => t.name === name);
+    if(todayTask && todayTask.done) streak++;
+
+    let cursor = addDays(today, -1);
+    while(true){
+      const tasks = state.days[cursor] || [];
+      const t = tasks.find(x => x.name === name);
+      if(!t || !t.done) break;
+      streak++;
+      cursor = addDays(cursor, -1);
+    }
+    return streak;
   }
 
   // يمسح كل الـ Chart.js instances القديمة قبل ما نرسم شارتات جديدة (عشان نتجنب تسريب الذاكرة/أخطاء إعادة استخدام الـ canvas)
@@ -718,6 +761,10 @@
       .map(f => ({ name: f.name, ms: s.filterTotals[f.id] || 0 }))
       .filter(f => f.ms > 0);
 
+    const estLabels = s.estimationTasks.map(e => e.name);
+    const estTargetHours = s.estimationTasks.map(e => +(e.targetMs / 3600000).toFixed(2));
+    const estActualHours = s.estimationTasks.map(e => +(e.actualMs / 3600000).toFixed(2));
+
     let html = `
       <div class="stats-view">
         <div class="stats-view-header">
@@ -747,6 +794,12 @@
             <strong style="color: var(--missed);">${s.missedCount}</strong>
             <small>${s.missedCount === 1 ? 'مهمة فائتة' : 'مهام فائتة'}</small>
           </div>
+          ${s.estimationAccuracyPct !== null ? `
+          <div class="stats-summary-pill">
+            <span class="material-icons">speed</span>
+            <strong>${s.estimationAccuracyPct}%</strong>
+            <small>دقة تقدير الوقت</small>
+          </div>` : ``}
         </div>
 
         <div class="chart-grid">
@@ -778,6 +831,12 @@
           <div class="chart-card chart-card-wide">
             <div class="chart-card-title"><span class="material-icons">category</span>توزيع الوقت حسب التصنيف</div>
             <div class="chart-card-body"><canvas id="chartFilters"></canvas></div>
+          </div>` : ``}
+
+          ${estLabels.length ? `
+          <div class="chart-card chart-card-wide">
+            <div class="chart-card-title"><span class="material-icons">speed</span>الوقت المخطط مقابل الوقت الفعلي</div>
+            <div class="chart-card-body"><canvas id="chartEstimation"></canvas></div>
           </div>` : ``}
         </div>
 
@@ -941,6 +1000,41 @@
               pointLabels: { color: inkColor, font: { size: 11 } },
               ticks: { color: inkColor, backdropColor: 'transparent' }
             }
+          }
+        }
+      }));
+    }
+
+    // 6) بار مزدوج: الوقت المخطط (الهدف) مقابل الوقت الفعلي لكل مهمة
+    const ctxEstimation = document.getElementById('chartEstimation');
+    if(ctxEstimation){
+      statsChartInstances.push(new Chart(ctxEstimation, {
+        type: 'bar',
+        data: {
+          labels: estLabels,
+          datasets: [
+            {
+              label: 'الهدف',
+              data: estTargetHours,
+              backgroundColor: inkSoftColor + '99',
+              borderRadius: 6,
+              maxBarThickness: 28
+            },
+            {
+              label: 'الوقت الفعلي',
+              data: estActualHours,
+              backgroundColor: penColor,
+              borderRadius: 6,
+              maxBarThickness: 28
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', rtl: true, labels: { color: inkColor, font: { size: 11 } } } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: inkColor } },
+            y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor } }
           }
         }
       }));
@@ -1946,12 +2040,14 @@
             `;
           } else {
             const alreadyAdded = dayTasks.some(t => t.name === k.name);
+            const kStreak = computeTaskStreak(k.name);
             html += `
               <div class="keyword-row" draggable="true" data-drag-id="${k.id}">
                 <span class="drag-handle material-icons" title="اسحب لإعادة الترتيب">drag_indicator</span>
                 <button class="add-to-day-btn ${alreadyAdded ? 'added' : ''}" data-action="add-to-day" data-name="${escapeAttr(k.name)}" ${alreadyAdded ? 'disabled' : ''} title="${alreadyAdded ? 'مُضافة بالفعل اليوم' : 'إضافة إلى مهام اليوم'}"><span class="material-icons">${alreadyAdded ? 'check' : 'add'}</span></button>
                 <div class="keyword-main">
                   <span class="keyword-name" title="${escapeAttr(k.name)}">${highlightMatch(k.name, bankSearchQuery)}</span>
+                  ${kStreak >= 2 ? `<span class="keyword-streak" title="${kStreak} ${kStreak === 1 ? 'يوم متتالي' : 'أيام متتالية'} من الإنجاز"><span class="material-icons">local_fire_department</span>${kStreak}</span>` : ``}
                   <div class="keyword-icons">
                     <button class="icon-btn" data-action="edit-keyword" data-id="${k.id}" title="تعديل في البنك"><span class="material-icons">edit</span></button>
                     <button class="icon-btn" data-action="delete-keyword" data-id="${k.id}" title="نقل إلى المسودات"><span class="material-icons">archive</span></button>
