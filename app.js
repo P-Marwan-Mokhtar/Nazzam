@@ -22,6 +22,7 @@
   let accountModalMode = 'save'; // 'save' | 'signin' | 'forgot' | 'forgot-sent'
   let accountFormBusy = false; // true أثناء انتظار رد من Supabase
   const LOCAL_BACKUP_KEY = 'habit-data-v2'; // نسخة احتياطية محلية في حالة قطع النت
+  const FIRST_VISIT_ACCOUNT_KEY = 'nazam-account-prompt-seen'; // بيتسجل أول ما المستخدم يقفل شاشة الحساب أول مرة
 
   /* تسجيل دخول مجهول تلقائي (Anonymous Auth):
      ده بيدي كل جهاز/متصفح هوية ثابتة (user_id) في Supabase من غير ما نحتاج
@@ -1251,6 +1252,7 @@
     document.getElementById('accountOverlay').classList.add('open');
   }
   function closeAccountModal(){
+    try{ localStorage.setItem(FIRST_VISIT_ACCOUNT_KEY, '1'); }catch(e){}
     document.getElementById('accountOverlay').classList.remove('open');
   }
 
@@ -2244,6 +2246,14 @@
     // من غير ما يستنى Turnstile + تسجيل الدخول المجهول + جلب البيانات من Supabase
     render();
     setInterval(tickTimers, 1000);
+
+    // لأول زيارة بس: اعرض شاشة الحساب من غير ما تنتظر تحميل البيانات
+    // ولو المستخدم قفلها (بأي طريقة) مش هتظهرله تاني تلقائيًا
+    try{
+      if(!localStorage.getItem(FIRST_VISIT_ACCOUNT_KEY)){
+        openAccountModal();
+      }
+    }catch(e){}
     document.addEventListener('click', (e) => {
       document.querySelectorAll('.custom-select.open').forEach(s => s.classList.remove('open'));
       if(openDurationPopoverTaskId && !e.target.closest('.duration-popover') && !e.target.closest('.duration-badge')){
