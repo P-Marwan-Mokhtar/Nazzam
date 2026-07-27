@@ -23,7 +23,7 @@
   let accountFormBusy = false; // true أثناء انتظار رد من Supabase
   const LOCAL_BACKUP_KEY = 'habit-data-v2'; // نسخة احتياطية محلية في حالة قطع النت
   const FIRST_VISIT_ACCOUNT_KEY = 'nazam-account-prompt-seen'; // بيتسجل أول ما المستخدم يقفل شاشة الحساب أول مرة
-  const MISSED_POPUP_SHOWN_KEY = 'nazam-missed-popup-last-shown'; // آخر يوم اتعرض فيه بوب أب مهام امبارح
+  const MISSED_POPUP_SHOWN_KEY = 'nazam-missed-popup-last-shown'; // آخر يوم اتعرض فيه بوب أب مهام الأمس
 
   /* تسجيل دخول مجهول تلقائي (Anonymous Auth):
      ده بيدي كل جهاز/متصفح هوية ثابتة (user_id) في Supabase من غير ما نحتاج
@@ -112,7 +112,7 @@
   function handleOAuthReturnIfAny(){
     const params = new URLSearchParams(window.location.search);
     if(params.get('authreturn') === 'google' && !isAnonymousUser){
-      showToast('تم تسجيل الدخول بنجاح عبر Google');
+      showToast('تم تسجيل الدخول بنجاح بنجاح عبر Google');
       params.delete('authreturn');
       const newSearch = params.toString();
       const newUrl = window.location.pathname + (newSearch ? ('?' + newSearch) : '') + window.location.hash;
@@ -411,7 +411,7 @@
     if(pickerMode === 'timer'){
       const targetMs = (h * 60 + m) * 60000;
       if(targetMs <= 0){
-        showToast('حدد مدة أكبر من صفر');
+        showToast('يرجى تحديد مدة أكبر من صفر');
         return;
       }
       const name = pendingNewTimerName;
@@ -486,7 +486,7 @@
 
     if(!currentUserId){
       // تعذر الاتصال بـ Supabase (مفيش نت مثلًا) - استخدم آخر نسخة محفوظة محليًا
-      showToast('تعذر الاتصال بالسيرفر، شغال بنسخة محلية');
+      showToast('تعذّر الاتصال بالخادم، يعمل التطبيق حاليًا بنسخة محلية');
       applyLoadedState(loadLocalBackup());
       return;
     }
@@ -524,7 +524,7 @@
     saveLocalBackup(); // حفظ فوري محلي مايفوتش أي تحديث حتى لو النت وقع
 
     if(!currentUserId){
-      showToast('تعذر الحفظ على السيرفر (بدون اتصال)، اتحفظ محليًا فقط');
+      showToast('تعذّر الحفظ على الخادم (لا يوجد اتصال)، تم الحفظ محليًا فقط');
       return;
     }
 
@@ -545,7 +545,7 @@
       if(error) throw error;
     }catch(e){
       console.error('Save failed:', e);
-      showToast('تعذر الحفظ على السيرفر، حاول تاني');
+      showToast('تعذّر الحفظ على الخادم، يرجى المحاولة مرة أخرى');
     }finally{
       saveInFlight = false;
       if(savePending){
@@ -742,7 +742,7 @@
           <div class="stats-summary-pill">
             <span class="material-icons" style="color: var(--missed);">event_busy</span>
             <strong style="color: var(--missed);">${s.missedCount}</strong>
-            <small>${s.missedCount === 1 ? 'مهمة فايتة' : 'مهام فايتة'}</small>
+            <small>${s.missedCount === 1 ? 'مهمة فائتة' : 'مهام فائتة'}</small>
           </div>
         </div>
 
@@ -750,14 +750,14 @@
           <div class="chart-card">
             <div class="chart-card-title"><span class="material-icons">task_alt</span>نسبة الإنجاز الأسبوعي</div>
             <div class="chart-card-body">
-              ${s.totalTaskCount ? `<canvas id="chartCompletion"></canvas>` : `<div class="stat-empty">مفيش مهام مسجلة الأسبوع دا</div>`}
+              ${s.totalTaskCount ? `<canvas id="chartCompletion"></canvas>` : `<div class="stat-empty">لا توجد مهام مسجلة هذا الأسبوع</div>`}
             </div>
           </div>
 
           <div class="chart-card">
-            <div class="chart-card-title"><span class="material-icons">local_fire_department</span>أكتر مهام قضيت عليها وقت</div>
+            <div class="chart-card-title"><span class="material-icons">local_fire_department</span>أكثر المهام استهلاكًا للوقت</div>
             <div class="chart-card-body">
-              ${topTasksLabels.length ? `<canvas id="chartTopTasks"></canvas>` : `<div class="stat-empty">لسه محددتش مدة لأي مهمة الأسبوع دا</div>`}
+              ${topTasksLabels.length ? `<canvas id="chartTopTasks"></canvas>` : `<div class="stat-empty">لم تُحدَّد مدة لأي مهمة هذا الأسبوع</div>`}
             </div>
           </div>
 
@@ -779,12 +779,12 @@
         </div>
 
         <div class="stat-block">
-          <div class="stat-block-title"><span class="material-icons">inventory_2</span>مهام في البنك ملهاش نصيب مؤخرًا</div>
+          <div class="stat-block-title"><span class="material-icons">inventory_2</span>مهام في البنك لم تُستخدم مؤخرًا</div>
           ${s.neglected.length ? `
             <ul class="stat-list">
               ${s.neglected.map(k => `<li><span class="stat-list-name">${escapeHtml(k.name)}</span></li>`).join('')}
             </ul>
-          ` : `<div class="stat-empty">كل مهام البنك بتتضاف بانتظام 👌</div>`}
+          ` : `<div class="stat-empty">جميع مهام البنك تُضاف بانتظام 👌</div>`}
         </div>
       </div>
     `;
@@ -821,7 +821,7 @@
       }));
     }
 
-    // 2) بار: أكتر مهام قضيت عليها وقت
+    // 2) بار: أكثر المهام استهلاكًا للوقت
     const ctxTopTasks = document.getElementById('chartTopTasks');
     if(ctxTopTasks){
       statsChartInstances.push(new Chart(ctxTopTasks, {
@@ -951,14 +951,14 @@
 
   function mapAuthError(e){
     const msg = (e && e.message) || '';
-    if(msg.includes('Invalid login credentials')) return 'الإيميل أو كلمة المرور غلط';
-    if(msg.includes('already registered') || msg.includes('already been registered')) return 'الإيميل ده مستخدم بالفعل، جرب تسجّل دخول بدل كده';
-    if(msg.includes('Email not confirmed')) return 'لازم تأكد إيميلك الأول، شوف رسالة التأكيد في بريدك';
-    if(msg.includes('Password should be at least')) return 'كلمة المرور لازم تكون 6 أحرف على الأقل';
-    if(msg.toLowerCase().includes('rate limit') || msg.includes('Too Many') || msg.includes('429')) return 'محاولات كتير قوي في وقت قصير، استنى شوية وجرب تاني';
-    if(msg.toLowerCase().includes('captcha')) return 'تعذر التحقق الأمني، حدّث الصفحة وجرب تاني';
-    if(msg.includes('Failed to fetch') || msg.includes('NetworkError')) return 'تأكد من اتصال الإنترنت وحاول تاني';
-    return msg || 'حصل خطأ، حاول تاني';
+    if(msg.includes('Invalid login credentials')) return 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+    if(msg.includes('already registered') || msg.includes('already been registered')) return 'هذا البريد الإلكتروني مستخدم بالفعل، حاول تسجيل الدخول بدلًا من ذلك';
+    if(msg.includes('Email not confirmed')) return 'يجب تأكيد بريدك الإلكتروني أولًا، يرجى مراجعة رسالة التأكيد في بريدك';
+    if(msg.includes('Password should be at least')) return 'يجب ألا تقل كلمة المرور عن 6 أحرف';
+    if(msg.toLowerCase().includes('rate limit') || msg.includes('Too Many') || msg.includes('429')) return 'محاولات كثيرة جدًا خلال وقت قصير، يرجى الانتظار قليلًا والمحاولة مرة أخرى';
+    if(msg.toLowerCase().includes('captcha')) return 'تعذّر التحقق الأمني، يرجى تحديث الصفحة والمحاولة مرة أخرى';
+    if(msg.includes('Failed to fetch') || msg.includes('NetworkError')) return 'يرجى التأكد من اتصال الإنترنت والمحاولة مرة أخرى';
+    return msg || 'حدث خطأ، يرجى المحاولة مرة أخرى';
   }
 
   function setAccountFormBusy(busy){
@@ -1028,13 +1028,13 @@
     // حالة: نسيت كلمة المرور
     if(accountModalMode === 'forgot'){
       bodyEl.innerHTML = `
-        <div class="account-hint">اكتب الإيميل المرتبط بحسابك، وهنبعتلك رابط لتصفير كلمة المرور.</div>
+        <div class="account-hint">أدخل البريد الإلكتروني المرتبط بحسابك، وسنرسل إليك رابطًا لإعادة تعيين كلمة المرور.</div>
         ${errorHtml}
         <div class="account-form" id="accForm">
-          <input type="email" class="account-input" id="accEmail" placeholder="الإيميل" autocomplete="email" />
+          <input type="email" class="account-input" id="accEmail" placeholder="البريد الإلكتروني" autocomplete="email" />
           <button class="account-primary-btn" id="accSubmitBtn">إرسال رابط إعادة التعيين</button>
         </div>
-        <div class="account-switch-line"><button id="accSwitchMode">رجوع لتسجيل الدخول</button></div>
+        <div class="account-switch-line"><button id="accSwitchMode">العودة إلى تسجيل الدخول</button></div>
       `;
       document.getElementById('accSwitchMode').onclick = () => { accountModalMode = 'signin'; renderAccountModal(); };
       const submit = () => handleForgotPassword(document.getElementById('accEmail').value.trim());
@@ -1049,11 +1049,11 @@
         <div class="account-status is-linked">
           <span class="material-icons">mark_email_read</span>
           <div class="account-status-text">
-            <strong>اتبعت الرابط</strong>
-            <span>افتح بريدك واضغط على رابط تصفير كلمة المرور</span>
+            <strong>تم إرسال الرابط</strong>
+            <span>افتح بريدك الإلكتروني واضغط على رابط إعادة تعيين كلمة المرور</span>
           </div>
         </div>
-        <div class="account-switch-line"><button id="accSwitchMode">رجوع لتسجيل الدخول</button></div>
+        <div class="account-switch-line"><button id="accSwitchMode">العودة إلى تسجيل الدخول</button></div>
       `;
       document.getElementById('accSwitchMode').onclick = () => { accountModalMode = 'signin'; renderAccountModal(); };
       return;
@@ -1065,14 +1065,14 @@
         <div class="account-status">
           <span class="material-icons">person_outline</span>
           <div class="account-status-text">
-            <strong>ضيف حالياً</strong>
-            <span>بياناتك محفوظة على الجهاز ده بس</span>
+            <strong>حساب مؤقت (زائر)</strong>
+            <span>بياناتك محفوظة على هذا الجهاز فقط</span>
           </div>
         </div>
-        <div class="account-hint">تسجيل الدخول لحساب موجود هيوديك لبيانات الحساب ده، مش بيانات الجهاز الحالي.</div>
+        <div class="account-hint">تسجيل الدخول إلى حساب موجود سينقلك إلى بيانات ذلك الحساب، وليس بيانات هذا الجهاز.</div>
         ${errorHtml}
         <div class="account-form" id="accForm">
-          <input type="email" class="account-input" id="accEmail" placeholder="الإيميل" autocomplete="email" />
+          <input type="email" class="account-input" id="accEmail" placeholder="البريد الإلكتروني" autocomplete="email" />
           <div class="account-pass-wrap">
             <input type="password" class="account-input" id="accPassword" placeholder="كلمة المرور" autocomplete="current-password" />
             <button type="button" class="account-pass-toggle" id="accPassToggle" tabindex="-1"><span class="material-icons">visibility</span></button>
@@ -1081,7 +1081,7 @@
         </div>
         <div class="account-switch-line"><button id="accForgotBtn">نسيت كلمة المرور؟</button></div>
         ${googleBlockHtml()}
-        <div class="account-switch-line">مفيش حساب محفوظ لسه؟ <button id="accSwitchMode">احفظ الحساب الحالي بدل كده</button></div>
+        <div class="account-switch-line">لا يوجد حساب محفوظ بعد؟ <button id="accSwitchMode">احفظ حسابك الحالي بدلًا من ذلك</button></div>
       `;
       wirePasswordToggle('accPassword', 'accPassToggle');
       const submit = () => {
@@ -1099,14 +1099,14 @@
         <div class="account-status">
           <span class="material-icons">person_outline</span>
           <div class="account-status-text">
-            <strong>ضيف حالياً</strong>
-            <span>بياناتك متخزنة، بس لو مسحت بيانات المتصفح هتفقدها</span>
+            <strong>حساب مؤقت (زائر)</strong>
+            <span>بياناتك محفوظة حاليًا، لكنك ستفقدها إذا مسحت بيانات المتصفح</span>
           </div>
         </div>
-        <div class="account-hint">احفظ إيميل وباسورد عشان توصل لبياناتك دي من أي جهاز تاني، ومتفقدهاش لو مسحت الكاش.</div>
+        <div class="account-hint">احفظ بريدًا إلكترونيًا وكلمة مرور لتتمكن من الوصول إلى بياناتك من أي جهاز آخر، ولن تفقدها حتى لو مسحت ذاكرة التخزين المؤقت.</div>
         ${errorHtml}
         <div class="account-form" id="accForm">
-          <input type="email" class="account-input" id="accEmail" placeholder="الإيميل" autocomplete="email" />
+          <input type="email" class="account-input" id="accEmail" placeholder="البريد الإلكتروني" autocomplete="email" />
           <div class="account-pass-wrap">
             <input type="password" class="account-input" id="accPassword" placeholder="كلمة المرور (6 أحرف على الأقل)" autocomplete="new-password" />
             <button type="button" class="account-pass-toggle" id="accPassToggle" tabindex="-1"><span class="material-icons">visibility</span></button>
@@ -1118,7 +1118,7 @@
           <button class="account-primary-btn" id="accSubmitBtn">احفظ الحساب</button>
         </div>
         ${googleBlockHtml()}
-        <div class="account-switch-line">عندك حساب محفوظ بالفعل؟ <button id="accSwitchMode">سجّل دخول بيه</button></div>
+        <div class="account-switch-line">لديك حساب محفوظ بالفعل؟ <button id="accSwitchMode">سجّل الدخول به</button></div>
       `;
       wirePasswordToggle('accPassword', 'accPassToggle');
       wirePasswordToggle('accPasswordConfirm', 'accPassConfirmToggle');
@@ -1137,19 +1137,19 @@
 
   async function linkEmailAccount(email, password, passwordConfirm){
     if(!email || !password){
-      renderAccountModal('اكتب الإيميل وكلمة المرور الأول');
+      renderAccountModal('يرجى إدخال البريد الإلكتروني وكلمة المرور أولًا');
       return;
     }
     if(!isValidEmail(email)){
-      renderAccountModal('الإيميل مش صيغته صح');
+      renderAccountModal('صيغة البريد الإلكتروني غير صحيحة');
       return;
     }
     if(password.length < 6){
-      renderAccountModal('كلمة المرور لازم تكون 6 أحرف على الأقل');
+      renderAccountModal('يجب ألا تقل كلمة المرور عن 6 أحرف');
       return;
     }
     if(password !== passwordConfirm){
-      renderAccountModal('كلمة المرور وتأكيدها مش متطابقين');
+      renderAccountModal('كلمة المرور وتأكيدها غير متطابقين');
       return;
     }
     setAccountFormBusy(true);
@@ -1158,7 +1158,7 @@
       if(error) throw error;
       const { data: { user } } = await supabaseClient.auth.getUser();
       applyAuthUser(user);
-      showToast('تم حفظ الحساب. لو Supabase محتاج تأكيد إيميل، تحقق من بريدك');
+      showToast('تم حفظ الحساب بنجاح. إذا استلزم الأمر تأكيد البريد الإلكتروني، يرجى التحقق من بريدك');
       renderAccountModal();
     }catch(e){
       console.error('Link account error:', e);
@@ -1170,11 +1170,11 @@
 
   async function signInExisting(email, password){
     if(!email || !password){
-      renderAccountModal('اكتب الإيميل وكلمة المرور الأول');
+      renderAccountModal('يرجى إدخال البريد الإلكتروني وكلمة المرور أولًا');
       return;
     }
     if(!isValidEmail(email)){
-      renderAccountModal('الإيميل مش صيغته صح');
+      renderAccountModal('صيغة البريد الإلكتروني غير صحيحة');
       return;
     }
     setAccountFormBusy(true);
@@ -1186,7 +1186,7 @@
       });
       if(error) throw error;
       applyAuthUser(data.user);
-      showToast('تم تسجيل الدخول');
+      showToast('تم تسجيل الدخول بنجاح');
       closeAccountModal();
       await loadData();
       render();
@@ -1200,7 +1200,7 @@
 
   async function handleForgotPassword(email){
     if(!email || !isValidEmail(email)){
-      renderAccountModal('اكتب إيميل صحيح الأول');
+      renderAccountModal('يرجى إدخال بريد إلكتروني صحيح أولًا');
       return;
     }
     setAccountFormBusy(true);
@@ -1238,7 +1238,7 @@
   }
 
   async function signOutUser(){
-    if(!confirm('متأكد من تسجيل الخروج؟ هتحتاج تسجّل دخول تاني عشان توصل لنفس البيانات.')) return;
+    if(!confirm('هل أنت متأكد من تسجيل الخروج؟ ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى البيانات نفسها.')) return;
     try{
       await supabaseClient.auth.signOut();
       currentUserId = null;
@@ -1249,10 +1249,10 @@
       closeAccountModal();
       await loadData();
       render();
-      showToast('تم تسجيل الخروج');
+      showToast('تم تسجيل الخروج بنجاح');
     }catch(e){
       console.error('Sign out error:', e);
-      showToast('حصل خطأ أثناء تسجيل الخروج');
+      showToast('حدث خطأ أثناء تسجيل الخروج');
     }
   }
 
@@ -1299,7 +1299,7 @@
       : state.drafts;
 
     if(filteredDrafts.length === 0){
-      listEl.innerHTML = `<div class="empty-state">مفيش مسودات (Drafts) محفوظة حالياً.</div>`;
+      listEl.innerHTML = `<div class="empty-state">لا توجد مسودات محفوظة حاليًا.</div>`;
       return;
     }
 
@@ -1309,7 +1309,7 @@
         <div style="background: var(--paper); border: 1px solid var(--paper-line); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
           <span style="font-size: 0.92rem; font-weight: 700; color: var(--ink);">${highlightMatch(d.name, draftsSearchQuery)}</span>
           <div style="display: flex; gap: 6px;">
-            <button class="icon-btn" data-action="restore-draft" data-id="${d.id}" title="استعادة لبنك المهام"><span class="material-icons">unarchive</span></button>
+            <button class="icon-btn" data-action="restore-draft" data-id="${d.id}" title="استعادة إلى بنك المهام"><span class="material-icons">unarchive</span></button>
             <button class="icon-btn" data-action="delete-draft-permanently" data-id="${d.id}" title="حذف نهائي"><span class="material-icons">delete_forever</span></button>
           </div>
         </div>
@@ -1329,10 +1329,10 @@
             renderDraftsModal();
             render();
             await saveData();
-            showToast('تمت استعادة المهمة لبنك المهام');
+            showToast('تمت استعادة المهمة إلى بنك المهام');
           }
         } else if(action === 'delete-draft-permanently'){
-          if(confirm('متأكد من حذف هذه المسودة نهائياً؟')){
+          if(confirm('هل أنت متأكد من حذف هذه المسودة نهائيًا؟')){
             state.drafts = state.drafts.filter(x => x.id !== id);
             renderDraftsModal();
             await saveData();
@@ -1464,18 +1464,18 @@
     html += `
       <div class="timer-panel-title">
         <span class="material-icons">timer</span>
-        تايمرز اليوم
+        مؤقتات اليوم
       </div>
       <div class="timer-add-row">
-        <input type="text" id="newTimerInput" placeholder="اسم المهمة اللي هتشتغل عليها..." maxlength="60" />
-        <button class="timer-add-btn" id="addTimerBtn" title="ابدأ تايمر جديد">
+        <input type="text" id="newTimerInput" placeholder="اسم المهمة التي ستعمل عليها..." maxlength="60" />
+        <button class="timer-add-btn" id="addTimerBtn" title="ابدأ مؤقتًا جديدًا">
           <span class="material-icons">add</span>
         </button>
       </div>
     `;
 
     if(timers.length === 0){
-      html += `<div class="timer-empty">مفيش تايمرز لسه النهاردة.<br>اكتب اسم المهمة وابدأ.</div>`;
+      html += `<div class="timer-empty">لا توجد مؤقتات حتى الآن اليوم.<br>اكتب اسم المهمة وابدأ.</div>`;
     } else {
       html += `<div class="timer-list">`;
       timers.forEach(t => {
@@ -1546,7 +1546,7 @@
           await saveData();
         }
         else if(action === 'delete-timer'){
-          if(confirm(`متأكد إنك عايز تحذف تايمر "${t.name}"؟`)){
+          if(confirm(`هل أنت متأكد من رغبتك في حذف المؤقت "${t.name}"؟`)){
             state.timers[selectedDate] = list.filter(x => x.id !== id);
             renderTimerPanel();
             await saveData();
@@ -1854,18 +1854,18 @@
         <button class="nav-btn" id="prevBtn" aria-label="اليوم السابق"><span class="material-icons">chevron_right</span></button>
         <div class="date-display">
           <div class="day-name">${fmtDay(selectedDate)}</div>
-          <div class="day-sub">${dayTasks.length ? `${doneCount} من ${dayTasks.length} خلصت${totalHoursText ? ` • ${totalHoursText}` : ''}` : 'مفيش مهام متسجلة لليوم ده'}</div>
+          <div class="day-sub">${dayTasks.length ? `${doneCount} من ${dayTasks.length} أُنجزت${totalHoursText ? ` • ${totalHoursText}` : ''}` : 'لا توجد مهام مسجّلة لهذا اليوم'}</div>
         </div>
         <button class="nav-btn" id="nextBtn" aria-label="اليوم التالي" ${isToday ? 'disabled' : ''}><span class="material-icons">chevron_left</span></button>
       </div>
     `;
     if(!isToday){
-      html += `<button class="today-btn" id="todayBtn">العودة لليوم</button>`;
+      html += `<button class="today-btn" id="todayBtn">العودة إلى اليوم</button>`;
     }
 
     // Keyword Bank Section
     html += `<button class="bank-toggle" data-action="toggle-bank" type="button">
-      <span class="bank-toggle-label">بنك المهام (Keywords)</span>
+      <span class="bank-toggle-label">بنك المهام</span>
       <span class="bank-toggle-arrow ${bankOpen ? 'open' : ''}"><span class="material-icons">expand_more</span></span>
     </button>`;
 
@@ -1875,7 +1875,7 @@
       html += `
         <div class="add-row-group">
           <div class="add-row">
-            <input type="text" id="newKeywordInput" placeholder="أكتب مهمة جديدة..." maxlength="80" />
+            <input type="text" id="newKeywordInput" placeholder="اكتب مهمة جديدة..." maxlength="80" />
             ${buildFilterDropdown('newKeywordFilterCustom', '')}
             <button class="add-btn icon-only" id="addKeywordBtn" title="إضافة مهمة"><span class="material-icons">add</span></button>
           </div>
@@ -1889,7 +1889,7 @@
       html += `
         <div class="bank-search">
           <span class="material-icons bank-search-icon">search</span>
-          <input type="text" id="bankSearchInput" placeholder="دور على مهمة في البنك..." value="${escapeAttr(bankSearchQuery)}" />
+          <input type="text" id="bankSearchInput" placeholder="ابحث عن مهمة في البنك..." value="${escapeAttr(bankSearchQuery)}" />
           ${bankSearchQuery ? `<button class="bank-search-clear" id="bankSearchClear" title="مسح البحث"><span class="material-icons">close</span></button>` : ``}
         </div>
       `;
@@ -1916,9 +1916,9 @@
         : filterMatched;
 
       if(visibleKeywords.length === 0){
-        let emptyMsg = 'بنك المهام فاضي. ضيف مهامك الأساسية من فوق.';
-        if(state.keywords.length > 0 && searchNormalized) emptyMsg = 'مفيش نتائج مطابقة للبحث.';
-        else if(state.keywords.length > 0) emptyMsg = 'مفيش مهام في الفلتر ده.';
+        let emptyMsg = 'بنك المهام فارغ. أضف مهامك الأساسية أعلاه.';
+        if(state.keywords.length > 0 && searchNormalized) emptyMsg = 'لا توجد نتائج مطابقة للبحث.';
+        else if(state.keywords.length > 0) emptyMsg = 'لا توجد مهام في هذا الفلتر.';
         html += `<div class="empty-state">${emptyMsg}</div>`;
       } else {
         const slicedKeywords = visibleKeywords.slice(0, bankDisplayLimit);
@@ -1938,10 +1938,10 @@
             html += `
               <div class="keyword-row" draggable="true" data-drag-id="${k.id}">
                 <span class="drag-handle material-icons" title="اسحب لإعادة الترتيب">drag_indicator</span>
-                <button class="add-to-day-btn ${alreadyAdded ? 'added' : ''}" data-action="add-to-day" data-name="${escapeAttr(k.name)}" ${alreadyAdded ? 'disabled' : ''} title="${alreadyAdded ? 'مضافة بالفعل النهاردة' : 'إضافة لمهام اليوم'}"><span class="material-icons">${alreadyAdded ? 'check' : 'add'}</span></button>
+                <button class="add-to-day-btn ${alreadyAdded ? 'added' : ''}" data-action="add-to-day" data-name="${escapeAttr(k.name)}" ${alreadyAdded ? 'disabled' : ''} title="${alreadyAdded ? 'مُضافة بالفعل اليوم' : 'إضافة إلى مهام اليوم'}"><span class="material-icons">${alreadyAdded ? 'check' : 'add'}</span></button>
                 <span class="keyword-name">${highlightMatch(k.name, bankSearchQuery)}</span>
                 <button class="icon-btn" data-action="edit-keyword" data-id="${k.id}" title="تعديل في البنك"><span class="material-icons">edit</span></button>
-                <button class="icon-btn" data-action="delete-keyword" data-id="${k.id}" title="نقل إلى Draft"><span class="material-icons">archive</span></button>
+                <button class="icon-btn" data-action="delete-keyword" data-id="${k.id}" title="نقل إلى المسودات"><span class="material-icons">archive</span></button>
               </div>
             `;
           }
@@ -1969,8 +1969,8 @@
     if(dayTasks.length === 0){
       html += `
         <div class="empty-state">
-          مفيش مهام متضافة لليوم ده.<br>
-          اضغط (+) من بنك المهام فوق عشان تضيف مهمة.
+          لا توجد مهام مُضافة لهذا اليوم.<br>
+          اضغط (+) من بنك المهام أعلاه لإضافة مهمة.
         </div>
       `;
     } else {
@@ -1986,7 +1986,7 @@
             <span class="drag-handle material-icons" title="اسحب لإعادة الترتيب">drag_indicator</span>
             <div class="task-main" data-action="toggle-task" data-id="${t.id}">
               <span class="task-name">${escapeHtml(t.name)}</span>
-              <button class="icon-btn timer-start-btn" data-action="start-timer-from-task" data-id="${t.id}" title="ابدأ تايمر لهذه المهمة">
+              <button class="icon-btn timer-start-btn" data-action="start-timer-from-task" data-id="${t.id}" title="ابدأ مؤقتًا لهذه المهمة">
                 <span class="material-icons">play_circle_outline</span>
               </button>
               <button class="clock-btn" data-action="toggle-duration" data-id="${t.id}" title="حدد الهدف أو الوقت الفعلي">
@@ -2116,13 +2116,13 @@
         if(!state.days[selectedDate]) state.days[selectedDate] = [];
         const exists = state.days[selectedDate].some(t => t.name === name);
         if(exists){
-          showToast('المهمة دي متضافة بالفعل النهاردة');
+          showToast('هذه المهمة مُضافة بالفعل إلى جدول اليوم');
           return;
         }
         state.days[selectedDate].push({ id: uid(), name: name, done: false });
         render();
         await saveData();
-        showToast('تمت الإضافة لمهام اليوم');
+        showToast('تمت الإضافة إلى مهام اليوم');
       }
       else if(action === 'select-filter'){
         const newFilter = btn.dataset.filterId;
@@ -2132,7 +2132,7 @@
         render();
       }
       else if(action === 'delete-filter'){
-        if(confirm('متأكد إنك عايز تحذف الفلتر ده؟ المهام اللي فيه هترجع بدون فلتر (وتفضل ظاهرة في الكل).')){
+        if(confirm('هل أنت متأكد من رغبتك في حذف هذا الفلتر؟ ستعود المهام التابعة له بلا تصنيف (وستبقى ظاهرة ضمن الكل).')){
           state.filters = state.filters.filter(f => f.id !== id);
           state.keywords.forEach(k => { if(k.filterId === id) k.filterId = null; });
           if(activeFilter === id) activeFilter = 'all';
@@ -2150,7 +2150,7 @@
           state.drafts.push(kw);
           render();
           await saveData();
-          showToast('تم نقل المهمة إلى الـ Drafts بنجاح');
+          showToast('تم نقل المهمة إلى المسودات بنجاح');
         }
       }
       else if(action === 'edit-keyword'){
@@ -2234,7 +2234,7 @@
         if(!val) return;
         const exists = state.filters.some(f => f.name === val);
         if(exists){
-          showToast('الفلتر ده موجود بالفعل');
+          showToast('هذا الفلتر موجود بالفعل');
           return;
         }
         state.filters.push({ id: uid(), name: val });
@@ -2370,9 +2370,9 @@
       const exists = state.days[selectedDate].some(t => t.name === pendingTaskName);
       if(!exists){
         state.days[selectedDate].push({ id: uid(), name: pendingTaskName, done: false });
-        showToast('تمت الإضافة لمهام اليوم فقط');
+        showToast('تمت الإضافة إلى مهام اليوم فقط');
       } else {
-        showToast('المهمة دي موجودة بالفعل في مهام اليوم');
+        showToast('هذه المهمة موجودة بالفعل في مهام اليوم');
       }
       const input = document.getElementById('newKeywordInput');
       if(input) input.value = '';
@@ -2384,7 +2384,7 @@
     document.getElementById('choiceBankBtn').onclick = async () => {
       if(!pendingTaskName) return;
       state.keywords.push({ id: uid(), name: pendingTaskName, filterId: pendingTaskFilterId });
-      showToast('تمت الإضافة لبنك المهام');
+      showToast('تمت الإضافة إلى بنك المهام');
       const input = document.getElementById('newKeywordInput');
       if(input) input.value = '';
       closeAddChoiceModal();
@@ -2400,7 +2400,7 @@
       if(!exists){
         state.days[selectedDate].push({ id: uid(), name: pendingTaskName, done: false });
       }
-      showToast('تمت الإضافة للبنك ولمهام اليوم');
+      showToast('تمت الإضافة إلى البنك وإلى مهام اليوم');
       const input = document.getElementById('newKeywordInput');
       if(input) input.value = '';
       closeAddChoiceModal();
@@ -2414,7 +2414,7 @@
       if(e.target === addChoiceOverlay) closeAddChoiceModal();
     });
 
-    // أحداث Modal اختيار نوع التايمر (مفتوح / محدد)
+    // أحداث Modal اختيار نوع المؤقت (مفتوح / محدد)
     document.getElementById('timerTypeOpenBtn').onclick = async () => {
       if(!pendingNewTimerName) return;
       ensureAudioContext();
