@@ -1338,6 +1338,24 @@
     if(!confirm('هل أنت متأكد من تسجيل الخروج؟ ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى البيانات نفسها.')) return;
     try{
       await supabaseClient.auth.signOut();
+
+      // مهم جدًا: امسح النسخة الاحتياطية المحلية القديمة قبل أي حاجة تانية.
+      // من غير الخطوة دي، loadData() هيلاقي localStorage لسه فيه بيانات المستخدم
+      // اللي عمل تسجيل خروج، ويفتكرها بيانات "مستخدم جديد" جاي من نسخة أوفلاين
+      // قديمة، فيرفعها تلقائيًا للحساب المجهول الجديد - وهو بالظبط سبب رجوع البيانات.
+      try{ localStorage.removeItem(LOCAL_BACKUP_KEY); }catch(e){}
+
+      // رجّع الـ state في الذاكرة لوضعه الافتراضي عشان الشاشة تتصفّر فورًا
+      // من غير ما تستنى رد الشبكة.
+      state = { keywords: [], drafts: [], days: {}, filters: [], timers: {}, darkMode: false };
+      selectedDate = toISO(new Date());
+      activeFilter = 'all';
+      editingKeywordId = null;
+      bankSearchQuery = '';
+      draftsSearchQuery = '';
+      bankDisplayLimit = 10;
+      document.body.classList.remove('dark-mode');
+
       currentUserId = null;
       isAnonymousUser = true;
       currentUserEmail = null;
