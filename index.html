@@ -14,21 +14,37 @@
 <div class="wrap" id="app">
   <div class="binding"><span></span><span></span><span></span><span></span><span></span></div>
   <div class="header-card">
-    <button class="stats-trigger-btn" id="statsBtn" title="الإحصائيات">
-      <span class="material-icons">insights</span>
-    </button>
-    <button class="calendar-trigger-btn" id="calendarBtn" title="التقويم">
-      <span class="material-icons">calendar_today</span>
-    </button>
-    <button class="drafts-trigger-btn" id="draftsBtn" title="المهام المؤرشفة">
-      <span class="material-icons">drafts</span>
-    </button>
-    <button class="account-trigger-btn" id="accountBtn" title="الحساب">
-      <span class="material-icons" id="accountIcon">person_outline</span>
-    </button>
-    <button class="theme-trigger-btn" id="themeBtn" title="الوضع الليلي">
-      <span class="material-icons" id="themeIcon">dark_mode</span>
-    </button>
+    <div class="header-actions-wrap">
+      <button class="header-more-btn" id="headerMoreBtn" title="المزيد" aria-label="المزيد من الأزرار" aria-expanded="false">
+        <span class="material-icons">more_vert</span>
+      </button>
+      <div class="header-actions-panel" id="headerActionsPanel">
+        <div class="header-actions header-group-right" id="headerGroupRight">
+          <button class="header-icon-btn" id="accountBtn" title="الحساب">
+            <span class="material-icons" id="accountIcon">person_outline</span>
+            <span class="header-btn-label">الحساب</span>
+          </button>
+          <button class="header-icon-btn" id="themeBtn" title="الوضع الليلي">
+            <span class="material-icons" id="themeIcon">dark_mode</span>
+            <span class="header-btn-label">الوضع الليلي</span>
+          </button>
+        </div>
+        <div class="header-actions header-group-left" id="headerGroupLeft">
+          <button class="header-icon-btn" id="statsBtn" title="الإحصائيات">
+            <span class="material-icons">insights</span>
+            <span class="header-btn-label">الإحصائيات</span>
+          </button>
+          <button class="header-icon-btn" id="calendarBtn" title="التقويم">
+            <span class="material-icons">calendar_today</span>
+            <span class="header-btn-label">التقويم</span>
+          </button>
+          <button class="header-icon-btn" id="draftsBtn" title="المهام المؤرشفة">
+            <span class="material-icons">drafts</span>
+            <span class="header-btn-label">المهام المؤرشفة</span>
+          </button>
+        </div>
+      </div>
+    </div>
     <h1>المهام اليومية</h1>
     <p class="subtitle">بنك مهامك الجاهز.. اسحب منه ما ستنجزه اليوم</p>
   </div>
@@ -206,5 +222,32 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4" defer></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
 <script src="app.js" defer></script>
+<script>
+  // فتح/قفل قائمة "المزيد" على الموبايل — منفصل عن منطق التطبيق الأساسي
+  document.addEventListener('DOMContentLoaded', () => {
+    const moreBtn = document.getElementById('headerMoreBtn');
+    const menu = document.getElementById('headerActionsPanel');
+    if(!moreBtn || !menu) return;
+
+    const closeMenu = () => {
+      menu.classList.remove('open');
+      moreBtn.classList.remove('is-open');
+      moreBtn.setAttribute('aria-expanded', 'false');
+    };
+
+    moreBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = menu.classList.toggle('open');
+      moreBtn.classList.toggle('is-open', isOpen);
+      moreBtn.setAttribute('aria-expanded', String(isOpen));
+    });
+
+    // إقفال القائمة عند الضغط على أي زرار جواها أو برّه
+    menu.querySelectorAll('button').forEach(btn => btn.addEventListener('click', closeMenu));
+    document.addEventListener('click', (e) => {
+      if(!menu.contains(e.target) && e.target !== moreBtn) closeMenu();
+    });
+  });
+</script>
 </body>
 </html>

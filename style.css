@@ -386,6 +386,11 @@
     gap:8px;
     cursor:pointer;
   }
+  .task-icons{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
   .task-row.done{background: var(--done-soft);}
   .task-row.done .task-name{
     text-decoration: line-through;
@@ -915,6 +920,16 @@
   }
   .add-to-day-btn.added:hover{ background:transparent; color:var(--ink-soft); }
 
+  .keyword-main{
+    display:flex;
+    align-items:center;
+    gap: 6px;
+  }
+  .keyword-icons{
+    display:flex;
+    align-items:center;
+    gap: 6px;
+  }
   .keyword-name {
     font-size: 0.9rem;
     white-space: nowrap;
@@ -1246,29 +1261,60 @@
   }
   .timer-delete-btn:hover{ background:#fdecea; color:#c0392b; }
 
-  /* ===== Stats, Calendar, Drafts, Account & Theme Buttons ===== */
-  .stats-trigger-btn, .calendar-trigger-btn, .drafts-trigger-btn, .account-trigger-btn, .theme-trigger-btn{
+  /* ===== Header Action Groups: Stats/Calendar/Drafts (left) & Account/Theme (right) ===== */
+  .header-actions-panel{ display: contents; }
+  .header-group-left{
     position: absolute;
     top: 14px;
+    left: 14px;
+  }
+  .header-group-right{
+    position: absolute;
+    top: 14px;
+    right: 14px;
+  }
+  .header-actions{
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: var(--paper);
+    border-radius: 12px;
+    padding: 4px;
+  }
+  .header-icon-btn{
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--pen);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background .15s ease, transform .1s ease, color .15s ease;
+  }
+  .header-icon-btn:hover{ background: var(--done-soft); color: var(--done); }
+  .header-icon-btn:active{ transform: scale(0.92); }
+  .header-icon-btn.is-linked{ color: var(--done); }
+  .header-btn-label{ display:none; font-size:0.85rem; font-weight:600; white-space:nowrap; }
+
+  /* "More" button — hidden on desktop, only shown on narrow screens */
+  .header-more-btn{
+    display: none;
     width: 38px; height: 38px;
     border-radius: 10px;
     border: none;
     background: var(--paper);
     color: var(--pen);
     cursor: pointer;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    align-items: center;
+    justify-content: center;
     transition: background .15s ease, transform .1s ease;
   }
-  .stats-trigger-btn{ left: 14px; }
-  .calendar-trigger-btn{ left: 60px; }
-  .account-trigger-btn{ left: 106px; }
-  .drafts-trigger-btn{ right: 60px; }
-  .theme-trigger-btn{ right: 14px; }
-  .stats-trigger-btn:hover, .calendar-trigger-btn:hover, .drafts-trigger-btn:hover, .account-trigger-btn:hover, .theme-trigger-btn:hover{ background: var(--done-soft); color: var(--done); }
-  .stats-trigger-btn:active, .calendar-trigger-btn:active, .drafts-trigger-btn:active, .account-trigger-btn:active, .theme-trigger-btn:active{ transform: scale(0.92); }
-  .account-trigger-btn.is-linked{ color: var(--done); }
+  .header-more-btn:hover{ background: var(--done-soft); color: var(--done); }
+  .header-more-btn:active{ transform: scale(0.92); }
+  .header-more-btn.is-open{ background: var(--done-soft); color: var(--done); }
 
   /* ===== Account Modal ===== */
   .account-status{
@@ -1615,6 +1661,10 @@
   @media (max-width: 900px){
     .main-layout{
       flex-direction: column;
+      align-items: stretch;
+    }
+    .main-col{
+      width: 100%;
     }
     .timer-col{
       flex: 1 1 auto;
@@ -1631,6 +1681,58 @@
     .header-card{ padding: 16px 12px 14px; }
     h1{ font-size: 1.55rem; }
     .subtitle{ font-size: 0.8rem; }
+
+    /* Collapse all 5 buttons into one "more" dropdown on the right, in order */
+    .header-more-btn{
+      display: flex;
+      position: absolute;
+      top: 14px;
+      right: 14px;
+    }
+    .header-actions-panel{
+      display: flex;
+      position: absolute;
+      top: 58px;
+      right: 14px;
+      flex-direction: column;
+      gap: 2px;
+      background: var(--card);
+      border: 1px solid var(--paper-line);
+      border-radius: 12px;
+      padding: 4px;
+      min-width: 200px;
+      box-shadow: var(--shadow);
+      z-index: 5;
+      opacity: 0;
+      transform: translateY(-8px);
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .header-actions-panel.open{
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .header-group-left, .header-group-right{
+      position: static;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 2px;
+    }
+    .header-actions-panel .header-actions{
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
+    }
+    .header-actions-panel .header-icon-btn{
+      width: 100%;
+      justify-content: flex-start;
+      padding: 9px 12px;
+      border-radius: 8px;
+      background: transparent;
+    }
+    .header-actions-panel .header-btn-label{ display: inline; }
 
     .date-nav{ padding: 8px; }
     .nav-btn{ width:38px; height:38px; font-size:1.15rem; }
@@ -1657,10 +1759,72 @@
     .add-btn{
       flex: 1 1 auto;
     }
+    .add-row-filter{
+      flex-wrap: nowrap;
+    }
+    .add-row-filter input{
+      flex: 1 1 auto;
+    }
 
-    .task-name, .keyword-name{
+    .task-list{
+      flex-direction: column;
+    }
+    .task-row{
+      width: 100%;
+      flex: 1 1 100%;
+      align-items: flex-start;
+    }
+    .task-main{
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+    .task-icons{
+      width: 100%;
+      justify-content: flex-end;
+    }
+    .duration-badge{
+      flex: 0 0 auto;
+      min-width: 0;
+      max-width: none;
+    }
+    .duration-badge-bar{
+      flex: 0 0 30px;
+      min-width: 0;
+    }
+
+    .keyword-row{
+      width: 100%;
+      flex: 1 1 100%;
+      align-items: center;
+    }
+    .keyword-main{
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .keyword-icons{
+      flex: 0 0 auto;
+    }
+    .keyword-name{
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .task-name{
+      width: 100%;
+      min-width: 0;
       white-space: normal;
       word-break: break-word;
+      overflow-wrap: anywhere;
     }
     .task-row, .keyword-row{
       max-width: 100%;

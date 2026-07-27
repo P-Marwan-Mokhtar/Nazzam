@@ -1879,7 +1879,7 @@
             ${buildFilterDropdown('newKeywordFilterCustom', '')}
             <button class="add-btn icon-only" id="addKeywordBtn" title="إضافة مهمة"><span class="material-icons">add</span></button>
           </div>
-          <div class="add-row">
+          <div class="add-row add-row-filter">
             <input type="text" id="newFilterInput" placeholder="أضف فلتر جديد..." maxlength="40" />
             <button class="add-btn icon-only" id="addFilterBtn" title="إضافة فلتر"><span class="material-icons">add</span></button>
           </div>
@@ -1939,9 +1939,13 @@
               <div class="keyword-row" draggable="true" data-drag-id="${k.id}">
                 <span class="drag-handle material-icons" title="اسحب لإعادة الترتيب">drag_indicator</span>
                 <button class="add-to-day-btn ${alreadyAdded ? 'added' : ''}" data-action="add-to-day" data-name="${escapeAttr(k.name)}" ${alreadyAdded ? 'disabled' : ''} title="${alreadyAdded ? 'مُضافة بالفعل اليوم' : 'إضافة إلى مهام اليوم'}"><span class="material-icons">${alreadyAdded ? 'check' : 'add'}</span></button>
-                <span class="keyword-name">${highlightMatch(k.name, bankSearchQuery)}</span>
-                <button class="icon-btn" data-action="edit-keyword" data-id="${k.id}" title="تعديل في البنك"><span class="material-icons">edit</span></button>
-                <button class="icon-btn" data-action="delete-keyword" data-id="${k.id}" title="نقل إلى المسودات"><span class="material-icons">archive</span></button>
+                <div class="keyword-main">
+                  <span class="keyword-name" title="${escapeAttr(k.name)}">${highlightMatch(k.name, bankSearchQuery)}</span>
+                  <div class="keyword-icons">
+                    <button class="icon-btn" data-action="edit-keyword" data-id="${k.id}" title="تعديل في البنك"><span class="material-icons">edit</span></button>
+                    <button class="icon-btn" data-action="delete-keyword" data-id="${k.id}" title="نقل إلى المسودات"><span class="material-icons">archive</span></button>
+                  </div>
+                </div>
               </div>
             `;
           }
@@ -1985,7 +1989,8 @@
           <div class="task-row ${t.done?'done':''} ${(!t.done && isPastDay)?'missed':''}" draggable="true" data-drag-id="${t.id}">
             <span class="drag-handle material-icons" title="اسحب لإعادة الترتيب">drag_indicator</span>
             <div class="task-main" data-action="toggle-task" data-id="${t.id}">
-              <span class="task-name">${escapeHtml(t.name)}</span>
+              <span class="task-name" title="${escapeAttr(t.name)}">${escapeHtml(t.name)}</span>
+              <div class="task-icons">
               <button class="icon-btn timer-start-btn" data-action="start-timer-from-task" data-id="${t.id}" title="ابدأ مؤقتًا لهذه المهمة">
                 <span class="material-icons">play_circle_outline</span>
               </button>
@@ -2003,6 +2008,7 @@
                 </button>
               ` : ``}
               <button class="icon-btn" data-action="delete-task" data-id="${t.id}" title="حذف من اليوم"><span class="material-icons">delete</span></button>
+              </div>
             </div>
           </div>
         `;
