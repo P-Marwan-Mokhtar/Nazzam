@@ -149,6 +149,8 @@
   let statsViewOpen = false; // لما تبقى true، #content بيعرض شاشة الإحصائيات بدل مهام اليوم
   let justReturnedFromStats = false; // true لمرة واحدة بس لما نرجع من شاشة الإحصائيات، عشان نشغّل أنيميشن الدخول مرة واحدة فقط
   let statsChartInstances = []; // مراجع لكل الـ Chart.js instances عشان نقدر نمسحها قبل كل رسم جديد
+  let openTaskMoreId = null; // المهمة اللي فاتح لها قائمة (المزيد) دلوقتي
+  let editingTaskId = null;
 
   let pendingTaskName = '';
   let pendingTaskFilterId = null;
@@ -1957,6 +1959,22 @@
     const today = todayStr();
     const isToday = selectedDate === today;
     const isPastDay = selectedDate < today;
+    
+    if(!state.pinnedInjected) state.pinnedInjected = {};
+    // Auto-Pin logic: ensure pinned tasks are inside today/future's array ONCE per day
+    if(selectedDate >= today && !state.pinnedInjected[selectedDate] && state.pinnedTaskNames && state.pinnedTaskNames.length > 0) {
+      if(!state.days[selectedDate]) state.days[selectedDate] = [];
+      let pinnedAdded = false;
+      state.pinnedTaskNames.forEach(pName => {
+        if(!state.days[selectedDate].some(t => t.name === pName)){
+          state.days[selectedDate].push({ id: uid(), name: pName, done: false });
+          pinnedAdded = true;
+        }
+      });
+      state.pinnedInjected[selectedDate] = true;
+      if(pinnedAdded) saveData();
+    }
+
     const dayTasks = state.days[selectedDate] || [];
     const doneCount = dayTasks.filter(t => t.done).length;
     const totalActualMinutes = dayTasks.reduce((sum, t) => sum + parseDurationToMinutes(t.actualDuration), 0);
@@ -2116,11 +2134,16 @@
           <div class="task-row ${t.done?'done':''} ${(!t.done && isPastDay)?'missed':''}" draggable="true" data-drag-id="${t.id}">
             <span class="drag-handle material-icons" title="اسحب لإعادة الترتيب">drag_indicator</span>
             <div class="task-main" data-action="toggle-task" data-id="${t.id}">
-              <span class="task-name" title="${escapeAttr(t.name)}">${escapeHtml(t.name)}</span>
+              ${editingTaskId === t.id ? `
+                <div class="inline-edit-wrap">
+                  <input type="text" id="inlineEditInput_${t.id}" class="inline-edit-input" value="${escapeAttr(t.name)}" />
+                  <button class="icon-btn" data-action="save-task-edit" data-id="${t.id}" title="حفظ"><span class="material-icons">check</span></button>
+                  <button class="icon-btn" data-action="cancel-task-edit" data-id="${t.id}" title="إلغاء"><span class="material-icons">close</span></button>
+                </div>
+              ` : `
+                <span class="task-name" title="${escapeAttr(t.name)}">${escapeHtml(t.name)}</span>
+              `}
               <div class="task-icons">
-              <button class="icon-btn timer-start-btn" data-action="start-timer-from-task" data-id="${t.id}" title="ابدأ مؤقتًا لهذه المهمة">
-                <span class="material-icons">play_circle_outline</span>
-              </button>
               <button class="clock-btn" data-action="toggle-duration" data-id="${t.id}" title="حدد الهدف أو الوقت الفعلي">
                 <span class="material-icons">schedule</span>
               </button>
@@ -2134,7 +2157,26 @@
                   `}
                 </button>
               ` : ``}
-              <button class="icon-btn" data-action="delete-task" data-id="${t.id}" title="حذف من اليوم"><span class="material-icons">delete</span></button>
+              <div class="task-more-menu-wrap" data-wrap-id="${t.id}">
+                <button class="icon-btn task-more-btn" data-action="toggle-task-more" data-id="${t.id}" title="المزيد">
+                  <span class="material-icons">more_vert</span>
+                </button>
+                <div class="task-more-dropdown ${openTaskMoreId === t.id ? 'open' : ''}" id="taskMoreDropdown_${t.id}">
+                  <button class="tmd-btn" data-action="edit-task-today" data-id="${t.id}">
+                    <span class="material-icons">edit</span><span>تعديل</span>
+                  </button>
+                  <button class="tmd-btn ${(state.pinnedTaskNames && state.pinnedTaskNames.includes(t.name)) ? 'active' : ''}" data-action="pin-task-today" data-id="${t.id}">
+                    <span class="material-icons" style="font-size: 18px!important;">${(state.pinnedTaskNames && state.pinnedTaskNames.includes(t.name)) ? 'push_pin' : 'push_pin'}</span>
+                    <span>${(state.pinnedTaskNames && state.pinnedTaskNames.includes(t.name)) ? 'مثبتة يومياً' : 'تثبيت يومي'}</span>
+                  </button>
+                  <button class="tmd-btn" data-action="start-timer-from-task" data-id="${t.id}">
+                    <span class="material-icons">play_circle_outline</span><span>بدء تايمر</span>
+                  </button>
+                  <button class="tmd-btn delete" data-action="delete-task" data-id="${t.id}">
+                    <span class="material-icons">delete</span><span>حذف</span>
+                  </button>
+                </div>
+              </div>
               </div>
             </div>
           </div>
@@ -2261,7 +2303,60 @@
         await saveData();
         showToast('تم الحذف من اليوم');
       }
+      else if(action === 'toggle-task-more'){
+        openTaskMoreId = openTaskMoreId === id ? null : id;
+        render();
+      }
+      else if(action === 'edit-task-today'){
+        openTaskMoreId = null;
+        editingTaskId = id;
+        render();
+        const inp = document.getElementById('inlineEditInput_' + id);
+        if(inp) {
+          inp.focus();
+          inp.setSelectionRange(inp.value.length, inp.value.length);
+        }
+      }
+      else if(action === 'save-task-edit'){
+        openTaskMoreId = null;
+        const task = state.days[selectedDate].find(x => x.id === id);
+        const inp = document.getElementById('inlineEditInput_' + id);
+        if(task && inp){
+          const newName = inp.value.trim();
+          if(newName){
+            if(state.pinnedTaskNames && state.pinnedTaskNames.includes(task.name)){
+              state.pinnedTaskNames = state.pinnedTaskNames.filter(n => n !== task.name);
+              state.pinnedTaskNames.push(newName);
+            }
+            task.name = newName;
+          }
+        }
+        editingTaskId = null;
+        render();
+        saveData();
+      }
+      else if(action === 'cancel-task-edit'){
+        editingTaskId = null;
+        render();
+      }
+      else if(action === 'pin-task-today'){
+        openTaskMoreId = null;
+        const task = state.days[selectedDate].find(x => x.id === id);
+        if(!task) return;
+        if(!state.pinnedTaskNames) state.pinnedTaskNames = [];
+        if(state.pinnedTaskNames.includes(task.name)){
+          state.pinnedTaskNames = state.pinnedTaskNames.filter(n => n !== task.name);
+          showToast('تم إلغاء التثبيت اليومي');
+        } else {
+          state.pinnedTaskNames.push(task.name);
+          showToast('تم التثبيت لتظهر هذه المهمة يومياً');
+        }
+        render();
+        saveData();
+      }
       else if(action === 'start-timer-from-task'){
+        openTaskMoreId = null;
+        render();
         const task = state.days[selectedDate].find(x => x.id === id);
         if(!task) return;
         await requestNewTimer(task.name);
@@ -2412,6 +2507,22 @@
 
     wireCustomSelects();
 
+    if (editingTaskId) {
+      const inp = document.getElementById('inlineEditInput_' + editingTaskId);
+      if (inp) {
+        inp.onkeydown = (e) => {
+          if (e.key === 'Enter') {
+            const btn = document.querySelector(`button[data-action="save-task-edit"][data-id="${editingTaskId}"]`);
+            if (btn) btn.click();
+          }
+          if (e.key === 'Escape') {
+            const btn = document.querySelector(`button[data-action="cancel-task-edit"][data-id="${editingTaskId}"]`);
+            if (btn) btn.click();
+          }
+        };
+      }
+    }
+
     wireDragAndDrop('.keyword-row[data-drag-id]', (draggedId, targetId) => {
       reorderArrayById(state.keywords, draggedId, targetId);
       render();
@@ -2450,6 +2561,10 @@
       }
       if(openClockChoiceTaskId && !e.target.closest('.clock-choice-popover') && !e.target.closest('.clock-btn')){
         hideClockChoicePopover();
+      }
+      if(openTaskMoreId && !e.target.closest('.task-more-dropdown') && !e.target.closest('.task-more-btn')){
+        openTaskMoreId = null;
+        render();
       }
     });
 

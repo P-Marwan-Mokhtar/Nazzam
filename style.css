@@ -1946,3 +1946,101 @@
     from{ opacity:1; transform: translateY(0) scaleY(1); max-height: 200px; }
     to{ opacity:0; transform: translateY(-8px) scaleY(0.94); max-height: 0; }
   }
+
+  /* ===== Task More Menu (Dots) ===== */
+  .task-more-menu-wrap {
+    position: relative;
+    display: flex;
+  }
+  .task-more-btn {
+    color: var(--ink-soft);
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+  .task-more-btn:hover {
+    color: var(--ink);
+    background: var(--paper);
+  }
+  .task-more-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    background: var(--card);
+    border: 1px solid var(--paper-line);
+    box-shadow: var(--shadow);
+    border-radius: 10px;
+    padding: 6px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    min-width: 140px;
+    opacity: 0;
+    transform: translateY(-5px);
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+  .task-more-dropdown.open {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .tmd-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 10px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: background 0.1s ease, color 0.1s ease;
+  }
+  .tmd-btn:hover {
+    background: var(--paper);
+  }
+  .tmd-btn .material-icons {
+    font-size: 18px;
+    color: var(--pen);
+  }
+  .tmd-btn.active {
+    color: var(--done);
+    background: var(--done-soft);
+  }
+  .tmd-btn.active .material-icons {
+    color: var(--done);
+  }
+  .tmd-btn.delete {
+    color: #e74c3c;
+  }
+  .tmd-btn.delete .material-icons {
+    color: #e74c3c;
+  }
+  .tmd-btn.delete:hover {
+    background: #fadbd8;
+  }
+
+  /* ===== Task Inline Edit ===== */
+  .inline-edit-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+  }
+  .inline-edit-input {
+    flex: 1;
+    min-width: 0;
+    border: 1.5px solid var(--pen);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: var(--ink);
+    background: var(--card);
+  }
+  .inline-edit-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--pen-soft);
+  }
