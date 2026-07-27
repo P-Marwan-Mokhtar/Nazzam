@@ -724,6 +724,144 @@
     return streak;
   }
 
+  /* ===== تصدير التقرير الأسبوعي PDF ===== */
+  function exportWeeklyPDF(){
+    const s = computeWeekStats();
+    const isDark = state.darkMode;
+
+    // بناء جدول الأيام السبعة
+    const DAY_SHORT = ['أحد','إثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
+    const daysTableRows = s.weekDays.map(date => {
+      const d = fromISO(date);
+      const dayLabel = DAY_SHORT[d.getDay()];
+      const done = s.dayDoneCounts[date] || 0;
+      const total = s.dayTaskCounts[date] || 0;
+      const ms = s.dayTotals[date] || 0;
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+      const bar = `<div style="width:100%;background:#e8e0d5;border-radius:4px;height:6px;"><div style="width:${pct}%;background:#5c6e4e;border-radius:4px;height:6px;"></div></div>`;
+      return `<tr>
+        <td>${dayLabel} ${date.slice(5)}</td>
+        <td style="text-align:center">${done}/${total}</td>
+        <td style="text-align:center">${ms > 0 ? formatHM(ms) : '—'}</td>
+        <td style="width:120px">${bar}</td>
+      </tr>`;
+    }).join('');
+
+    // أفضل 5 مهام وقتاً
+    const topTasksRows = s.topTasks.length > 0
+      ? s.topTasks.map(([name, ms]) => `<li><span>${escapeHtml(name)}</span><strong>${formatHM(ms)}</strong></li>`).join('')
+      : '<li>لا توجد بيانات</li>';
+
+    // دقة التقدير
+    const estBlock = s.estimationAccuracyPct !== null
+      ? `<div class="card"><div class="card-title">📐 دقة تقدير الوقت</div><p class="big">${s.estimationAccuracyPct}%</p><p class="sub">نسبة الوقت الفعلي مقارنةً بالهدف المحدد هذا الأسبوع</p></div>`
+      : '';
+
+    const weekLabel = `${s.weekDays[0]} → ${s.weekDays[s.weekDays.length - 1]}`;
+    const now = new Date();
+    const printDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+
+    const html = `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>التقرير الأسبوعي</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Tajawal', sans-serif; background: #faf7f2; color: #2c2416; padding: 32px; direction: rtl; }
+  h1 { font-size: 1.9rem; font-weight: 800; color: #3e5c2e; margin-bottom: 4px; }
+  .sub-header { font-size: 0.85rem; color: #888; margin-bottom: 28px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+  .card { background: #fff; border: 1px solid #e0d8cc; border-radius: 12px; padding: 16px 18px; }
+  .card-title { font-size: 0.8rem; font-weight: 700; color: #888; margin-bottom: 6px; }
+  .big { font-size: 1.7rem; font-weight: 800; color: #3e5c2e; }
+  .sub { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+  .full { grid-column: 1 / -1; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th { background: #f0ebe3; padding: 8px 10px; text-align: right; font-weight: 700; font-size: 0.8rem; color: #666; }
+  td { padding: 8px 10px; border-bottom: 1px solid #f0ebe3; }
+  tr:last-child td { border-bottom: none; }
+  .task-list { list-style: none; padding: 0; }
+  .task-list li { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px dashed #ede7dd; font-size: 0.88rem; }
+  .task-list li:last-child { border-bottom: none; }
+  .task-list strong { color: #3e5c2e; font-weight: 800; }
+  .badge { display: inline-block; background: #e8f0e2; color: #3e5c2e; border-radius: 6px; padding: 2px 10px; font-size: 0.78rem; font-weight: 700; }
+  @media print {
+    body { padding: 16px; }
+    .no-print { display: none !important; }
+  }
+</style>
+</head>
+<body>
+<h1>📋 التقرير الأسبوعي</h1>
+<div class="sub-header">الفترة: ${weekLabel} &nbsp;|&nbsp; تاريخ التصدير: ${printDate}</div>
+
+<div class="grid">
+  <div class="card">
+    <div class="card-title">⏱ إجمالي الوقت الفعلي</div>
+    <div class="big">${formatHM(s.totalMs)}</div>
+  </div>
+  <div class="card">
+    <div class="card-title">✅ المهام المُنجزة</div>
+    <div class="big">${s.doneCount}<span style="font-size:1rem;color:#aaa"> / ${s.totalTaskCount}</span></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🔥 سلسلة الأيام</div>
+    <div class="big">${s.streak}</div>
+    <div class="sub">يوم متتالي</div>
+  </div>
+  ${s.bestDay ? `<div class="card">
+    <div class="card-title">🏆 أفضل يوم</div>
+    <div class="big" style="font-size:1.1rem">${fmtDay(s.bestDay)}</div>
+    <div class="sub">${formatHM(s.bestDayMs)} وقت فعلي</div>
+  </div>` : ''}
+  ${s.missedCount > 0 ? `<div class="card">
+    <div class="card-title">⚠️ مهام فائتة</div>
+    <div class="big" style="color:#c0392b">${s.missedCount}</div>
+    <div class="sub">لم تُنجز في أيام سابقة</div>
+  </div>` : ''}
+  ${estBlock}
+</div>
+
+<div class="grid">
+  <div class="card full">
+    <div class="card-title" style="margin-bottom:12px">📅 ملخص الأيام السبعة</div>
+    <table>
+      <thead><tr><th>اليوم</th><th style="text-align:center">إنجاز</th><th style="text-align:center">الوقت</th><th>التقدم</th></tr></thead>
+      <tbody>${daysTableRows}</tbody>
+    </table>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="card full">
+    <div class="card-title" style="margin-bottom:12px">⭐ أكثر المهام وقتاً هذا الأسبوع</div>
+    <ul class="task-list">${topTasksRows}</ul>
+  </div>
+</div>
+
+<div style="margin-top:24px; text-align:center; no-print">
+  <button onclick="window.print()" style="
+    background:#3e5c2e;color:#fff;border:none;border-radius:10px;
+    padding:12px 36px;font-family:'Tajawal';font-weight:700;font-size:1rem;
+    cursor:pointer;margin-left:10px;
+  ">طباعة / حفظ PDF</button>
+  <button onclick="window.close()" style="
+    background:#f0ebe3;color:#666;border:none;border-radius:10px;
+    padding:12px 24px;font-family:'Tajawal';font-weight:700;font-size:1rem;cursor:pointer;
+  ">إغلاق</button>
+</div>
+</body>
+</html>`;
+
+    const win = window.open('', '_blank', 'width=820,height=700,scrollbars=yes');
+    if(!win){ showToast('يرجى السماح بالنوافذ المنبثقة'); return; }
+    win.document.write(html);
+    win.document.close();
+  }
+
+
   // يمسح كل الـ Chart.js instances القديمة قبل ما نرسم شارتات جديدة (عشان نتجنب تسريب الذاكرة/أخطاء إعادة استخدام الـ canvas)
   function destroyStatsCharts(){
     statsChartInstances.forEach(c => { try{ c.destroy(); }catch(e){} });
@@ -772,7 +910,7 @@
         <div class="stats-view-header">
           <button class="nav-btn" id="statsBackBtn" aria-label="رجوع لمهام اليوم"><span class="material-icons">arrow_forward</span></button>
           <h2>إحصائيات الأسبوع</h2>
-          <span style="width:36px;"></span>
+          <button class="nav-btn export-pdf-btn" id="exportPdfBtn" title="تصدير تقرير أسبوعي PDF"><span class="material-icons">picture_as_pdf</span></button>
         </div>
 
         <div class="stats-summary-row">
@@ -857,6 +995,9 @@
 
     const backBtn = document.getElementById('statsBackBtn');
     if(backBtn) backBtn.onclick = () => { statsViewOpen = false; justReturnedFromStats = true; render(); };
+
+    const exportPdfBtn = document.getElementById('exportPdfBtn');
+    if(exportPdfBtn) exportPdfBtn.onclick = () => exportWeeklyPDF();
 
     destroyStatsCharts();
 
