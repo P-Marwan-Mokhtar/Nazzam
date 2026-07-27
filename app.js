@@ -1286,6 +1286,7 @@
       showToast('تم تسجيل الدخول بنجاح');
       closeAccountModal();
       await loadData();
+      timerPanelRenderedForDate = null; // نجبر لوحة المؤقتات تترسم بالبيانات الحقيقية اللي وصلت للتو
       render();
     }catch(e){
       console.error('Sign in error:', e);
@@ -1355,6 +1356,7 @@
       draftsSearchQuery = '';
       bankDisplayLimit = 10;
       document.body.classList.remove('dark-mode');
+      timerPanelRenderedForDate = null; // نجبر لوحة المؤقتات تترسم فاضية بدل ما تفضل عارضة توقيتات الحساب اللي خرج
 
       currentUserId = null;
       isAnonymousUser = true;
