@@ -23,6 +23,7 @@
   let accountFormBusy = false; // true أثناء انتظار رد من Supabase
   const LOCAL_BACKUP_KEY = 'habit-data-v2'; // نسخة احتياطية محلية في حالة قطع النت
   const FIRST_VISIT_ACCOUNT_KEY = 'nazam-account-prompt-seen'; // بيتسجل أول ما المستخدم يقفل شاشة الحساب أول مرة
+  const MISSED_POPUP_SHOWN_KEY = 'nazam-missed-popup-last-shown'; // آخر يوم اتعرض فيه بوب أب مهام امبارح
 
   /* تسجيل دخول مجهول تلقائي (Anonymous Auth):
      ده بيدي كل جهاز/متصفح هوية ثابتة (user_id) في Supabase من غير ما نحتاج
@@ -592,10 +593,12 @@
   }
 
   function computeWeekStats(){
+    const today = todayStr();
     const weekDays = getLastNDays(7);
     let totalMs = 0;
     let doneCount = 0;
     let totalTaskCount = 0;
+    let missedCount = 0; // مهام اتضافت ليوم فات ومتعملهاش check
     const taskTimeMap = {};
     const dayTotals = {};
     const dayTaskCounts = {};
@@ -611,10 +614,12 @@
       const tasks = state.days[date] || [];
       let dayMs = 0;
       let dayDone = 0;
+      const isPastDay = date < today;
       tasks.forEach(t => {
         totalTaskCount++;
         if(t.done){ doneCount++; dayDone++; }
-        const ms = parseDurationToMinutes(t.duration) * 60000;
+        else if(isPastDay){ missedCount++; }
+        const ms = parseDurationToMinutes(t.actualDuration) * 60000;
         if(ms > 0){
           totalMs += ms;
           dayMs += ms;
@@ -664,7 +669,7 @@
     const neglected = state.keywords.filter(k => !recentNames.has(k.name)).slice(0, 8);
 
     return {
-      totalMs, doneCount, totalTaskCount,
+      totalMs, doneCount, totalTaskCount, missedCount,
       topTasks, longestTask, streak, bestDay, bestDayMs,
       topFrequent, neglected,
       weekDays, dayTotals, dayTaskCounts, dayDoneCounts, filterTotals
@@ -733,6 +738,11 @@
             <span class="material-icons">bolt</span>
             <strong>${s.streak}</strong>
             <small>${s.streak === 1 ? 'يوم متتالي' : 'أيام متتالية'}</small>
+          </div>
+          <div class="stats-summary-pill">
+            <span class="material-icons" style="color: var(--missed);">event_busy</span>
+            <strong style="color: var(--missed);">${s.missedCount}</strong>
+            <small>${s.missedCount === 1 ? 'مهمة فايتة' : 'مهام فايتة'}</small>
           </div>
         </div>
 
@@ -1244,6 +1254,28 @@
       console.error('Sign out error:', e);
       showToast('حصل خطأ أثناء تسجيل الخروج');
     }
+  }
+
+  // بتشيك لو فيه مهام من امبارح متعملتلهاش check، وتعرضها مرة واحدة بس لكل يوم
+  function checkMissedTasksPopup(){
+    try{
+      const today = todayStr();
+      if(localStorage.getItem(MISSED_POPUP_SHOWN_KEY) === today) return; // اتعرض النهاردة خلاص
+      localStorage.setItem(MISSED_POPUP_SHOWN_KEY, today);
+
+      const yesterday = addDays(today, -1);
+      const yTasks = state.days[yesterday] || [];
+      const missed = yTasks.filter(t => !t.done);
+      if(missed.length === 0) return; // خلص كل حاجة أو مفيش مهام أصلاً، مفيش داعي نضايقه
+
+      const listEl = document.getElementById('missedTasksList');
+      if(listEl) listEl.innerHTML = missed.map(t => `<li><span class="stat-list-name">${escapeHtml(t.name)}</span></li>`).join('');
+      document.getElementById('missedTasksOverlay').classList.add('open');
+    }catch(e){}
+  }
+
+  function closeMissedTasksModal(){
+    document.getElementById('missedTasksOverlay').classList.remove('open');
   }
 
   function openAccountModal(){
@@ -1806,6 +1838,7 @@
     }
     const today = todayStr();
     const isToday = selectedDate === today;
+    const isPastDay = selectedDate < today;
     const dayTasks = state.days[selectedDate] || [];
     const doneCount = dayTasks.filter(t => t.done).length;
     const totalActualMinutes = dayTasks.reduce((sum, t) => sum + parseDurationToMinutes(t.actualDuration), 0);
@@ -1948,7 +1981,7 @@
         const barPct = Math.min(100, Math.max(0, pct));
 
         html += `
-          <div class="task-row ${t.done?'done':''}" draggable="true" data-drag-id="${t.id}">
+          <div class="task-row ${t.done?'done':''} ${(!t.done && isPastDay)?'missed':''}" draggable="true" data-drag-id="${t.id}">
             <span class="drag-handle material-icons" title="اسحب لإعادة الترتيب">drag_indicator</span>
             <div class="task-main" data-action="toggle-task" data-id="${t.id}">
               <span class="task-name">${escapeHtml(t.name)}</span>
@@ -2286,6 +2319,12 @@
       if(e.target === calendarOverlay) closeCalendarModal();
     });
 
+    document.getElementById('closeMissedTasksBtn').onclick = closeMissedTasksModal;
+    const missedTasksOverlay = document.getElementById('missedTasksOverlay');
+    missedTasksOverlay.addEventListener('click', (e) => {
+      if(e.target === missedTasksOverlay) closeMissedTasksModal();
+    });
+
     // أحداث زر ونافذة الـ Drafts والبحث الذكي
     document.getElementById('draftsBtn').onclick = openDraftsModal;
     document.getElementById('closeDraftsBtn').onclick = closeDraftsModal;
@@ -2413,6 +2452,7 @@
       if(e.key === 'Escape'){
         if(statsViewOpen){ statsViewOpen = false; justReturnedFromStats = true; render(); }
         if(calendarOverlay.classList.contains('open')) closeCalendarModal();
+        if(missedTasksOverlay.classList.contains('open')) closeMissedTasksModal();
         if(draftsOverlay.classList.contains('open')) closeDraftsModal();
         if(accountOverlay.classList.contains('open')) closeAccountModal();
         if(pickerOverlay.classList.contains('open')) closeDurationPicker();
@@ -2427,5 +2467,6 @@
     // ولما توصل نعيد الرسم عشان تظهر مهام اليوم وبنك المهام الفعليين
     await loadData();
     render();
+    checkMissedTasksPopup();
   })();
 })();
