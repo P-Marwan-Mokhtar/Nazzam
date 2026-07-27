@@ -1973,7 +1973,7 @@
           <div class="day-name">${fmtDay(selectedDate)}</div>
           <div class="day-sub">${dayTasks.length ? `${doneCount} من ${dayTasks.length} أُنجزت${totalHoursText ? ` • ${totalHoursText}` : ''}` : 'لا توجد مهام مسجّلة لهذا اليوم'}</div>
         </div>
-        <button class="nav-btn" id="nextBtn" aria-label="اليوم التالي" ${isToday ? 'disabled' : ''}><span class="material-icons">chevron_left</span></button>
+        <button class="nav-btn" id="nextBtn" aria-label="اليوم التالي"><span class="material-icons">chevron_left</span></button>
       </div>
     `;
     if(!isToday){
@@ -2166,7 +2166,7 @@
   function attachEvents(){
     document.getElementById('prevBtn').onclick = () => { selectedDate = addDays(selectedDate, -1); render(); };
     const nextBtn = document.getElementById('nextBtn');
-    if(nextBtn) nextBtn.onclick = () => { if(selectedDate < todayStr()){ selectedDate = addDays(selectedDate, 1); render(); } };
+    if(nextBtn) nextBtn.onclick = () => { selectedDate = addDays(selectedDate, 1); render(); };
     const todayBtn = document.getElementById('todayBtn');
     if(todayBtn) todayBtn.onclick = () => { selectedDate = todayStr(); render(); };
 
