@@ -1818,6 +1818,14 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      cursor: pointer;
+    }
+    .keyword-name.expanded{
+      overflow: visible;
+      text-overflow: unset;
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
     }
     .task-name{
       width: 100%;

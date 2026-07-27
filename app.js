@@ -2048,6 +2048,11 @@
 
       if(!btn){
         if(e.target.closest('input')) return;
+        const nameEl = e.target.closest('.keyword-name');
+        if(nameEl){
+          nameEl.classList.toggle('expanded');
+          return;
+        }
         const mainEl = e.target.closest('.task-main[data-action="toggle-task"]');
         if(mainEl){
           const taskId = mainEl.dataset.id;
