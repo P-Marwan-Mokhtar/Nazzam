@@ -289,6 +289,50 @@
     to{ opacity:0; transform: translateY(-8px) scaleY(0.96); }
   }
 
+  .bank-search-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom: 14px;
+    margin-top: 12px;
+  }
+  .bank-search-row .bank-search{
+    margin: 0;
+    flex: 1 1 auto;
+  }
+  .bank-filters-toggle{
+    display: none; /* يظهر فقط على الموبايل، انظر media query */
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid var(--paper-line);
+    background: var(--card);
+    color: var(--ink-soft);
+    cursor: pointer;
+    position: relative;
+  }
+  .bank-filters-toggle .material-icons{ font-size: 20px; }
+  .bank-filters-toggle:hover{ background: var(--paper); color: var(--pen); }
+  .bank-filters-toggle.open{
+    background: var(--pen-soft);
+    border-color: var(--pen);
+    color: var(--pen);
+  }
+  .bank-filters-toggle.has-active::after{
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--done);
+    border: 2px solid var(--card);
+  }
+
   .bank-search{
     position: relative;
     display:flex;
@@ -719,6 +763,9 @@
   .icon-btn:hover{background:var(--paper);color:var(--pen);}
   .timer-start-btn:hover{background:#eafaf1;color:#1e8449;}
 
+  .filter-chips-wrap{
+    overflow: hidden;
+  }
   .filter-chips{
     display:flex;
     flex-wrap:wrap;
@@ -1854,4 +1901,34 @@
     }
     .hours-input{ width: 96px; }
     .wheel-col{ width: 58px; }
+  }
+
+  /* زرار فلاتر البنك على الموبايل + إخفاء الفلاتر افتراضيًا حتى تُفتح بالزرار */
+  @media (max-width: 640px){
+    .bank-filters-toggle{
+      display: flex;
+    }
+    .filter-chips-wrap{
+      max-height: 0;
+      opacity: 0;
+      margin-bottom: 0;
+    }
+    .filter-chips-wrap.mobile-open{
+      max-height: none;
+      opacity: 1;
+      animation: filtersSlideDown .22s ease forwards;
+    }
+    .filter-chips-wrap.mobile-closing{
+      max-height: none;
+      overflow: hidden;
+      animation: filtersSlideUp .22s ease forwards;
+    }
+  }
+  @keyframes filtersSlideDown{
+    from{ opacity:0; transform: translateY(-8px) scaleY(0.94); }
+    to{ opacity:1; transform: translateY(0) scaleY(1); }
+  }
+  @keyframes filtersSlideUp{
+    from{ opacity:1; transform: translateY(0) scaleY(1); max-height: 200px; }
+    to{ opacity:0; transform: translateY(-8px) scaleY(0.94); max-height: 0; }
   }

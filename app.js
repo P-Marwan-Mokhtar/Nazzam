@@ -140,6 +140,9 @@
   let closingBank = false;
   let bankCloseTimeoutId = null;
   let bankSearchQuery = '';
+  let mobileFiltersOpen = false; // للموبايل: هل لوحة الفلاتر مفتوحة فوق البنك
+  let closingMobileFilters = false;
+  let mobileFiltersCloseTimeoutId = null;
   let draftsSearchQuery = '';
   let bankDisplayLimit = 10;
   let timerPanelRenderedForDate = null;
@@ -1886,14 +1889,21 @@
         </div>
       `;
 
+      const hasActiveFilter = activeFilter !== 'all';
       html += `
-        <div class="bank-search">
-          <span class="material-icons bank-search-icon">search</span>
-          <input type="text" id="bankSearchInput" placeholder="ابحث عن مهمة في البنك..." value="${escapeAttr(bankSearchQuery)}" />
-          ${bankSearchQuery ? `<button class="bank-search-clear" id="bankSearchClear" title="مسح البحث"><span class="material-icons">close</span></button>` : ``}
+        <div class="bank-search-row">
+          <div class="bank-search">
+            <span class="material-icons bank-search-icon">search</span>
+            <input type="text" id="bankSearchInput" placeholder="ابحث عن مهمة في البنك..." value="${escapeAttr(bankSearchQuery)}" />
+            ${bankSearchQuery ? `<button class="bank-search-clear" id="bankSearchClear" title="مسح البحث"><span class="material-icons">close</span></button>` : ``}
+          </div>
+          <button class="bank-filters-toggle ${mobileFiltersOpen ? 'open' : ''} ${hasActiveFilter ? 'has-active' : ''}" id="bankFiltersToggleBtn" data-action="toggle-mobile-filters" type="button" title="الفلاتر">
+            <span class="material-icons">tune</span>
+          </button>
         </div>
       `;
 
+      html += `<div class="filter-chips-wrap ${mobileFiltersOpen ? 'mobile-open' : ''} ${closingMobileFilters ? 'mobile-closing' : ''}" id="filterChipsWrap">`;
       html += `<div class="filter-chips">`;
       html += `<button class="filter-chip ${activeFilter === 'all' ? 'active' : ''}" data-action="select-filter" data-filter-id="all">الكل</button>`;
       state.filters.forEach(f => {
@@ -1904,6 +1914,7 @@
           </span>
         `;
       });
+      html += `</div>`;
       html += `</div>`;
 
       const filterMatched = activeFilter === 'all'
@@ -2085,6 +2096,23 @@
           closingBank = false;
           bankOpen = true;
           justOpenedBank = true;
+          render();
+        }
+      }
+      else if(action === 'toggle-mobile-filters'){
+        if(mobileFiltersCloseTimeoutId){ clearTimeout(mobileFiltersCloseTimeoutId); mobileFiltersCloseTimeoutId = null; }
+        if(mobileFiltersOpen){
+          mobileFiltersOpen = false;
+          closingMobileFilters = true;
+          render();
+          mobileFiltersCloseTimeoutId = setTimeout(() => {
+            closingMobileFilters = false;
+            mobileFiltersCloseTimeoutId = null;
+            render();
+          }, 220);
+        } else {
+          closingMobileFilters = false;
+          mobileFiltersOpen = true;
           render();
         }
       }
