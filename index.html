@@ -4,20 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>المهام اليومية</title>
-<meta name="description" content="بنك مهامك الجاهز.. نظّم مهامك اليومية، تابع الوقت، وحقق أهدافك">
-
-<!-- PWA: Manifest + أيقونات -->
-<link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
-<link rel="icon" href="icons/favicon.ico">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<meta name="theme-color" content="#C5482E" id="themeColorMeta">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="مهامي">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rakkas&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -34,11 +20,7 @@
       var raw = localStorage.getItem('habit-data-v2');
       if(raw){
         var parsed = JSON.parse(raw);
-        if(parsed && parsed.darkMode){
-          document.body.classList.add('dark-mode');
-          var meta = document.getElementById('themeColorMeta');
-          if(meta) meta.setAttribute('content', '#14181c');
-        }
+        if(parsed && parsed.darkMode) document.body.classList.add('dark-mode');
       }
     }catch(e){}
   })();

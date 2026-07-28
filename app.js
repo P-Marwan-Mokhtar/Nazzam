@@ -3,25 +3,34 @@
   const SHORT_DAY_NAMES = ["أحد","اثنين","ثلاثاء","أربعاء","خميس","جمعة","سبت"];
   const MONTH_NAMES = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
 
-  /* ===== Supabase Config ===== */
+  /* ===== Supabase Config =====
+     غيّر القيمتين دول ببيانات مشروعك من Supabase Dashboard > Settings > API
+  */
   const SUPABASE_URL = 'https://txdgfvxnjofpmiaiwsax.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_-yUhuWCFab5f0jLN6kY3kQ_SGJRPYgy';
 
-  /* ===== Cloudflare Turnstile Config ===== */
+  /* ===== Cloudflare Turnstile Config =====
+     غيّر القيمة دي بالـ Site Key بتاعك من Cloudflare Dashboard > Turnstile
+     (السيكرت كي بتاع Turnstile بيتحط في Supabase Dashboard مش هنا) */
   const TURNSTILE_SITE_KEY = '0x4AAAAAAD-WN3zH063FV-FK';
   let turnstileWidgetId = null;
-  let turnstileResolve = null;
+  let turnstileResolve = null; // آخر resolve مفعّل - بيتغير مع كل نداء جديد لـ getTurnstileToken
 
   const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  let currentUserId = null;
-  let isAnonymousUser = true;
+  let currentUserId = null; // بيتحدد بعد تسجيل الدخول (مجهول أو حقيقي)
+  let isAnonymousUser = true; // هل الحساب الحالي مجهول ولا مربوط بإيميل حقيقي
   let currentUserEmail = null;
-  let accountModalMode = 'save';
-  let accountFormBusy = false;
-  const LOCAL_BACKUP_KEY = 'habit-data-v2';
-  const FIRST_VISIT_ACCOUNT_KEY = 'nazam-account-prompt-seen';
-  const MISSED_POPUP_SHOWN_KEY = 'nazam-missed-popup-last-shown';
+  let accountModalMode = 'save'; // 'save' | 'signin' | 'forgot' | 'forgot-sent'
+  let accountFormBusy = false; // true أثناء انتظار رد من Supabase
+  const LOCAL_BACKUP_KEY = 'habit-data-v2'; // نسخة احتياطية محلية في حالة قطع النت
+  const FIRST_VISIT_ACCOUNT_KEY = 'nazam-account-prompt-seen'; // بيتسجل أول ما المستخدم يقفل شاشة الحساب أول مرة
+  const MISSED_POPUP_SHOWN_KEY = 'nazam-missed-popup-last-shown'; // آخر يوم اتعرض فيه بوب أب مهام الأمس
 
+  /* تسجيل دخول مجهول تلقائي (Anonymous Auth):
+     ده بيدي كل جهاز/متصفح هوية ثابتة (user_id) في Supabase من غير ما نحتاج
+     نبني شاشة تسجيل دخول دلوقتي. البيانات بتتخزن على السيرفر مرتبطة بالهوية دي.
+     المستخدم بعدين يقدر "يربط" الحساب المجهول ده بإيميل وباسورد حقيقيين
+     (من نافذة الحساب) من غير ما يفقد أي بيانات. */
   async function ensureAuth(){
     try{
       const { data: { session } } = await supabaseClient.auth.getSession();
@@ -65,15 +74,20 @@
     }
   }
 
+  /* ===== Cloudflare Turnstile (invisible CAPTCHA) =====
+     بيرندر widget مخفي مرة واحدة، وبيرجّع Promise بالتوكن كل ما نحتاجه
+     قبل أي عملية auth حساسة (sign in / sign up / password reset). */
   function getTurnstileToken(){
     return new Promise((resolve) => {
       if(typeof turnstile === 'undefined' || TURNSTILE_SITE_KEY === 'YOUR_TURNSTILE_SITE_KEY'){
+        // لسه متظبطش الـ Site Key، أو المكتبة لسه بتتحمل - كمّل من غيره في وضع التطوير
         resolve(null);
         return;
       }
       const container = document.getElementById('turnstileContainer');
       if(!container){ resolve(null); return; }
 
+      // آخر resolve هو اللي بيستحق التوكن الجديد؛ الكول باك ثابت ومربوط بالـ widget مرة واحدة بس
       turnstileResolve = resolve;
 
       if(turnstileWidgetId === null){
@@ -87,12 +101,15 @@
         });
         turnstile.execute(turnstileWidgetId);
       } else {
+        // إعادة استخدام نفس الـ widget: reset الأول عشان نمسح أي حالة تنفيذ سابقة، وبعدين execute
         turnstile.reset(turnstileWidgetId);
         turnstile.execute(turnstileWidgetId);
       }
     });
   }
 
+  /* بيتأكد لو المستخدم راجع لتوه من صفحة Google (بعد OAuth) عشان يعرض
+     رسالة نجاح مرة واحدة بس، مش في كل مرة الجلسة بترجع تتحمل من جديد. */
   function handleOAuthReturnIfAny(){
     const params = new URLSearchParams(window.location.search);
     if(params.get('authreturn') === 'google' && !isAnonymousUser){
@@ -109,47 +126,47 @@
 
   let state = {
     keywords: [], 
-    drafts: [],
+    drafts: [], // قائمة المسودات المحفوظة بدلاً من الحذف
     days: {},
     filters: [],
     timers: {},
     darkMode: false,
-    recurringTasks: {}
+    recurringTasks: {} // اسم المهمة -> مصفوفة أرقام أيام الأسبوع (0=أحد..6=سبت) اللي تتكرر فيها تلقائيًا
   };
   let selectedDate = toISO(new Date());
   let editingKeywordId = null;
   let activeFilter = 'all';
   let bankOpen = true;
   let justOpenedBank = true;
-  let justChangedFilter = false;
+  let justChangedFilter = false; // true لمرة واحدة بس لما تتغيّر الفلتر، عشان مهام البنك اللي تحتها تعمل fade-in
   let closingBank = false;
   let bankCloseTimeoutId = null;
   let bankSearchQuery = '';
-  let mobileFiltersOpen = false;
+  let mobileFiltersOpen = false; // للموبايل: هل لوحة الفلاتر مفتوحة فوق البنك
   let closingMobileFilters = false;
   let mobileFiltersCloseTimeoutId = null;
   let draftsSearchQuery = '';
   let bankDisplayLimit = 10;
   let timerPanelRenderedForDate = null;
-  let statsViewOpen = false;
-  let justReturnedFromStats = false;
-  let statsChartInstances = [];
-  let openTaskMoreId = null;
+  let statsViewOpen = false; // لما تبقى true، #content بيعرض شاشة الإحصائيات بدل مهام اليوم
+  let justReturnedFromStats = false; // true لمرة واحدة بس لما نرجع من شاشة الإحصائيات، عشان نشغّل أنيميشن الدخول مرة واحدة فقط
+  let statsChartInstances = []; // مراجع لكل الـ Chart.js instances عشان نقدر نمسحها قبل كل رسم جديد
+  let openTaskMoreId = null; // المهمة اللي فاتح لها قائمة (المزيد) دلوقتي
   let editingTaskId = null;
 
   let pendingTaskName = '';
   let pendingTaskFilterId = null;
-  let pendingNewTimerName = '';
-  let pickerMode = 'task';
+  let pendingNewTimerName = ''; // اسم التايمر المنتظر اختيار نوعه (مفتوح / محدد)
+  let pickerMode = 'task'; // 'task' لتحديد هدف المهمة، 'timer' لتحديد مدة تايمر جديد
   let alertAudioCtx = null;
-  let openDurationPopoverTaskId = null;
-  let openClockChoiceTaskId = null;
-  let openPriorityPopoverTaskId = null;
-  let activeSubtasksTaskId = null;
-  let dayStatusFilter = 'all';
-  let dayStatusFilterOpen = false;
-  let activeRecurrenceTaskId = null;
-  let pendingRecurrenceDays = [];
+  let openDurationPopoverTaskId = null; // المهمة اللي فاتح لها بوب أب (الهدف/الوقت الفعلي) دلوقتي
+  let openClockChoiceTaskId = null; // المهمة اللي فاتح لها اختيار (هدف / وقت فعلي) من أيقونة الساعة
+  let openPriorityPopoverTaskId = null; // المهمة اللي فاتح لها اختيار مستوى الأهمية دلوقتي
+  let activeSubtasksTaskId = null; // المهمة المفتوح لها نافذة المهام الفرعية
+  let dayStatusFilter = 'all'; // فلتر حالة مهام اليوم: all | pending | done
+  let dayStatusFilterOpen = false; // هل قائمة فلتر الحالة مفتوحة دلوقتي
+  let activeRecurrenceTaskId = null; // المهمة المفتوح لها نافذة تحديد أيام التكرار دلوقتي
+  let pendingRecurrenceDays = []; // نسخة عمل من أيام التكرار (0-6) قبل الحفظ
 
   const timerPanelEl = document.getElementById('timerPanel');
 
@@ -221,21 +238,7 @@
     return 'id_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
   }
 
-  function escapeHtml(str) {
-    if (!str) return '';
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-  }
-
-  function escapeAttr(str) {
-    return escapeHtml(str);
-  }
-
-  /* ===== Wheel Picker ===== */
+  /* ===== Wheel Picker (Drum Roller) ===== */
   const WHEEL_ITEM_H = 42;
   let pickerTaskId = null;
 
@@ -357,6 +360,7 @@
     });
   }
 
+  // نفس عجلة اختيار المدة، لكن لتحديد "الوقت الفعلي" اللي اتقضى في المهمة يدويًا (ملهاش علاقة بالتايمر)
   function openActualDurationPicker(taskId){
     const task = state.days[selectedDate].find(t => t.id === taskId);
     if(!task) return;
@@ -383,6 +387,7 @@
     });
   }
 
+  // نفس عجلة اختيار المدة، لكن لتحديد مدة تايمر جديد (وقت محدد) بدل هدف مهمة
   function openTimerDurationPicker(name){
     pickerMode = 'timer';
     pickerTaskId = null;
@@ -399,7 +404,7 @@
 
     requestAnimationFrame(() => {
       initWheel(hoursCol, hoursList, 24, 0);
-      initWheel(minutesCol, minutesList, 60, 15);
+      initWheel(minutesCol, minutesList, 60, 15); // افتراضي 15 دقيقة
     });
   }
 
@@ -471,6 +476,7 @@
     if(parsed.filters) state.filters = parsed.filters;
     if(parsed.timers) state.timers = parsed.timers;
     if(parsed.recurringTasks) state.recurringTasks = parsed.recurringTasks;
+    // توافق مع الإصدار القديم: تثبيت يومي كان بيتخزن كأسماء بس (بدون أيام)، نحوّله لتكرار يومي كامل
     if(parsed.pinnedTaskNames && parsed.pinnedTaskNames.length){
       if(!state.recurringTasks) state.recurringTasks = {};
       parsed.pinnedTaskNames.forEach(name => {
@@ -485,6 +491,7 @@
     }
   }
 
+  // نسخة محلية احتياطية (offline fallback) - مش المصدر الأساسي بعد دلوقتي
   function saveLocalBackup(){
     try{ localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(state)); }catch(e){}
   }
@@ -499,6 +506,7 @@
     await ensureAuth();
 
     if(!currentUserId){
+      // تعذر الاتصال بـ Supabase (مفيش نت مثلًا) - استخدم آخر نسخة محفوظة محليًا
       showToast('تعذّر الاتصال بالخادم، يعمل التطبيق حاليًا بنسخة محلية');
       applyLoadedState(loadLocalBackup());
       return;
@@ -515,8 +523,9 @@
 
       if(data && data.data){
         applyLoadedState(data.data);
-        saveLocalBackup();
+        saveLocalBackup(); // حدّث النسخة المحلية بأحدث بيانات من السيرفر
       } else {
+        // أول مرة للمستخدم ده: لو عنده بيانات قديمة في localStorage، ارفعها لـ Supabase
         const legacy = loadLocalBackup();
         if(legacy){
           applyLoadedState(legacy);
@@ -533,13 +542,14 @@
   let savePending = false;
 
   async function saveData(){
-    saveLocalBackup();
+    saveLocalBackup(); // حفظ فوري محلي مايفوتش أي تحديث حتى لو النت وقع
 
     if(!currentUserId){
       showToast('تعذّر الحفظ على الخادم (لا يوجد اتصال)، تم الحفظ محليًا فقط');
       return;
     }
 
+    // لو في عملية حفظ شغالة، أجّل الطلب الجديد بدل ما نبعت طلبات متزاحمة
     if(saveInFlight){
       savePending = true;
       return;
@@ -609,18 +619,19 @@
     let totalMs = 0;
     let doneCount = 0;
     let totalTaskCount = 0;
-    let missedCount = 0;
+    let missedCount = 0; // مهام اتضافت ليوم فات ومتعملهاش check
     const taskTimeMap = {};
     const dayTotals = {};
     const dayTaskCounts = {};
     const dayDoneCounts = {};
-    const filterTotals = {};
+    const filterTotals = {}; // filterId -> ms (لرسم توزيع الوقت حسب التصنيف)
     let longestTask = null;
-    const taskTargetMap = {};
-    const taskActualForEstMap = {};
+    const taskTargetMap = {}; // name -> إجمالي الهدف (ms) للمهام اللي ليها هدف ووقت فعلي معًا هذا الأسبوع
+    const taskActualForEstMap = {}; // name -> إجمالي الوقت الفعلي (ms) لنفس المهام دي
     let totalTargetMsWithActual = 0;
     let totalActualMsForEst = 0;
 
+    // خريطة من اسم المهمة لتصنيفها (filterId) بناءً على بنك المهام
     const nameToFilterId = {};
     state.keywords.forEach(k => { if(k.filterId) nameToFilterId[k.name] = k.filterId; });
 
@@ -644,6 +655,7 @@
           const fId = nameToFilterId[t.name];
           if(fId) filterTotals[fId] = (filterTotals[fId] || 0) + ms;
 
+          // دقة تقدير الوقت: بس للمهام اللي محدد لها هدف (duration) وعندها وقت فعلي في نفس الوقت
           const targetMs = parseDurationToMinutes(t.duration) * 60000;
           if(targetMs > 0){
             taskTargetMap[t.name] = (taskTargetMap[t.name] || 0) + targetMs;
@@ -658,6 +670,7 @@
       dayDoneCounts[date] = dayDone;
     });
 
+    // بنحسب الأيام السابقة (من غير النهاردة) اللي خلصت فيها كل مهامها بالكامل
     let streak = 0;
     let cursor = addDays(todayStr(), -1);
     while(true){
@@ -666,6 +679,7 @@
       streak++;
       cursor = addDays(cursor, -1);
     }
+    // لو النهاردة كمان خلصت كل مهامها، بتتضاف للسلسلة. لو لسه ما خلصتش، السلسلة بتفضل زي ما هي (ومش بترجع صفر إلا بكرة لو النهاردة فاتت من غير ما تخلص)
     const todayTasksForStreak = state.days[todayStr()] || [];
     if(todayTasksForStreak.length > 0 && todayTasksForStreak.every(t => t.done)) streak++;
 
@@ -688,6 +702,7 @@
     });
     const neglected = state.keywords.filter(k => !recentNames.has(k.name)).slice(0, 8);
 
+    // دقة تقدير الوقت: نسبة الوقت الفعلي إلى الهدف المحدد، على مستوى الأسبوع وعلى مستوى كل مهمة
     const estimationAccuracyPct = totalTargetMsWithActual > 0
       ? Math.round((totalActualMsForEst / totalTargetMsWithActual) * 100)
       : null;
@@ -705,6 +720,8 @@
     };
   }
 
+  // بيحسب عدد الأيام المتتالية اللي المستخدم "أنجز" فيها مهمة معينة (بالاسم)، بنفس منطق سلسلة الأيام العامة أعلاه.
+  // النهاردة بيتحسب في السلسلة لو خلصت المهمة، وبيتجاهل (من غير ما يكسر السلسلة) لو لسه ما خلصتش لأن اليوم لسه ما خلصش.
   function computeTaskStreak(name){
     let streak = 0;
     const today = todayStr();
@@ -723,8 +740,12 @@
     return streak;
   }
 
+  /* ===== تصدير التقرير الأسبوعي PDF ===== */
   function exportWeeklyPDF(){
     const s = computeWeekStats();
+    const isDark = state.darkMode;
+
+    // بناء جدول الأيام السبعة
     const DAY_SHORT = ['أحد','إثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
     const daysTableRows = s.weekDays.map(date => {
       const d = fromISO(date);
@@ -742,10 +763,12 @@
       </tr>`;
     }).join('');
 
+    // أفضل 5 مهام وقتاً
     const topTasksRows = s.topTasks.length > 0
       ? s.topTasks.map(([name, ms]) => `<li><span>${escapeHtml(name)}</span><strong>${formatHM(ms)}</strong></li>`).join('')
       : '<li>لا توجد بيانات</li>';
 
+    // دقة التقدير
     const estBlock = s.estimationAccuracyPct !== null
       ? `<div class="card"><div class="card-title">📐 دقة تقدير الوقت</div><p class="big">${s.estimationAccuracyPct}%</p><p class="sub">نسبة الوقت الفعلي مقارنةً بالهدف المحدد هذا الأسبوع</p></div>`
       : '';
@@ -779,6 +802,7 @@
   .task-list li { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px dashed #ede7dd; font-size: 0.88rem; }
   .task-list li:last-child { border-bottom: none; }
   .task-list strong { color: #3e5c2e; font-weight: 800; }
+  .badge { display: inline-block; background: #e8f0e2; color: #3e5c2e; border-radius: 6px; padding: 2px 10px; font-size: 0.78rem; font-weight: 700; }
   @media print {
     body { padding: 16px; }
     .no-print { display: none !important; }
@@ -833,9 +857,16 @@
   </div>
 </div>
 
-<div style="margin-top:24px; text-align:center;" class="no-print">
-  <button onclick="window.print()" style="background:#3e5c2e;color:#fff;border:none;border-radius:10px;padding:12px 36px;font-family:'Tajawal';font-weight:700;font-size:1rem;cursor:pointer;margin-left:10px;">طباعة / حفظ PDF</button>
-  <button onclick="window.close()" style="background:#f0ebe3;color:#666;border:none;border-radius:10px;padding:12px 24px;font-family:'Tajawal';font-weight:700;font-size:1rem;cursor:pointer;">إغلاق</button>
+<div style="margin-top:24px; text-align:center; no-print">
+  <button onclick="window.print()" style="
+    background:#3e5c2e;color:#fff;border:none;border-radius:10px;
+    padding:12px 36px;font-family:'Tajawal';font-weight:700;font-size:1rem;
+    cursor:pointer;margin-left:10px;
+  ">طباعة / حفظ PDF</button>
+  <button onclick="window.close()" style="
+    background:#f0ebe3;color:#666;border:none;border-radius:10px;
+    padding:12px 24px;font-family:'Tajawal';font-weight:700;font-size:1rem;cursor:pointer;
+  ">إغلاق</button>
 </div>
 </body>
 </html>`;
@@ -846,14 +877,20 @@
     win.document.close();
   }
 
+
+  // يمسح كل الـ Chart.js instances القديمة قبل ما نرسم شارتات جديدة (عشان نتجنب تسريب الذاكرة/أخطاء إعادة استخدام الـ canvas)
   function destroyStatsCharts(){
     statsChartInstances.forEach(c => { try{ c.destroy(); }catch(e){} });
     statsChartInstances = [];
   }
 
+  // شاشة الإحصائيات: بتتعرض مكان مهام اليوم في #content، وبترسم كل البيانات بشارتات Chart.js
   function renderStatsView(){
     const s = computeWeekStats();
     const completionPct = s.totalTaskCount > 0 ? Math.round((s.doneCount / s.totalTaskCount) * 100) : 0;
+
+    // بنجيب الألوان مباشرة بناءً على state.darkMode (بدل ما نعتمد على قراءة الـ CSS variables من المتصفح)
+    // عشان نضمن ألوان صح ١٠٠٪ في كل وضع من غير أي مشاكل توقيت أو قراءة خاطئة
     const isDark = !!state.darkMode;
     const penColor = isDark ? '#e06046' : '#C5482E';
     const doneColor = isDark ? '#489970' : '#3E7A5C';
@@ -980,11 +1017,12 @@
 
     destroyStatsCharts();
 
-    if(typeof Chart === 'undefined') return;
+    if(typeof Chart === 'undefined') return; // لو مكتبة Chart.js متحملتش لأي سبب
 
     Chart.defaults.font.family = "'Tajawal', sans-serif";
     Chart.defaults.color = inkColor;
 
+    // 1) دونات: نسبة الإنجاز
     const ctxCompletion = document.getElementById('chartCompletion');
     if(ctxCompletion){
       statsChartInstances.push(new Chart(ctxCompletion, {
@@ -1004,6 +1042,7 @@
       }));
     }
 
+    // 2) بار: أكثر المهام استهلاكًا للوقت
     const ctxTopTasks = document.getElementById('chartTopTasks');
     if(ctxTopTasks){
       statsChartInstances.push(new Chart(ctxTopTasks, {
@@ -1029,6 +1068,7 @@
       }));
     }
 
+    // 3) خط: اتجاه الوقت خلال الأسبوع
     const ctxTrend = document.getElementById('chartWeekTrend');
     if(ctxTrend){
       statsChartInstances.push(new Chart(ctxTrend, {
@@ -1056,6 +1096,7 @@
       }));
     }
 
+    // 4) بار + خط مدمج: عدد المهام ونسبة الإنجاز لكل يوم
     const ctxDaily = document.getElementById('chartDailyPerf');
     if(ctxDaily){
       statsChartInstances.push(new Chart(ctxDaily, {
@@ -1093,6 +1134,7 @@
       }));
     }
 
+    // 5) رادار: توزيع الوقت حسب التصنيف (لو فيه 3 تصنيفات أو أكتر بوقت مسجل)
     const ctxFilters = document.getElementById('chartFilters');
     if(ctxFilters){
       statsChartInstances.push(new Chart(ctxFilters, {
@@ -1122,6 +1164,7 @@
       }));
     }
 
+    // 6) بار مزدوج: الوقت المخطط (الهدف) مقابل الوقت الفعلي لكل مهمة
     const ctxEstimation = document.getElementById('chartEstimation');
     if(ctxEstimation){
       statsChartInstances.push(new Chart(ctxEstimation, {
@@ -1157,6 +1200,7 @@
     }
   }
 
+  // ===== إدارة نافذة الحساب (ربط/تسجيل دخول/خروج) =====
   function isValidEmail(email){
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
@@ -1218,6 +1262,7 @@
     const bodyEl = document.getElementById('accountBody');
     if(!bodyEl) return;
 
+    // حالة 1: مسجل بحساب حقيقي بالفعل
     if(!isAnonymousUser && currentUserEmail){
       bodyEl.innerHTML = `
         <div class="account-status is-linked">
@@ -1236,6 +1281,7 @@
 
     const errorHtml = errorMsg ? `<div class="account-error">${errorMsg}</div>` : '';
 
+    // حالة: نسيت كلمة المرور
     if(accountModalMode === 'forgot'){
       bodyEl.innerHTML = `
         <div class="account-hint">أدخل البريد الإلكتروني المرتبط بحسابك، وسنرسل إليك رابطًا لإعادة تعيين كلمة المرور.</div>
@@ -1253,6 +1299,7 @@
       return;
     }
 
+    // حالة: اتبعت رسالة تصفير الباسورد
     if(accountModalMode === 'forgot-sent'){
       bodyEl.innerHTML = `
         <div class="account-status is-linked">
@@ -1268,6 +1315,7 @@
       return;
     }
 
+    // حالة 2: مستخدم مجهول - نعرض فورم "احفظ حسابك" أو "دخول لحساب موجود"
     if(accountModalMode === 'signin'){
       bodyEl.innerHTML = `
         <div class="account-status">
@@ -1397,7 +1445,7 @@
       showToast('تم تسجيل الدخول بنجاح');
       closeAccountModal();
       await loadData();
-      timerPanelRenderedForDate = null;
+      timerPanelRenderedForDate = null; // نجبر لوحة المؤقتات تترسم بالبيانات الحقيقية اللي وصلت للتو
       render();
     }catch(e){
       console.error('Sign in error:', e);
@@ -1439,6 +1487,7 @@
         options: { redirectTo: url.toString() }
       });
       if(error) throw error;
+      // المتصفح هيتحول لصفحة Google تلقائيًا؛ الرجوع هيتمسك في ensureAuth عن طريق handleOAuthReturnIfAny
     }catch(e){
       console.error('Google sign-in error:', e);
       renderAccountModal(mapAuthError(e));
@@ -1449,8 +1498,15 @@
     if(!confirm('هل أنت متأكد من تسجيل الخروج؟ ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى البيانات نفسها.')) return;
     try{
       await supabaseClient.auth.signOut();
+
+      // مهم جدًا: امسح النسخة الاحتياطية المحلية القديمة قبل أي حاجة تانية.
+      // من غير الخطوة دي، loadData() هيلاقي localStorage لسه فيه بيانات المستخدم
+      // اللي عمل تسجيل خروج، ويفتكرها بيانات "مستخدم جديد" جاي من نسخة أوفلاين
+      // قديمة، فيرفعها تلقائيًا للحساب المجهول الجديد - وهو بالظبط سبب رجوع البيانات.
       try{ localStorage.removeItem(LOCAL_BACKUP_KEY); }catch(e){}
 
+      // رجّع الـ state في الذاكرة لوضعه الافتراضي عشان الشاشة تتصفّر فورًا
+      // من غير ما تستنى رد الشبكة.
       state = { keywords: [], drafts: [], days: {}, filters: [], timers: {}, darkMode: false, recurringTasks: {} };
       selectedDate = toISO(new Date());
       activeFilter = 'all';
@@ -1459,7 +1515,7 @@
       draftsSearchQuery = '';
       bankDisplayLimit = 10;
       document.body.classList.remove('dark-mode');
-      timerPanelRenderedForDate = null;
+      timerPanelRenderedForDate = null; // نجبر لوحة المؤقتات تترسم فاضية بدل ما تفضل عارضة توقيتات الحساب اللي خرج
 
       currentUserId = null;
       isAnonymousUser = true;
@@ -1476,16 +1532,17 @@
     }
   }
 
+  // بتشيك لو فيه مهام من امبارح متعملتلهاش check، وتعرضها مرة واحدة بس لكل يوم
   function checkMissedTasksPopup(){
     try{
       const today = todayStr();
-      if(localStorage.getItem(MISSED_POPUP_SHOWN_KEY) === today) return;
+      if(localStorage.getItem(MISSED_POPUP_SHOWN_KEY) === today) return; // اتعرض النهاردة خلاص
       localStorage.setItem(MISSED_POPUP_SHOWN_KEY, today);
 
       const yesterday = addDays(today, -1);
       const yTasks = state.days[yesterday] || [];
       const missed = yTasks.filter(t => !t.done);
-      if(missed.length === 0) return;
+      if(missed.length === 0) return; // خلص كل حاجة أو مفيش مهام أصلاً، مفيش داعي نضايقه
 
       const listEl = document.getElementById('missedTasksList');
       if(listEl) listEl.innerHTML = missed.map(t => `<li><span class="stat-list-name">${escapeHtml(t.name)}</span></li>`).join('');
@@ -1508,6 +1565,7 @@
     document.getElementById('accountOverlay').classList.remove('open');
   }
 
+  // ===== إدارة نافذة الـ Drafts والبحث الذكي فيها =====
   function renderDraftsModal(){
     const listEl = document.getElementById('draftsModalList');
     const searchVal = normalizeArabic(draftsSearchQuery.trim());
@@ -1753,6 +1811,7 @@
             t.startedAt = null;
           } else {
             if(t.mode === 'countdown' && t.elapsedMs >= t.targetMs){
+              // التايمر خلص بالفعل، إعادة تشغيله تبدأ العد من الأول
               t.elapsedMs = 0;
               t.alerted = false;
             }
@@ -1773,11 +1832,12 @@
     });
   }
 
+  /* ===== صوت التنبيه لما التايمر المحدد يخلص ===== */
   function ensureAudioContext(){
     try{
       if(!alertAudioCtx) alertAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
       if(alertAudioCtx.state === 'suspended') alertAudioCtx.resume();
-    }catch(e){}
+    }catch(e){ /* المتصفح مايدعمش الصوت */ }
   }
 
   function playAlertSound(){
@@ -1798,9 +1858,10 @@
         osc.start(now + offset);
         osc.stop(now + offset + 0.22);
       });
-    }catch(e){}
+    }catch(e){ /* تجاهل مشاكل الصوت */ }
   }
 
+  /* ===== طلب تايمر جديد: يسأل مفتوح ولا محدد لو مفيش تايمر بنفس الاسم شغال ===== */
   async function requestNewTimer(name){
     const timers = getDayTimers(selectedDate);
     let t = timers.find(x => x.name === name);
@@ -1907,7 +1968,6 @@
     document.querySelectorAll('.custom-select').forEach(sel => {
       const trigger = sel.querySelector('.custom-select-trigger');
       const menu = sel.querySelector('.custom-select-menu');
-      if(!trigger || !menu) return;
       trigger.onclick = (e) => {
         e.stopPropagation();
         const isOpen = sel.classList.contains('open');
@@ -1965,6 +2025,7 @@
     });
   }
 
+  /* ===== بوب أب الهدف / الوقت الفعلي (بيطلع فوق الشارة، ملوش علاقة بالتايمر) ===== */
   function showDurationPopover(taskId, badgeEl){
     const task = (state.days[selectedDate] || []).find(x => x.id === taskId);
     if(!task) return;
@@ -1975,7 +2036,6 @@
     const isOver = targetMs > 0 && actualMs >= targetMs;
 
     const pop = document.getElementById('durationPopover');
-    if(!pop) return;
     pop.innerHTML = `
       <div class="duration-popover-row">
         <span class="duration-popover-label"><span class="material-icons">flag</span>الهدف</span>
@@ -1991,7 +2051,7 @@
     const rect = badgeEl.getBoundingClientRect();
     const popRect = pop.getBoundingClientRect();
     let top = rect.top - popRect.height - 8;
-    if(top < 8) top = rect.bottom + 8;
+    if(top < 8) top = rect.bottom + 8; // لو مفيش مكان فوق، تظهر تحت الشارة
     let left = rect.left + rect.width / 2 - popRect.width / 2;
     left = Math.max(8, Math.min(left, window.innerWidth - popRect.width - 8));
     pop.style.top = `${top}px`;
@@ -2006,9 +2066,9 @@
     openDurationPopoverTaskId = null;
   }
 
+  /* ===== بوب أب اختيار (الهدف / الوقت الفعلي) لما تدوس على أيقونة الساعة ===== */
   function showClockChoicePopover(taskId, anchorEl){
     const pop = document.getElementById('clockChoicePopover');
-    if(!pop) return;
     pop.innerHTML = `
       <button class="clock-choice-btn" data-choice="target" type="button">
         <span class="material-icons">flag</span>الهدف
@@ -2050,7 +2110,6 @@
 
   function showPriorityPopover(taskId, anchorEl){
     const pop = document.getElementById('priorityPopover');
-    if(!pop) return;
     const task = state.days[selectedDate].find(x => x.id === taskId);
     const current = task ? task.priority : null;
     pop.innerHTML = `
@@ -2107,8 +2166,10 @@
     }
     const today = todayStr();
     const isToday = selectedDate === today;
+    const isPastDay = selectedDate < today;
     
     if(!state.pinnedInjected) state.pinnedInjected = {};
+    // Auto-Recurrence logic: نضيف المهام المتكررة لليوم/الأيام الجاية لو يوم الأسبوع ده من ضمن أيامها، مرة واحدة بس لكل تاريخ
     if(selectedDate >= today && !state.pinnedInjected[selectedDate] && state.recurringTasks && Object.keys(state.recurringTasks).length > 0) {
       const weekday = fromISO(selectedDate).getDay();
       if(!state.days[selectedDate]) state.days[selectedDate] = [];
@@ -2147,6 +2208,7 @@
       html += `<button class="today-btn" id="todayBtn">العودة إلى اليوم</button>`;
     }
 
+    // Keyword Bank Section
     html += `<button class="bank-toggle" data-action="toggle-bank" type="button">
       <span class="bank-toggle-label">بنك المهام</span>
       <span class="bank-toggle-arrow ${bankOpen ? 'open' : ''}"><span class="material-icons">expand_more</span></span>
@@ -2259,6 +2321,7 @@
       html += `</div>`; 
     }
 
+    // Daily Tasks Section
     const dayFilterLabels = { all: 'الكل', pending: 'متبقية', done: 'منجزة' };
     html += `
       <div class="section-title" style="margin-top: 32px;">
@@ -2293,51 +2356,80 @@
       html += `
         <div class="empty-state">
           لا توجد مهام مُضافة لهذا اليوم.<br>
-          اضغط (+) من بنك المهام أعلاه لإضافة أهدافك.
+          اضغط (+) من بنك المهام أعلاه لإضافة مهمة.
         </div>
       `;
     } else if(visibleDayTasks.length === 0){
-      html += `<div class="empty-state">لا توجد مهام تطابق الفلتر المحدد (${dayFilterLabels[dayStatusFilter]}).</div>`;
+      html += `
+        <div class="empty-state">
+          لا توجد مهام ${dayFilterLabels[dayStatusFilter]} في هذا اليوم.
+        </div>
+      `;
     } else {
       html += `<div class="task-list">`;
       visibleDayTasks.forEach(t => {
-        const subtasks = t.subtasks || [];
-        const completedSubtasks = subtasks.filter(s => s.done).length;
-        const subtaskBadge = subtasks.length > 0 ? `${completedSubtasks}/${subtasks.length}` : '';
-        const priorityClass = t.priority ? `priority-${t.priority}` : '';
+        const targetMin = parseDurationToMinutes(t.duration);
+        const actualMin = parseDurationToMinutes(t.actualDuration);
+        const pct = targetMin > 0 ? Math.round((actualMin / targetMin) * 100) : 0;
+        const barPct = Math.min(100, Math.max(0, pct));
 
-        if(editingTaskId === t.id){
-          html += `
-            <div class="task-row editing">
-              <input class="edit-input" id="editTaskInput" value="${escapeAttr(t.name)}" />
-              <button class="icon-btn" data-action="save-task" data-id="${t.id}" title="حفظ"><span class="material-icons">check</span></button>
-              <button class="icon-btn" data-action="cancel-task" title="إلغاء"><span class="material-icons">close</span></button>
-            </div>
-          `;
-        } else {
-          html += `
-            <div class="task-row ${t.done ? 'done' : ''} ${priorityClass}" draggable="true" data-drag-id="${t.id}">
-              <div class="task-check-wrap">
-                <input type="checkbox" class="task-check" data-action="toggle-task" data-id="${t.id}" ${t.done ? 'checked' : ''} />
-              </div>
-              <div class="task-main">
-                <span class="task-name">${escapeHtml(t.name)}</span>
-                <div class="task-badges">
-                  ${t.duration ? `<button class="task-badge duration-badge" data-action="popover-duration" data-id="${t.id}" title="تفاصيل الوقت Target vs Actual"><span class="material-icons">schedule</span>${escapeHtml(t.duration)}</button>` : ''}
-                  ${subtaskBadge ? `<button class="task-badge subtasks-badge" data-action="open-subtasks" data-id="${t.id}"><span class="material-icons">checklist</span>${subtaskBadge}</button>` : ''}
-                  ${t.priority ? `<span class="task-badge priority-badge" title="الأولوية"><span class="material-icons">flag</span>${PRIORITY_LABELS[t.priority]}</span>` : ''}
+        html += `
+          <div class="task-row ${t.done?'done':''} ${(!t.done && isPastDay)?'missed':''}" draggable="true" data-drag-id="${t.id}">
+            <div class="task-main" data-action="toggle-task" data-id="${t.id}">
+              ${editingTaskId === t.id ? `
+                <div class="inline-edit-wrap">
+                  <input type="text" id="inlineEditInput_${t.id}" class="inline-edit-input" value="${escapeAttr(t.name)}" />
+                  <button class="icon-btn" data-action="save-task-edit" data-id="${t.id}" title="حفظ"><span class="material-icons">check</span></button>
+                  <button class="icon-btn" data-action="cancel-task-edit" data-id="${t.id}" title="إلغاء"><span class="material-icons">close</span></button>
+                </div>
+              ` : `
+                ${(t.subtasks && t.subtasks.length > 0) ? `<button type="button" class="subtasks-badge" data-action="open-subtasks" data-id="${t.id}" title="عرض المهام الفرعية">${t.subtasks.filter(s=>s.done).length}/${t.subtasks.length}</button>` : ''}
+                <span class="task-name" title="${escapeAttr(t.name)}">${escapeHtml(t.name)}</span>
+              `}
+              <div class="task-icons">
+              <button class="priority-btn ${t.priority ? 'priority-' + t.priority : ''}" data-action="toggle-priority-popover" data-id="${t.id}" title="${t.priority ? 'الأهمية: ' + PRIORITY_LABELS[t.priority] : 'حدد مستوى الأهمية'}">
+                <span class="material-icons">flag</span>
+              </button>
+              <button class="clock-btn" data-action="toggle-duration" data-id="${t.id}" title="حدد الهدف أو الوقت الفعلي">
+                <span class="material-icons">schedule</span>
+              </button>
+              ${(t.duration || t.actualDuration) ? `
+                <button class="duration-badge ${targetMin > 0 && pct >= 100 ? 'over' : ''}" id="durationBadge_${t.id}" data-action="toggle-duration-view" data-id="${t.id}" title="اضغط لعرض الهدف والوقت الفعلي">
+                  ${targetMin > 0 ? `
+                    <span class="duration-badge-bar"><span class="duration-badge-fill" id="taskBarFill_${t.id}" style="width:${barPct}%"></span></span>
+                    <span class="duration-badge-pct" id="taskBarPct_${t.id}">${pct}%</span>
+                  ` : `
+                    <span class="duration-badge-actual-only"><span class="material-icons">timelapse</span>${formatHM(actualMin*60000)}</span>
+                  `}
+                </button>
+              ` : ``}
+              <div class="task-more-menu-wrap" data-wrap-id="${t.id}">
+                <button class="icon-btn task-more-btn" data-action="toggle-task-more" data-id="${t.id}" title="المزيد">
+                  <span class="material-icons">more_vert</span>
+                </button>
+                <div class="task-more-dropdown ${openTaskMoreId === t.id ? 'open' : ''}" id="taskMoreDropdown_${t.id}">
+                  <button class="tmd-btn" data-action="edit-task-today" data-id="${t.id}">
+                    <span class="material-icons">edit</span><span>تعديل</span>
+                  </button>
+                  <button class="tmd-btn ${(state.recurringTasks && state.recurringTasks[t.name] && state.recurringTasks[t.name].length) ? 'active' : ''}" data-action="open-recurrence" data-id="${t.id}">
+                    <span class="material-icons">event_repeat</span>
+                    <span>تكرار المهمة</span>
+                  </button>
+                  <button class="tmd-btn" data-action="start-timer-from-task" data-id="${t.id}">
+                    <span class="material-icons">play_circle_outline</span><span>بدء تايمر</span>
+                  </button>
+                  <button class="tmd-btn" data-action="open-subtasks" data-id="${t.id}">
+                    <span class="material-icons">account_tree</span><span>مهام فرعية</span>
+                  </button>
+                  <button class="tmd-btn delete" data-action="delete-task" data-id="${t.id}">
+                    <span class="material-icons">delete</span><span>حذف</span>
+                  </button>
                 </div>
               </div>
-              <div class="task-actions">
-                <button class="icon-btn" data-action="open-clock-choice" data-id="${t.id}" title="الوقت والتحديد"><span class="material-icons">access_time</span></button>
-                <button class="icon-btn" data-action="open-priority" data-id="${t.id}" title="الأولوية"><span class="material-icons">flag</span></button>
-                <button class="icon-btn" data-action="open-subtasks" data-id="${t.id}" title="المهام الفرعية"><span class="material-icons">format_list_bulleted</span></button>
-                <button class="icon-btn" data-action="edit-task" data-id="${t.id}" title="تعديل المهمة"><span class="material-icons">edit</span></button>
-                <button class="icon-btn danger" data-action="delete-task" data-id="${t.id}" title="حذف من اليوم"><span class="material-icons">delete</span></button>
               </div>
             </div>
-          `;
-        }
+          </div>
+        `;
       });
       html += `</div>`;
     }
@@ -2345,311 +2437,762 @@
     html += `</div>`;
 
     contentEl.innerHTML = html;
-    wireEvents();
+    
+    justOpenedBank = false;
+    justReturnedFromStats = false;
+    justChangedFilter = false;
+
+    attachEvents();
     if(timerPanelRenderedForDate !== selectedDate){
       renderTimerPanel();
       timerPanelRenderedForDate = selectedDate;
     }
   }
 
-  function wireEvents(){
-    wireCustomSelects();
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function escapeAttr(s){ return escapeHtml(s); }
 
-    const prevBtn = document.getElementById('prevBtn');
-    if(prevBtn) prevBtn.onclick = () => { selectedDate = addDays(selectedDate, -1); render(); };
-
+  function attachEvents(){
+    document.getElementById('prevBtn').onclick = () => { selectedDate = addDays(selectedDate, -1); render(); };
     const nextBtn = document.getElementById('nextBtn');
     if(nextBtn) nextBtn.onclick = () => { selectedDate = addDays(selectedDate, 1); render(); };
-
     const todayBtn = document.getElementById('todayBtn');
     if(todayBtn) todayBtn.onclick = () => { selectedDate = todayStr(); render(); };
 
-    const addKwBtn = document.getElementById('addKeywordBtn');
-    const kwInput = document.getElementById('newKeywordInput');
-    const handleAddKeyword = async () => {
-      const val = kwInput.value.trim();
-      if(!val) return;
-      const selectEl = document.getElementById('newKeywordFilterCustom');
-      const fId = selectEl ? selectEl.dataset.value : '';
-      state.keywords.push({ id: uid(), name: val, filterId: fId || null });
-      kwInput.value = '';
-      render();
-      await saveData();
-      showToast('تمت إضافة المهمة للبنك');
-    };
-    if(addKwBtn) addKwBtn.onclick = handleAddKeyword;
-    if(kwInput) kwInput.onkeydown = (e) => { if(e.key === 'Enter') handleAddKeyword(); };
+    contentEl.onclick = async (e) => {
+      const btn = e.target.closest('button[data-action]');
 
-    const addFilterBtn = document.getElementById('addFilterBtn');
-    const filterInput = document.getElementById('newFilterInput');
-    const handleAddFilter = async () => {
-      const val = filterInput.value.trim();
-      if(!val) return;
-      state.filters.push({ id: uid(), name: val });
-      filterInput.value = '';
-      render();
-      await saveData();
-      showToast('تمت إضافة التصنيف');
-    };
-    if(addFilterBtn) addFilterBtn.onclick = handleAddFilter;
-    if(filterInput) filterInput.onkeydown = (e) => { if(e.key === 'Enter') handleAddFilter(); };
-
-    const searchInput = document.getElementById('bankSearchInput');
-    if(searchInput){
-      searchInput.oninput = (e) => {
-        bankSearchQuery = e.target.value;
-        render();
-      };
-    }
-    const searchClear = document.getElementById('bankSearchClear');
-    if(searchClear){
-      searchClear.onclick = () => {
-        bankSearchQuery = '';
-        render();
-      };
-    }
-
-    contentEl.querySelectorAll('button[data-action], input[data-action]').forEach(el => {
-      el.onclick = async (e) => {
-        const action = el.dataset.action;
-        const id = el.dataset.id;
-        const name = el.dataset.name;
-
-        if(action === 'toggle-bank'){
-          bankOpen = !bankOpen;
-          render();
+      if(!btn){
+        if(e.target.closest('input')) return;
+        const nameEl = e.target.closest('.keyword-name');
+        if(nameEl){
+          nameEl.classList.toggle('expanded');
+          return;
         }
-        else if(action === 'add-to-day'){
-          if(!state.days[selectedDate]) state.days[selectedDate] = [];
-          if(!state.days[selectedDate].some(t => t.name === name)){
-            state.days[selectedDate].push({ id: uid(), name, done: false });
-            render();
-            await saveData();
-            showToast('تمت إضافتها لمهام اليوم');
-          }
-        }
-        else if(action === 'toggle-task'){
-          const tasks = state.days[selectedDate] || [];
-          const t = tasks.find(x => x.id === id);
-          if(t){
-            t.done = el.checked;
+        const mainEl = e.target.closest('.task-main[data-action="toggle-task"]');
+        if(mainEl){
+          const taskId = mainEl.dataset.id;
+          const task = state.days[selectedDate].find(t => t.id === taskId);
+          if(task){
+            task.done = !task.done;
             render();
             await saveData();
           }
         }
-        else if(action === 'delete-task'){
-          state.days[selectedDate] = (state.days[selectedDate] || []).filter(x => x.id !== id);
-          render();
-          await saveData();
-        }
-        else if(action === 'edit-task'){
-          editingTaskId = id;
-          render();
-        }
-        else if(action === 'save-task'){
-          const input = document.getElementById('editTaskInput');
-          if(input){
-            const val = input.value.trim();
-            const t = (state.days[selectedDate] || []).find(x => x.id === id);
-            if(t && val){
-              t.name = val;
-            }
-          }
-          editingTaskId = null;
-          render();
-          await saveData();
-        }
-        else if(action === 'cancel-task'){
-          editingTaskId = null;
-          render();
-        }
-        else if(action === 'edit-keyword'){
-          editingKeywordId = id;
-          render();
-        }
-        else if(action === 'save-keyword'){
-          const input = document.getElementById('editKeywordInput');
-          const selectEl = document.getElementById('editKeywordFilterCustom');
-          if(input){
-            const val = input.value.trim();
-            const k = state.keywords.find(x => x.id === editingKeywordId);
-            if(k && val){
-              k.name = val;
-              k.filterId = selectEl ? (selectEl.dataset.value || null) : null;
-            }
-          }
-          editingKeywordId = null;
-          render();
-          await saveData();
-        }
-        else if(action === 'cancel-keyword'){
-          editingKeywordId = null;
-          render();
-        }
-        else if(action === 'delete-keyword'){
-          const k = state.keywords.find(x => x.id === id);
-          if(k){
-            state.keywords = state.keywords.filter(x => x.id !== id);
-            state.drafts.push(k);
-            render();
-            await saveData();
-            showToast('تم نقل المهمة إلى المسودات');
-          }
-        }
-        else if(action === 'select-filter'){
-          activeFilter = el.dataset.filterId;
-          render();
-        }
-        else if(action === 'delete-filter'){
-          e.stopPropagation();
-          if(confirm('هل أنت متأكد من حذف هذا التصنيف؟')){
-            state.filters = state.filters.filter(x => x.id !== id);
-            state.keywords.forEach(k => { if(k.filterId === id) k.filterId = null; });
-            if(activeFilter === id) activeFilter = 'all';
-            render();
-            await saveData();
-          }
-        }
-        else if(action === 'popover-duration'){
-          e.stopPropagation();
-          showDurationPopover(id, el);
-        }
-        else if(action === 'open-clock-choice'){
-          e.stopPropagation();
-          showClockChoicePopover(id, el);
-        }
-        else if(action === 'open-priority'){
-          e.stopPropagation();
-          showPriorityPopover(id, el);
-        }
-        else if(action === 'toggle-day-status-filter'){
-          dayStatusFilterOpen = !dayStatusFilterOpen;
-          render();
-        }
-        else if(action === 'select-day-status-filter'){
-          dayStatusFilter = el.dataset.value;
-          dayStatusFilterOpen = false;
-          render();
-        }
-        else if(action === 'bank-show-more'){
-          bankDisplayLimit += 20;
-          render();
-        }
-        else if(action === 'bank-show-less'){
+        return;
+      }
+      
+      const action = btn.dataset.action;
+      const id = btn.dataset.id;
+
+      if(action === 'toggle-bank'){
+        if(bankOpen){
+          bankOpen = false;
+          closingBank = true;
           bankDisplayLimit = 10;
           render();
+          bankCloseTimeoutId = setTimeout(() => {
+            closingBank = false;
+            bankCloseTimeoutId = null;
+            render();
+          }, 240);
+        } else {
+          if(bankCloseTimeoutId){ clearTimeout(bankCloseTimeoutId); bankCloseTimeoutId = null; }
+          closingBank = false;
+          bankOpen = true;
+          justOpenedBank = true;
+          render();
+        }
+      }
+      else if(action === 'toggle-mobile-filters'){
+        if(mobileFiltersCloseTimeoutId){ clearTimeout(mobileFiltersCloseTimeoutId); mobileFiltersCloseTimeoutId = null; }
+        if(mobileFiltersOpen){
+          mobileFiltersOpen = false;
+          closingMobileFilters = true;
+          render();
+          mobileFiltersCloseTimeoutId = setTimeout(() => {
+            closingMobileFilters = false;
+            mobileFiltersCloseTimeoutId = null;
+            render();
+          }, 220);
+        } else {
+          closingMobileFilters = false;
+          mobileFiltersOpen = true;
+          render();
+        }
+      }
+      else if(action === 'bank-show-more'){
+        bankDisplayLimit += 10;
+        render();
+      }
+      else if(action === 'bank-show-less'){
+        bankDisplayLimit = 10;
+        render();
+      }
+      else if(action === 'toggle-duration'){
+        if(openClockChoiceTaskId === id){
+          hideClockChoicePopover();
+        } else {
+          showClockChoicePopover(id, btn);
+        }
+      }
+      else if(action === 'toggle-priority-popover'){
+        if(openPriorityPopoverTaskId === id){
+          hidePriorityPopover();
+        } else {
+          showPriorityPopover(id, btn);
+        }
+      }
+      else if(action === 'toggle-duration-view'){
+        if(openDurationPopoverTaskId === id){
+          hideDurationPopover();
+        } else {
+          showDurationPopover(id, btn);
+        }
+      }
+      else if(action === 'delete-task'){
+        state.days[selectedDate] = state.days[selectedDate].filter(t => t.id !== id);
+        if(pickerTaskId === id) closeDurationPicker();
+        render();
+        await saveData();
+        showToast('تم الحذف من اليوم');
+      }
+      else if(action === 'toggle-day-status-filter'){
+        dayStatusFilterOpen = !dayStatusFilterOpen;
+        render();
+      }
+      else if(action === 'select-day-status-filter'){
+        dayStatusFilter = btn.dataset.value;
+        dayStatusFilterOpen = false;
+        render();
+      }
+      else if(action === 'toggle-task-more'){
+        openTaskMoreId = openTaskMoreId === id ? null : id;
+        render();
+      }
+      else if(action === 'open-subtasks'){
+        openTaskMoreId = null;
+        openSubtasksModal(id);
+        render();
+      }
+      else if(action === 'edit-task-today'){
+        openTaskMoreId = null;
+        editingTaskId = id;
+        render();
+        const inp = document.getElementById('inlineEditInput_' + id);
+        if(inp) {
+          inp.focus();
+          inp.setSelectionRange(inp.value.length, inp.value.length);
+        }
+      }
+      else if(action === 'save-task-edit'){
+        openTaskMoreId = null;
+        const task = state.days[selectedDate].find(x => x.id === id);
+        const inp = document.getElementById('inlineEditInput_' + id);
+        if(task && inp){
+          const newName = inp.value.trim();
+          if(newName){
+            if(state.recurringTasks && state.recurringTasks[task.name]){
+              state.recurringTasks[newName] = state.recurringTasks[task.name];
+              delete state.recurringTasks[task.name];
+            }
+            task.name = newName;
+          }
+        }
+        editingTaskId = null;
+        render();
+        saveData();
+      }
+      else if(action === 'cancel-task-edit'){
+        editingTaskId = null;
+        render();
+      }
+      else if(action === 'open-recurrence'){
+        openTaskMoreId = null;
+        openRecurrenceModal(id);
+        render();
+      }
+      else if(action === 'start-timer-from-task'){
+        openTaskMoreId = null;
+        render();
+        const task = state.days[selectedDate].find(x => x.id === id);
+        if(!task) return;
+        await requestNewTimer(task.name);
+      }
+      else if(action === 'add-to-day'){
+        const name = btn.dataset.name;
+        if(!state.days[selectedDate]) state.days[selectedDate] = [];
+        const exists = state.days[selectedDate].some(t => t.name === name);
+        if(exists){
+          showToast('هذه المهمة مُضافة بالفعل إلى جدول اليوم');
+          return;
+        }
+        state.days[selectedDate].push({ id: uid(), name: name, done: false });
+        render();
+        await saveData();
+        showToast('تمت الإضافة إلى مهام اليوم');
+      }
+      else if(action === 'select-filter'){
+        const newFilter = btn.dataset.filterId;
+        if(newFilter !== activeFilter) justChangedFilter = true;
+        activeFilter = newFilter;
+        bankDisplayLimit = 10;
+        render();
+      }
+      else if(action === 'delete-filter'){
+        if(confirm('هل أنت متأكد من رغبتك في حذف هذا الفلتر؟ ستعود المهام التابعة له بلا تصنيف (وستبقى ظاهرة ضمن الكل).')){
+          state.filters = state.filters.filter(f => f.id !== id);
+          state.keywords.forEach(k => { if(k.filterId === id) k.filterId = null; });
+          if(activeFilter === id) activeFilter = 'all';
+          bankDisplayLimit = 10;
+          render();
+          await saveData();
+          showToast('تم حذف الفلتر');
+        }
+      }
+      else if(action === 'delete-keyword'){
+        // بدل الحذف النهائي، بننقلها للـ Drafts عشان البيانات متضيعش
+        const kw = state.keywords.find(k => k.id === id);
+        if(kw){
+          state.keywords = state.keywords.filter(k => k.id !== id);
+          state.drafts.push(kw);
+          render();
+          await saveData();
+          showToast('تم نقل المهمة إلى المسودات بنجاح');
+        }
+      }
+      else if(action === 'edit-keyword'){
+        editingKeywordId = id;
+        render();
+        const input = document.getElementById('editKeywordInput');
+        if(input){ input.focus(); input.select(); }
+      }
+      else if(action === 'save-keyword'){
+        const input = document.getElementById('editKeywordInput');
+        const filterSelect = document.getElementById('editKeywordFilterCustom');
+        const val = input.value.trim();
+        if(val){
+          const kw = state.keywords.find(k => k.id === editingKeywordId);
+          if(kw){
+            kw.name = val;
+            kw.filterId = filterSelect && filterSelect.dataset.value ? filterSelect.dataset.value : null;
+          }
+        }
+        editingKeywordId = null;
+        render();
+        await saveData();
+      }
+      else if(action === 'cancel-keyword'){
+        editingKeywordId = null;
+        render();
+      }
+    };
+
+    const bankSearchInput = document.getElementById('bankSearchInput');
+    if(bankSearchInput){
+      bankSearchInput.oninput = (e) => {
+        bankSearchQuery = e.target.value;
+        bankDisplayLimit = 10;
+        const cursorPos = e.target.selectionStart;
+        render();
+        const newInput = document.getElementById('bankSearchInput');
+        if(newInput){
+          newInput.focus();
+          newInput.setSelectionRange(cursorPos, cursorPos);
         }
       };
-    });
+    }
+    const bankSearchClear = document.getElementById('bankSearchClear');
+    if(bankSearchClear){
+      bankSearchClear.onclick = () => {
+        bankSearchQuery = '';
+        bankDisplayLimit = 10;
+        render();
+        const newInput = document.getElementById('bankSearchInput');
+        if(newInput) newInput.focus();
+      };
+    }
 
-    wireDragAndDrop('.task-row', async (draggedId, targetId) => {
-      reorderArrayById(state.days[selectedDate], draggedId, targetId);
-      render();
-      await saveData();
-    });
+    const addKeywordBtn = document.getElementById('addKeywordBtn');
+    const newKeywordInput = document.getElementById('newKeywordInput');
+    const newKeywordFilter = document.getElementById('newKeywordFilterCustom');
+    
+    if(addKeywordBtn && newKeywordInput){
+      const handleAdd = () => {
+        const val = newKeywordInput.value.trim();
+        if(!val) return;
+        pendingTaskName = val;
+        pendingTaskFilterId = newKeywordFilter && newKeywordFilter.dataset.value ? newKeywordFilter.dataset.value : null;
+        
+        const displayEl = document.getElementById('pendingTaskNameDisplay');
+        if(displayEl) displayEl.textContent = `"${val}"`;
+        
+        document.getElementById('addChoiceOverlay').classList.add('open');
+      };
+      addKeywordBtn.onclick = handleAdd;
+      newKeywordInput.onkeydown = (e) => { if(e.key === 'Enter') handleAdd(); };
+    }
 
-    wireDragAndDrop('.keyword-row', async (draggedId, targetId) => {
+    const addFilterBtn = document.getElementById('addFilterBtn');
+    const newFilterInput = document.getElementById('newFilterInput');
+
+    if(addFilterBtn && newFilterInput){
+      const handleAddFilter = async () => {
+        const val = newFilterInput.value.trim();
+        if(!val) return;
+        const exists = state.filters.some(f => f.name === val);
+        if(exists){
+          showToast('هذا الفلتر موجود بالفعل');
+          return;
+        }
+        state.filters.push({ id: uid(), name: val });
+        newFilterInput.value = '';
+        render();
+        await saveData();
+        document.getElementById('newFilterInput').focus();
+      };
+      addFilterBtn.onclick = handleAddFilter;
+      newFilterInput.onkeydown = (e) => { if(e.key === 'Enter') handleAddFilter(); };
+    }
+    
+    const editInput = document.getElementById('editKeywordInput');
+    if(editInput){
+      editInput.onkeydown = (e) => {
+        if(e.key === 'Enter') document.querySelector('button[data-action="save-keyword"]').click();
+        if(e.key === 'Escape') document.querySelector('button[data-action="cancel-keyword"]').click();
+      };
+    }
+
+    wireCustomSelects();
+
+    if (editingTaskId) {
+      const inp = document.getElementById('inlineEditInput_' + editingTaskId);
+      if (inp) {
+        inp.onkeydown = (e) => {
+          if (e.key === 'Enter') {
+            const btn = document.querySelector(`button[data-action="save-task-edit"][data-id="${editingTaskId}"]`);
+            if (btn) btn.click();
+          }
+          if (e.key === 'Escape') {
+            const btn = document.querySelector(`button[data-action="cancel-task-edit"][data-id="${editingTaskId}"]`);
+            if (btn) btn.click();
+          }
+        };
+      }
+    }
+
+    wireDragAndDrop('.keyword-row[data-drag-id]', (draggedId, targetId) => {
       reorderArrayById(state.keywords, draggedId, targetId);
       render();
-      await saveData();
+      saveData();
+    });
+    wireDragAndDrop('.task-row[data-drag-id]', (draggedId, targetId) => {
+      reorderArrayById(state.days[selectedDate], draggedId, targetId);
+      render();
+      saveData();
     });
   }
 
-  // ===== التهيئة وإطلاق التطبيق =====
-  async function init(){
-    const accountBtn = document.getElementById('accountBtn');
-    if(accountBtn) accountBtn.onclick = openAccountModal;
-    const accountCloseBtn = document.getElementById('accountCloseBtn');
-    if(accountCloseBtn) accountCloseBtn.onclick = closeAccountModal;
+  function closeAddChoiceModal(){
+    document.getElementById('addChoiceOverlay').classList.remove('open');
+    pendingTaskName = '';
+    pendingTaskFilterId = null;
+  }
 
-    const draftsBtn = document.getElementById('draftsBtn');
-    if(draftsBtn) draftsBtn.onclick = openDraftsModal;
-    const draftsCloseBtn = document.getElementById('draftsCloseBtn');
-    if(draftsCloseBtn) draftsCloseBtn.onclick = closeDraftsModal;
+  // ===== Subtasks Logic =====
+  function openSubtasksModal(taskId) {
+    activeSubtasksTaskId = taskId;
+    renderSubtasksList();
+    document.getElementById('subtasksOverlay').classList.add('open');
+    const inp = document.getElementById('newSubtaskInput');
+    if (inp) setTimeout(() => inp.focus(), 100);
+  }
 
-    const calendarBtn = document.getElementById('calendarBtn');
-    if(calendarBtn) calendarBtn.onclick = openCalendarModal;
-    const calCloseBtn = document.getElementById('calCloseBtn');
-    if(calCloseBtn) calCloseBtn.onclick = closeCalendarModal;
+  function closeSubtasksModal() {
+    document.getElementById('subtasksOverlay').classList.remove('open');
+    activeSubtasksTaskId = null;
+  }
 
-    const statsBtn = document.getElementById('statsBtn');
-    if(statsBtn) statsBtn.onclick = () => { statsViewOpen = true; render(); };
+  function renderSubtasksList() {
+    const listEl = document.getElementById('subtasksList');
+    if (!listEl || !activeSubtasksTaskId) return;
+    const task = state.days[selectedDate].find(t => t.id === activeSubtasksTaskId);
+    if (!task) return;
 
-    const themeToggleBtn = document.getElementById('themeToggleBtn');
-    if(themeToggleBtn){
-      themeToggleBtn.onclick = async () => {
-        state.darkMode = !state.darkMode;
-        document.body.classList.toggle('dark-mode', state.darkMode);
-        const icon = document.getElementById('themeIcon');
-        if(icon) icon.textContent = state.darkMode ? 'light_mode' : 'dark_mode';
+    if (!task.subtasks) task.subtasks = [];
+
+    if (task.subtasks.length === 0) {
+      listEl.innerHTML = '<div class="stat-empty">لا توجد مهام فرعية بعد.</div>';
+      return;
+    }
+
+    let html = '';
+    task.subtasks.forEach(st => {
+      html += `
+        <div class="subtask-item ${st.done ? 'done' : ''}">
+          <div class="subtask-item-left">
+            <input type="checkbox" class="subtask-checkbox" data-id="${st.id}" ${st.done ? 'checked' : ''} />
+            <span class="subtask-title">${escapeHtml(st.title)}</span>
+          </div>
+          <button class="subtask-delete-btn" data-id="${st.id}" title="حذف">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+      `;
+    });
+    listEl.innerHTML = html;
+
+    // Attach events
+    listEl.querySelectorAll('.subtask-checkbox').forEach(chk => {
+      chk.onchange = async (e) => {
+        const stId = e.target.dataset.id;
+        const st = task.subtasks.find(x => x.id === stId);
+        if (st) {
+          st.done = e.target.checked;
+          renderSubtasksList();
+          render();
+          await saveData();
+        }
+      };
+    });
+
+    listEl.querySelectorAll('.subtask-delete-btn').forEach(btn => {
+      btn.onclick = async (e) => {
+        const stId = e.currentTarget.dataset.id;
+        task.subtasks = task.subtasks.filter(x => x.id !== stId);
+        renderSubtasksList();
+        render();
         await saveData();
-        if(statsViewOpen) renderStatsView();
       };
-    }
+    });
+  }
 
-    const durationCancel = document.getElementById('durationPickerCancel');
-    if(durationCancel) durationCancel.onclick = closeDurationPicker;
-    const durationCommit = document.getElementById('durationPickerCommit');
-    if(durationCommit) durationCommit.onclick = commitDurationPicker;
+  document.getElementById('closeSubtasksBtn').onclick = closeSubtasksModal;
+  document.getElementById('subtasksOverlay').onclick = (e) => {
+    if (e.target.id === 'subtasksOverlay') closeSubtasksModal();
+  };
 
-    const timerTypeCancel = document.getElementById('timerTypeCancel');
-    if(timerTypeCancel) timerTypeCancel.onclick = closeTimerTypeModal;
-    const timerTypeOpen = document.getElementById('timerTypeOpen');
-    if(timerTypeOpen){
-      timerTypeOpen.onclick = async () => {
-        const name = pendingNewTimerName;
-        closeTimerTypeModal();
-        if(!name) return;
-        getDayTimers(selectedDate).push({
-          id: uid(),
-          name,
-          elapsedMs: 0,
-          running: true,
-          startedAt: Date.now(),
-          mode: 'stopwatch',
-          alerted: false
-        });
-        showToast(`بدأ تايمر مفتوح لـ "${name}"`);
-        renderTimerPanel();
-        await saveData();
+  const addSubtaskBtn = document.getElementById('addSubtaskBtn');
+  const newSubtaskInput = document.getElementById('newSubtaskInput');
+  
+  async function handleAddSubtask() {
+    if (!activeSubtasksTaskId) return;
+    const title = newSubtaskInput.value.trim();
+    if (!title) return;
+    
+    const task = state.days[selectedDate].find(t => t.id === activeSubtasksTaskId);
+    if (!task) return;
+    
+    if (!task.subtasks) task.subtasks = [];
+    task.subtasks.push({ id: uid(), title, done: false });
+    
+    newSubtaskInput.value = '';
+    renderSubtasksList();
+    render();
+    await saveData();
+  }
+  
+  if (addSubtaskBtn) addSubtaskBtn.onclick = handleAddSubtask;
+  if (newSubtaskInput) {
+    newSubtaskInput.onkeydown = (e) => {
+      if (e.key === 'Enter') handleAddSubtask();
+    };
+  }
+
+  // ===== Recurrence (تكرار المهمة) Logic =====
+  function openRecurrenceModal(taskId){
+    const task = state.days[selectedDate].find(x => x.id === taskId);
+    if(!task) return;
+    activeRecurrenceTaskId = taskId;
+    pendingRecurrenceDays = (state.recurringTasks && state.recurringTasks[task.name]) ? [...state.recurringTasks[task.name]] : [];
+    const nameDisplay = document.getElementById('recurrenceTaskNameDisplay');
+    if(nameDisplay) nameDisplay.textContent = task.name;
+    renderRecurrenceDaysGrid();
+    document.getElementById('recurrenceOverlay').classList.add('open');
+  }
+
+  function closeRecurrenceModal(){
+    document.getElementById('recurrenceOverlay').classList.remove('open');
+    activeRecurrenceTaskId = null;
+    pendingRecurrenceDays = [];
+  }
+
+  function renderRecurrenceDaysGrid(){
+    const grid = document.getElementById('recurrenceDaysGrid');
+    if(!grid) return;
+    grid.innerHTML = SHORT_DAY_NAMES.map((name, idx) => `
+      <button type="button" class="recurrence-day-chip ${pendingRecurrenceDays.includes(idx) ? 'active' : ''}" data-day="${idx}">${name}</button>
+    `).join('');
+    grid.querySelectorAll('.recurrence-day-chip').forEach(chip => {
+      chip.onclick = () => {
+        const d = Number(chip.dataset.day);
+        if(pendingRecurrenceDays.includes(d)) pendingRecurrenceDays = pendingRecurrenceDays.filter(x => x !== d);
+        else pendingRecurrenceDays.push(d);
+        renderRecurrenceDaysGrid();
       };
-    }
-    const timerTypeTimed = document.getElementById('timerTypeTimed');
-    if(timerTypeTimed){
-      timerTypeTimed.onclick = () => {
-        const name = pendingNewTimerName;
-        closeTimerTypeModal();
-        if(name) openTimerDurationPicker(name);
-      };
-    }
+    });
+  }
 
-    const missedCloseBtn = document.getElementById('missedTasksCloseBtn');
-    if(missedCloseBtn) missedCloseBtn.onclick = closeMissedTasksModal;
+  async function saveRecurrence(){
+    if(!activeRecurrenceTaskId) return;
+    const task = state.days[selectedDate].find(x => x.id === activeRecurrenceTaskId);
+    if(!task){ closeRecurrenceModal(); return; }
+    if(!state.recurringTasks) state.recurringTasks = {};
+    if(pendingRecurrenceDays.length === 0){
+      delete state.recurringTasks[task.name];
+      showToast('تم إلغاء تكرار المهمة');
+    } else {
+      state.recurringTasks[task.name] = [...pendingRecurrenceDays].sort((a,b) => a-b);
+      showToast('تم حفظ تكرار المهمة');
+    }
+    closeRecurrenceModal();
+    render();
+    await saveData();
+  }
 
+  document.getElementById('closeRecurrenceBtn').onclick = closeRecurrenceModal;
+  document.getElementById('recurrenceOverlay').onclick = (e) => {
+    if(e.target.id === 'recurrenceOverlay') closeRecurrenceModal();
+  };
+  document.getElementById('saveRecurrenceBtn').onclick = saveRecurrence;
+  document.getElementById('recurrenceSelectAllBtn').onclick = () => {
+    pendingRecurrenceDays = [0,1,2,3,4,5,6];
+    renderRecurrenceDaysGrid();
+  };
+  document.getElementById('recurrenceClearBtn').onclick = () => {
+    pendingRecurrenceDays = [];
+    renderRecurrenceDaysGrid();
+  };
+
+
+  (async function init(){
+    // قبل أي رسم: لو فيه نسخة محلية محفوظة من قبل (مهام + وضع ليلي)، نطبّقها فورًا.
+    // ده بيمنع اختفاء المهام والفلاش الأبيض في الوضع الليلي عند الـ refresh،
+    // لأننا مش مستنيين رد الشبكة (Turnstile + تسجيل الدخول + Supabase) عشان نعرف نرسم إيه.
+    // نفس النسخة دي هتتستبدل بالبيانات الحقيقية من السيرفر لما توصل (loadData تحت).
+    try{
+      const cachedBackup = loadLocalBackup();
+      if(cachedBackup) applyLoadedState(cachedBackup);
+    }catch(e){}
+
+    // ارسم الواجهة فورًا (بالبيانات المحفوظة محليًا لو موجودة، أو فاضية للمستخدم الجديد)
+    render();
+    setInterval(tickTimers, 1000);
+
+    // لأول زيارة بس: اعرض شاشة الحساب من غير ما تنتظر تحميل البيانات
+    // ولو المستخدم قفلها (بأي طريقة) مش هتظهرله تاني تلقائيًا
+    try{
+      if(!localStorage.getItem(FIRST_VISIT_ACCOUNT_KEY)){
+        openAccountModal();
+      }
+    }catch(e){}
     document.addEventListener('click', (e) => {
-      if(openDurationPopoverTaskId && !e.target.closest('#durationPopover') && !e.target.closest('.duration-badge')){
+      document.querySelectorAll('.custom-select.open').forEach(s => s.classList.remove('open'));
+      if(openDurationPopoverTaskId && !e.target.closest('.duration-popover') && !e.target.closest('.duration-badge')){
         hideDurationPopover();
       }
-      if(openClockChoiceTaskId && !e.target.closest('#clockChoicePopover') && !e.target.closest('[data-action="open-clock-choice"]')){
+      if(openClockChoiceTaskId && !e.target.closest('.clock-choice-popover') && !e.target.closest('.clock-btn')){
         hideClockChoicePopover();
       }
-      if(openPriorityPopoverTaskId && !e.target.closest('#priorityPopover') && !e.target.closest('[data-action="open-priority"]')){
+      if(openPriorityPopoverTaskId && !e.target.closest('.priority-popover') && !e.target.closest('.priority-btn')){
         hidePriorityPopover();
+      }
+      if(openTaskMoreId && !e.target.closest('.task-more-dropdown') && !e.target.closest('.task-more-btn')){
+        openTaskMoreId = null;
+        render();
       }
       if(dayStatusFilterOpen && !e.target.closest('.day-filter-wrap')){
         dayStatusFilterOpen = false;
         render();
       }
-      if(!e.target.closest('.custom-select')){
-        document.querySelectorAll('.custom-select.open').forEach(s => s.classList.remove('open'));
+    });
+
+    document.getElementById('themeBtn').onclick = async () => {
+      state.darkMode = !state.darkMode;
+      document.body.classList.toggle('dark-mode', state.darkMode);
+      document.getElementById('themeIcon').textContent = state.darkMode ? 'light_mode' : 'dark_mode';
+      if(statsViewOpen) renderStatsView(); // نعيد رسم الشارتات بالألوان الصح لو المستخدم بيبدّل الوضع وهو فاتح شاشة الإحصائيات
+      await saveData();
+    };
+
+    document.getElementById('statsBtn').onclick = () => {
+      const wasOpen = statsViewOpen;
+      statsViewOpen = !statsViewOpen;
+      if(wasOpen) justReturnedFromStats = true;
+      render();
+    };
+
+    document.getElementById('calendarBtn').onclick = openCalendarModal;
+    document.getElementById('closeCalendarBtn').onclick = closeCalendarModal;
+    const calendarOverlay = document.getElementById('calendarOverlay');
+    calendarOverlay.addEventListener('click', (e) => {
+      if(e.target === calendarOverlay) closeCalendarModal();
+    });
+
+    const closeMissedTasksBtn = document.getElementById('closeMissedTasksBtn');
+    const missedTasksOverlay = document.getElementById('missedTasksOverlay');
+    if(closeMissedTasksBtn && missedTasksOverlay){
+      closeMissedTasksBtn.onclick = closeMissedTasksModal;
+      missedTasksOverlay.addEventListener('click', (e) => {
+        if(e.target === missedTasksOverlay) closeMissedTasksModal();
+      });
+    }
+    // أحداث زر ونافذة الـ Drafts والبحث الذكي
+    document.getElementById('draftsBtn').onclick = openDraftsModal;
+    document.getElementById('closeDraftsBtn').onclick = closeDraftsModal;
+    const draftsOverlay = document.getElementById('draftsOverlay');
+    draftsOverlay.addEventListener('click', (e) => {
+      if(e.target === draftsOverlay) closeDraftsModal();
+    });
+
+    document.getElementById('accountBtn').onclick = openAccountModal;
+    document.getElementById('closeAccountBtn').onclick = closeAccountModal;
+    const accountOverlay = document.getElementById('accountOverlay');
+    accountOverlay.addEventListener('click', (e) => {
+      if(e.target === accountOverlay) closeAccountModal();
+    });
+
+    const draftsSearchInput = document.getElementById('draftsSearchInput');
+    const draftsSearchClear = document.getElementById('draftsSearchClear');
+    if(draftsSearchInput){
+      draftsSearchInput.oninput = (e) => {
+        draftsSearchQuery = e.target.value;
+        if(draftsSearchQuery) draftsSearchClear.style.display = 'flex';
+        else draftsSearchClear.style.display = 'none';
+        renderDraftsModal();
+      };
+    }
+    if(draftsSearchClear){
+      draftsSearchClear.onclick = () => {
+        draftsSearchQuery = '';
+        draftsSearchInput.value = '';
+        draftsSearchClear.style.display = 'none';
+        renderDraftsModal();
+        draftsSearchInput.focus();
+      };
+    }
+
+    // أحداث أزرار الاختيار في الـ Modal الجديد
+    document.getElementById('choiceTodayBtn').onclick = async () => {
+      if(!pendingTaskName) return;
+      if(!state.days[selectedDate]) state.days[selectedDate] = [];
+      const exists = state.days[selectedDate].some(t => t.name === pendingTaskName);
+      if(!exists){
+        state.days[selectedDate].push({ id: uid(), name: pendingTaskName, done: false });
+        showToast('تمت الإضافة إلى مهام اليوم فقط');
+      } else {
+        showToast('هذه المهمة موجودة بالفعل في مهام اليوم');
+      }
+      const input = document.getElementById('newKeywordInput');
+      if(input) input.value = '';
+      closeAddChoiceModal();
+      render();
+      await saveData();
+    };
+
+    document.getElementById('choiceBankBtn').onclick = async () => {
+      if(!pendingTaskName) return;
+      state.keywords.push({ id: uid(), name: pendingTaskName, filterId: pendingTaskFilterId });
+      showToast('تمت الإضافة إلى بنك المهام');
+      const input = document.getElementById('newKeywordInput');
+      if(input) input.value = '';
+      closeAddChoiceModal();
+      render();
+      await saveData();
+    };
+
+    document.getElementById('choiceBothBtn').onclick = async () => {
+      if(!pendingTaskName) return;
+      state.keywords.push({ id: uid(), name: pendingTaskName, filterId: pendingTaskFilterId });
+      if(!state.days[selectedDate]) state.days[selectedDate] = [];
+      const exists = state.days[selectedDate].some(t => t.name === pendingTaskName);
+      if(!exists){
+        state.days[selectedDate].push({ id: uid(), name: pendingTaskName, done: false });
+      }
+      showToast('تمت الإضافة إلى البنك وإلى مهام اليوم');
+      const input = document.getElementById('newKeywordInput');
+      if(input) input.value = '';
+      closeAddChoiceModal();
+      render();
+      await saveData();
+    };
+
+    document.getElementById('closeAddChoiceBtn').onclick = closeAddChoiceModal;
+    const addChoiceOverlay = document.getElementById('addChoiceOverlay');
+    addChoiceOverlay.addEventListener('click', (e) => {
+      if(e.target === addChoiceOverlay) closeAddChoiceModal();
+    });
+
+    // أحداث Modal اختيار نوع المؤقت (مفتوح / محدد)
+    document.getElementById('timerTypeOpenBtn').onclick = async () => {
+      if(!pendingNewTimerName) return;
+      ensureAudioContext();
+      getDayTimers(selectedDate).push({
+        id: uid(),
+        name: pendingNewTimerName,
+        elapsedMs: 0,
+        running: true,
+        startedAt: Date.now(),
+        mode: 'open'
+      });
+      showToast(`بدأ تايمر مفتوح لـ "${pendingNewTimerName}"`);
+      closeTimerTypeModal();
+      renderTimerPanel();
+      timerPanelRenderedForDate = selectedDate;
+      await saveData();
+    };
+    document.getElementById('timerTypeFixedBtn').onclick = () => {
+      const name = pendingNewTimerName;
+      document.getElementById('timerTypeOverlay').classList.remove('open');
+      openTimerDurationPicker(name);
+      pendingNewTimerName = name; // يفضل محفوظ لحد ما يتم اختيار المدة
+    };
+    document.getElementById('closeTimerTypeBtn').onclick = closeTimerTypeModal;
+    const timerTypeOverlay = document.getElementById('timerTypeOverlay');
+    timerTypeOverlay.addEventListener('click', (e) => {
+      if(e.target === timerTypeOverlay) closeTimerTypeModal();
+    });
+
+    const pickerOverlay = document.getElementById('durationPickerOverlay');
+    document.getElementById('pickerCancelBtn').onclick = closeDurationPicker;
+    document.getElementById('pickerDoneBtn').onclick = commitDurationPicker;
+    pickerOverlay.addEventListener('click', (e) => {
+      if(e.target === pickerOverlay) closeDurationPicker();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'Escape'){
+        if(statsViewOpen){ statsViewOpen = false; justReturnedFromStats = true; render(); }
+        if(calendarOverlay.classList.contains('open')) closeCalendarModal();
+        if(missedTasksOverlay && missedTasksOverlay.classList.contains('open')) closeMissedTasksModal();
+        if(draftsOverlay.classList.contains('open')) closeDraftsModal();
+        if(accountOverlay.classList.contains('open')) closeAccountModal();
+        if(pickerOverlay.classList.contains('open')) closeDurationPicker();
+        if(addChoiceOverlay.classList.contains('open')) closeAddChoiceModal();
+        if(timerTypeOverlay.classList.contains('open')) closeTimerTypeModal();
+        if(document.getElementById('subtasksOverlay').classList.contains('open')) closeSubtasksModal();
+        if(document.getElementById('recurrenceOverlay').classList.contains('open')) closeRecurrenceModal();
+        if(openDurationPopoverTaskId) hideDurationPopover();
+        if(openClockChoiceTaskId) hideClockChoicePopover();
+        if(openPriorityPopoverTaskId) hidePriorityPopover();
       }
     });
 
-    await loadData();
-    render();
-    setInterval(tickTimers, 1000);
-    checkMissedTasksPopup();
-  }
 
-  window.addEventListener('DOMContentLoaded', init);
+    // دلوقتي بس نحمّل البيانات الحقيقية (Turnstile + anonymous auth + Supabase) في الخلفية،
+    // ولما توصل نعيد الرسم عشان تظهر مهام اليوم وبنك المهام الفعليين.
+    // نظهر شريط تحميل رفيع فوق طول ما العملية شغالة، بدل ما المستخدم يحس إن حاجة "بتختفي" فجأة.
+    const syncBar = document.getElementById('syncBar');
+    if(syncBar) syncBar.classList.add('active');
+    try{
+      await loadData();
+    } finally {
+      if(syncBar) syncBar.classList.remove('active');
+    }
+    timerPanelRenderedForDate = null; // نجبر لوحة التايمر تترسم تاني بالبيانات الحقيقية (كانت اترسمت فاضية قبل ما البيانات توصل)
+    render();
+    checkMissedTasksPopup();
+  })();
 })();
