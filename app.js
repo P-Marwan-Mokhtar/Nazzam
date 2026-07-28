@@ -3013,6 +3013,8 @@
       state.darkMode = !state.darkMode;
       document.body.classList.toggle('dark-mode', state.darkMode);
       document.getElementById('themeIcon').textContent = state.darkMode ? 'light_mode' : 'dark_mode';
+      const themeColorMeta = document.getElementById('themeColorMeta');
+      if(themeColorMeta) themeColorMeta.setAttribute('content', state.darkMode ? '#14181c' : '#C5482E');
       if(statsViewOpen) renderStatsView(); // نعيد رسم الشارتات بالألوان الصح لو المستخدم بيبدّل الوضع وهو فاتح شاشة الإحصائيات
       await saveData();
     };
@@ -3194,5 +3196,21 @@
     timerPanelRenderedForDate = null; // نجبر لوحة التايمر تترسم تاني بالبيانات الحقيقية (كانت اترسمت فاضية قبل ما البيانات توصل)
     render();
     checkMissedTasksPopup();
+
+    // فتح شاشة معيّنة مباشرة لو التطبيق اتفتح من اختصار (PWA shortcut) على سطح المكتب
+    try{
+      const requestedView = new URLSearchParams(location.search).get('view');
+      if(requestedView === 'stats') document.getElementById('statsBtn').click();
+      else if(requestedView === 'calendar') document.getElementById('calendarBtn').click();
+    }catch(e){}
   })();
 })();
+
+// تسجيل الـ Service Worker لتفعيل خاصية PWA (التثبيت على سطح المكتب + العمل بدون إنترنت)
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {
+      // فشل التسجيل (مثلاً وقت التطوير المحلي بدون HTTPS) — التطبيق يستمر يعمل عاديًا بدون PWA
+    });
+  });
+}
