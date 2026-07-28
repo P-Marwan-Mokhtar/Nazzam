@@ -2968,8 +2968,16 @@
 
 
   (async function init(){
-    // ارسم الواجهة فورًا بحالة فاضية عشان المستخدم الجديد يشوف الصفحة على طول
-    // من غير ما يستنى Turnstile + تسجيل الدخول المجهول + جلب البيانات من Supabase
+    // قبل أي رسم: لو فيه نسخة محلية محفوظة من قبل (مهام + وضع ليلي)، نطبّقها فورًا.
+    // ده بيمنع اختفاء المهام والفلاش الأبيض في الوضع الليلي عند الـ refresh،
+    // لأننا مش مستنيين رد الشبكة (Turnstile + تسجيل الدخول + Supabase) عشان نعرف نرسم إيه.
+    // نفس النسخة دي هتتستبدل بالبيانات الحقيقية من السيرفر لما توصل (loadData تحت).
+    try{
+      const cachedBackup = loadLocalBackup();
+      if(cachedBackup) applyLoadedState(cachedBackup);
+    }catch(e){}
+
+    // ارسم الواجهة فورًا (بالبيانات المحفوظة محليًا لو موجودة، أو فاضية للمستخدم الجديد)
     render();
     setInterval(tickTimers, 1000);
 
@@ -3174,8 +3182,15 @@
 
 
     // دلوقتي بس نحمّل البيانات الحقيقية (Turnstile + anonymous auth + Supabase) في الخلفية،
-    // ولما توصل نعيد الرسم عشان تظهر مهام اليوم وبنك المهام الفعليين
-    await loadData();
+    // ولما توصل نعيد الرسم عشان تظهر مهام اليوم وبنك المهام الفعليين.
+    // نظهر شريط تحميل رفيع فوق طول ما العملية شغالة، بدل ما المستخدم يحس إن حاجة "بتختفي" فجأة.
+    const syncBar = document.getElementById('syncBar');
+    if(syncBar) syncBar.classList.add('active');
+    try{
+      await loadData();
+    } finally {
+      if(syncBar) syncBar.classList.remove('active');
+    }
     timerPanelRenderedForDate = null; // نجبر لوحة التايمر تترسم تاني بالبيانات الحقيقية (كانت اترسمت فاضية قبل ما البيانات توصل)
     render();
     checkMissedTasksPopup();

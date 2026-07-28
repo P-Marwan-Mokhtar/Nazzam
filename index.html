@@ -11,6 +11,21 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<script>
+  // منع "فلاش" الوضع الفاتح عند الـ refresh وانت في الوضع الليلي:
+  // بنقرأ النسخة المحلية المخزّنة فورًا (قبل ما أي حاجة تترسم) ونطبّق الوضع الليلي على طول لو كان مفعّل،
+  // بدل ما ننتظر app.js وتحميل البيانات من السيرفر عشان نعرف اللون الصح.
+  (function(){
+    try{
+      var raw = localStorage.getItem('habit-data-v2');
+      if(raw){
+        var parsed = JSON.parse(raw);
+        if(parsed && parsed.darkMode) document.body.classList.add('dark-mode');
+      }
+    }catch(e){}
+  })();
+</script>
+<div class="sync-bar" id="syncBar"></div>
 <div class="wrap" id="app">
   <div class="binding"><span></span><span></span><span></span><span></span><span></span></div>
   <div class="header-card">
