@@ -1,5 +1,6 @@
 (function(){
   const DAY_NAMES = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+  const SHORT_DAY_NAMES = ["أحد","اثنين","ثلاثاء","أربعاء","خميس","جمعة","سبت"];
   const MONTH_NAMES = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
 
   /* ===== Supabase Config =====
@@ -129,7 +130,8 @@
     days: {},
     filters: [],
     timers: {},
-    darkMode: false
+    darkMode: false,
+    recurringTasks: {} // اسم المهمة -> مصفوفة أرقام أيام الأسبوع (0=أحد..6=سبت) اللي تتكرر فيها تلقائيًا
   };
   let selectedDate = toISO(new Date());
   let editingKeywordId = null;
@@ -162,6 +164,8 @@
   let activeSubtasksTaskId = null; // المهمة المفتوح لها نافذة المهام الفرعية
   let dayStatusFilter = 'all'; // فلتر حالة مهام اليوم: all | pending | done
   let dayStatusFilterOpen = false; // هل قائمة فلتر الحالة مفتوحة دلوقتي
+  let activeRecurrenceTaskId = null; // المهمة المفتوح لها نافذة تحديد أيام التكرار دلوقتي
+  let pendingRecurrenceDays = []; // نسخة عمل من أيام التكرار (0-6) قبل الحفظ
 
   const timerPanelEl = document.getElementById('timerPanel');
 
@@ -470,6 +474,14 @@
     if(parsed.days) state.days = parsed.days;
     if(parsed.filters) state.filters = parsed.filters;
     if(parsed.timers) state.timers = parsed.timers;
+    if(parsed.recurringTasks) state.recurringTasks = parsed.recurringTasks;
+    // توافق مع الإصدار القديم: تثبيت يومي كان بيتخزن كأسماء بس (بدون أيام)، نحوّله لتكرار يومي كامل
+    if(parsed.pinnedTaskNames && parsed.pinnedTaskNames.length){
+      if(!state.recurringTasks) state.recurringTasks = {};
+      parsed.pinnedTaskNames.forEach(name => {
+        if(!state.recurringTasks[name]) state.recurringTasks[name] = [0,1,2,3,4,5,6];
+      });
+    }
     if(parsed.darkMode !== undefined){
       state.darkMode = parsed.darkMode;
       document.body.classList.toggle('dark-mode', state.darkMode);
@@ -1494,7 +1506,7 @@
 
       // رجّع الـ state في الذاكرة لوضعه الافتراضي عشان الشاشة تتصفّر فورًا
       // من غير ما تستنى رد الشبكة.
-      state = { keywords: [], drafts: [], days: {}, filters: [], timers: {}, darkMode: false };
+      state = { keywords: [], drafts: [], days: {}, filters: [], timers: {}, darkMode: false, recurringTasks: {} };
       selectedDate = toISO(new Date());
       activeFilter = 'all';
       editingKeywordId = null;
@@ -2105,18 +2117,20 @@
     const isPastDay = selectedDate < today;
     
     if(!state.pinnedInjected) state.pinnedInjected = {};
-    // Auto-Pin logic: ensure pinned tasks are inside today/future's array ONCE per day
-    if(selectedDate >= today && !state.pinnedInjected[selectedDate] && state.pinnedTaskNames && state.pinnedTaskNames.length > 0) {
+    // Auto-Recurrence logic: نضيف المهام المتكررة لليوم/الأيام الجاية لو يوم الأسبوع ده من ضمن أيامها، مرة واحدة بس لكل تاريخ
+    if(selectedDate >= today && !state.pinnedInjected[selectedDate] && state.recurringTasks && Object.keys(state.recurringTasks).length > 0) {
+      const weekday = fromISO(selectedDate).getDay();
       if(!state.days[selectedDate]) state.days[selectedDate] = [];
-      let pinnedAdded = false;
-      state.pinnedTaskNames.forEach(pName => {
-        if(!state.days[selectedDate].some(t => t.name === pName)){
-          state.days[selectedDate].push({ id: uid(), name: pName, done: false });
-          pinnedAdded = true;
+      let recurringAdded = false;
+      Object.keys(state.recurringTasks).forEach(rName => {
+        const rDays = state.recurringTasks[rName] || [];
+        if(rDays.includes(weekday) && !state.days[selectedDate].some(t => t.name === rName)){
+          state.days[selectedDate].push({ id: uid(), name: rName, done: false });
+          recurringAdded = true;
         }
       });
       state.pinnedInjected[selectedDate] = true;
-      if(pinnedAdded) saveData();
+      if(recurringAdded) saveData();
     }
 
     const dayTasks = state.days[selectedDate] || [];
@@ -2344,9 +2358,9 @@
                   <button class="tmd-btn" data-action="edit-task-today" data-id="${t.id}">
                     <span class="material-icons">edit</span><span>تعديل</span>
                   </button>
-                  <button class="tmd-btn ${(state.pinnedTaskNames && state.pinnedTaskNames.includes(t.name)) ? 'active' : ''}" data-action="pin-task-today" data-id="${t.id}">
-                    <span class="material-icons" style="font-size: 18px!important;">${(state.pinnedTaskNames && state.pinnedTaskNames.includes(t.name)) ? 'push_pin' : 'push_pin'}</span>
-                    <span>${(state.pinnedTaskNames && state.pinnedTaskNames.includes(t.name)) ? 'مثبتة يومياً' : 'تثبيت يومي'}</span>
+                  <button class="tmd-btn ${(state.recurringTasks && state.recurringTasks[t.name] && state.recurringTasks[t.name].length) ? 'active' : ''}" data-action="open-recurrence" data-id="${t.id}">
+                    <span class="material-icons">event_repeat</span>
+                    <span>تكرار المهمة</span>
                   </button>
                   <button class="tmd-btn" data-action="start-timer-from-task" data-id="${t.id}">
                     <span class="material-icons">play_circle_outline</span><span>بدء تايمر</span>
@@ -2520,9 +2534,9 @@
         if(task && inp){
           const newName = inp.value.trim();
           if(newName){
-            if(state.pinnedTaskNames && state.pinnedTaskNames.includes(task.name)){
-              state.pinnedTaskNames = state.pinnedTaskNames.filter(n => n !== task.name);
-              state.pinnedTaskNames.push(newName);
+            if(state.recurringTasks && state.recurringTasks[task.name]){
+              state.recurringTasks[newName] = state.recurringTasks[task.name];
+              delete state.recurringTasks[task.name];
             }
             task.name = newName;
           }
@@ -2535,20 +2549,10 @@
         editingTaskId = null;
         render();
       }
-      else if(action === 'pin-task-today'){
+      else if(action === 'open-recurrence'){
         openTaskMoreId = null;
-        const task = state.days[selectedDate].find(x => x.id === id);
-        if(!task) return;
-        if(!state.pinnedTaskNames) state.pinnedTaskNames = [];
-        if(state.pinnedTaskNames.includes(task.name)){
-          state.pinnedTaskNames = state.pinnedTaskNames.filter(n => n !== task.name);
-          showToast('تم إلغاء التثبيت اليومي');
-        } else {
-          state.pinnedTaskNames.push(task.name);
-          showToast('تم التثبيت لتظهر هذه المهمة يومياً');
-        }
+        openRecurrenceModal(id);
         render();
-        saveData();
       }
       else if(action === 'start-timer-from-task'){
         openTaskMoreId = null;
@@ -2837,6 +2841,71 @@
     };
   }
 
+  // ===== Recurrence (تكرار المهمة) Logic =====
+  function openRecurrenceModal(taskId){
+    const task = state.days[selectedDate].find(x => x.id === taskId);
+    if(!task) return;
+    activeRecurrenceTaskId = taskId;
+    pendingRecurrenceDays = (state.recurringTasks && state.recurringTasks[task.name]) ? [...state.recurringTasks[task.name]] : [];
+    const nameDisplay = document.getElementById('recurrenceTaskNameDisplay');
+    if(nameDisplay) nameDisplay.textContent = task.name;
+    renderRecurrenceDaysGrid();
+    document.getElementById('recurrenceOverlay').classList.add('open');
+  }
+
+  function closeRecurrenceModal(){
+    document.getElementById('recurrenceOverlay').classList.remove('open');
+    activeRecurrenceTaskId = null;
+    pendingRecurrenceDays = [];
+  }
+
+  function renderRecurrenceDaysGrid(){
+    const grid = document.getElementById('recurrenceDaysGrid');
+    if(!grid) return;
+    grid.innerHTML = SHORT_DAY_NAMES.map((name, idx) => `
+      <button type="button" class="recurrence-day-chip ${pendingRecurrenceDays.includes(idx) ? 'active' : ''}" data-day="${idx}">${name}</button>
+    `).join('');
+    grid.querySelectorAll('.recurrence-day-chip').forEach(chip => {
+      chip.onclick = () => {
+        const d = Number(chip.dataset.day);
+        if(pendingRecurrenceDays.includes(d)) pendingRecurrenceDays = pendingRecurrenceDays.filter(x => x !== d);
+        else pendingRecurrenceDays.push(d);
+        renderRecurrenceDaysGrid();
+      };
+    });
+  }
+
+  async function saveRecurrence(){
+    if(!activeRecurrenceTaskId) return;
+    const task = state.days[selectedDate].find(x => x.id === activeRecurrenceTaskId);
+    if(!task){ closeRecurrenceModal(); return; }
+    if(!state.recurringTasks) state.recurringTasks = {};
+    if(pendingRecurrenceDays.length === 0){
+      delete state.recurringTasks[task.name];
+      showToast('تم إلغاء تكرار المهمة');
+    } else {
+      state.recurringTasks[task.name] = [...pendingRecurrenceDays].sort((a,b) => a-b);
+      showToast('تم حفظ تكرار المهمة');
+    }
+    closeRecurrenceModal();
+    render();
+    await saveData();
+  }
+
+  document.getElementById('closeRecurrenceBtn').onclick = closeRecurrenceModal;
+  document.getElementById('recurrenceOverlay').onclick = (e) => {
+    if(e.target.id === 'recurrenceOverlay') closeRecurrenceModal();
+  };
+  document.getElementById('saveRecurrenceBtn').onclick = saveRecurrence;
+  document.getElementById('recurrenceSelectAllBtn').onclick = () => {
+    pendingRecurrenceDays = [0,1,2,3,4,5,6];
+    renderRecurrenceDaysGrid();
+  };
+  document.getElementById('recurrenceClearBtn').onclick = () => {
+    pendingRecurrenceDays = [];
+    renderRecurrenceDaysGrid();
+  };
+
 
   (async function init(){
     // ارسم الواجهة فورًا بحالة فاضية عشان المستخدم الجديد يشوف الصفحة على طول
@@ -3033,6 +3102,7 @@
         if(addChoiceOverlay.classList.contains('open')) closeAddChoiceModal();
         if(timerTypeOverlay.classList.contains('open')) closeTimerTypeModal();
         if(document.getElementById('subtasksOverlay').classList.contains('open')) closeSubtasksModal();
+        if(document.getElementById('recurrenceOverlay').classList.contains('open')) closeRecurrenceModal();
         if(openDurationPopoverTaskId) hideDurationPopover();
         if(openClockChoiceTaskId) hideClockChoicePopover();
       }

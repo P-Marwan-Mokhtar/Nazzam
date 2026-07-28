@@ -1767,6 +1767,7 @@
   @media (max-width: 480px){
     .stats-summary-row{ flex-wrap: wrap; }
     .stats-summary-pill{ flex: 1 1 calc(33.333% - 8px); }
+    .recurrence-day-chip{ font-size: 0.7rem; padding: 9px 1px; }
   }
 
   @media (max-width: 900px){
@@ -2070,6 +2071,49 @@
   .tmd-btn.delete:hover {
     background: #fadbd8;
   }
+
+  .recurrence-days-grid{
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+  .recurrence-day-chip{
+    background: var(--paper);
+    border: 1.5px solid var(--paper-line);
+    color: var(--ink);
+    border-radius: 10px;
+    padding: 10px 2px;
+    font-family: 'Tajawal';
+    font-weight: 700;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .recurrence-day-chip:hover{ border-color: var(--pen); }
+  .recurrence-day-chip.active{
+    background: var(--pen);
+    border-color: var(--pen);
+    color: #fff;
+  }
+  .recurrence-quick-actions{
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .recurrence-quick-btn{
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--ink-soft);
+    font-family: 'Tajawal';
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    text-decoration: underline;
+  }
+  .recurrence-quick-btn:hover{ color: var(--pen); background: var(--paper); }
 
   /* ===== Task Inline Edit ===== */
   .inline-edit-wrap {

@@ -218,6 +218,27 @@
 <div class="clock-choice-popover" id="clockChoicePopover"></div>
 <div class="toast" id="toast"></div>
 
+<!-- Modal تكرار المهمة -->
+<div class="modal-overlay" id="recurrenceOverlay">
+  <div class="modal-card" style="max-width: 420px;">
+    <div class="modal-header">
+      <h2>تكرار المهمة</h2>
+      <button class="icon-btn" id="closeRecurrenceBtn" title="إغلاق"><span class="material-icons">close</span></button>
+    </div>
+    <div class="modal-body">
+      <p style="color: var(--ink-soft); font-size: 0.95rem; margin-top: 0; margin-bottom: 14px; line-height: 1.5;">
+        اختر الأيام اللي تحب <strong id="recurrenceTaskNameDisplay" style="color: var(--pen);"></strong> تتكرر فيها تلقائيًا كل أسبوع:
+      </p>
+      <div class="recurrence-days-grid" id="recurrenceDaysGrid"></div>
+      <div class="recurrence-quick-actions">
+        <button type="button" class="recurrence-quick-btn" id="recurrenceSelectAllBtn">كل يوم</button>
+        <button type="button" class="recurrence-quick-btn" id="recurrenceClearBtn">إلغاء التكرار</button>
+      </div>
+      <button type="button" class="add-btn" id="saveRecurrenceBtn" style="width:100%; margin-top: 18px; padding: 12px;">حفظ</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal المهام الفرعية -->
 <div class="modal-overlay" id="subtasksOverlay">
   <div class="modal-card" style="max-width: 420px;">
