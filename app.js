@@ -160,6 +160,8 @@
   let openDurationPopoverTaskId = null; // المهمة اللي فاتح لها بوب أب (الهدف/الوقت الفعلي) دلوقتي
   let openClockChoiceTaskId = null; // المهمة اللي فاتح لها اختيار (هدف / وقت فعلي) من أيقونة الساعة
   let activeSubtasksTaskId = null; // المهمة المفتوح لها نافذة المهام الفرعية
+  let dayStatusFilter = 'all'; // فلتر حالة مهام اليوم: all | pending | done
+  let dayStatusFilterOpen = false; // هل قائمة فلتر الحالة مفتوحة دلوقتي
 
   const timerPanelEl = document.getElementById('timerPanel');
 
@@ -2255,8 +2257,36 @@
     }
 
     // Daily Tasks Section
-    html += `<div class="section-title" style="margin-top: 32px;">مهام اليوم</div>`;
-    
+    const dayFilterLabels = { all: 'الكل', pending: 'متبقية', done: 'منجزة' };
+    html += `
+      <div class="section-title" style="margin-top: 32px;">
+        <span>مهام اليوم</span>
+        <div class="day-filter-wrap">
+          <button class="day-filter-btn ${dayStatusFilter !== 'all' ? 'active' : ''}" data-action="toggle-day-status-filter" title="فلترة مهام اليوم">
+            <span class="material-icons">filter_list</span>
+            <span class="day-filter-btn-label">${dayFilterLabels[dayStatusFilter]}</span>
+          </button>
+          <div class="day-filter-dropdown ${dayStatusFilterOpen ? 'open' : ''}">
+            <button class="tmd-btn ${dayStatusFilter === 'all' ? 'active' : ''}" data-action="select-day-status-filter" data-value="all">
+              <span class="material-icons">list</span><span>الكل</span>
+            </button>
+            <button class="tmd-btn ${dayStatusFilter === 'pending' ? 'active' : ''}" data-action="select-day-status-filter" data-value="pending">
+              <span class="material-icons">radio_button_unchecked</span><span>متبقية</span>
+            </button>
+            <button class="tmd-btn ${dayStatusFilter === 'done' ? 'active' : ''}" data-action="select-day-status-filter" data-value="done">
+              <span class="material-icons">check_circle</span><span>منجزة</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const visibleDayTasks = dayStatusFilter === 'all'
+      ? dayTasks
+      : dayStatusFilter === 'done'
+        ? dayTasks.filter(t => t.done)
+        : dayTasks.filter(t => !t.done);
+
     if(dayTasks.length === 0){
       html += `
         <div class="empty-state">
@@ -2264,9 +2294,15 @@
           اضغط (+) من بنك المهام أعلاه لإضافة مهمة.
         </div>
       `;
+    } else if(visibleDayTasks.length === 0){
+      html += `
+        <div class="empty-state">
+          لا توجد مهام ${dayFilterLabels[dayStatusFilter]} في هذا اليوم.
+        </div>
+      `;
     } else {
       html += `<div class="task-list">`;
-      dayTasks.forEach(t => {
+      visibleDayTasks.forEach(t => {
         const targetMin = parseDurationToMinutes(t.duration);
         const actualMin = parseDurationToMinutes(t.actualDuration);
         const pct = targetMin > 0 ? Math.round((actualMin / targetMin) * 100) : 0;
@@ -2448,6 +2484,15 @@
         render();
         await saveData();
         showToast('تم الحذف من اليوم');
+      }
+      else if(action === 'toggle-day-status-filter'){
+        dayStatusFilterOpen = !dayStatusFilterOpen;
+        render();
+      }
+      else if(action === 'select-day-status-filter'){
+        dayStatusFilter = btn.dataset.value;
+        dayStatusFilterOpen = false;
+        render();
       }
       else if(action === 'toggle-task-more'){
         openTaskMoreId = openTaskMoreId === id ? null : id;
@@ -2816,6 +2861,10 @@
       }
       if(openTaskMoreId && !e.target.closest('.task-more-dropdown') && !e.target.closest('.task-more-btn')){
         openTaskMoreId = null;
+        render();
+      }
+      if(dayStatusFilterOpen && !e.target.closest('.day-filter-wrap')){
+        dayStatusFilterOpen = false;
         render();
       }
     });
