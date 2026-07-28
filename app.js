@@ -161,6 +161,7 @@
   let alertAudioCtx = null;
   let openDurationPopoverTaskId = null; // المهمة اللي فاتح لها بوب أب (الهدف/الوقت الفعلي) دلوقتي
   let openClockChoiceTaskId = null; // المهمة اللي فاتح لها اختيار (هدف / وقت فعلي) من أيقونة الساعة
+  let openPriorityPopoverTaskId = null; // المهمة اللي فاتح لها اختيار مستوى الأهمية دلوقتي
   let activeSubtasksTaskId = null; // المهمة المفتوح لها نافذة المهام الفرعية
   let dayStatusFilter = 'all'; // فلتر حالة مهام اليوم: all | pending | done
   let dayStatusFilterOpen = false; // هل قائمة فلتر الحالة مفتوحة دلوقتي
@@ -2105,9 +2106,60 @@
     openClockChoiceTaskId = null;
   }
 
+  const PRIORITY_LABELS = { high: 'عالية', medium: 'متوسطة', low: 'منخفضة' };
+
+  function showPriorityPopover(taskId, anchorEl){
+    const pop = document.getElementById('priorityPopover');
+    const task = state.days[selectedDate].find(x => x.id === taskId);
+    const current = task ? task.priority : null;
+    pop.innerHTML = `
+      <button class="priority-choice-btn priority-choice-high ${current === 'high' ? 'selected' : ''}" data-choice="high" type="button">
+        <span class="material-icons">flag</span>عالية
+      </button>
+      <button class="priority-choice-btn priority-choice-medium ${current === 'medium' ? 'selected' : ''}" data-choice="medium" type="button">
+        <span class="material-icons">flag</span>متوسطة
+      </button>
+      <button class="priority-choice-btn priority-choice-low ${current === 'low' ? 'selected' : ''}" data-choice="low" type="button">
+        <span class="material-icons">flag</span>منخفضة
+      </button>
+      <button class="priority-choice-btn priority-choice-none ${!current ? 'selected' : ''}" data-choice="" type="button">
+        <span class="material-icons">outlined_flag</span>بدون
+      </button>
+    `;
+    pop.classList.add('open');
+
+    const rect = anchorEl.getBoundingClientRect();
+    const popRect = pop.getBoundingClientRect();
+    let top = rect.top - popRect.height - 8;
+    if(top < 8) top = rect.bottom + 8;
+    let left = rect.left + rect.width / 2 - popRect.width / 2;
+    left = Math.max(8, Math.min(left, window.innerWidth - popRect.width - 8));
+    pop.style.top = `${top}px`;
+    pop.style.left = `${left}px`;
+
+    openPriorityPopoverTaskId = taskId;
+
+    pop.querySelectorAll('.priority-choice-btn').forEach(choiceBtn => {
+      choiceBtn.onclick = async () => {
+        const value = choiceBtn.dataset.choice;
+        if(task) task.priority = value || null;
+        hidePriorityPopover();
+        render();
+        await saveData();
+      };
+    });
+  }
+
+  function hidePriorityPopover(){
+    const pop = document.getElementById('priorityPopover');
+    if(pop) pop.classList.remove('open');
+    openPriorityPopoverTaskId = null;
+  }
+
   function render(){
     hideDurationPopover();
     hideClockChoicePopover();
+    hidePriorityPopover();
     if(statsViewOpen){
       renderStatsView();
       return;
@@ -2239,7 +2291,6 @@
             const kStreak = computeTaskStreak(k.name);
             html += `
               <div class="keyword-row" draggable="true" data-drag-id="${k.id}">
-                <span class="drag-handle material-icons" title="اسحب لإعادة الترتيب">drag_indicator</span>
                 <button class="add-to-day-btn ${alreadyAdded ? 'added' : ''}" data-action="add-to-day" data-name="${escapeAttr(k.name)}" ${alreadyAdded ? 'disabled' : ''} title="${alreadyAdded ? 'مُضافة بالفعل اليوم' : 'إضافة إلى مهام اليوم'}"><span class="material-icons">${alreadyAdded ? 'check' : 'add'}</span></button>
                 <div class="keyword-main">
                   <span class="keyword-name" title="${escapeAttr(k.name)}">${highlightMatch(k.name, bankSearchQuery)}</span>
@@ -2324,7 +2375,6 @@
 
         html += `
           <div class="task-row ${t.done?'done':''} ${(!t.done && isPastDay)?'missed':''}" draggable="true" data-drag-id="${t.id}">
-            <span class="drag-handle material-icons" title="اسحب لإعادة الترتيب">drag_indicator</span>
             <div class="task-main" data-action="toggle-task" data-id="${t.id}">
               ${editingTaskId === t.id ? `
                 <div class="inline-edit-wrap">
@@ -2337,6 +2387,9 @@
                 <span class="task-name" title="${escapeAttr(t.name)}">${escapeHtml(t.name)}</span>
               `}
               <div class="task-icons">
+              <button class="priority-btn ${t.priority ? 'priority-' + t.priority : ''}" data-action="toggle-priority-popover" data-id="${t.id}" title="${t.priority ? 'الأهمية: ' + PRIORITY_LABELS[t.priority] : 'حدد مستوى الأهمية'}">
+                <span class="material-icons">flag</span>
+              </button>
               <button class="clock-btn" data-action="toggle-duration" data-id="${t.id}" title="حدد الهدف أو الوقت الفعلي">
                 <span class="material-icons">schedule</span>
               </button>
@@ -2483,6 +2536,13 @@
           hideClockChoicePopover();
         } else {
           showClockChoicePopover(id, btn);
+        }
+      }
+      else if(action === 'toggle-priority-popover'){
+        if(openPriorityPopoverTaskId === id){
+          hidePriorityPopover();
+        } else {
+          showPriorityPopover(id, btn);
         }
       }
       else if(action === 'toggle-duration-view'){
@@ -2928,6 +2988,9 @@
       if(openClockChoiceTaskId && !e.target.closest('.clock-choice-popover') && !e.target.closest('.clock-btn')){
         hideClockChoicePopover();
       }
+      if(openPriorityPopoverTaskId && !e.target.closest('.priority-popover') && !e.target.closest('.priority-btn')){
+        hidePriorityPopover();
+      }
       if(openTaskMoreId && !e.target.closest('.task-more-dropdown') && !e.target.closest('.task-more-btn')){
         openTaskMoreId = null;
         render();
@@ -3105,6 +3168,7 @@
         if(document.getElementById('recurrenceOverlay').classList.contains('open')) closeRecurrenceModal();
         if(openDurationPopoverTaskId) hideDurationPopover();
         if(openClockChoiceTaskId) hideClockChoicePopover();
+        if(openPriorityPopoverTaskId) hidePriorityPopover();
       }
     });
 

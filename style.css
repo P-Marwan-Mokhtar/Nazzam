@@ -451,16 +451,6 @@
     gap:8px;
     transition: opacity .15s ease, box-shadow .15s ease, transform .15s ease;
   }
-  .drag-handle{
-    flex: 0 0 auto;
-    font-size: 18px !important;
-    color: var(--ink-soft);
-    cursor: grab;
-    opacity: 0.55;
-    display:flex;
-    align-items:center;
-  }
-  .drag-handle:hover{ opacity: 1; }
   .keyword-row[draggable="true"],
   .task-row[draggable="true"]{
     cursor: default;
@@ -668,6 +658,75 @@
   }
   .clock-choice-btn:hover{ background: var(--paper); }
   .clock-choice-btn .material-icons{ font-size: 17px; color: var(--pen); }
+
+  /* ===== مستوى الأهمية (Priority) ===== */
+  .priority-btn{
+    flex: 0 0 auto;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    line-height: 1;
+    opacity: 0.55;
+    border-radius: 6px;
+    display:flex;
+    align-items:center;
+    color: var(--ink-soft);
+  }
+  .priority-btn .material-icons{ font-size: 18px; }
+  .priority-btn:hover{ opacity: 1; background: var(--paper); }
+  .priority-btn.priority-high{ opacity: 1; color: var(--missed); }
+  .priority-btn.priority-medium{ opacity: 1; color: #D98C15; }
+  .priority-btn.priority-low{ opacity: 1; color: var(--done); }
+  body.dark-mode .priority-btn.priority-medium{ color: #f0ab2e; }
+
+  .priority-popover{
+    position: fixed;
+    z-index: 40;
+    background: var(--card);
+    border: 1px solid var(--paper-line);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 6px;
+    min-width: 150px;
+    display: none;
+    flex-direction: column;
+    gap: 3px;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity .15s ease, transform .15s ease;
+    pointer-events: none;
+  }
+  .priority-popover.open{
+    display: flex;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .priority-choice-btn{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 10px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: right;
+    width: 100%;
+  }
+  .priority-choice-btn:hover{ background: var(--paper); }
+  .priority-choice-btn .material-icons{ font-size: 17px; }
+  .priority-choice-btn.selected{ background: var(--paper); }
+  .priority-choice-high .material-icons{ color: var(--missed); }
+  .priority-choice-medium .material-icons{ color: #D98C15; }
+  .priority-choice-low .material-icons{ color: var(--done); }
+  .priority-choice-none .material-icons{ color: var(--ink-soft); }
+  body.dark-mode .priority-choice-medium .material-icons{ color: #f0ab2e; }
 
   /* ===== Wheel Picker (Drum Roller) ===== */
   .picker-overlay{
