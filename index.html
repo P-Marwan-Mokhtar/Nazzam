@@ -218,6 +218,24 @@
 <div class="clock-choice-popover" id="clockChoicePopover"></div>
 <div class="toast" id="toast"></div>
 
+<!-- Modal المهام الفرعية -->
+<div class="modal-overlay" id="subtasksOverlay">
+  <div class="modal-card" style="max-width: 420px;">
+    <div class="modal-header">
+      <h2>مهام فرعية</h2>
+      <button class="icon-btn" id="closeSubtasksBtn" title="إغلاق"><span class="material-icons">close</span></button>
+    </div>
+    <div class="modal-body">
+      <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <input type="text" id="newSubtaskInput" placeholder="أضف مهمة فرعية..." style="flex:1; border: 1px solid var(--border); border-radius: 8px; padding: 8px; font-family: 'Tajawal', sans-serif;" />
+        <button id="addSubtaskBtn" style="background: var(--primary); color: white; border: none; border-radius: 8px; padding: 0 16px; cursor: pointer; font-family: 'Tajawal', sans-serif; font-weight: 700;">إضافة</button>
+      </div>
+      <div id="subtasksList" style="display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto;">
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4" defer></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>

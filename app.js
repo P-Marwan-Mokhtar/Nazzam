@@ -159,6 +159,7 @@
   let alertAudioCtx = null;
   let openDurationPopoverTaskId = null; // المهمة اللي فاتح لها بوب أب (الهدف/الوقت الفعلي) دلوقتي
   let openClockChoiceTaskId = null; // المهمة اللي فاتح لها اختيار (هدف / وقت فعلي) من أيقونة الساعة
+  let activeSubtasksTaskId = null; // المهمة المفتوح لها نافذة المهام الفرعية
 
   const timerPanelEl = document.getElementById('timerPanel');
 
@@ -2282,6 +2283,7 @@
                   <button class="icon-btn" data-action="cancel-task-edit" data-id="${t.id}" title="إلغاء"><span class="material-icons">close</span></button>
                 </div>
               ` : `
+                ${(t.subtasks && t.subtasks.length > 0) ? `<button type="button" class="subtasks-badge" data-action="open-subtasks" data-id="${t.id}" title="عرض المهام الفرعية">${t.subtasks.filter(s=>s.done).length}/${t.subtasks.length}</button>` : ''}
                 <span class="task-name" title="${escapeAttr(t.name)}">${escapeHtml(t.name)}</span>
               `}
               <div class="task-icons">
@@ -2312,6 +2314,9 @@
                   </button>
                   <button class="tmd-btn" data-action="start-timer-from-task" data-id="${t.id}">
                     <span class="material-icons">play_circle_outline</span><span>بدء تايمر</span>
+                  </button>
+                  <button class="tmd-btn" data-action="open-subtasks" data-id="${t.id}">
+                    <span class="material-icons">account_tree</span><span>مهام فرعية</span>
                   </button>
                   <button class="tmd-btn delete" data-action="delete-task" data-id="${t.id}">
                     <span class="material-icons">delete</span><span>حذف</span>
@@ -2446,6 +2451,11 @@
       }
       else if(action === 'toggle-task-more'){
         openTaskMoreId = openTaskMoreId === id ? null : id;
+        render();
+      }
+      else if(action === 'open-subtasks'){
+        openTaskMoreId = null;
+        openSubtasksModal(id);
         render();
       }
       else if(action === 'edit-task-today'){
@@ -2682,6 +2692,107 @@
     pendingTaskFilterId = null;
   }
 
+  // ===== Subtasks Logic =====
+  function openSubtasksModal(taskId) {
+    activeSubtasksTaskId = taskId;
+    renderSubtasksList();
+    document.getElementById('subtasksOverlay').classList.add('open');
+    const inp = document.getElementById('newSubtaskInput');
+    if (inp) setTimeout(() => inp.focus(), 100);
+  }
+
+  function closeSubtasksModal() {
+    document.getElementById('subtasksOverlay').classList.remove('open');
+    activeSubtasksTaskId = null;
+  }
+
+  function renderSubtasksList() {
+    const listEl = document.getElementById('subtasksList');
+    if (!listEl || !activeSubtasksTaskId) return;
+    const task = state.days[selectedDate].find(t => t.id === activeSubtasksTaskId);
+    if (!task) return;
+
+    if (!task.subtasks) task.subtasks = [];
+
+    if (task.subtasks.length === 0) {
+      listEl.innerHTML = '<div class="stat-empty">لا توجد مهام فرعية بعد.</div>';
+      return;
+    }
+
+    let html = '';
+    task.subtasks.forEach(st => {
+      html += `
+        <div class="subtask-item ${st.done ? 'done' : ''}">
+          <div class="subtask-item-left">
+            <input type="checkbox" class="subtask-checkbox" data-id="${st.id}" ${st.done ? 'checked' : ''} />
+            <span class="subtask-title">${escapeHtml(st.title)}</span>
+          </div>
+          <button class="subtask-delete-btn" data-id="${st.id}" title="حذف">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+      `;
+    });
+    listEl.innerHTML = html;
+
+    // Attach events
+    listEl.querySelectorAll('.subtask-checkbox').forEach(chk => {
+      chk.onchange = async (e) => {
+        const stId = e.target.dataset.id;
+        const st = task.subtasks.find(x => x.id === stId);
+        if (st) {
+          st.done = e.target.checked;
+          renderSubtasksList();
+          render();
+          await saveData();
+        }
+      };
+    });
+
+    listEl.querySelectorAll('.subtask-delete-btn').forEach(btn => {
+      btn.onclick = async (e) => {
+        const stId = e.currentTarget.dataset.id;
+        task.subtasks = task.subtasks.filter(x => x.id !== stId);
+        renderSubtasksList();
+        render();
+        await saveData();
+      };
+    });
+  }
+
+  document.getElementById('closeSubtasksBtn').onclick = closeSubtasksModal;
+  document.getElementById('subtasksOverlay').onclick = (e) => {
+    if (e.target.id === 'subtasksOverlay') closeSubtasksModal();
+  };
+
+  const addSubtaskBtn = document.getElementById('addSubtaskBtn');
+  const newSubtaskInput = document.getElementById('newSubtaskInput');
+  
+  async function handleAddSubtask() {
+    if (!activeSubtasksTaskId) return;
+    const title = newSubtaskInput.value.trim();
+    if (!title) return;
+    
+    const task = state.days[selectedDate].find(t => t.id === activeSubtasksTaskId);
+    if (!task) return;
+    
+    if (!task.subtasks) task.subtasks = [];
+    task.subtasks.push({ id: uid(), title, done: false });
+    
+    newSubtaskInput.value = '';
+    renderSubtasksList();
+    render();
+    await saveData();
+  }
+  
+  if (addSubtaskBtn) addSubtaskBtn.onclick = handleAddSubtask;
+  if (newSubtaskInput) {
+    newSubtaskInput.onkeydown = (e) => {
+      if (e.key === 'Enter') handleAddSubtask();
+    };
+  }
+
+
   (async function init(){
     // ارسم الواجهة فورًا بحالة فاضية عشان المستخدم الجديد يشوف الصفحة على طول
     // من غير ما يستنى Turnstile + تسجيل الدخول المجهول + جلب البيانات من Supabase
@@ -2872,10 +2983,12 @@
         if(pickerOverlay.classList.contains('open')) closeDurationPicker();
         if(addChoiceOverlay.classList.contains('open')) closeAddChoiceModal();
         if(timerTypeOverlay.classList.contains('open')) closeTimerTypeModal();
+        if(document.getElementById('subtasksOverlay').classList.contains('open')) closeSubtasksModal();
         if(openDurationPopoverTaskId) hideDurationPopover();
         if(openClockChoiceTaskId) hideClockChoicePopover();
       }
     });
+
 
     // دلوقتي بس نحمّل البيانات الحقيقية (Turnstile + anonymous auth + Supabase) في الخلفية،
     // ولما توصل نعيد الرسم عشان تظهر مهام اليوم وبنك المهام الفعليين
