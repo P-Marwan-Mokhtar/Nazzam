@@ -9,6 +9,11 @@
   const SUPABASE_URL = 'https://txdgfvxnjofpmiaiwsax.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_-yUhuWCFab5f0jLN6kY3kQ_SGJRPYgy';
 
+  /* ===== Web Push Config =====
+     المفتاح ده عام (public) وآمن إنه يكون في كود العميل — مفتاحه الخاص (private) متخزن سيرفريًا بس كـ secret
+     في Supabase Edge Function، ومبيتحطش هنا خالص. */
+  const VAPID_PUBLIC_KEY = 'BL3YIniJb64-41-BKq-tkBuOD6ssUtfupHsjLcahvfy3u3WTcvmL1N8N-hSDyfQGKf9_EzkD5D47TAARdZWc67A';
+
   /* ===== Cloudflare Turnstile Config =====
      غيّر القيمة دي بالـ Site Key بتاعك من Cloudflare Dashboard > Turnstile
      (السيكرت كي بتاع Turnstile بيتحط في Supabase Dashboard مش هنا) */
@@ -142,6 +147,7 @@
   let closingBank = false;
   let bankCloseTimeoutId = null;
   let bankSearchQuery = '';
+  let globalSearchQuery = ''; // نص البحث الحالي في نافذة "البحث في كل المهام" (عبر كل الأيام)
   let mobileFiltersOpen = false; // للموبايل: هل لوحة الفلاتر مفتوحة فوق البنك
   let closingMobileFilters = false;
   let mobileFiltersCloseTimeoutId = null;
@@ -1633,6 +1639,76 @@
     document.getElementById('draftsOverlay').classList.remove('open');
   }
 
+  function renderGlobalSearchResults(){
+    const listEl = document.getElementById('globalSearchResultsList');
+    if(!listEl) return;
+    const q = normalizeArabic(globalSearchQuery.trim());
+
+    if(!q){
+      listEl.innerHTML = `<div class="empty-state">اكتب اسم مهمة عشان تدور عليها في كل الأيام اللي فاتت.</div>`;
+      return;
+    }
+
+    const matches = [];
+    Object.keys(state.days).forEach(date => {
+      (state.days[date] || []).forEach(t => {
+        if(normalizeArabic(t.name).includes(q)){
+          matches.push({ date, task: t });
+        }
+      });
+    });
+
+    // الأحدث أول حاجة
+    matches.sort((a, b) => b.date.localeCompare(a.date));
+
+    if(matches.length === 0){
+      listEl.innerHTML = `<div class="empty-state">مفيش نتائج مطابقة لـ "${escapeHtml(globalSearchQuery.trim())}".</div>`;
+      return;
+    }
+
+    const shown = matches.slice(0, 100);
+    let html = '';
+    shown.forEach(({ date, task }) => {
+      html += `
+        <button type="button" class="global-search-result" data-date="${date}">
+          <span class="material-icons global-search-result-status ${task.done ? 'done' : ''}">${task.done ? 'check_circle' : 'radio_button_unchecked'}</span>
+          <span class="global-search-result-main">
+            <span class="global-search-result-name">${highlightMatch(task.name, globalSearchQuery)}</span>
+            <span class="global-search-result-date">${fmtDay(date)}</span>
+          </span>
+        </button>
+      `;
+    });
+    if(matches.length > shown.length){
+      html += `<div class="global-search-more-note">وفيه ${matches.length - shown.length} نتيجة تانية، ضيّق البحث أكتر عشان تشوفهم</div>`;
+    }
+    listEl.innerHTML = html;
+
+    listEl.querySelectorAll('.global-search-result').forEach(btn => {
+      btn.onclick = () => {
+        selectedDate = btn.dataset.date;
+        dayStatusFilter = 'all';
+        closeGlobalSearchModal();
+        render();
+      };
+    });
+  }
+
+  function openGlobalSearchModal(){
+    globalSearchQuery = '';
+    const searchInput = document.getElementById('globalSearchInput');
+    if(searchInput) searchInput.value = '';
+    const clearBtn = document.getElementById('globalSearchClear');
+    if(clearBtn) clearBtn.style.display = 'none';
+
+    renderGlobalSearchResults();
+    document.getElementById('globalSearchOverlay').classList.add('open');
+    if(searchInput) searchInput.focus();
+  }
+  function closeGlobalSearchModal(){
+    document.getElementById('globalSearchOverlay').classList.remove('open');
+  }
+
   function renderCalendarModal(){
     const d = fromISO(selectedDate);
     const year = d.getFullYear();
@@ -2966,18 +3042,113 @@
     renderRecurrenceDaysGrid();
   };
 
+  // ===== Web Push Notifications =====
+  let swRegistration = null;
+
+  function urlBase64ToUint8Array(base64String){
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+    return outputArray;
+  }
+
+  async function registerServiceWorker(){
+    if(!('serviceWorker' in navigator)) return null;
+    try{
+      swRegistration = await navigator.serviceWorker.register('./sw.js');
+      return swRegistration;
+    }catch(e){
+      console.warn('تعذر تسجيل Service Worker:', e);
+      return null;
+    }
+  }
+
+  async function updateNotificationsButtonUI(){
+    const icon = document.getElementById('notificationsIcon');
+    const label = document.getElementById('notificationsLabel');
+    if(!icon) return;
+    if(!('Notification' in window) || !('PushManager' in window)){
+      icon.textContent = 'notifications_off';
+      if(label) label.textContent = 'غير مدعوم على هذا الجهاز';
+      return;
+    }
+    if(Notification.permission === 'denied'){
+      icon.textContent = 'notifications_off';
+      if(label) label.textContent = 'التنبيهات محظورة من المتصفح';
+      return;
+    }
+    let subscribed = false;
+    if(swRegistration){
+      const sub = await swRegistration.pushManager.getSubscription();
+      subscribed = !!sub;
+    }
+    icon.textContent = subscribed ? 'notifications_active' : 'notifications_none';
+    if(label) label.textContent = subscribed ? 'التنبيهات مفعّلة' : 'التنبيهات';
+  }
+
+  async function togglePushSubscription(){
+    if(!('serviceWorker' in navigator) || !('PushManager' in window)){
+      showToast('متصفحك الحالي لا يدعم التنبيهات، جرّب من كروم أو إيدج');
+      return;
+    }
+    if(!swRegistration) swRegistration = await registerServiceWorker();
+    if(!swRegistration){
+      showToast('تعذّر تفعيل خدمة التنبيهات');
+      return;
+    }
+
+    const existing = await swRegistration.pushManager.getSubscription();
+    if(existing){
+      try{
+        await supabaseClient.from('push_subscriptions').delete().eq('endpoint', existing.endpoint);
+      }catch(e){ console.warn('تعذر حذف الاشتراك من الخادم:', e); }
+      await existing.unsubscribe();
+      showToast('تم إيقاف التنبيهات');
+      await updateNotificationsButtonUI();
+      return;
+    }
+
+    if(Notification.permission === 'denied'){
+      showToast('التنبيهات محظورة من إعدادات المتصفح، فعّلها من هناك الأول');
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+    if(permission !== 'granted'){
+      showToast('محتاجين إذنك عشان نقدر نبعتلك تنبيهات');
+      return;
+    }
+
+    try{
+      const sub = await swRegistration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+      const subJson = sub.toJSON();
+      if(currentUserId){
+        const { error } = await supabaseClient.from('push_subscriptions').upsert({
+          user_id: currentUserId,
+          endpoint: subJson.endpoint,
+          p256dh: subJson.keys.p256dh,
+          auth: subJson.keys.auth,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'endpoint' });
+        if(error) throw error;
+      }
+      showToast('تم تفعيل التنبيهات بنجاح');
+    }catch(e){
+      console.error('Push subscribe failed:', e);
+      showToast('حصل خطأ أثناء تفعيل التنبيهات');
+    }
+    await updateNotificationsButtonUI();
+  }
+
 
   (async function init(){
-    // قبل أي رسم: لو فيه نسخة محلية محفوظة من قبل (مهام + وضع ليلي)، نطبّقها فورًا.
-    // ده بيمنع اختفاء المهام والفلاش الأبيض في الوضع الليلي عند الـ refresh،
-    // لأننا مش مستنيين رد الشبكة (Turnstile + تسجيل الدخول + Supabase) عشان نعرف نرسم إيه.
-    // نفس النسخة دي هتتستبدل بالبيانات الحقيقية من السيرفر لما توصل (loadData تحت).
-    try{
-      const cachedBackup = loadLocalBackup();
-      if(cachedBackup) applyLoadedState(cachedBackup);
-    }catch(e){}
-
-    // ارسم الواجهة فورًا (بالبيانات المحفوظة محليًا لو موجودة، أو فاضية للمستخدم الجديد)
+    // ارسم الواجهة فورًا بحالة فاضية عشان المستخدم الجديد يشوف الصفحة على طول
+    // من غير ما يستنى Turnstile + تسجيل الدخول المجهول + جلب البيانات من Supabase
     render();
     setInterval(tickTimers, 1000);
 
@@ -3017,6 +3188,9 @@
       await saveData();
     };
 
+    document.getElementById('notificationsBtn').onclick = togglePushSubscription;
+    registerServiceWorker().then(updateNotificationsButtonUI);
+
     document.getElementById('statsBtn').onclick = () => {
       const wasOpen = statsViewOpen;
       statsViewOpen = !statsViewOpen;
@@ -3042,6 +3216,31 @@
     // أحداث زر ونافذة الـ Drafts والبحث الذكي
     document.getElementById('draftsBtn').onclick = openDraftsModal;
     document.getElementById('closeDraftsBtn').onclick = closeDraftsModal;
+
+    document.getElementById('globalSearchBtn').onclick = openGlobalSearchModal;
+    document.getElementById('closeGlobalSearchBtn').onclick = closeGlobalSearchModal;
+    document.getElementById('globalSearchOverlay').onclick = (e) => {
+      if(e.target.id === 'globalSearchOverlay') closeGlobalSearchModal();
+    };
+    const globalSearchInput = document.getElementById('globalSearchInput');
+    const globalSearchClear = document.getElementById('globalSearchClear');
+    if(globalSearchInput){
+      globalSearchInput.oninput = (e) => {
+        globalSearchQuery = e.target.value;
+        if(globalSearchQuery) globalSearchClear.style.display = 'flex';
+        else globalSearchClear.style.display = 'none';
+        renderGlobalSearchResults();
+      };
+    }
+    if(globalSearchClear){
+      globalSearchClear.onclick = () => {
+        globalSearchQuery = '';
+        globalSearchInput.value = '';
+        globalSearchClear.style.display = 'none';
+        renderGlobalSearchResults();
+        globalSearchInput.focus();
+      };
+    }
     const draftsOverlay = document.getElementById('draftsOverlay');
     draftsOverlay.addEventListener('click', (e) => {
       if(e.target === draftsOverlay) closeDraftsModal();
@@ -3174,6 +3373,7 @@
         if(timerTypeOverlay.classList.contains('open')) closeTimerTypeModal();
         if(document.getElementById('subtasksOverlay').classList.contains('open')) closeSubtasksModal();
         if(document.getElementById('recurrenceOverlay').classList.contains('open')) closeRecurrenceModal();
+        if(document.getElementById('globalSearchOverlay').classList.contains('open')) closeGlobalSearchModal();
         if(openDurationPopoverTaskId) hideDurationPopover();
         if(openClockChoiceTaskId) hideClockChoicePopover();
         if(openPriorityPopoverTaskId) hidePriorityPopover();
@@ -3182,15 +3382,8 @@
 
 
     // دلوقتي بس نحمّل البيانات الحقيقية (Turnstile + anonymous auth + Supabase) في الخلفية،
-    // ولما توصل نعيد الرسم عشان تظهر مهام اليوم وبنك المهام الفعليين.
-    // نظهر شريط تحميل رفيع فوق طول ما العملية شغالة، بدل ما المستخدم يحس إن حاجة "بتختفي" فجأة.
-    const syncBar = document.getElementById('syncBar');
-    if(syncBar) syncBar.classList.add('active');
-    try{
-      await loadData();
-    } finally {
-      if(syncBar) syncBar.classList.remove('active');
-    }
+    // ولما توصل نعيد الرسم عشان تظهر مهام اليوم وبنك المهام الفعليين
+    await loadData();
     timerPanelRenderedForDate = null; // نجبر لوحة التايمر تترسم تاني بالبيانات الحقيقية (كانت اترسمت فاضية قبل ما البيانات توصل)
     render();
     checkMissedTasksPopup();

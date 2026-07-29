@@ -14,35 +14,6 @@
     --shadow: 0 1px 2px rgba(34,48,61,0.06), 0 4px 14px rgba(34,48,61,0.05);
   }
 
-  /* ===== Sync/Loading Bar (بيظهر أثناء تحميل البيانات من السيرفر بدل ما الشاشة تفضل فاضية/تختفي) ===== */
-  .sync-bar{
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    z-index: 9999;
-    overflow: hidden;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .25s ease;
-  }
-  .sync-bar.active{ opacity: 1; }
-  .sync-bar::before{
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 35%;
-    border-radius: 3px;
-    background: var(--pen);
-    animation: sync-bar-slide 1.1s ease-in-out infinite;
-  }
-  @keyframes sync-bar-slide{
-    0%{ left: -35%; }
-    100%{ left: 100%; }
-  }
-
   /* ===== Dark Mode Variables & Overrides ===== */
   body.dark-mode {
     --paper: #14181c;
@@ -2286,4 +2257,52 @@
   .subtask-title {
     font-size: 0.9rem;
     color: var(--ink);
+  }
+
+  /* ===== البحث الشامل عبر كل الأيام ===== */
+  .global-search-result{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    background: var(--paper);
+    border: 1px solid var(--paper-line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    text-align: right;
+    font-family: 'Tajawal';
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .global-search-result:hover{ background: var(--card); border-color: var(--pen); }
+  .global-search-result-status{
+    font-size: 19px !important;
+    color: var(--ink-soft);
+    flex: 0 0 auto;
+  }
+  .global-search-result-status.done{ color: var(--done); }
+  .global-search-result-main{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .global-search-result-name{
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .global-search-result-date{
+    font-size: 0.76rem;
+    color: var(--ink-soft);
+  }
+  .global-search-more-note{
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    padding: 8px;
   }

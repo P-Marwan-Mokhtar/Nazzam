@@ -61,8 +61,16 @@
             <span class="material-icons" id="themeIcon">dark_mode</span>
             <span class="header-btn-label">الوضع الليلي</span>
           </button>
+          <button class="header-icon-btn" id="notificationsBtn" title="تنبيهات التذكير">
+            <span class="material-icons" id="notificationsIcon">notifications_none</span>
+            <span class="header-btn-label" id="notificationsLabel">التنبيهات</span>
+          </button>
         </div>
         <div class="header-actions header-group-left" id="headerGroupLeft">
+          <button class="header-icon-btn" id="globalSearchBtn" title="البحث في كل المهام">
+            <span class="material-icons">manage_search</span>
+            <span class="header-btn-label">البحث</span>
+          </button>
           <button class="header-icon-btn" id="statsBtn" title="الإحصائيات">
             <span class="material-icons">insights</span>
             <span class="header-btn-label">الإحصائيات</span>
@@ -125,6 +133,26 @@
         <button class="bank-search-clear" id="draftsSearchClear" style="display:none;" title="مسح البحث"><span class="material-icons">close</span></button>
       </div>
       <div id="draftsModalList" style="display: flex; flex-direction: column; gap: 8px; max-height: 350px; overflow-y: auto;">
+        <!-- سيتم تعبئتها ديناميكياً -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal البحث الشامل عبر كل الأيام -->
+<div class="modal-overlay" id="globalSearchOverlay">
+  <div class="modal-card" style="max-width: 500px;">
+    <div class="modal-header">
+      <h2>البحث في كل المهام</h2>
+      <button class="icon-btn" id="closeGlobalSearchBtn" title="إغلاق"><span class="material-icons">close</span></button>
+    </div>
+    <div class="modal-body">
+      <div class="bank-search" style="margin-top: 0; margin-bottom: 14px;">
+        <span class="material-icons bank-search-icon">search</span>
+        <input type="text" id="globalSearchInput" placeholder="دوّر على مهمة عملتها امتى..." />
+        <button class="bank-search-clear" id="globalSearchClear" style="display:none;" title="مسح البحث"><span class="material-icons">close</span></button>
+      </div>
+      <div id="globalSearchResultsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto;">
         <!-- سيتم تعبئتها ديناميكياً -->
       </div>
     </div>
