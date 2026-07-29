@@ -881,9 +881,10 @@ body.dark-mode .priority-choice-medium .material-icons {
 }
 
 /* ===== Wheel Picker (Drum Roller) ===== */
-.picker-overlay {
-  align-items: flex-end;
+.modal-overlay.picker-overlay {
+  align-items: center;
   padding: 0;
+  z-index: 300;
 }
 .picker-sheet {
   background: var(--card);
@@ -2910,4 +2911,46 @@ body.dark-mode .account-error {
   #globalSearchBtnMobile + .header-menu-divider {
     display: none !important;
   }
+}
+
+/* ===== Toggle Switch ===== */
+.toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+.toggle input {
+  display: none;
+}
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--paper-line);
+  border-radius: 12px;
+  transition: background 0.2s ease;
+}
+.toggle-slider::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle input:checked + .toggle-slider {
+  background: var(--done);
+}
+.toggle input:checked + .toggle-slider::after {
+  transform: translateX(-20px);
 }

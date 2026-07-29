@@ -137,7 +137,7 @@
     filters: [],
     timers: {},
     darkMode: false,
-    recurringTasks: {} // اسم المهمة -> مصفوفة أرقام أيام الأسبوع (0=أحد..6=سبت) اللي تتكرر فيها تلقائيًا
+    recurringTasks: {}, // اسم المهمة -> مصفوفة أرقام أيام الأسبوع (0=أحد..6=سبت) اللي تتكرر فيها تلقائيًا
   };
   let selectedDate = toISO(new Date());
   let editingKeywordId = null;
@@ -164,7 +164,7 @@
   let pendingTaskName = '';
   let pendingTaskFilterId = null;
   let pendingNewTimerName = ''; // اسم التايمر المنتظر اختيار نوعه (مفتوح / محدد)
-  let pickerMode = 'task'; // 'task' لتحديد هدف المهمة، 'timer' لتحديد مدة تايمر جديد
+  let pickerMode = 'task'; // 'task'/'actual' لتحديد هدف المهمة, 'timer' للمؤقت
   let alertAudioCtx = null;
   let openDurationPopoverTaskId = null; // المهمة اللي فاتح لها بوب أب (الهدف/الوقت الفعلي) دلوقتي
   let openClockChoiceTaskId = null; // المهمة اللي فاتح لها اختيار (هدف / وقت فعلي) من أيقونة الساعة
@@ -542,6 +542,8 @@
     if(parsed.filters) state.filters = parsed.filters;
     if(parsed.timers) state.timers = parsed.timers;
     if(parsed.recurringTasks) state.recurringTasks = parsed.recurringTasks;
+    if(parsed._sortPriority) state._sortPriority = parsed._sortPriority;
+    if(parsed._taskOrderCache) state._taskOrderCache = parsed._taskOrderCache;
     // توافق مع الإصدار القديم: تثبيت يومي كان بيتخزن كأسماء بس (بدون أيام)، نحوّله لتكرار يومي كامل
     if(parsed.pinnedTaskNames && parsed.pinnedTaskNames.length){
       if(!state.recurringTasks) state.recurringTasks = {};
@@ -2504,7 +2506,7 @@
       <div class="section-title" style="margin-top: 32px;">
         <span>مهام اليوم</span>
         <div class="section-title-actions">
-          <button class="day-filter-btn" data-action="sort-by-priority" title="رتّب حسب الأهمية">
+          <button class="day-filter-btn ${state._sortPriority && state._sortPriority[selectedDate] ? 'active' : ''}" data-action="sort-by-priority" title="رتّب حسب الأهمية">
             <span class="material-icons">sort</span>
             <span class="day-filter-btn-label">ترتيب</span>
           </button>
@@ -2756,14 +2758,28 @@
         render();
       }
       else if(action === 'sort-by-priority'){
-        const priorityOrder = { high: 0, medium: 1, low: 2 };
         const list = state.days[selectedDate];
-        if(list && list.length > 1){
+        if(!list || list.length <= 1) return;
+        if(state._sortPriority && state._sortPriority[selectedDate]){
+          if(state._taskOrderCache && state._taskOrderCache[selectedDate]){
+            const cached = state._taskOrderCache[selectedDate];
+            const map = {};
+            list.forEach(t => { map[t.id] = t; });
+            state.days[selectedDate] = cached.map(id => map[id]).filter(Boolean);
+          }
+          state._sortPriority[selectedDate] = false;
+          showToast('تم إلغاء ترتيب الأولوية');
+        } else {
+          if(!state._sortPriority) state._sortPriority = {};
+          if(!state._taskOrderCache) state._taskOrderCache = {};
+          state._taskOrderCache[selectedDate] = list.map(t => t.id);
+          const priorityOrder = { high: 0, medium: 1, low: 2 };
           list.sort((a, b) => (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3));
-          render();
-          await saveData();
+          state._sortPriority[selectedDate] = true;
           showToast('تم ترتيب مهام اليوم حسب الأهمية');
         }
+        render();
+        await saveData();
       }
       else if(action === 'toggle-task-more'){
         openTaskMoreId = openTaskMoreId === id ? null : id;
@@ -3162,7 +3178,6 @@
     pendingRecurrenceDays = [];
     renderRecurrenceDaysGrid();
   };
-
 
   (async function init(){
     // ارسم الواجهة فورًا بحالة فاضية عشان المستخدم الجديد يشوف الصفحة على طول
