@@ -48,38 +48,43 @@
   <div class="binding"><span></span><span></span><span></span><span></span><span></span></div>
   <div class="header-card">
     <div class="header-actions-wrap">
-      <button class="header-more-btn" id="headerMoreBtn" title="المزيد" aria-label="المزيد من الأزرار" aria-expanded="false">
-        <span class="material-icons">more_vert</span>
-      </button>
+      <div class="header-top-bar" id="headerTopBar">
+        <button class="header-icon-btn" id="globalSearchBtn" title="البحث في كل المهام">
+          <span class="material-icons">manage_search</span>
+        </button>
+        <button class="header-icon-btn" id="themeBtn" title="الوضع الليلي">
+          <span class="material-icons" id="themeIcon">dark_mode</span>
+        </button>
+        <button class="header-icon-btn" id="accountBtn" title="الحساب">
+          <span class="material-icons" id="accountIcon">person_outline</span>
+        </button>
+        <button class="header-icon-btn header-more-btn" id="headerMoreBtn" title="المزيد" aria-label="المزيد من الخيارات" aria-expanded="false">
+          <span class="material-icons">more_horiz</span>
+        </button>
+      </div>
       <div class="header-actions-panel" id="headerActionsPanel">
-        <div class="header-actions header-group-right" id="headerGroupRight">
-          <button class="header-icon-btn" id="accountBtn" title="الحساب">
-            <span class="material-icons" id="accountIcon">person_outline</span>
-            <span class="header-btn-label">الحساب</span>
-          </button>
-          <button class="header-icon-btn" id="themeBtn" title="الوضع الليلي">
-            <span class="material-icons" id="themeIcon">dark_mode</span>
-            <span class="header-btn-label">الوضع الليلي</span>
-          </button>
-          <button class="header-icon-btn" id="globalSearchBtn" title="البحث في كل المهام">
-            <span class="material-icons">manage_search</span>
-            <span class="header-btn-label">البحث</span>
-          </button>
-        </div>
-        <div class="header-actions header-group-left" id="headerGroupLeft">
-          <button class="header-icon-btn" id="statsBtn" title="الإحصائيات">
-            <span class="material-icons">insights</span>
-            <span class="header-btn-label">الإحصائيات</span>
-          </button>
-          <button class="header-icon-btn" id="calendarBtn" title="التقويم">
-            <span class="material-icons">calendar_today</span>
-            <span class="header-btn-label">التقويم</span>
-          </button>
-          <button class="header-icon-btn" id="draftsBtn" title="المهام المؤرشفة">
-            <span class="material-icons">drafts</span>
-            <span class="header-btn-label">المهام المؤرشفة</span>
-          </button>
-        </div>
+        <button class="header-menu-item" id="statsBtn" title="الإحصائيات">
+          <span class="material-icons">insights</span>
+          <span class="header-btn-label">الإحصائيات</span>
+        </button>
+        <button class="header-menu-item" id="calendarBtn" title="التقويم">
+          <span class="material-icons">calendar_today</span>
+          <span class="header-btn-label">التقويم</span>
+        </button>
+        <button class="header-menu-item" id="draftsBtn" title="المهام المؤرشفة">
+          <span class="material-icons">drafts</span>
+          <span class="header-btn-label">المهام المؤرشفة</span>
+        </button>
+        <div class="header-menu-divider"></div>
+        <button class="header-menu-item" id="exportDataBtn" title="تصدير نسخة احتياطية (JSON)">
+          <span class="material-icons">file_download</span>
+          <span class="header-btn-label">تصدير البيانات</span>
+        </button>
+        <button class="header-menu-item" id="importDataBtn" title="استيراد نسخة احتياطية (JSON)">
+          <span class="material-icons">file_upload</span>
+          <span class="header-btn-label">استيراد البيانات</span>
+        </button>
+        <input type="file" id="importDataInput" accept=".json,application/json" style="display:none;" />
       </div>
     </div>
     <h1>المهام اليومية</h1>

@@ -463,6 +463,65 @@
     await saveData();
   }
 
+  function exportDataAsJSON(){
+    try{
+      const dataStr = JSON.stringify(state, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const dateSuffix = todayStr();
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `مهام-نسخة-احتياطية-${dateSuffix}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast('تم تصدير نسخة احتياطية بنجاح');
+    }catch(e){
+      console.error('Export failed:', e);
+      showToast('حدث خطأ أثناء تصدير البيانات');
+    }
+  }
+
+  function isPlausibleBackupShape(obj){
+    if(!obj || typeof obj !== 'object') return false;
+    const knownKeys = ['keywords', 'drafts', 'days', 'filters', 'timers', 'darkMode', 'recurringTasks', 'pinnedTaskNames'];
+    return knownKeys.some(k => Object.prototype.hasOwnProperty.call(obj, k));
+  }
+
+  function importDataFromFile(file){
+    if(!file) return;
+    if(!file.name.toLowerCase().endsWith('.json')){
+      showToast('من فضلك اختر ملف JSON صالح');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      let parsed;
+      try{
+        parsed = JSON.parse(e.target.result);
+      }catch(err){
+        showToast('الملف تالف أو مش JSON صحيح');
+        return;
+      }
+      if(!isPlausibleBackupShape(parsed)){
+        showToast('الملف ده مش نسخة احتياطية معروفة من التطبيق');
+        return;
+      }
+      if(!confirm('استيراد هذا الملف هيستبدل كل بياناتك الحالية (المهام، البنك، المسودات، إلخ) بالبيانات اللي في الملف. هل تريد المتابعة؟')){
+        return;
+      }
+      applyLoadedState(parsed);
+      render();
+      await saveData();
+      showToast('تم استيراد البيانات بنجاح');
+    };
+    reader.onerror = () => {
+      showToast('تعذّرت قراءة الملف');
+    };
+    reader.readAsText(file);
+  }
+
   function showToast(msg){
     toastEl.textContent = msg;
     toastEl.classList.add('show');
@@ -2668,11 +2727,15 @@
         }
       }
       else if(action === 'delete-task'){
-        state.days[selectedDate] = state.days[selectedDate].filter(t => t.id !== id);
-        if(pickerTaskId === id) closeDurationPicker();
-        render();
-        await saveData();
-        showToast('تم الحذف من اليوم');
+        const taskToDelete = (state.days[selectedDate] || []).find(t => t.id === id);
+        const taskLabel = taskToDelete ? `"${taskToDelete.name}"` : 'هذه المهمة';
+        if(confirm(`هل أنت متأكد من حذف ${taskLabel} من جدول اليوم؟`)){
+          state.days[selectedDate] = state.days[selectedDate].filter(t => t.id !== id);
+          if(pickerTaskId === id) closeDurationPicker();
+          render();
+          await saveData();
+          showToast('تم الحذف من اليوم');
+        }
       }
       else if(action === 'toggle-day-status-filter'){
         dayStatusFilterOpen = !dayStatusFilterOpen;
@@ -3159,6 +3222,19 @@
     // أحداث زر ونافذة الـ Drafts والبحث الذكي
     document.getElementById('draftsBtn').onclick = openDraftsModal;
     document.getElementById('closeDraftsBtn').onclick = closeDraftsModal;
+
+    document.getElementById('exportDataBtn').onclick = exportDataAsJSON;
+
+    const importDataBtn = document.getElementById('importDataBtn');
+    const importDataInput = document.getElementById('importDataInput');
+    if(importDataBtn && importDataInput){
+      importDataBtn.onclick = () => importDataInput.click();
+      importDataInput.onchange = (e) => {
+        const file = e.target.files && e.target.files[0];
+        importDataFromFile(file);
+        importDataInput.value = ''; // نسمح باختيار نفس الملف تاني لو حصل خطأ
+      };
+    }
 
     document.getElementById('globalSearchBtn').onclick = openGlobalSearchModal;
     document.getElementById('closeGlobalSearchBtn').onclick = closeGlobalSearchModal;
