@@ -9,11 +9,6 @@
   const SUPABASE_URL = 'https://txdgfvxnjofpmiaiwsax.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_-yUhuWCFab5f0jLN6kY3kQ_SGJRPYgy';
 
-  /* ===== Web Push Config =====
-     المفتاح ده عام (public) وآمن إنه يكون في كود العميل — مفتاحه الخاص (private) متخزن سيرفريًا بس كـ secret
-     في Supabase Edge Function، ومبيتحطش هنا خالص. */
-  const VAPID_PUBLIC_KEY = 'BL3YIniJb64-41-BKq-tkBuOD6ssUtfupHsjLcahvfy3u3WTcvmL1N8N-hSDyfQGKf9_EzkD5D47TAARdZWc67A';
-
   /* ===== Cloudflare Turnstile Config =====
      غيّر القيمة دي بالـ Site Key بتاعك من Cloudflare Dashboard > Turnstile
      (السيكرت كي بتاع Turnstile بيتحط في Supabase Dashboard مش هنا) */
@@ -3042,109 +3037,6 @@
     renderRecurrenceDaysGrid();
   };
 
-  // ===== Web Push Notifications =====
-  let swRegistration = null;
-
-  function urlBase64ToUint8Array(base64String){
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-    const rawData = atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
-    return outputArray;
-  }
-
-  async function registerServiceWorker(){
-    if(!('serviceWorker' in navigator)) return null;
-    try{
-      swRegistration = await navigator.serviceWorker.register('./sw.js');
-      return swRegistration;
-    }catch(e){
-      console.warn('تعذر تسجيل Service Worker:', e);
-      return null;
-    }
-  }
-
-  async function updateNotificationsButtonUI(){
-    const icon = document.getElementById('notificationsIcon');
-    const label = document.getElementById('notificationsLabel');
-    if(!icon) return;
-    if(!('Notification' in window) || !('PushManager' in window)){
-      icon.textContent = 'notifications_off';
-      if(label) label.textContent = 'غير مدعوم على هذا الجهاز';
-      return;
-    }
-    if(Notification.permission === 'denied'){
-      icon.textContent = 'notifications_off';
-      if(label) label.textContent = 'التنبيهات محظورة من المتصفح';
-      return;
-    }
-    let subscribed = false;
-    if(swRegistration){
-      const sub = await swRegistration.pushManager.getSubscription();
-      subscribed = !!sub;
-    }
-    icon.textContent = subscribed ? 'notifications_active' : 'notifications_none';
-    if(label) label.textContent = subscribed ? 'التنبيهات مفعّلة' : 'التنبيهات';
-  }
-
-  async function togglePushSubscription(){
-    if(!('serviceWorker' in navigator) || !('PushManager' in window)){
-      showToast('متصفحك الحالي لا يدعم التنبيهات، جرّب من كروم أو إيدج');
-      return;
-    }
-    if(!swRegistration) swRegistration = await registerServiceWorker();
-    if(!swRegistration){
-      showToast('تعذّر تفعيل خدمة التنبيهات');
-      return;
-    }
-
-    const existing = await swRegistration.pushManager.getSubscription();
-    if(existing){
-      try{
-        await supabaseClient.from('push_subscriptions').delete().eq('endpoint', existing.endpoint);
-      }catch(e){ console.warn('تعذر حذف الاشتراك من الخادم:', e); }
-      await existing.unsubscribe();
-      showToast('تم إيقاف التنبيهات');
-      await updateNotificationsButtonUI();
-      return;
-    }
-
-    if(Notification.permission === 'denied'){
-      showToast('التنبيهات محظورة من إعدادات المتصفح، فعّلها من هناك الأول');
-      return;
-    }
-
-    const permission = await Notification.requestPermission();
-    if(permission !== 'granted'){
-      showToast('محتاجين إذنك عشان نقدر نبعتلك تنبيهات');
-      return;
-    }
-
-    try{
-      const sub = await swRegistration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-      });
-      const subJson = sub.toJSON();
-      if(currentUserId){
-        const { error } = await supabaseClient.from('push_subscriptions').upsert({
-          user_id: currentUserId,
-          endpoint: subJson.endpoint,
-          p256dh: subJson.keys.p256dh,
-          auth: subJson.keys.auth,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'endpoint' });
-        if(error) throw error;
-      }
-      showToast('تم تفعيل التنبيهات بنجاح');
-    }catch(e){
-      console.error('Push subscribe failed:', e);
-      showToast('حصل خطأ أثناء تفعيل التنبيهات');
-    }
-    await updateNotificationsButtonUI();
-  }
-
 
   (async function init(){
     // ارسم الواجهة فورًا بحالة فاضية عشان المستخدم الجديد يشوف الصفحة على طول
@@ -3187,9 +3079,6 @@
       if(statsViewOpen) renderStatsView(); // نعيد رسم الشارتات بالألوان الصح لو المستخدم بيبدّل الوضع وهو فاتح شاشة الإحصائيات
       await saveData();
     };
-
-    document.getElementById('notificationsBtn').onclick = togglePushSubscription;
-    registerServiceWorker().then(updateNotificationsButtonUI);
 
     document.getElementById('statsBtn').onclick = () => {
       const wasOpen = statsViewOpen;
