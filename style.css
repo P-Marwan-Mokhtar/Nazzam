@@ -2381,6 +2381,12 @@ body.dark-mode .account-error {
   }
 }
 
+@media (max-width: 1015px) {
+  .add-row-group {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 900px) {
   .main-layout {
     flex-direction: column;
@@ -2417,9 +2423,15 @@ body.dark-mode .account-error {
 
   .header-actions-wrap {
     top: 12px;
-    left: 12px;
+    right: 12px;
+    left: auto;
+  }
+  .header-top-bar .header-icon-btn:not(.header-more-btn) {
+    display: none;
   }
   .header-actions-panel {
+    right: 0;
+    left: auto;
     min-width: 190px;
   }
 
@@ -2479,13 +2491,18 @@ body.dark-mode .account-error {
     flex: 1 1 auto;
     min-width: 0;
     display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
   }
   .task-icons {
     width: 100%;
     justify-content: flex-end;
+  }
+  #addSubtaskBtn {
+    padding-top: 10px;
+    padding-bottom: 10px;
   }
   .duration-badge {
     flex: 0 0 auto;
@@ -2883,4 +2900,14 @@ body.dark-mode .account-error {
   font-size: 0.8rem;
   color: var(--ink-soft);
   padding: 8px;
+}
+
+/* إخفاء أيقونات القائمة المنسدلة الخاصة بالموبايل في وضع الديسكتوب */
+@media (min-width: 641px) {
+  #accountBtnMobile,
+  #themeBtnMobile,
+  #globalSearchBtnMobile,
+  #globalSearchBtnMobile + .header-menu-divider {
+    display: none !important;
+  }
 }

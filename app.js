@@ -62,15 +62,21 @@
   function updateAccountIcon(){
     const icon = document.getElementById('accountIcon');
     const btn = document.getElementById('accountBtn');
+    const iconMobile = document.getElementById('accountIconMobile');
+    const btnMobile = document.getElementById('accountBtnMobile');
     if(!icon || !btn) return;
     if(!isAnonymousUser && currentUserEmail){
       icon.textContent = 'account_circle';
       btn.classList.add('is-linked');
       btn.title = currentUserEmail;
+      if(iconMobile) iconMobile.textContent = 'account_circle';
+      if(btnMobile) btnMobile.title = currentUserEmail;
     } else {
       icon.textContent = 'person_outline';
       btn.classList.remove('is-linked');
       btn.title = 'الحساب';
+      if(iconMobile) iconMobile.textContent = 'person_outline';
+      if(btnMobile) btnMobile.title = 'الحساب';
     }
   }
 
@@ -547,7 +553,10 @@
       state.darkMode = parsed.darkMode;
       document.body.classList.toggle('dark-mode', state.darkMode);
       const icon = document.getElementById('themeIcon');
-      if(icon) icon.textContent = state.darkMode ? 'light_mode' : 'dark_mode';
+      const iconMobile = document.getElementById('themeIconMobile');
+      const text = state.darkMode ? 'light_mode' : 'dark_mode';
+      if(icon) icon.textContent = text;
+      if(iconMobile) iconMobile.textContent = text;
     }
   }
 
@@ -2557,10 +2566,10 @@
                   <button class="icon-btn" data-action="cancel-task-edit" data-id="${t.id}" title="إلغاء"><span class="material-icons">close</span></button>
                 </div>
               ` : `
-                ${(t.subtasks && t.subtasks.length > 0) ? `<button type="button" class="subtasks-badge" data-action="open-subtasks" data-id="${t.id}" title="عرض المهام الفرعية">${t.subtasks.filter(s=>s.done).length}/${t.subtasks.length}</button>` : ''}
                 <span class="task-name" title="${escapeAttr(t.name)}">${escapeHtml(t.name)}</span>
               `}
               <div class="task-icons">
+              ${(t.subtasks && t.subtasks.length > 0) ? `<button type="button" class="subtasks-badge" data-action="open-subtasks" data-id="${t.id}" title="عرض المهام الفرعية">${t.subtasks.filter(s=>s.done).length}/${t.subtasks.length}</button>` : ''}
               <button class="priority-btn ${t.priority ? 'priority-' + t.priority : ''}" data-action="toggle-priority-popover" data-id="${t.id}" title="${t.priority ? 'الأهمية: ' + PRIORITY_LABELS[t.priority] : 'حدد مستوى الأهمية'}">
                 <span class="material-icons">flag</span>
               </button>
@@ -3189,13 +3198,18 @@
       }
     });
 
-    document.getElementById('themeBtn').onclick = async () => {
+    const toggleDarkMode = async () => {
       state.darkMode = !state.darkMode;
       document.body.classList.toggle('dark-mode', state.darkMode);
-      document.getElementById('themeIcon').textContent = state.darkMode ? 'light_mode' : 'dark_mode';
-      if(statsViewOpen) renderStatsView(); // نعيد رسم الشارتات بالألوان الصح لو المستخدم بيبدّل الوضع وهو فاتح شاشة الإحصائيات
+      const icon = document.getElementById('themeIcon');
+      const iconMobile = document.getElementById('themeIconMobile');
+      const text = state.darkMode ? 'light_mode' : 'dark_mode';
+      if(icon) icon.textContent = text;
+      if(iconMobile) iconMobile.textContent = text;
+      if(statsViewOpen) renderStatsView();
       await saveData();
     };
+    document.getElementById('themeBtn').onclick = toggleDarkMode;
 
     document.getElementById('statsBtn').onclick = () => {
       const wasOpen = statsViewOpen;
@@ -3238,6 +3252,9 @@
 
     document.getElementById('globalSearchBtn').onclick = openGlobalSearchModal;
     document.getElementById('closeGlobalSearchBtn').onclick = closeGlobalSearchModal;
+    document.getElementById('accountBtnMobile').onclick = openAccountModal;
+    document.getElementById('themeBtnMobile').onclick = toggleDarkMode;
+    document.getElementById('globalSearchBtnMobile').onclick = openGlobalSearchModal;
     document.getElementById('globalSearchOverlay').onclick = (e) => {
       if(e.target.id === 'globalSearchOverlay') closeGlobalSearchModal();
     };
