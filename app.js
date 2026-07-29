@@ -614,9 +614,10 @@
     return list;
   }
 
-  function computeWeekStats(){
+  function computeWeekStats(offsetWeeks){
+    offsetWeeks = offsetWeeks || 0;
     const today = todayStr();
-    const weekDays = getLastNDays(7);
+    const weekDays = getLastNDays(7, offsetWeeks > 0 ? addDays(today, -7 * offsetWeeks) : today);
     let totalMs = 0;
     let doneCount = 0;
     let totalTaskCount = 0;
@@ -887,8 +888,23 @@
 
   // شاشة الإحصائيات: بتتعرض مكان مهام اليوم في #content، وبترسم كل البيانات بشارتات Chart.js
   function renderStatsView(){
-    const s = computeWeekStats();
+    const s = computeWeekStats(0);
+    const prevS = computeWeekStats(1);
     const completionPct = s.totalTaskCount > 0 ? Math.round((s.doneCount / s.totalTaskCount) * 100) : 0;
+    const prevCompletionPct = prevS.totalTaskCount > 0 ? Math.round((prevS.doneCount / prevS.totalTaskCount) * 100) : 0;
+
+    function computeDelta(curr, prev){
+      if(prev === 0) return { pct: curr === 0 ? 0 : 100, dir: curr === 0 ? 'same' : 'up' };
+      const pct = Math.round(((curr - prev) / prev) * 100);
+      return { pct: Math.abs(pct), dir: pct > 0 ? 'up' : (pct < 0 ? 'down' : 'same') };
+    }
+    function deltaIcon(dir){
+      return dir === 'up' ? 'arrow_upward' : (dir === 'down' ? 'arrow_downward' : 'remove');
+    }
+    const completionDelta = computeDelta(completionPct, prevCompletionPct);
+    const timeDelta = computeDelta(s.totalMs, prevS.totalMs);
+    const doneDelta = computeDelta(s.doneCount, prevS.doneCount);
+    const hasCompareData = s.totalTaskCount > 0 || prevS.totalTaskCount > 0;
 
     // بنجيب الألوان مباشرة بناءً على state.darkMode (بدل ما نعتمد على قراءة الـ CSS variables من المتصفح)
     // عشان نضمن ألوان صح ١٠٠٪ في كل وضع من غير أي مشاكل توقيت أو قراءة خاطئة
@@ -958,6 +974,28 @@
             <small>دقة تقدير الوقت</small>
           </div>` : ``}
         </div>
+
+        ${hasCompareData ? `
+        <div class="week-compare-card">
+          <div class="week-compare-title"><span class="material-icons">trending_up</span>مقارنة بالأسبوع اللي فات</div>
+          <div class="week-compare-rows">
+            <div class="week-compare-row">
+              <span class="week-compare-label">نسبة الإنجاز</span>
+              <span class="week-compare-values">${completionPct}% <small>(كان ${prevCompletionPct}%)</small></span>
+              <span class="week-compare-delta ${completionDelta.dir}"><span class="material-icons">${deltaIcon(completionDelta.dir)}</span>${completionDelta.pct}%</span>
+            </div>
+            <div class="week-compare-row">
+              <span class="week-compare-label">الوقت المستثمر</span>
+              <span class="week-compare-values">${formatHM(s.totalMs)} <small>(كان ${formatHM(prevS.totalMs)})</small></span>
+              <span class="week-compare-delta ${timeDelta.dir}"><span class="material-icons">${deltaIcon(timeDelta.dir)}</span>${timeDelta.pct}%</span>
+            </div>
+            <div class="week-compare-row">
+              <span class="week-compare-label">المهام المنجزة</span>
+              <span class="week-compare-values">${s.doneCount} <small>(كان ${prevS.doneCount})</small></span>
+              <span class="week-compare-delta ${doneDelta.dir}"><span class="material-icons">${deltaIcon(doneDelta.dir)}</span>${doneDelta.pct}%</span>
+            </div>
+          </div>
+        </div>` : ``}
 
         <div class="chart-grid">
           <div class="chart-card">
@@ -2397,7 +2435,12 @@
     html += `
       <div class="section-title" style="margin-top: 32px;">
         <span>مهام اليوم</span>
-        <div class="day-filter-wrap">
+        <div class="section-title-actions">
+          <button class="day-filter-btn" data-action="sort-by-priority" title="رتّب حسب الأهمية">
+            <span class="material-icons">sort</span>
+            <span class="day-filter-btn-label">ترتيب</span>
+          </button>
+          <div class="day-filter-wrap">
           <button class="day-filter-btn ${dayStatusFilter !== 'all' ? 'active' : ''}" data-action="toggle-day-status-filter" title="فلترة مهام اليوم">
             <span class="material-icons">filter_list</span>
             <span class="day-filter-btn-label">${dayFilterLabels[dayStatusFilter]}</span>
@@ -2413,6 +2456,7 @@
               <span class="material-icons">check_circle</span><span>منجزة</span>
             </button>
           </div>
+        </div>
         </div>
       </div>
     `;
@@ -2638,6 +2682,16 @@
         dayStatusFilter = btn.dataset.value;
         dayStatusFilterOpen = false;
         render();
+      }
+      else if(action === 'sort-by-priority'){
+        const priorityOrder = { high: 0, medium: 1, low: 2 };
+        const list = state.days[selectedDate];
+        if(list && list.length > 1){
+          list.sort((a, b) => (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3));
+          render();
+          await saveData();
+          showToast('تم ترتيب مهام اليوم حسب الأهمية');
+        }
       }
       else if(action === 'toggle-task-more'){
         openTaskMoreId = openTaskMoreId === id ? null : id;

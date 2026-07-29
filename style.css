@@ -225,10 +225,15 @@
     background: var(--pen);
     border-radius: 4px;
   }
+  .section-title-actions{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-inline-start: auto;
+  }
   .day-filter-wrap{
     position: relative;
     display: flex;
-    margin-inline-start: auto;
   }
   .day-filter-btn{
     display: flex;
@@ -1784,6 +1789,72 @@
     font-size: 0.72rem;
     color: var(--ink-soft);
   }
+
+  /* ===== مقارنة الأسبوع بالأسبوع اللي فات ===== */
+  .week-compare-card{
+    background: var(--card);
+    border: 1px solid var(--paper-line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .week-compare-title{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 800;
+    font-size: 0.92rem;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .week-compare-title .material-icons{ font-size: 18px; color: var(--pen); }
+  .week-compare-rows{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .week-compare-row{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 0;
+    border-top: 1px dashed var(--paper-line);
+  }
+  .week-compare-row:first-child{ border-top: none; padding-top: 0; }
+  .week-compare-label{
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    font-weight: 700;
+    flex: 1 1 auto;
+  }
+  .week-compare-values{
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .week-compare-values small{
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+  .week-compare-delta{
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    border-radius: 20px;
+    padding: 3px 8px;
+    flex: 0 0 auto;
+  }
+  .week-compare-delta .material-icons{ font-size: 14px; }
+  .week-compare-delta.up{ color: var(--done); background: var(--done-soft); }
+  .week-compare-delta.down{ color: var(--missed); background: rgba(197,56,46,0.12); }
+  .week-compare-delta.same{ color: var(--ink-soft); background: var(--paper); }
+
   .chart-grid{
     display:grid;
     grid-template-columns: 1fr 1fr;
