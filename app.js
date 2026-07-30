@@ -9,6 +9,11 @@
   const SUPABASE_URL = 'https://txdgfvxnjofpmiaiwsax.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_-yUhuWCFab5f0jLN6kY3kQ_SGJRPYgy';
 
+  /* ===== Web Push Config =====
+     المفتاح ده عام (public) وآمن إنه يكون في كود العميل — مفتاحه الخاص (private) متخزن سيرفريًا بس كـ secret
+     في Supabase Edge Function، ومبيتحطش هنا خالص. */
+  const VAPID_PUBLIC_KEY = 'BL3YIniJb64-41-BKq-tkBuOD6ssUtfupHsjLcahvfy3u3WTcvmL1N8N-hSDyfQGKf9_EzkD5D47TAARdZWc67A';
+
   /* ===== Cloudflare Turnstile Config =====
      غيّر القيمة دي بالـ Site Key بتاعك من Cloudflare Dashboard > Turnstile
      (السيكرت كي بتاع Turnstile بيتحط في Supabase Dashboard مش هنا) */
@@ -138,6 +143,14 @@
     timers: {},
     darkMode: false,
     recurringTasks: {}, // اسم المهمة -> مصفوفة أرقام أيام الأسبوع (0=أحد..6=سبت) اللي تتكرر فيها تلقائيًا
+    notificationSettings: {
+      morningEnabled: false,
+      morningTime: '08:00',
+      eveningEnabled: false,
+      eveningTime: '21:00',
+      lastMorningFiredDate: null,
+      lastEveningFiredDate: null
+    },
   };
   let selectedDate = toISO(new Date());
   let editingKeywordId = null;
@@ -249,11 +262,12 @@
   const WHEEL_ITEM_H = 42;
   let pickerTaskId = null;
 
-  function buildWheelList(listEl, count){
+  function buildWheelList(listEl, count, labels){
     let html = '';
     for(let set = 0; set < 3; set++){
       for(let i=0; i<count; i++){
-        html += `<li class="wheel-item" data-value="${i}" data-real-index="${set * count + i}">${String(i).padStart(2,'0')}</li>`;
+        const label = labels ? labels[i] : String(i).padStart(2,'0');
+        html += `<li class="wheel-item" data-value="${i}" data-real-index="${set * count + i}">${label}</li>`;
       }
     }
     listEl.innerHTML = html;
@@ -277,8 +291,8 @@
     colEl._value = idx % count;
   }
 
-  function initWheel(colEl, listEl, count, initialValue){
-    buildWheelList(listEl, count);
+  function initWheel(colEl, listEl, count, initialValue, labels){
+    buildWheelList(listEl, count, labels);
     colEl._value = initialValue;
 
     let scrollTimeout = null;
@@ -542,6 +556,9 @@
     if(parsed.filters) state.filters = parsed.filters;
     if(parsed.timers) state.timers = parsed.timers;
     if(parsed.recurringTasks) state.recurringTasks = parsed.recurringTasks;
+    if(parsed.notificationSettings){
+      state.notificationSettings = Object.assign({}, state.notificationSettings, parsed.notificationSettings);
+    }
     if(parsed._sortPriority) state._sortPriority = parsed._sortPriority;
     if(parsed._taskOrderCache) state._taskOrderCache = parsed._taskOrderCache;
     // توافق مع الإصدار القديم: تثبيت يومي كان بيتخزن كأسماء بس (بدون أيام)، نحوّله لتكرار يومي كامل
@@ -1616,7 +1633,7 @@
 
       // رجّع الـ state في الذاكرة لوضعه الافتراضي عشان الشاشة تتصفّر فورًا
       // من غير ما تستنى رد الشبكة.
-      state = { keywords: [], drafts: [], days: {}, filters: [], timers: {}, darkMode: false, recurringTasks: {} };
+      state = { keywords: [], drafts: [], days: {}, filters: [], timers: {}, darkMode: false, recurringTasks: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null } };
       selectedDate = toISO(new Date());
       activeFilter = 'all';
       editingKeywordId = null;
@@ -3179,6 +3196,358 @@
     renderRecurrenceDaysGrid();
   };
 
+  // ===== التنبيهات المحلية (Local Notifications) =====
+  // ملاحظة: دي تنبيهات محلية بتشتغل من الجهاز نفسه وقت ما التطبيق مفتوح (تاب شغال أو PWA في الخلفية)،
+  // مش Push حقيقي من سيرفر — عشان كده مش محتاجة VAPID ولا Edge Function ولا جدول اشتراكات.
+  let swRegistration = null;
+  let notificationCheckInterval = null;
+
+  async function registerServiceWorker(){
+    if(!('serviceWorker' in navigator)) return null;
+    try{
+      await navigator.serviceWorker.register('./sw.js');
+      swRegistration = await navigator.serviceWorker.ready;
+      return swRegistration;
+    }catch(e){
+      console.warn('تعذر تسجيل Service Worker:', e);
+      return null;
+    }
+  }
+
+  function urlBase64ToUint8Array(base64String){
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+    return outputArray;
+  }
+
+  // بيتأكد إن فيه اشتراك Push فعّال، ويخزّنه (أو يحدّثه) في Supabase عشان السيرفر يقدر يبعتلنا عليه
+  async function ensurePushSubscription(){
+    if(!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
+    if(!swRegistration) await registerServiceWorker();
+    if(!swRegistration) return null;
+
+    let sub = await swRegistration.pushManager.getSubscription();
+    if(!sub){
+      try{
+        sub = await swRegistration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+      }catch(e){
+        console.warn('تعذر الاشتراك في Push:', e);
+        return null;
+      }
+    }
+
+    if(sub && currentUserId){
+      const subJson = sub.toJSON();
+      try{
+        const { error } = await supabaseClient.from('push_subscriptions').upsert({
+          user_id: currentUserId,
+          endpoint: subJson.endpoint,
+          p256dh: subJson.keys.p256dh,
+          auth: subJson.keys.auth,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'endpoint' });
+        if(error) console.warn('تعذر حفظ اشتراك Push على السيرفر:', error);
+      }catch(e){
+        console.warn('تعذر حفظ اشتراك Push على السيرفر:', e);
+      }
+    }
+    return sub;
+  }
+
+  // بيتشال الاشتراك (من المتصفح والسيرفر) لما المستخدم يقفل كل التنبيهات — تنظيف مش إجباري بس أنضف
+  async function removePushSubscriptionIfUnused(){
+    if(!swRegistration) return;
+    try{
+      const sub = await swRegistration.pushManager.getSubscription();
+      if(sub){
+        try{ await supabaseClient.from('push_subscriptions').delete().eq('endpoint', sub.endpoint); }catch(e){}
+        await sub.unsubscribe();
+      }
+    }catch(e){
+      console.warn('تعذر إلغاء اشتراك Push:', e);
+    }
+  }
+
+  function ensureNotificationSettings(){
+    if(!state.notificationSettings){
+      state.notificationSettings = {
+        morningEnabled: false, morningTime: '08:00',
+        eveningEnabled: false, eveningTime: '21:00',
+        lastMorningFiredDate: null, lastEveningFiredDate: null
+      };
+    }
+    return state.notificationSettings;
+  }
+
+  function currentHHMM(){
+    const d = new Date();
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+
+  async function fireLocalNotification(title, body){
+    if(!('Notification' in window) || Notification.permission !== 'granted') return;
+    const options = { body, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', dir: 'rtl', lang: 'ar' };
+    try{
+      if(swRegistration && swRegistration.showNotification){
+        await swRegistration.showNotification(title, options);
+      } else {
+        new Notification(title, options);
+      }
+    }catch(e){
+      console.warn('تعذر عرض التنبيه:', e);
+    }
+  }
+
+  async function checkAndFireDigestNotifications(){
+    const ns = ensureNotificationSettings();
+    if(!ns.morningEnabled && !ns.eveningEnabled) return;
+    if(!('Notification' in window) || Notification.permission !== 'granted') return;
+
+    // لو فيه اشتراك Push فعّال، السيرفر هو المسؤول عن الإرسال في وقته حتى لو التطبيق مقفول —
+    // نتجنب تكرار نفس التنبيه محليًا كمان.
+    if(swRegistration){
+      try{
+        const existingSub = await swRegistration.pushManager.getSubscription();
+        if(existingSub) return;
+      }catch(e){ /* تجاهل، هنكمل بالمنطق المحلي كـ fallback */ }
+    }
+
+    const today = todayStr();
+    const nowHM = currentHHMM();
+    let changed = false;
+
+    if(ns.morningEnabled && ns.lastMorningFiredDate !== today && nowHM >= ns.morningTime){
+      const todayTasks = state.days[today] || [];
+      const total = todayTasks.length;
+      const body = total > 0
+        ? `عندك ${total} ${total === 1 ? 'مهمة' : 'مهام'} على جدول النهاردة، يلا نبدأ!`
+        : 'مفيش مهام مضافة لسه النهاردة، افتح البنك واسحب اللي هتنجزه.';
+      await fireLocalNotification('صباح الخير ☀️', body);
+      ns.lastMorningFiredDate = today;
+      changed = true;
+    }
+
+    if(ns.eveningEnabled && ns.lastEveningFiredDate !== today && nowHM >= ns.eveningTime){
+      const todayTasks = state.days[today] || [];
+      const total = todayTasks.length;
+      const done = todayTasks.filter(t => t.done).length;
+      const weekS = computeWeekStats(0);
+      const streakPart = weekS.streak > 0
+        ? `سلسلتك: ${weekS.streak} ${weekS.streak === 1 ? 'يوم متتالي' : 'أيام متتالية'} 🔥`
+        : 'يلا سجّل إنجازك النهاردة!';
+      const body = total > 0
+        ? `خلصت ${done} من ${total} مهمة النهاردة. ${streakPart}`
+        : 'وقت مراجعة يومك — افتح التطبيق وسجّل اللي عملته.';
+      await fireLocalNotification('وقت المراجعة 🌙', body);
+      ns.lastEveningFiredDate = today;
+      changed = true;
+    }
+
+    if(changed) await saveData();
+  }
+
+  function startNotificationScheduler(){
+    checkAndFireDigestNotifications();
+    if(notificationCheckInterval) return;
+    notificationCheckInterval = setInterval(checkAndFireDigestNotifications, 60 * 1000);
+  }
+
+  function updateNotifPermissionStatusUI(){
+    const statusEl = document.getElementById('notifPermissionStatus');
+    if(!statusEl) return;
+    if(!('Notification' in window)){
+      statusEl.textContent = 'المتصفح ده مش بيدعم التنبيهات.';
+      statusEl.classList.add('denied');
+      return;
+    }
+    statusEl.classList.remove('denied');
+    if(Notification.permission === 'denied'){
+      statusEl.textContent = 'التنبيهات محظورة من إعدادات المتصفح — فعّلها من هناك الأول.';
+      statusEl.classList.add('denied');
+    } else if(Notification.permission === 'default'){
+      statusEl.textContent = 'هيُطلب منك الإذن أول مرة تفعّل أي تنبيه.';
+    } else {
+      statusEl.textContent = '';
+    }
+  }
+
+  function renderNotificationSettingsModal(){
+    const ns = ensureNotificationSettings();
+    const morningToggle = document.getElementById('morningNotifToggle');
+    const eveningToggle = document.getElementById('eveningNotifToggle');
+    const morningTimeBtn = document.getElementById('morningNotifTimeBtn');
+    const eveningTimeBtn = document.getElementById('eveningNotifTimeBtn');
+    const morningRow = document.getElementById('morningTimeRow');
+    const eveningRow = document.getElementById('eveningTimeRow');
+
+    if(morningToggle) morningToggle.checked = !!ns.morningEnabled;
+    if(eveningToggle) eveningToggle.checked = !!ns.eveningEnabled;
+    if(morningTimeBtn) morningTimeBtn.textContent = formatTimeArabic(ns.morningTime || '08:00');
+    if(eveningTimeBtn) eveningTimeBtn.textContent = formatTimeArabic(ns.eveningTime || '21:00');
+    if(morningRow) morningRow.classList.toggle('disabled', !ns.morningEnabled);
+    if(eveningRow) eveningRow.classList.toggle('disabled', !ns.eveningEnabled);
+
+    updateNotifPermissionStatusUI();
+  }
+
+  async function ensureNotificationPermission(){
+    if(!('Notification' in window)) return false;
+    if(Notification.permission === 'granted') return true;
+    if(Notification.permission === 'denied') return false;
+    const result = await Notification.requestPermission();
+    return result === 'granted';
+  }
+
+  function openNotificationSettingsModal(){
+    renderNotificationSettingsModal();
+    document.getElementById('notificationSettingsOverlay').classList.add('open');
+  }
+  function closeNotificationSettingsModal(){
+    document.getElementById('notificationSettingsOverlay').classList.remove('open');
+  }
+
+  document.getElementById('notificationSettingsBtn').onclick = openNotificationSettingsModal;
+  document.getElementById('closeNotificationSettingsBtn').onclick = closeNotificationSettingsModal;
+  document.getElementById('notificationSettingsOverlay').onclick = (e) => {
+    if(e.target.id === 'notificationSettingsOverlay') closeNotificationSettingsModal();
+  };
+
+  // ===== منتقي وقت التنبيه (Wheel Picker بنظام 12 ساعة) =====
+  function parse24HourString(hhmm){
+    const [hStr, mStr] = (hhmm || '08:00').split(':');
+    let h = parseInt(hStr, 10);
+    const m = parseInt(mStr, 10) || 0;
+    const period = h >= 12 ? 'م' : 'ص';
+    let hour12 = h % 12;
+    if(hour12 === 0) hour12 = 12;
+    return { hour12, minute: m, period };
+  }
+  function to24HourString(hour12, minute, period){
+    let h = hour12 % 12;
+    if(period === 'م') h += 12;
+    return String(h).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
+  }
+  function formatTimeArabic(hhmm){
+    const { hour12, minute, period } = parse24HourString(hhmm);
+    return `${hour12}:${String(minute).padStart(2, '0')} ${period}`;
+  }
+
+  let activeTimePickerTarget = null; // 'morning' أو 'evening'
+
+  function openTimePicker(target){
+    activeTimePickerTarget = target;
+    const ns = ensureNotificationSettings();
+    const currentValue = target === 'morning' ? ns.morningTime : ns.eveningTime;
+    const { hour12, minute, period } = parse24HourString(currentValue);
+
+    const titleEl = document.getElementById('timePickerTitle');
+    if(titleEl) titleEl.textContent = target === 'morning' ? 'وقت تنبيه الصباح' : 'وقت تنبيه المساء';
+
+    const hourCol = document.getElementById('tpHourWheel');
+    const hourList = document.getElementById('tpHourWheelList');
+    const minuteCol = document.getElementById('tpMinuteWheel');
+    const minuteList = document.getElementById('tpMinuteWheelList');
+    const periodCol = document.getElementById('tpPeriodWheel');
+    const periodList = document.getElementById('tpPeriodWheelList');
+
+    const hourLabels = Array.from({ length: 12 }, (_, i) => String(i + 1));
+    initWheel(hourCol, hourList, 12, hour12 - 1, hourLabels);
+    initWheel(minuteCol, minuteList, 60, minute);
+    initWheel(periodCol, periodList, 2, period === 'ص' ? 0 : 1, ['ص', 'م']);
+
+    document.getElementById('timeOfDayPickerOverlay').classList.add('open');
+  }
+
+  function closeTimePicker(){
+    document.getElementById('timeOfDayPickerOverlay').classList.remove('open');
+    activeTimePickerTarget = null;
+  }
+
+  async function confirmTimePicker(){
+    if(!activeTimePickerTarget){ closeTimePicker(); return; }
+    const hourCol = document.getElementById('tpHourWheel');
+    const minuteCol = document.getElementById('tpMinuteWheel');
+    const periodCol = document.getElementById('tpPeriodWheel');
+
+    const hour12 = (hourCol._value || 0) + 1;
+    const minute = minuteCol._value || 0;
+    const period = periodCol._value === 1 ? 'م' : 'ص';
+    const hhmm = to24HourString(hour12, minute, period);
+
+    const ns = ensureNotificationSettings();
+    if(activeTimePickerTarget === 'morning'){
+      ns.morningTime = hhmm;
+      if(ns.lastMorningFiredDate === todayStr() && currentHHMM() < ns.morningTime){
+        ns.lastMorningFiredDate = null;
+      }
+    } else {
+      ns.eveningTime = hhmm;
+      if(ns.lastEveningFiredDate === todayStr() && currentHHMM() < ns.eveningTime){
+        ns.lastEveningFiredDate = null;
+      }
+    }
+
+    closeTimePicker();
+    renderNotificationSettingsModal();
+    await saveData();
+  }
+
+  document.getElementById('timePickerCancelBtn').onclick = closeTimePicker;
+  document.getElementById('timePickerDoneBtn').onclick = confirmTimePicker;
+  document.getElementById('timeOfDayPickerOverlay').onclick = (e) => {
+    if(e.target.id === 'timeOfDayPickerOverlay') closeTimePicker();
+  };
+  document.getElementById('morningNotifTimeBtn').onclick = () => openTimePicker('morning');
+  document.getElementById('eveningNotifTimeBtn').onclick = () => openTimePicker('evening');
+
+  document.getElementById('morningNotifToggle').onchange = async (e) => {
+    const ns = ensureNotificationSettings();
+    if(e.target.checked){
+      if(!swRegistration) await registerServiceWorker();
+      const granted = await ensureNotificationPermission();
+      if(!granted){
+        e.target.checked = false;
+        renderNotificationSettingsModal();
+        showToast('محتاجين إذنك من المتصفح عشان نقدر نبعتلك تنبيه الصباح');
+        return;
+      }
+      await ensurePushSubscription();
+    } else if(!ns.eveningEnabled){
+      await removePushSubscriptionIfUnused();
+    }
+    ns.morningEnabled = e.target.checked;
+    renderNotificationSettingsModal();
+    await saveData();
+    startNotificationScheduler();
+  };
+
+  document.getElementById('eveningNotifToggle').onchange = async (e) => {
+    const ns = ensureNotificationSettings();
+    if(e.target.checked){
+      if(!swRegistration) await registerServiceWorker();
+      const granted = await ensureNotificationPermission();
+      if(!granted){
+        e.target.checked = false;
+        renderNotificationSettingsModal();
+        showToast('محتاجين إذنك من المتصفح عشان نقدر نبعتلك تنبيه المساء');
+        return;
+      }
+      await ensurePushSubscription();
+    } else if(!ns.morningEnabled){
+      await removePushSubscriptionIfUnused();
+    }
+    ns.eveningEnabled = e.target.checked;
+    renderNotificationSettingsModal();
+    await saveData();
+    startNotificationScheduler();
+  };
+
   (async function init(){
     // ارسم الواجهة فورًا بحالة فاضية عشان المستخدم الجديد يشوف الصفحة على طول
     // من غير ما يستنى Turnstile + تسجيل الدخول المجهول + جلب البيانات من Supabase
@@ -3425,6 +3794,7 @@
         if(document.getElementById('subtasksOverlay').classList.contains('open')) closeSubtasksModal();
         if(document.getElementById('recurrenceOverlay').classList.contains('open')) closeRecurrenceModal();
         if(document.getElementById('globalSearchOverlay').classList.contains('open')) closeGlobalSearchModal();
+        if(document.getElementById('notificationSettingsOverlay').classList.contains('open')) closeNotificationSettingsModal();
         if(openDurationPopoverTaskId) hideDurationPopover();
         if(openClockChoiceTaskId) hideClockChoicePopover();
         if(openPriorityPopoverTaskId) hidePriorityPopover();
@@ -3438,5 +3808,9 @@
     timerPanelRenderedForDate = null; // نجبر لوحة التايمر تترسم تاني بالبيانات الحقيقية (كانت اترسمت فاضية قبل ما البيانات توصل)
     render();
     checkMissedTasksPopup();
+
+    // نسجّل الـ Service Worker ونبدأ فحص التنبيهات المحلية (لو المستخدم مفعّلها أصلاً) بعد ما البيانات توصل
+    await registerServiceWorker();
+    startNotificationScheduler();
   })();
 })();

@@ -2954,3 +2954,81 @@ body.dark-mode .account-error {
 .toggle input:checked + .toggle-slider::after {
   transform: translateX(-20px);
 }
+
+/* ===== إعدادات التنبيهات ===== */
+.notif-setting-row{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+}
+.notif-setting-info{
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.notif-setting-title{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+.notif-setting-title .material-icons{ font-size: 18px; color: var(--pen); }
+.notif-setting-desc{
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+.notif-setting-time-row{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--paper);
+  border: 1px solid var(--paper-line);
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  transition: opacity 0.15s ease;
+}
+.notif-setting-time-row.disabled{
+  opacity: 0.45;
+  pointer-events: none;
+}
+.notif-setting-time-row input[type="time"]{
+  border: 1px solid var(--paper-line);
+  background: var(--card);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 5px 8px;
+  font-family: 'Tajawal';
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.notif-time-btn{
+  border: 1px solid var(--paper-line);
+  background: var(--card);
+  color: var(--pen);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-family: 'Tajawal';
+  font-weight: 800;
+  font-size: 0.88rem;
+  cursor: pointer;
+  min-width: 74px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.notif-time-btn:hover{ background: var(--paper); border-color: var(--pen); }
+.notif-setting-status{
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  text-align: center;
+  margin: 12px 0 0;
+}
+.notif-setting-status.denied{ color: var(--missed); }
