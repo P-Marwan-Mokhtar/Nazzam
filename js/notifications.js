@@ -89,10 +89,21 @@ export function ensureNotificationSettings(){
     state.notificationSettings = {
       morningEnabled: false, morningTime: '08:00',
       eveningEnabled: false, eveningTime: '21:00',
-      lastMorningFiredDate: null, lastEveningFiredDate: null
+      lastMorningFiredDate: null, lastEveningFiredDate: null,
+      timezone: detectTimezone()
     };
   }
+  // نحدّثها كل مرة عشان لو المستخدم سافر أو غيّر منطقة جهازه، الإعداد يفضل مطابق لمكانه الحالي فعليًا
+  state.notificationSettings.timezone = detectTimezone();
   return state.notificationSettings;
+}
+
+function detectTimezone(){
+  try{
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Africa/Cairo';
+  }catch(e){
+    return 'Africa/Cairo';
+  }
 }
 
 export function currentHHMM(){
