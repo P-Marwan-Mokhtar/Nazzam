@@ -3,10 +3,10 @@
 // ============================================================
 
 import { TURNSTILE_SITE_KEY, supabaseClient } from './config.js';
-import { toISO } from './utils.js';
-import { FIRST_VISIT_ACCOUNT_KEY, LOCAL_BACKUP_KEY, resetState, showToast, state, ui } from './state.js';
+import { LOCAL_BACKUP_KEY, showToast, state, ui } from './state.js';
 import { loadData } from './dataStore.js';
 import { render } from './render.js';
+import { registerServiceWorker, startNotificationScheduler } from './notifications.js';
 
 let turnstileWidgetId = null;
 
@@ -18,7 +18,7 @@ let isAnonymousUser = true;
 
 let currentUserEmail = null;
 
-let accountModalMode = 'save';
+let accountModalMode = 'signin';
 
 let accountFormBusy = false;
 
@@ -28,21 +28,18 @@ export async function ensureAuth(){
     if(session && session.user){
       applyAuthUser(session.user);
       handleOAuthReturnIfAny();
-      return;
+      return true;
     }
-    const captchaToken = await getTurnstileToken();
-    const { data, error } = await supabaseClient.auth.signInAnonymously(
-      captchaToken ? { options: { captchaToken } } : undefined
-    );
-    if(error) throw error;
-    applyAuthUser(data.user);
+    currentUserId = null;
+    return false;
   }catch(e){
     console.error('Auth error:', e);
     currentUserId = null;
+    return false;
   }
 }
 
-function applyAuthUser(user){
+export function applyAuthUser(user){
   if(!user) return;
   currentUserId = user.id;
   isAnonymousUser = !!user.is_anonymous;
@@ -102,7 +99,7 @@ function getTurnstileToken(){
   });
 }
 
-function handleOAuthReturnIfAny(){
+export function handleOAuthReturnIfAny(){
   const params = new URLSearchParams(window.location.search);
   if(params.get('authreturn') === 'google' && !isAnonymousUser){
     showToast('تم تسجيل الدخول بنجاح بنجاح عبر Google');
@@ -233,11 +230,10 @@ function renderAccountModal(errorMsg){
       <div class="account-status">
         <span class="material-icons">person_outline</span>
         <div class="account-status-text">
-          <strong>حساب مؤقت (زائر)</strong>
-          <span>بياناتك محفوظة على هذا الجهاز فقط</span>
+          <strong>تسجيل الدخول</strong>
+          <span>لن تتم مزامنة أي بيانات حتى تسجل الدخول</span>
         </div>
       </div>
-      <div class="account-hint">تسجيل الدخول إلى حساب موجود سينقلك إلى بيانات ذلك الحساب، وليس بيانات هذا الجهاز.</div>
       ${errorHtml}
       <div class="account-form" id="accForm">
         <input type="email" class="account-input" id="accEmail" placeholder="البريد الإلكتروني" autocomplete="email" />
@@ -259,19 +255,19 @@ function renderAccountModal(errorMsg){
     };
     document.getElementById('accSubmitBtn').onclick = submit;
     wireEnterSubmit('#accForm', submit);
-    document.getElementById('accSwitchMode').onclick = () => { accountModalMode = 'save'; renderAccountModal(); };
+    document.getElementById('accSwitchMode').onclick = () => { accountModalMode = 'signup'; renderAccountModal(); };
     document.getElementById('accForgotBtn').onclick = () => { accountModalMode = 'forgot'; renderAccountModal(); };
     document.getElementById('accGoogleBtn').onclick = signInWithGoogle;
   } else {
     bodyEl.innerHTML = `
       <div class="account-status">
-        <span class="material-icons">person_outline</span>
+        <span class="material-icons">person_add</span>
         <div class="account-status-text">
-          <strong>حساب مؤقت (زائر)</strong>
-          <span>بياناتك محفوظة حاليًا، لكنك ستفقدها إذا مسحت بيانات المتصفح</span>
+          <strong>إنشاء حساب جديد</strong>
+          <span>سجّل ببريد إلكتروني وكلمة مرور للوصول من أي جهاز</span>
         </div>
       </div>
-      <div class="account-hint">احفظ بريدًا إلكترونيًا وكلمة مرور لتتمكن من الوصول إلى بياناتك من أي جهاز آخر، ولن تفقدها حتى لو مسحت ذاكرة التخزين المؤقت.</div>
+      <div class="account-hint">أدخل بريدًا إلكترونيًا صحيحًا وكلمة مرور قوية (6 أحرف على الأقل) لإنشاء حساب جديد.</div>
       ${errorHtml}
       <div class="account-form" id="accForm">
         <input type="email" class="account-input" id="accEmail" placeholder="البريد الإلكتروني" autocomplete="email" />
@@ -283,10 +279,10 @@ function renderAccountModal(errorMsg){
           <input type="password" class="account-input" id="accPasswordConfirm" placeholder="تأكيد كلمة المرور" autocomplete="new-password" />
           <button type="button" class="account-pass-toggle" id="accPassConfirmToggle" tabindex="-1"><span class="material-icons">visibility</span></button>
         </div>
-        <button class="account-primary-btn" id="accSubmitBtn">احفظ الحساب</button>
+        <button class="account-primary-btn" id="accSubmitBtn">إنشاء الحساب</button>
       </div>
       ${googleBlockHtml()}
-      <div class="account-switch-line">لديك حساب محفوظ بالفعل؟ <button id="accSwitchMode">سجّل الدخول به</button></div>
+      <div class="account-switch-line">لديك حساب بالفعل؟ <button id="accSwitchMode">سجّل الدخول</button></div>
     `;
     wirePasswordToggle('accPassword', 'accPassToggle');
     wirePasswordToggle('accPasswordConfirm', 'accPassConfirmToggle');
@@ -294,7 +290,7 @@ function renderAccountModal(errorMsg){
       const email = document.getElementById('accEmail').value.trim();
       const password = document.getElementById('accPassword').value;
       const passwordConfirm = document.getElementById('accPasswordConfirm').value;
-      linkEmailAccount(email, password, passwordConfirm);
+      signUpNewAccount(email, password, passwordConfirm);
     };
     document.getElementById('accSubmitBtn').onclick = submit;
     wireEnterSubmit('#accForm', submit);
@@ -303,7 +299,7 @@ function renderAccountModal(errorMsg){
   }
 }
 
-async function linkEmailAccount(email, password, passwordConfirm){
+async function signUpNewAccount(email, password, passwordConfirm){
   if(!email || !password){
     renderAccountModal('يرجى إدخال البريد الإلكتروني وكلمة المرور أولًا');
     return;
@@ -322,14 +318,27 @@ async function linkEmailAccount(email, password, passwordConfirm){
   }
   setAccountFormBusy(true);
   try{
-    const { error } = await supabaseClient.auth.updateUser({ email, password });
+    const captchaToken = await getTurnstileToken();
+    const { data, error } = await supabaseClient.auth.signUp({
+      email, password,
+      options: captchaToken ? { captchaToken } : undefined
+    });
     if(error) throw error;
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    applyAuthUser(user);
-    showToast('تم حفظ الحساب بنجاح. إذا استلزم الأمر تأكيد البريد الإلكتروني، يرجى التحقق من بريدك');
-    renderAccountModal();
+    if(!data.user){
+      renderAccountModal('تعذّر إنشاء الحساب، يرجى المحاولة مرة أخرى');
+      return;
+    }
+    applyAuthUser(data.user);
+    showToast('تم إنشاء الحساب بنجاح');
+    closeAccountModal();
+    hideAuthWall();
+    await loadData();
+    ui.timerPanelRenderedForDate = null;
+    render();
+    await registerServiceWorker();
+    startNotificationScheduler();
   }catch(e){
-    console.error('Link account error:', e);
+    console.error('Sign up error:', e);
     renderAccountModal(mapAuthError(e));
   }finally{
     setAccountFormBusy(false);
@@ -356,9 +365,12 @@ async function signInExisting(email, password){
     applyAuthUser(data.user);
     showToast('تم تسجيل الدخول بنجاح');
     closeAccountModal();
+    hideAuthWall();
     await loadData();
     ui.timerPanelRenderedForDate = null; // نجبر لوحة المؤقتات تترسم بالبيانات الحقيقية اللي وصلت للتو
     render();
+    await registerServiceWorker();
+    startNotificationScheduler();
   }catch(e){
     console.error('Sign in error:', e);
     renderAccountModal(mapAuthError(e));
@@ -410,34 +422,10 @@ async function signOutUser(){
   if(!confirm('هل أنت متأكد من تسجيل الخروج؟ ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى البيانات نفسها.')) return;
   try{
     await supabaseClient.auth.signOut();
-
-    // مهم جدًا: امسح النسخة الاحتياطية المحلية القديمة قبل أي حاجة تانية.
-    // من غير الخطوة دي، loadData() هيلاقي localStorage لسه فيه بيانات المستخدم
-    // اللي عمل تسجيل خروج، ويفتكرها بيانات "مستخدم جديد" جاي من نسخة أوفلاين
-    // قديمة، فيرفعها تلقائيًا للحساب المجهول الجديد - وهو بالظبط سبب رجوع البيانات.
     try{ localStorage.removeItem(LOCAL_BACKUP_KEY); }catch(e){}
-
-    // رجّع الـ state في الذاكرة لوضعه الافتراضي عشان الشاشة تتصفّر فورًا
-    // من غير ما تستنى رد الشبكة.
-    resetState();
-    ui.selectedDate = toISO(new Date());
-    ui.activeFilter = 'all';
-    ui.editingKeywordId = null;
-    ui.bankSearchQuery = '';
-    ui.draftsSearchQuery = '';
-    ui.bankDisplayLimit = 10;
-    document.body.classList.remove('dark-mode');
-    ui.timerPanelRenderedForDate = null; // نجبر لوحة المؤقتات تترسم فاضية بدل ما تفضل عارضة توقيتات الحساب اللي خرج
-
-    currentUserId = null;
-    isAnonymousUser = true;
-    currentUserEmail = null;
-    accountModalMode = 'save';
-    await ensureAuth();
     closeAccountModal();
-    await loadData();
-    render();
     showToast('تم تسجيل الخروج بنجاح');
+    window.location.reload();
   }catch(e){
     console.error('Sign out error:', e);
     showToast('حدث خطأ أثناء تسجيل الخروج');
@@ -445,12 +433,25 @@ async function signOutUser(){
 }
 
 export function openAccountModal(){
-  accountModalMode = 'save';
+  accountModalMode = 'signin';
   renderAccountModal();
   document.getElementById('accountOverlay').classList.add('open');
 }
 
 export function closeAccountModal(){
-  try{ localStorage.setItem(FIRST_VISIT_ACCOUNT_KEY, '1'); }catch(e){}
   document.getElementById('accountOverlay').classList.remove('open');
+}
+
+export function showAuthWall(){
+  const wall = document.getElementById('authWall');
+  const app = document.getElementById('app');
+  if(wall) wall.classList.remove('hidden');
+  if(app) app.style.display = 'none';
+}
+
+export function hideAuthWall(){
+  const wall = document.getElementById('authWall');
+  const app = document.getElementById('app');
+  if(wall) wall.classList.add('hidden');
+  if(app) app.style.display = '';
 }
