@@ -113,7 +113,10 @@ export async function loadData(){
   await ensureAuth();
 
   if(!currentUserId){
-    return; // لا يوجد مستخدم مسجل الدخول
+    // تعذر الاتصال بـ Supabase (مفيش نت مثلًا) - استخدم آخر نسخة محفوظة محليًا
+    showToast('تعذّر الاتصال بالخادم، يعمل التطبيق حاليًا بنسخة محلية');
+    applyLoadedState(loadLocalBackup());
+    return;
   }
 
   try{
