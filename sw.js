@@ -5,7 +5,7 @@
 // ملاحظة مهمة: أي طلبات لسيرفر Supabase أو أي API خارجي بترجع لحالها للشبكة مباشرة
 // (مش بنتدخّل فيها) عشان بيانات المستخدم تفضل دايمًا محدّثة ومتزامنة صح.
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `daily-tasks-shell-${CACHE_VERSION}`;
 
 // الملفات الأساسية اللي بتكوّن "هيكل" التطبيق (App Shell)
@@ -78,6 +78,47 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => cached);
       return cached || networkFetch;
+    })
+  );
+});
+
+// ===== Web Push: استقبال وعرض التنبيهات =====
+// السيرفر (Supabase Edge Function) هو اللي بيبعت الـ push في وقته؛
+// الجزء ده بس بيستقبله ويعرضه كإشعار فعلي على الشاشة حتى لو التاب مقفول.
+self.addEventListener('push', (event) => {
+  let data = {};
+  try{
+    data = event.data ? event.data.json() : {};
+  }catch(e){
+    data = { title: 'المهام اليومية', body: event.data ? event.data.text() : 'عندك تذكير جديد' };
+  }
+
+  const title = data.title || 'المهام اليومية';
+  const options = {
+    body: data.body || 'عندك مهام تستحق الإنجاز اليوم',
+    icon: 'icons/icon-192.png',
+    badge: 'icons/icon-192.png',
+    dir: 'rtl',
+    lang: 'ar',
+    data: { url: data.url || './index.html' }
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// لما المستخدم يدوس على الإشعار: نفتحله التطبيق، أو نركّز على التاب لو أصلاً مفتوح
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = (event.notification.data && event.notification.data.url) || './index.html';
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientsArr) => {
+      for (const client of clientsArr) {
+        if (client.url.includes(self.registration.scope) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(targetUrl);
     })
   );
 });
