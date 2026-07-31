@@ -6,8 +6,6 @@ import { toISO } from './utils.js';
 
 export const LOCAL_BACKUP_KEY = 'habit-data-v2';
 
-export const FIRST_VISIT_ACCOUNT_KEY = 'nazam-account-prompt-seen';
-
 export const MISSED_POPUP_SHOWN_KEY = 'nazam-missed-popup-last-shown';
 
 export const contentEl = document.getElementById('content');

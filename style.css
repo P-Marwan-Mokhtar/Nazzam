@@ -2069,6 +2069,9 @@ body.dark-mode .account-error {
 .modal-overlay.open {
   display: flex;
 }
+.modal-overlay.is-gate #closeAccountBtn {
+  display: none;
+}
 .modal-card {
   background: var(--card);
   border-radius: var(--radius);

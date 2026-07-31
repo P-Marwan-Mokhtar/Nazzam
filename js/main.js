@@ -3,8 +3,8 @@
 // ============================================================
 
 import { uid } from './utils.js';
-import { FIRST_VISIT_ACCOUNT_KEY, showToast, state, ui } from './state.js';
-import { closeAccountModal, openAccountModal } from './auth.js';
+import { showToast, state, ui } from './state.js';
+import { closeAccountModal, ensureAuth, openAccountModal, openAuthGate } from './auth.js';
 import { closeCalendarModal, openCalendarModal } from './calendar.js';
 import { exportDataAsJSON, importDataFromFile, loadData, saveData } from './dataStore.js';
 import { closeDraftsModal, openDraftsModal, renderDraftsModal } from './drafts.js';
@@ -20,18 +20,22 @@ import { checkMissedTasksPopup, closeMissedTasksModal, closeTimerTypeModal, ensu
 import { closeDurationPicker, commitDurationPicker, openTimerDurationPicker } from './wheelPicker.js';
 
 (async function init(){
-  // ارسم الواجهة فورًا بحالة فاضية عشان المستخدم الجديد يشوف الصفحة على طول
-  // من غير ما يستنى Turnstile + تسجيل الدخول المجهول + جلب البيانات من Supabase
+  // أول حاجة: نتأكد إن فيه مستخدم حقيقي مسجّل دخوله فعليًا قبل ما نعرض أي حاجة من التطبيق.
+  // لو لأ، بنعرض شاشة تسجيل الدخول الإجبارية ونوقف هنا؛ التطبيق هيبدأ من جديد (reload)
+  // تلقائيًا بعد نجاح تسجيل الدخول أو إنشاء الحساب.
+  const authed = await ensureAuth();
+  if(!authed){
+    openAuthGate();
+    return;
+  }
+  document.getElementById('app').style.display = '';
+  await startApp();
+})();
+
+async function startApp(){
   render();
   setInterval(tickTimers, 1000);
 
-  // لأول زيارة بس: اعرض شاشة الحساب من غير ما تنتظر تحميل البيانات
-  // ولو المستخدم قفلها (بأي طريقة) مش هتظهرله تاني تلقائيًا
-  try{
-    if(!localStorage.getItem(FIRST_VISIT_ACCOUNT_KEY)){
-      openAccountModal();
-    }
-  }catch(e){}
   document.addEventListener('click', (e) => {
     document.querySelectorAll('.custom-select.open').forEach(s => s.classList.remove('open'));
     if(ui.openDurationPopoverTaskId && !e.target.closest('.duration-popover') && !e.target.closest('.duration-badge')){
@@ -273,8 +277,7 @@ import { closeDurationPicker, commitDurationPicker, openTimerDurationPicker } fr
   });
 
 
-  // دلوقتي بس نحمّل البيانات الحقيقية (Turnstile + anonymous auth + Supabase) في الخلفية،
-  // ولما توصل نعيد الرسم عشان تظهر مهام اليوم وبنك المهام الفعليين
+  // نحمّل بيانات المستخدم الحقيقية من Supabase دلوقتي بعد التأكد من تسجيل الدخول
   await loadData();
   ui.timerPanelRenderedForDate = null; // نجبر لوحة التايمر تترسم تاني بالبيانات الحقيقية (كانت اترسمت فاضية قبل ما البيانات توصل)
   render();
@@ -283,4 +286,4 @@ import { closeDurationPicker, commitDurationPicker, openTimerDurationPicker } fr
   // نسجّل الـ Service Worker ونبدأ فحص التنبيهات المحلية (لو المستخدم مفعّلها أصلاً) بعد ما البيانات توصل
   await registerServiceWorker();
   startNotificationScheduler();
-})();
+}
