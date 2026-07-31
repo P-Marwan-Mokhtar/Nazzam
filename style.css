@@ -1022,6 +1022,10 @@ body.dark-mode .priority-choice-medium .material-icons {
 }
 
 .wheel-period-toggle{
+  position: relative;
+  z-index: 1;
+  height: 210px;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1029,6 +1033,7 @@ body.dark-mode .priority-choice-medium .material-icons {
   align-items: center;
 }
 .period-btn{
+  flex: 0 0 auto;
   width: 44px;
   height: 44px;
   border-radius: 10px;
