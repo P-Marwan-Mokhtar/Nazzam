@@ -372,7 +372,7 @@ export function renderStatsView(){
 
       ${hasCompareData ? `
       <div class="week-compare-card">
-        <div class="week-compare-title"><span class="material-icons">trending_up</span>مقارنة بالأسبوع اللي فات</div>
+        <div class="week-compare-title"><span class="material-icons">trending_up</span>مقارنة بالأسبوع الماضي</div>
         <div class="week-compare-rows">
           <div class="week-compare-row">
             <span class="week-compare-label">نسبة الإنجاز</span>
