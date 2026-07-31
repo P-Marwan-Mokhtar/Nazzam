@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "المهام اليومية",
-  "short_name": "مهامي",
+  "name": "Nazzam",
+  "short_name": "Nazzam",
   "description": "بنك مهامك الجاهز.. نظّم مهامك اليومية، تابع الوقت، وحقق أهدافك",
   "start_url": "./index.html",
   "scope": "./",
