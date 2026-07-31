@@ -1021,6 +1021,32 @@ body.dark-mode .priority-choice-medium .material-icons {
   z-index: 1;
 }
 
+.wheel-period-toggle{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+.period-btn{
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--paper-line);
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-family: 'Tajawal';
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.period-btn.active{
+  background: var(--pen);
+  border-color: var(--pen);
+  color: #fff;
+}
+
 .task-name {
   font-size: 0.95rem;
   line-height: 1.3;
