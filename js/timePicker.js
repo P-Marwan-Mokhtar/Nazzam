@@ -29,15 +29,6 @@ export function formatTimeArabic(hhmm){
 }
 
 let activeTimePickerTarget = null;
-let selectedPeriod = 'ص'; // ص أو م — بقت متغيّر بسيط بدل عجلة سحب، لأن عنصرين بس مش محتاجين تمرير لانهائي
-
-function renderPeriodToggle(){
-  const wrap = document.getElementById('tpPeriodToggle');
-  if(!wrap) return;
-  wrap.querySelectorAll('.period-btn').forEach((btn) => {
-    btn.classList.toggle('active', btn.dataset.period === selectedPeriod);
-  });
-}
 
 function openTimePicker(target){
   activeTimePickerTarget = target;
@@ -52,13 +43,14 @@ function openTimePicker(target){
   const hourList = document.getElementById('tpHourWheelList');
   const minuteCol = document.getElementById('tpMinuteWheel');
   const minuteList = document.getElementById('tpMinuteWheelList');
+  const periodCol = document.getElementById('tpPeriodWheel');
+  const periodList = document.getElementById('tpPeriodWheelList');
 
   const hourLabels = Array.from({ length: 12 }, (_, i) => String(i + 1));
   initWheel(hourCol, hourList, 12, hour12 - 1, hourLabels);
   initWheel(minuteCol, minuteList, 60, minute);
-
-  selectedPeriod = period;
-  renderPeriodToggle();
+  // loop = false: عجلة عادية بعنصرين بس (ص/م)، من غير خدعة التكرار الثلاثي بتاعة العجلات اللانهائية
+  initWheel(periodCol, periodList, 2, period === 'ص' ? 0 : 1, ['ص', 'م'], false);
 
   document.getElementById('timeOfDayPickerOverlay').classList.add('open');
 }
@@ -72,10 +64,12 @@ async function confirmTimePicker(){
   if(!activeTimePickerTarget){ closeTimePicker(); return; }
   const hourCol = document.getElementById('tpHourWheel');
   const minuteCol = document.getElementById('tpMinuteWheel');
+  const periodCol = document.getElementById('tpPeriodWheel');
 
   const hour12 = (hourCol._value || 0) + 1;
   const minute = minuteCol._value || 0;
-  const hhmm = to24HourString(hour12, minute, selectedPeriod);
+  const period = periodCol._value === 1 ? 'م' : 'ص';
+  const hhmm = to24HourString(hour12, minute, period);
 
   const ns = ensureNotificationSettings();
   if(activeTimePickerTarget === 'morning'){
@@ -106,10 +100,3 @@ document.getElementById('timeOfDayPickerOverlay').onclick = (e) => {
 document.getElementById('morningNotifTimeBtn').onclick = () => openTimePicker('morning');
 
 document.getElementById('eveningNotifTimeBtn').onclick = () => openTimePicker('evening');
-
-document.querySelectorAll('#tpPeriodToggle .period-btn').forEach((btn) => {
-  btn.onclick = () => {
-    selectedPeriod = btn.dataset.period;
-    renderPeriodToggle();
-  };
-});
