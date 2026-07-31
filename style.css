@@ -1929,7 +1929,7 @@ body.dark-mode .priority-choice-medium .material-icons {
   font-size: 0.82rem;
   cursor: pointer;
   text-decoration: underline;
-  padding: 0;
+  padding-top: 8px;
 }
 .account-error {
   background: #fdecea;
