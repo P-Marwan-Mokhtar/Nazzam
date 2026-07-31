@@ -5,15 +5,15 @@
 // ملاحظة مهمة: أي طلبات لسيرفر Supabase أو أي API خارجي بترجع لحالها للشبكة مباشرة
 // (مش بنتدخّل فيها) عشان بيانات المستخدم تفضل دايمًا محدّثة ومتزامنة صح.
 
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `daily-tasks-shell-${CACHE_VERSION}`;
 
 // الملفات الأساسية اللي بتكوّن "هيكل" التطبيق (App Shell)
+// ملحوظة: شلنا app.js من هنا لأنه بقى مقسّم لملفات متعددة في مجلد js/
 const PRECACHE_URLS = [
   './',
   './index.html',
   './style.css',
-  './app.js',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
@@ -24,7 +24,17 @@ const PRECACHE_URLS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then((cache) =>
+        // كل ملف بيتخزّن لوحده بمحاولة منفصلة، عشان لو ملف واحد مش موجود (404) أو اتغيّر اسمه،
+        // ده ميوقفش تفعيل الـ Service Worker كله زي ما كان بيحصل مع addAll (اللي فشلها ذرّي/all-or-nothing)
+        Promise.all(
+          PRECACHE_URLS.map((url) =>
+            cache.add(url).catch((err) => {
+              console.warn('تعذر تخزين هذا الملف مؤقتًا، هيتم تجاهله والمتابعة:', url, err);
+            })
+          )
+        )
+      )
       .then(() => self.skipWaiting())
   );
 });
