@@ -12,7 +12,7 @@ export function renderGlobalSearchResults(){
   const q = normalizeArabic(ui.globalSearchQuery.trim());
 
   if(!q){
-    listEl.innerHTML = `<div class="empty-state">اكتب اسم مهمة عشان تدور عليها في كل الأيام اللي فاتت.</div>`;
+    listEl.innerHTML = `<div class="empty-state">اكتب اسم المهمة للبحث عنها في جميع الأيام السابقة.</div>`;
     return;
   }
 
@@ -29,7 +29,7 @@ export function renderGlobalSearchResults(){
   matches.sort((a, b) => b.date.localeCompare(a.date));
 
   if(matches.length === 0){
-    listEl.innerHTML = `<div class="empty-state">مفيش نتائج مطابقة لـ "${escapeHtml(ui.globalSearchQuery.trim())}".</div>`;
+    listEl.innerHTML = `<div class="empty-state">لا يوجد نتائج مطابقة لـ "${escapeHtml(ui.globalSearchQuery.trim())}".</div>`;
     return;
   }
 
