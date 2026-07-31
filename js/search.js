@@ -47,7 +47,7 @@ export function renderGlobalSearchResults(){
     `;
   });
   if(matches.length > shown.length){
-    html += `<div class="global-search-more-note">وفيه ${matches.length - shown.length} نتيجة تانية، ضيّق البحث أكتر عشان تشوفهم</div>`;
+    html += `<div class="global-search-more-note">وفيه ${matches.length - shown.length} توجد نتائج إضافية، يُرجى تضييق نطاق البحث لعرضها.</div>`;
   }
   listEl.innerHTML = html;
 
