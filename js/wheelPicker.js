@@ -8,9 +8,10 @@ import { saveData } from './dataStore.js';
 import { render } from './render.js';
 import { ensureAudioContext, getDayTimers, renderTimerPanel } from './timers.js';
 
-function buildWheelList(listEl, count, labels){
+function buildWheelList(listEl, count, labels, loop){
   let html = '';
-  for(let set = 0; set < 3; set++){
+  const sets = loop ? 3 : 1;
+  for(let set = 0; set < sets; set++){
     for(let i=0; i<count; i++){
       const label = labels ? labels[i] : String(i).padStart(2,'0');
       html += `<li class="wheel-item" data-value="${i}" data-real-index="${set * count + i}">${label}</li>`;
@@ -31,31 +32,36 @@ function updateWheelStyles(colEl){
   });
 }
 
-function snapWheel(colEl, count){
+function snapWheel(colEl, count, loop){
   let idx = Math.round(colEl.scrollTop / WHEEL_ITEM_H);
+  if(!loop) idx = Math.max(0, Math.min(count - 1, idx));
   colEl.scrollTo({ top: idx * WHEEL_ITEM_H, behavior: 'smooth' });
   colEl._value = idx % count;
 }
 
-export function initWheel(colEl, listEl, count, initialValue, labels){
-  buildWheelList(listEl, count, labels);
+export function initWheel(colEl, listEl, count, initialValue, labels, loop = true){
+  buildWheelList(listEl, count, labels, loop);
   colEl._value = initialValue;
 
   let scrollTimeout = null;
   colEl.onscroll = () => {
     updateWheelStyles(colEl);
-    const currentScrollTop = colEl.scrollTop;
-    const singleSetHeight = count * WHEEL_ITEM_H;
-    
-    if (currentScrollTop < singleSetHeight * 0.5) {
-      colEl.scrollTop = currentScrollTop + singleSetHeight;
-    } else if (currentScrollTop > singleSetHeight * 1.5) {
-      colEl.scrollTop = currentScrollTop - singleSetHeight;
+
+    if(loop){
+      const currentScrollTop = colEl.scrollTop;
+      const singleSetHeight = count * WHEEL_ITEM_H;
+
+      if (currentScrollTop < singleSetHeight * 0.5) {
+        colEl.scrollTop = currentScrollTop + singleSetHeight;
+      } else if (currentScrollTop > singleSetHeight * 1.5) {
+        colEl.scrollTop = currentScrollTop - singleSetHeight;
+      }
     }
 
     if(scrollTimeout) clearTimeout(scrollTimeout);
     scrollTimeout = setTimeout(() => {
       let idx = Math.round(colEl.scrollTop / WHEEL_ITEM_H);
+      if(!loop) idx = Math.max(0, Math.min(count - 1, idx));
       colEl.scrollTo({ top: idx * WHEEL_ITEM_H, behavior: 'smooth' });
       colEl._value = idx % count;
     }, 100);
@@ -91,13 +97,13 @@ export function initWheel(colEl, listEl, count, initialValue, labels){
     if(!isDragging) return;
     isDragging = false;
     try { colEl.releasePointerCapture(e.pointerId); } catch(err) {}
-    snapWheel(colEl, count);
+    snapWheel(colEl, count, loop);
   };
 
   colEl.addEventListener('pointerup', endDrag);
   colEl.addEventListener('pointercancel', endDrag);
 
-  colEl.scrollTop = (count + initialValue) * WHEEL_ITEM_H;
+  colEl.scrollTop = loop ? (count + initialValue) * WHEEL_ITEM_H : initialValue * WHEEL_ITEM_H;
   updateWheelStyles(colEl);
 }
 
