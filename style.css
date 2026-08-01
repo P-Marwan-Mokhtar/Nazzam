@@ -1300,10 +1300,10 @@ body.dark-mode .priority-dot-medium {
     transform: scale(1);
   }
 }
-.keyword-row.editing {
+/* .keyword-row.editing {
   flex-basis: 100%;
   width: 100%;
-}
+} */
 .add-to-day-btn {
   flex: 0 0 auto;
   background: var(--done-soft);
@@ -1367,7 +1367,7 @@ body.dark-mode .priority-dot-medium {
 }
 
 .edit-input {
-  flex: 1;
+  /* flex:1; */
   font-family: "Tajawal";
   font-size: 0.95rem;
   border: 1.5px solid var(--pen);
