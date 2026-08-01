@@ -3162,3 +3162,11 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   margin: 12px 0 0;
 }
 .notif-setting-status.denied{ color: var(--missed); }
+
+/* على الموبايل، قائمة الأولوية الفرعية تفتح في الاتجاه العكسي عن سطح المكتب */
+@media (max-width: 640px) {
+  .priority-popover {
+    right: auto;
+    left: calc(100% + 8px);
+  }
+}
