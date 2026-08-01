@@ -118,6 +118,8 @@ body.dark-mode .header-logo-light {
 }
 body.dark-mode .header-logo-dark {
   display: block;
+      position: relative;
+    left: 50px;
 }
 
 /* Date nav */
