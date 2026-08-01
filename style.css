@@ -835,7 +835,7 @@ body.dark-mode .priority-btn.priority-medium {
 
 .priority-popover {
   position: fixed;
-  z-index: 40;
+  z-index: 110;
   background: var(--card);
   border: 1px solid var(--paper-line);
   border-radius: 12px;
