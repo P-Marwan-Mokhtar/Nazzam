@@ -344,7 +344,6 @@ body.dark-mode .header-logo-dark {
   background: var(--card);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  overflow: hidden;
   transition: background-color 0.2s ease;
 }
 .bank-toggle {
