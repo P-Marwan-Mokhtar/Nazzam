@@ -5,7 +5,7 @@
 import { addDays, reorderArrayById, todayStr, uid } from './utils.js';
 import { contentEl, showToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
-import { hideClockChoicePopover, hideDurationPopover, hidePriorityPopover, showClockChoicePopover, showDurationPopover, showPriorityPopover, wireCustomSelects, wireDragAndDrop } from './popovers.js';
+import { hideClockChoicePopover, hideDurationPopover, hidePriorityPopover, hideTaskMoreDropdown, showClockChoicePopover, showDurationPopover, showPriorityPopover, showTaskMoreDropdown, wireCustomSelects, wireDragAndDrop } from './popovers.js';
 import { openRecurrenceModal } from './recurrence.js';
 import { render } from './render.js';
 import { openSubtasksModal } from './subtasks.js';
@@ -155,16 +155,19 @@ export function attachEvents(){
       await saveData();
     }
     else if(action === 'toggle-task-more'){
-      ui.openTaskMoreId = ui.openTaskMoreId === id ? null : id;
-      render();
+      if(ui.openTaskMoreId === id){
+        hideTaskMoreDropdown();
+      } else {
+        showTaskMoreDropdown(id, btn);
+      }
     }
     else if(action === 'open-subtasks'){
-      ui.openTaskMoreId = null;
+      hideTaskMoreDropdown();
       openSubtasksModal(id);
       render();
     }
     else if(action === 'edit-task-today'){
-      ui.openTaskMoreId = null;
+      hideTaskMoreDropdown();
       ui.editingTaskId = id;
       render();
       const inp = document.getElementById('inlineEditInput_' + id);
@@ -174,7 +177,7 @@ export function attachEvents(){
       }
     }
     else if(action === 'save-task-edit'){
-      ui.openTaskMoreId = null;
+      hideTaskMoreDropdown();
       const task = state.days[ui.selectedDate].find(x => x.id === id);
       const inp = document.getElementById('inlineEditInput_' + id);
       if(task && inp){
@@ -196,12 +199,12 @@ export function attachEvents(){
       render();
     }
     else if(action === 'open-recurrence'){
-      ui.openTaskMoreId = null;
+      hideTaskMoreDropdown();
       openRecurrenceModal(id);
       render();
     }
     else if(action === 'start-timer-from-task'){
-      ui.openTaskMoreId = null;
+      hideTaskMoreDropdown();
       render();
       const task = state.days[ui.selectedDate].find(x => x.id === id);
       if(!task) return;
@@ -275,6 +278,10 @@ export function attachEvents(){
       render();
     }
   };
+
+  // taskMoreDropdown بقى عنصر واحد ثابت خارج contentEl (زي priorityPopover)، فبنوصّل عليه نفس المُعالِج
+  const taskMoreDropdownEl = document.getElementById('taskMoreDropdown');
+  if(taskMoreDropdownEl) taskMoreDropdownEl.onclick = contentEl.onclick;
 
   const bankSearchInput = document.getElementById('bankSearchInput');
   if(bankSearchInput){
