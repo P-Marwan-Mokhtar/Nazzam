@@ -68,24 +68,39 @@
         <span></span><span></span><span></span><span></span><span></span>
       </div>
       <div class="header-card">
-        <div class="header-actions-wrap">
+        <div class="header-row">
           <div class="header-top-bar" id="headerTopBar">
             <button class="header-icon-btn" id="accountBtn" title="الحساب">
               <span class="material-icons" id="accountIcon"
                 >person_outline</span
               >
             </button>
+            <button
+              class="header-icon-btn"
+              id="statsBtnTop"
+              title="الإحصائيات"
+            >
+              <span class="material-icons">insights</span>
+            </button>
             <button class="header-icon-btn" id="themeBtn" title="الوضع الليلي">
               <span class="material-icons" id="themeIcon">dark_mode</span>
             </button>
-            <button
-              class="header-icon-btn"
-              id="globalSearchBtn"
-              title="البحث في جميع المهام"
-            >
-              <span class="material-icons">manage_search</span>
-            </button>
+          </div>
 
+          <div class="header-logo-slot">
+            <img
+              src="img/logo-light.png"
+              alt="Nazzam"
+              class="header-logo header-logo-light"
+            />
+            <img
+              src="img/logo-dark.png"
+              alt="Nazzam"
+              class="header-logo header-logo-dark"
+            />
+          </div>
+
+          <div class="header-actions-wrap">
             <button
               class="header-icon-btn header-more-btn"
               id="headerMoreBtn"
@@ -95,86 +110,94 @@
             >
               <span class="material-icons">more_horiz</span>
             </button>
-          </div>
-          <div class="header-actions-panel" id="headerActionsPanel">
-            <button
-              class="header-menu-item"
-              id="accountBtnMobile"
-              title="الحساب"
-            >
-              <span class="material-icons" id="accountIconMobile"
-                >person_outline</span
+            <div class="header-actions-panel" id="headerActionsPanel">
+              <button
+                class="header-menu-item"
+                id="accountBtnMobile"
+                title="الحساب"
               >
-              <span class="header-btn-label">الحساب</span>
-            </button>
-            <button
-              class="header-menu-item"
-              id="themeBtnMobile"
-              title="الوضع الليلي"
-            >
-              <span class="material-icons" id="themeIconMobile">dark_mode</span>
-              <span class="header-btn-label">الوضع الليلي</span>
-            </button>
-            <button
-              class="header-menu-item"
-              id="globalSearchBtnMobile"
-              title="البحث في كل المهام"
-            >
-              <span class="material-icons">manage_search</span>
-              <span class="header-btn-label">البحث في جميع المهام</span>
-            </button>
-            <div class="header-menu-divider"></div>
-            <button class="header-menu-item" id="statsBtn" title="الإحصائيات">
-              <span class="material-icons">insights</span>
-              <span class="header-btn-label">الإحصائيات</span>
-            </button>
-            <button class="header-menu-item" id="calendarBtn" title="التقويم">
-              <span class="material-icons">calendar_today</span>
-              <span class="header-btn-label">التقويم</span>
-            </button>
-            <button
-              class="header-menu-item"
-              id="draftsBtn"
-              title="المهام المؤرشفة"
-            >
-              <span class="material-icons">drafts</span>
-              <span class="header-btn-label">المهام المؤرشفة</span>
-            </button>
-            <button
-              class="header-menu-item"
-              id="notificationSettingsBtn"
-              title="إعدادات التنبيهات"
-            >
-              <span class="material-icons">notifications</span>
-              <span class="header-btn-label">إعدادات التنبيهات</span>
-            </button>
-            <div class="header-menu-divider"></div>
-            <button
-              class="header-menu-item"
-              id="exportDataBtn"
-              title="تصدير نسخة احتياطية (JSON)"
-            >
-              <span class="material-icons">file_download</span>
-              <span class="header-btn-label">تصدير البيانات</span>
-            </button>
-            <button
-              class="header-menu-item"
-              id="importDataBtn"
-              title="استيراد نسخة احتياطية (JSON)"
-            >
-              <span class="material-icons">file_upload</span>
-              <span class="header-btn-label">استيراد البيانات</span>
-            </button>
-            <input
-              type="file"
-              id="importDataInput"
-              accept=".json,application/json"
-              style="display: none"
-            />
+                <span class="material-icons" id="accountIconMobile"
+                  >person_outline</span
+                >
+                <span class="header-btn-label">الحساب</span>
+              </button>
+              <button
+                class="header-menu-item"
+                id="themeBtnMobile"
+                title="الوضع الليلي"
+              >
+                <span class="material-icons" id="themeIconMobile"
+                  >dark_mode</span
+                >
+                <span class="header-btn-label">الوضع الليلي</span>
+              </button>
+              <button
+                class="header-menu-item"
+                id="globalSearchBtnMobile"
+                title="البحث في كل المهام"
+              >
+                <span class="material-icons">manage_search</span>
+                <span class="header-btn-label">البحث في جميع المهام</span>
+              </button>
+              <div class="header-menu-divider"></div>
+              <button
+                class="header-menu-item"
+                id="statsBtn"
+                title="الإحصائيات"
+              >
+                <span class="material-icons">insights</span>
+                <span class="header-btn-label">الإحصائيات</span>
+              </button>
+              <button
+                class="header-menu-item"
+                id="calendarBtn"
+                title="التقويم"
+              >
+                <span class="material-icons">calendar_today</span>
+                <span class="header-btn-label">التقويم</span>
+              </button>
+              <button
+                class="header-menu-item"
+                id="draftsBtn"
+                title="المهام المؤرشفة"
+              >
+                <span class="material-icons">drafts</span>
+                <span class="header-btn-label">المهام المؤرشفة</span>
+              </button>
+              <button
+                class="header-menu-item"
+                id="notificationSettingsBtn"
+                title="إعدادات التنبيهات"
+              >
+                <span class="material-icons">notifications</span>
+                <span class="header-btn-label">إعدادات التنبيهات</span>
+              </button>
+              <div class="header-menu-divider"></div>
+              <button
+                class="header-menu-item"
+                id="exportDataBtn"
+                title="تصدير نسخة احتياطية (JSON)"
+              >
+                <span class="material-icons">file_download</span>
+                <span class="header-btn-label">تصدير البيانات</span>
+              </button>
+              <button
+                class="header-menu-item"
+                id="importDataBtn"
+                title="استيراد نسخة احتياطية (JSON)"
+              >
+                <span class="material-icons">file_upload</span>
+                <span class="header-btn-label">استيراد البيانات</span>
+              </button>
+              <input
+                type="file"
+                id="importDataInput"
+                accept=".json,application/json"
+                style="display: none"
+              />
+            </div>
           </div>
         </div>
-        <img src="img/logo-light.png" alt="Nazzam" class="header-logo header-logo-light" />
-        <img src="img/logo-dark.png" alt="Nazzam" class="header-logo header-logo-dark" />
       </div>
 
       <div class="main-layout">

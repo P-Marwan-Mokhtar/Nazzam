@@ -1714,12 +1714,13 @@ body.dark-mode .priority-choice-medium .material-icons {
   color: #c0392b;
 }
 
-/* ===== Header Actions: one always-visible icon pill (search/theme/account/more)
-     + a dropdown menu (stats/calendar/drafts — export/import) opened by "more" ===== */
-.header-actions-wrap {
-  position: absolute;
-  top: 14px;
-  right: 14px;
+/* ===== Header row: icon pill (right) — logo (center) — more button (left) =====
+   In RTL, first DOM child sits at the row's start (right) and the last at its end (left). */
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 .header-top-bar {
   display: flex;
@@ -1729,6 +1730,7 @@ body.dark-mode .priority-choice-medium .material-icons {
   background: var(--paper);
   border-radius: 14px;
   padding: 4px;
+  flex-shrink: 0;
 }
 .header-icon-btn {
   width: 34px;
@@ -1764,8 +1766,21 @@ body.dark-mode .priority-choice-medium .material-icons {
   white-space: nowrap;
 }
 
-/* "More" (•••) button lives inside the same pill; turns blue while the menu is open */
+.header-logo-slot {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+/* "More" (•••) button — its own small pill, mirrors the icon pill on the other side */
+.header-actions-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
 .header-more-btn {
+  background: var(--paper);
+  border-radius: 14px;
   color: var(--ink-soft);
 }
 .header-more-btn.is-open {
@@ -1784,7 +1799,7 @@ body.dark-mode .priority-choice-medium .material-icons {
   gap: 2px;
   position: absolute;
   top: calc(100% + 8px);
-  right: 105px;
+  left: 0;
   min-width: 210px;
   background: var(--card);
   border: 1px solid var(--paper-line);
@@ -2427,13 +2442,18 @@ body.dark-mode .account-error {
     height: 42px;
   }
 
-  .header-actions-wrap {
-    top: 12px;
-    right: 12px;
-    left: auto;
+  .header-row {
+    display: block;
+    position: relative;
   }
-  .header-top-bar .header-icon-btn:not(.header-more-btn) {
+  .header-top-bar {
     display: none;
+  }
+  .header-actions-wrap {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: auto;
   }
   .header-actions-panel {
     right: 0;
