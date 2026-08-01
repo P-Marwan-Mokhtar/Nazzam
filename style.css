@@ -833,8 +833,13 @@ body.dark-mode .priority-btn.priority-medium {
   color: #f0ab2e;
 }
 
+.priority-submenu-wrap {
+  position: relative;
+}
 .priority-popover {
-  position: fixed;
+  position: absolute;
+  top: -6px;
+  right: calc(100% + 8px);
   z-index: 110;
   background: var(--card);
   border: 1px solid var(--paper-line);
@@ -842,20 +847,19 @@ body.dark-mode .priority-btn.priority-medium {
   box-shadow: var(--shadow);
   padding: 6px;
   min-width: 150px;
-  display: none;
+  display: flex;
   flex-direction: column;
   gap: 3px;
   opacity: 0;
-  transform: translateY(6px);
+  transform: translateX(6px);
+  pointer-events: none;
   transition:
     opacity 0.15s ease,
     transform 0.15s ease;
-  pointer-events: none;
 }
 .priority-popover.open {
-  display: flex;
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(0);
   pointer-events: auto;
 }
 .priority-choice-btn {
@@ -2722,14 +2726,16 @@ body.dark-mode .account-error {
   background: var(--paper);
 }
 .task-more-dropdown {
-  position: fixed;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
   background: var(--card);
   border: 1px solid var(--paper-line);
   box-shadow: var(--shadow);
   border-radius: 10px;
   padding: 6px;
   z-index: 100;
-  display: none;
+  display: flex;
   flex-direction: column;
   min-width: 140px;
   opacity: 0;
@@ -2740,7 +2746,6 @@ body.dark-mode .account-error {
     transform 0.15s ease;
 }
 .task-more-dropdown.open {
-  display: flex;
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;

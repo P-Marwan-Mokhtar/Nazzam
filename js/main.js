@@ -10,7 +10,7 @@ import { exportDataAsJSON, importDataFromFile, loadData, saveData } from './data
 import { closeDraftsModal, openDraftsModal, renderDraftsModal } from './drafts.js';
 import { closeAddChoiceModal } from './events.js';
 import { closeNotificationSettingsModal, registerServiceWorker, startNotificationScheduler } from './notifications.js';
-import { hideClockChoicePopover, hideDurationPopover, hidePriorityPopover, hideTaskMoreDropdown } from './popovers.js';
+import { hideClockChoicePopover, hideDurationPopover } from './popovers.js';
 import { closeRecurrenceModal } from './recurrence.js';
 import { render } from './render.js';
 import { closeGlobalSearchModal, openGlobalSearchModal, renderGlobalSearchResults } from './search.js';
@@ -45,10 +45,13 @@ async function startApp(){
       hideClockChoicePopover();
     }
     if(ui.openPriorityPopoverTaskId && !e.target.closest('.priority-popover') && !e.target.closest('.priority-btn')){
-      hidePriorityPopover();
+      ui.openPriorityPopoverTaskId = null;
+      render();
     }
     if(ui.openTaskMoreId && !e.target.closest('.task-more-dropdown') && !e.target.closest('.task-more-btn')){
-      hideTaskMoreDropdown();
+      ui.openTaskMoreId = null;
+      ui.openPriorityPopoverTaskId = null;
+      render();
     }
     if(ui.dayStatusFilterOpen && !e.target.closest('.day-filter-wrap')){
       ui.dayStatusFilterOpen = false;
@@ -270,7 +273,8 @@ async function startApp(){
       if(document.getElementById('notificationSettingsOverlay').classList.contains('open')) closeNotificationSettingsModal();
       if(ui.openDurationPopoverTaskId) hideDurationPopover();
       if(ui.openClockChoiceTaskId) hideClockChoicePopover();
-      if(ui.openPriorityPopoverTaskId) hidePriorityPopover();
+      if(ui.openPriorityPopoverTaskId){ ui.openPriorityPopoverTaskId = null; render(); }
+      if(ui.openTaskMoreId){ ui.openTaskMoreId = null; ui.openPriorityPopoverTaskId = null; render(); }
     }
   });
 

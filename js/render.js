@@ -3,18 +3,16 @@
 // ============================================================
 
 import { escapeAttr, escapeHtml, fmtDay, formatHM, formatMinutes, fromISO, highlightMatch, normalizeArabic, parseDurationToMinutes, todayStr, uid } from './utils.js';
-import { contentEl, state, ui } from './state.js';
+import { PRIORITY_LABELS, contentEl, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { attachEvents } from './events.js';
-import { buildFilterDropdown, hideClockChoicePopover, hideDurationPopover, hidePriorityPopover, hideTaskMoreDropdown } from './popovers.js';
+import { buildFilterDropdown, hideClockChoicePopover, hideDurationPopover } from './popovers.js';
 import { computeTaskStreak, renderStatsView } from './stats.js';
 import { renderTimerPanel } from './timers.js';
 
 export function render(){
   hideDurationPopover();
   hideClockChoicePopover();
-  hidePriorityPopover();
-  hideTaskMoreDropdown();
   if(ui.statsViewOpen){
     renderStatsView();
     return;
@@ -268,6 +266,43 @@ export function render(){
               <button class="icon-btn task-more-btn" data-action="toggle-task-more" data-id="${t.id}" title="المزيد">
                 <span class="material-icons">more_vert</span>
               </button>
+              <div class="task-more-dropdown ${ui.openTaskMoreId === t.id ? 'open' : ''}">
+                <button class="tmd-btn" data-action="edit-task-today" data-id="${t.id}">
+                  <span class="material-icons">edit</span><span>تعديل</span>
+                </button>
+                <div class="priority-submenu-wrap">
+                  <button class="tmd-btn priority-btn ${t.priority ? 'priority-' + t.priority : ''}" data-action="toggle-priority-popover" data-id="${t.id}" title="${t.priority ? 'الأهمية: ' + PRIORITY_LABELS[t.priority] : 'حدد مستوى الأهمية'}">
+                    <span class="material-icons">flag</span><span>${t.priority ? 'الأهمية: ' + PRIORITY_LABELS[t.priority] : 'الأهمية'}</span>
+                  </button>
+                  <div class="priority-popover ${ui.openPriorityPopoverTaskId === t.id ? 'open' : ''}">
+                    <button class="priority-choice-btn priority-choice-high ${t.priority === 'high' ? 'selected' : ''}" data-action="set-task-priority" data-choice="high" data-id="${t.id}" type="button">
+                      <span class="material-icons">flag</span>عالية
+                    </button>
+                    <button class="priority-choice-btn priority-choice-medium ${t.priority === 'medium' ? 'selected' : ''}" data-action="set-task-priority" data-choice="medium" data-id="${t.id}" type="button">
+                      <span class="material-icons">flag</span>متوسطة
+                    </button>
+                    <button class="priority-choice-btn priority-choice-low ${t.priority === 'low' ? 'selected' : ''}" data-action="set-task-priority" data-choice="low" data-id="${t.id}" type="button">
+                      <span class="material-icons">flag</span>منخفضة
+                    </button>
+                    <button class="priority-choice-btn priority-choice-none ${!t.priority ? 'selected' : ''}" data-action="set-task-priority" data-choice="" data-id="${t.id}" type="button">
+                      <span class="material-icons">outlined_flag</span>بدون
+                    </button>
+                  </div>
+                </div>
+                <button class="tmd-btn ${(state.recurringTasks && state.recurringTasks[t.name] && state.recurringTasks[t.name].length) ? 'active' : ''}" data-action="open-recurrence" data-id="${t.id}">
+                  <span class="material-icons">event_repeat</span>
+                  <span>تكرار المهمة</span>
+                </button>
+                <button class="tmd-btn" data-action="start-timer-from-task" data-id="${t.id}">
+                  <span class="material-icons">play_circle_outline</span><span>بدء تايمر</span>
+                </button>
+                <button class="tmd-btn" data-action="open-subtasks" data-id="${t.id}">
+                  <span class="material-icons">account_tree</span><span>مهام فرعية</span>
+                </button>
+                <button class="tmd-btn delete" data-action="delete-task" data-id="${t.id}">
+                  <span class="material-icons">delete</span><span>حذف</span>
+                </button>
+              </div>
             </div>
             </div>
           </div>

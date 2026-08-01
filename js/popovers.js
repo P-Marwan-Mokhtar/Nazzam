@@ -3,9 +3,7 @@
 // ============================================================
 
 import { escapeHtml, formatHM, parseDurationToMinutes } from './utils.js';
-import { PRIORITY_LABELS, state, ui } from './state.js';
-import { saveData } from './dataStore.js';
-import { render } from './render.js';
+import { state, ui } from './state.js';
 import { openActualDurationPicker, openDurationPicker } from './wheelPicker.js';
 
 export function buildFilterDropdown(id, selectedId){
@@ -153,116 +151,4 @@ export function hideClockChoicePopover(){
   const pop = document.getElementById('clockChoicePopover');
   if(pop) pop.classList.remove('open');
   ui.openClockChoiceTaskId = null;
-}
-
-export function showPriorityPopover(taskId, anchorEl){
-  const pop = document.getElementById('priorityPopover');
-  const task = state.days[ui.selectedDate].find(x => x.id === taskId);
-  const current = task ? task.priority : null;
-  pop.innerHTML = `
-    <button class="priority-choice-btn priority-choice-high ${current === 'high' ? 'selected' : ''}" data-choice="high" type="button">
-      <span class="material-icons">flag</span>عالية
-    </button>
-    <button class="priority-choice-btn priority-choice-medium ${current === 'medium' ? 'selected' : ''}" data-choice="medium" type="button">
-      <span class="material-icons">flag</span>متوسطة
-    </button>
-    <button class="priority-choice-btn priority-choice-low ${current === 'low' ? 'selected' : ''}" data-choice="low" type="button">
-      <span class="material-icons">flag</span>منخفضة
-    </button>
-    <button class="priority-choice-btn priority-choice-none ${!current ? 'selected' : ''}" data-choice="" type="button">
-      <span class="material-icons">outlined_flag</span>بدون
-    </button>
-  `;
-  pop.classList.add('open');
-
-  const dropdown = anchorEl.closest('.task-more-dropdown');
-  const popRect = pop.getBoundingClientRect();
-
-  if(dropdown){
-    // بتظهر كقائمة فرعية على يسار قائمة "المزيد"، وقائمة "المزيد" تفضل ظاهرة
-    const ddRect = dropdown.getBoundingClientRect();
-    const anchorRect = anchorEl.getBoundingClientRect();
-
-    let left = ddRect.left - popRect.width - 8;
-    if(left < 8) left = Math.min(ddRect.right + 8, window.innerWidth - popRect.width - 8);
-
-    let top = anchorRect.top;
-    top = Math.max(8, Math.min(top, window.innerHeight - popRect.height - 8));
-
-    pop.style.top = `${top}px`;
-    pop.style.left = `${left}px`;
-  } else {
-    const rect = anchorEl.getBoundingClientRect();
-    let top = rect.top - popRect.height - 8;
-    if(top < 8) top = rect.bottom + 8;
-    let left = rect.left + rect.width / 2 - popRect.width / 2;
-    left = Math.max(8, Math.min(left, window.innerWidth - popRect.width - 8));
-    pop.style.top = `${top}px`;
-    pop.style.left = `${left}px`;
-  }
-
-  ui.openPriorityPopoverTaskId = taskId;
-
-  pop.querySelectorAll('.priority-choice-btn').forEach(choiceBtn => {
-    choiceBtn.onclick = async () => {
-      const value = choiceBtn.dataset.choice;
-      if(task) task.priority = value || null;
-      hidePriorityPopover();
-      render();
-      await saveData();
-    };
-  });
-}
-
-export function hidePriorityPopover(){
-  const pop = document.getElementById('priorityPopover');
-  if(pop) pop.classList.remove('open');
-  ui.openPriorityPopoverTaskId = null;
-}
-
-export function showTaskMoreDropdown(taskId, anchorEl){
-  const dd = document.getElementById('taskMoreDropdown');
-  const task = state.days[ui.selectedDate].find(x => x.id === taskId);
-  if(!task) return;
-
-  dd.innerHTML = `
-    <button class="tmd-btn" data-action="edit-task-today" data-id="${taskId}">
-      <span class="material-icons">edit</span><span>تعديل</span>
-    </button>
-    <button class="tmd-btn priority-btn ${task.priority ? 'priority-' + task.priority : ''}" data-action="toggle-priority-popover" data-id="${taskId}" title="${task.priority ? 'الأهمية: ' + PRIORITY_LABELS[task.priority] : 'حدد مستوى الأهمية'}">
-      <span class="material-icons">flag</span><span>${task.priority ? 'الأهمية: ' + PRIORITY_LABELS[task.priority] : 'الأهمية'}</span>
-    </button>
-    <button class="tmd-btn ${(state.recurringTasks && state.recurringTasks[task.name] && state.recurringTasks[task.name].length) ? 'active' : ''}" data-action="open-recurrence" data-id="${taskId}">
-      <span class="material-icons">event_repeat</span>
-      <span>تكرار المهمة</span>
-    </button>
-    <button class="tmd-btn" data-action="start-timer-from-task" data-id="${taskId}">
-      <span class="material-icons">play_circle_outline</span><span>بدء تايمر</span>
-    </button>
-    <button class="tmd-btn" data-action="open-subtasks" data-id="${taskId}">
-      <span class="material-icons">account_tree</span><span>مهام فرعية</span>
-    </button>
-    <button class="tmd-btn delete" data-action="delete-task" data-id="${taskId}">
-      <span class="material-icons">delete</span><span>حذف</span>
-    </button>
-  `;
-  dd.classList.add('open');
-
-  const rect = anchorEl.getBoundingClientRect();
-  const ddRect = dd.getBoundingClientRect();
-  let top = rect.bottom + 4;
-  if(top + ddRect.height > window.innerHeight - 8) top = rect.top - ddRect.height - 4;
-  top = Math.max(8, top);
-  let left = rect.left;
-  left = Math.max(8, Math.min(left, window.innerWidth - ddRect.width - 8));
-  dd.style.top = `${top}px`;
-  dd.style.left = `${left}px`;
-
-  ui.openTaskMoreId = taskId;
-}
-
-export function hideTaskMoreDropdown(){
-  const dd = document.getElementById('taskMoreDropdown');
-  if(dd) dd.classList.remove('open');
-  ui.openTaskMoreId = null;
 }
