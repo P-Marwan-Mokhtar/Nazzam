@@ -109,19 +109,19 @@ body {
   width: auto;
   max-width: 90%;
   margin: 4px auto 2px;
+      position: relative;
+    left: 50px;
 }
 .header-logo-dark {
   display: none;
 }
 body.dark-mode .header-logo-light {
   display: none;
-      position: relative;
-    left: 50px;
+
 }
 body.dark-mode .header-logo-dark {
   display: block;
-      position: relative;
-    left: 50px;
+
 }
 
 /* Date nav */
@@ -2444,6 +2444,7 @@ body.dark-mode .account-error {
   }
   .header-logo {
     height: 42px;
+    left: 0px;
   }
 
   .header-row {
