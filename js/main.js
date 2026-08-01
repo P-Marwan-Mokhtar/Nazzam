@@ -76,7 +76,6 @@ async function startApp(){
     if(wasOpen) ui.justReturnedFromStats = true;
     render();
   };
-  document.getElementById('statsBtn').onclick = toggleStatsView;
   const statsBtnTop = document.getElementById('statsBtnTop');
   if(statsBtnTop) statsBtnTop.onclick = toggleStatsView;
 
