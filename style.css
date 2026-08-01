@@ -1045,6 +1045,27 @@ body.dark-mode .priority-choice-medium .material-icons {
   line-height: 1.3;
   white-space: nowrap;
 }
+.priority-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-inline-end: 6px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.priority-dot-high {
+  background-color: var(--missed);
+}
+.priority-dot-medium {
+  background-color: #d98c15;
+}
+.priority-dot-low {
+  background-color: var(--done);
+}
+body.dark-mode .priority-dot-medium {
+  background-color: #f0ab2e;
+}
 .task-row.done .task-name {
   color: var(--done);
   text-decoration: line-through;
@@ -2701,16 +2722,14 @@ body.dark-mode .account-error {
   background: var(--paper);
 }
 .task-more-dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
+  position: fixed;
   background: var(--card);
   border: 1px solid var(--paper-line);
   box-shadow: var(--shadow);
   border-radius: 10px;
   padding: 6px;
   z-index: 100;
-  display: flex;
+  display: none;
   flex-direction: column;
   min-width: 140px;
   opacity: 0;
@@ -2721,6 +2740,7 @@ body.dark-mode .account-error {
     transform 0.15s ease;
 }
 .task-more-dropdown.open {
+  display: flex;
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
