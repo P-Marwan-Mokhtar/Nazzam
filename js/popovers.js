@@ -175,14 +175,31 @@ export function showPriorityPopover(taskId, anchorEl){
   `;
   pop.classList.add('open');
 
-  const rect = anchorEl.getBoundingClientRect();
+  const dropdown = anchorEl.closest('.task-more-dropdown');
   const popRect = pop.getBoundingClientRect();
-  let top = rect.top - popRect.height - 8;
-  if(top < 8) top = rect.bottom + 8;
-  let left = rect.left + rect.width / 2 - popRect.width / 2;
-  left = Math.max(8, Math.min(left, window.innerWidth - popRect.width - 8));
-  pop.style.top = `${top}px`;
-  pop.style.left = `${left}px`;
+
+  if(dropdown){
+    // بتظهر كقائمة فرعية على يسار قائمة "المزيد"، وقائمة "المزيد" تفضل ظاهرة
+    const ddRect = dropdown.getBoundingClientRect();
+    const anchorRect = anchorEl.getBoundingClientRect();
+
+    let left = ddRect.left - popRect.width - 8;
+    if(left < 8) left = Math.min(ddRect.right + 8, window.innerWidth - popRect.width - 8);
+
+    let top = anchorRect.top;
+    top = Math.max(8, Math.min(top, window.innerHeight - popRect.height - 8));
+
+    pop.style.top = `${top}px`;
+    pop.style.left = `${left}px`;
+  } else {
+    const rect = anchorEl.getBoundingClientRect();
+    let top = rect.top - popRect.height - 8;
+    if(top < 8) top = rect.bottom + 8;
+    let left = rect.left + rect.width / 2 - popRect.width / 2;
+    left = Math.max(8, Math.min(left, window.innerWidth - popRect.width - 8));
+    pop.style.top = `${top}px`;
+    pop.style.left = `${left}px`;
+  }
 
   ui.openPriorityPopoverTaskId = taskId;
 
