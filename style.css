@@ -2443,17 +2443,22 @@ body.dark-mode .account-error {
   }
 
   .header-row {
-    display: block;
-    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 2px;
   }
   .header-top-bar {
-    display: none;
+    display: flex;
+    order: 1;
   }
   .header-actions-wrap {
-    position: absolute;
-    top: 0;
-    right: 0;
-    left: auto;
+    order: 2;
+    position: relative;
+  }
+  .header-logo-slot {
+    order: 3;
+    flex: 0 0 auto;
+    margin-inline-start: auto;
   }
   .header-actions-panel {
     right: 0;
