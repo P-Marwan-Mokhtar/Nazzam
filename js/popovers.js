@@ -3,7 +3,7 @@
 // ============================================================
 
 import { escapeHtml, formatHM, parseDurationToMinutes } from './utils.js';
-import { state, ui } from './state.js';
+import { PRIORITY_LABELS, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
 import { openActualDurationPicker, openDurationPicker } from './wheelPicker.js';
@@ -218,4 +218,51 @@ export function hidePriorityPopover(){
   const pop = document.getElementById('priorityPopover');
   if(pop) pop.classList.remove('open');
   ui.openPriorityPopoverTaskId = null;
+}
+
+export function showTaskMoreDropdown(taskId, anchorEl){
+  const dd = document.getElementById('taskMoreDropdown');
+  const task = state.days[ui.selectedDate].find(x => x.id === taskId);
+  if(!task) return;
+
+  dd.innerHTML = `
+    <button class="tmd-btn" data-action="edit-task-today" data-id="${taskId}">
+      <span class="material-icons">edit</span><span>تعديل</span>
+    </button>
+    <button class="tmd-btn priority-btn ${task.priority ? 'priority-' + task.priority : ''}" data-action="toggle-priority-popover" data-id="${taskId}" title="${task.priority ? 'الأهمية: ' + PRIORITY_LABELS[task.priority] : 'حدد مستوى الأهمية'}">
+      <span class="material-icons">flag</span><span>${task.priority ? 'الأهمية: ' + PRIORITY_LABELS[task.priority] : 'الأهمية'}</span>
+    </button>
+    <button class="tmd-btn ${(state.recurringTasks && state.recurringTasks[task.name] && state.recurringTasks[task.name].length) ? 'active' : ''}" data-action="open-recurrence" data-id="${taskId}">
+      <span class="material-icons">event_repeat</span>
+      <span>تكرار المهمة</span>
+    </button>
+    <button class="tmd-btn" data-action="start-timer-from-task" data-id="${taskId}">
+      <span class="material-icons">play_circle_outline</span><span>بدء تايمر</span>
+    </button>
+    <button class="tmd-btn" data-action="open-subtasks" data-id="${taskId}">
+      <span class="material-icons">account_tree</span><span>مهام فرعية</span>
+    </button>
+    <button class="tmd-btn delete" data-action="delete-task" data-id="${taskId}">
+      <span class="material-icons">delete</span><span>حذف</span>
+    </button>
+  `;
+  dd.classList.add('open');
+
+  const rect = anchorEl.getBoundingClientRect();
+  const ddRect = dd.getBoundingClientRect();
+  let top = rect.bottom + 4;
+  if(top + ddRect.height > window.innerHeight - 8) top = rect.top - ddRect.height - 4;
+  top = Math.max(8, top);
+  let left = rect.left;
+  left = Math.max(8, Math.min(left, window.innerWidth - ddRect.width - 8));
+  dd.style.top = `${top}px`;
+  dd.style.left = `${left}px`;
+
+  ui.openTaskMoreId = taskId;
+}
+
+export function hideTaskMoreDropdown(){
+  const dd = document.getElementById('taskMoreDropdown');
+  if(dd) dd.classList.remove('open');
+  ui.openTaskMoreId = null;
 }
