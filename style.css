@@ -115,6 +115,8 @@ body {
 }
 body.dark-mode .header-logo-light {
   display: none;
+      position: relative;
+    left: 50px;
 }
 body.dark-mode .header-logo-dark {
   display: block;
