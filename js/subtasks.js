@@ -36,14 +36,19 @@ function renderSubtasksList() {
   let html = '';
   task.subtasks.forEach(st => {
     html += `
-      <div class="subtask-item ${st.done ? 'done' : ''}">
+      <div class="subtask-item ${st.done ? 'done' : ''}" data-id="${st.id}">
         <div class="subtask-item-left">
           <input type="checkbox" class="subtask-checkbox" data-id="${st.id}" ${st.done ? 'checked' : ''} />
-          <span class="subtask-title">${escapeHtml(st.title)}</span>
+          <span class="subtask-title" data-id="${st.id}">${escapeHtml(st.title)}</span>
         </div>
-        <button class="subtask-delete-btn" data-id="${st.id}" title="حذف">
-          <span class="material-icons">close</span>
-        </button>
+        <div class="subtask-item-actions">
+          <button class="subtask-edit-btn" data-id="${st.id}" title="تعديل">
+            <span class="material-icons">edit</span>
+          </button>
+          <button class="subtask-delete-btn" data-id="${st.id}" title="حذف">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
       </div>
     `;
   });
@@ -72,6 +77,72 @@ function renderSubtasksList() {
       await saveData();
     };
   });
+
+  listEl.querySelectorAll('.subtask-edit-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      const stId = e.currentTarget.dataset.id;
+      startEditSubtask(task, stId);
+    };
+  });
+
+  listEl.querySelectorAll('.subtask-title').forEach(span => {
+    span.ondblclick = (e) => {
+      const stId = e.currentTarget.dataset.id;
+      startEditSubtask(task, stId);
+    };
+  });
+}
+
+function startEditSubtask(task, stId) {
+  const st = task.subtasks.find(x => x.id === stId);
+  if (!st) return;
+
+  const itemEl = document.querySelector(`.subtask-item[data-id="${stId}"]`);
+  const titleEl = itemEl ? itemEl.querySelector('.subtask-title') : null;
+  if (!itemEl || !titleEl) return;
+
+  const originalTitle = st.title;
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'subtask-edit-input';
+  input.value = originalTitle;
+
+  titleEl.replaceWith(input);
+  input.focus();
+  input.select();
+
+  let finished = false;
+
+  const finishEdit = async (save) => {
+    if (finished) return;
+    finished = true;
+
+    let changed = false;
+    if (save) {
+      const newTitle = input.value.trim();
+      if (newTitle && newTitle !== originalTitle) {
+        st.title = newTitle;
+        changed = true;
+      }
+    }
+
+    renderSubtasksList();
+    render();
+    if (changed) await saveData();
+  };
+
+  input.onkeydown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      finishEdit(true);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      finishEdit(false);
+    }
+  };
+
+  input.onblur = () => finishEdit(true);
 }
 
 document.getElementById('closeSubtasksBtn').onclick = closeSubtasksModal;
