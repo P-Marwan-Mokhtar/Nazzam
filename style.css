@@ -2885,6 +2885,25 @@ body.dark-mode .account-error {
   height: 18px;
   accent-color: var(--done);
 }
+.subtask-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.subtask-edit-btn {
+  background: transparent;
+  border: none;
+  color: var(--pen);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+}
+.subtask-edit-btn:hover {
+  background: var(--done-soft);
+}
 .subtask-delete-btn {
   background: transparent;
   border: none;
@@ -2902,6 +2921,21 @@ body.dark-mode .account-error {
 .subtask-title {
   font-size: 0.9rem;
   color: var(--ink);
+}
+.subtask-edit-input {
+  flex: 1;
+  min-width: 0;
+  font-family: "Tajawal", sans-serif;
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: var(--bg, #fff);
+  border: 1px solid var(--pen);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+.subtask-edit-input:focus {
+  outline: 2px solid var(--pen);
+  outline-offset: 1px;
 }
 
 /* ===== البحث الشامل عبر كل الأيام ===== */
