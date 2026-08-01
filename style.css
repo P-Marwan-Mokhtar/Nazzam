@@ -2765,6 +2765,31 @@ body.dark-mode .account-error {
 .tmd-btn.delete:hover {
   background: #fadbd8;
 }
+.task-more-dropdown .priority-btn {
+  opacity: 1;
+}
+.task-more-dropdown .priority-btn.priority-high {
+  color: var(--missed);
+}
+.task-more-dropdown .priority-btn.priority-high .material-icons {
+  color: var(--missed);
+}
+.task-more-dropdown .priority-btn.priority-medium {
+  color: #d98c15;
+}
+.task-more-dropdown .priority-btn.priority-medium .material-icons {
+  color: #d98c15;
+}
+.task-more-dropdown .priority-btn.priority-low {
+  color: var(--done);
+}
+.task-more-dropdown .priority-btn.priority-low .material-icons {
+  color: var(--done);
+}
+body.dark-mode .task-more-dropdown .priority-btn.priority-medium,
+body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons {
+  color: #f0ab2e;
+}
 
 .recurrence-days-grid {
   display: grid;
