@@ -70,12 +70,15 @@ async function startApp(){
   };
   document.getElementById('themeBtn').onclick = toggleDarkMode;
 
-  document.getElementById('statsBtn').onclick = () => {
+  const toggleStatsView = () => {
     const wasOpen = ui.statsViewOpen;
     ui.statsViewOpen = !ui.statsViewOpen;
     if(wasOpen) ui.justReturnedFromStats = true;
     render();
   };
+  document.getElementById('statsBtn').onclick = toggleStatsView;
+  const statsBtnTop = document.getElementById('statsBtnTop');
+  if(statsBtnTop) statsBtnTop.onclick = toggleStatsView;
 
   document.getElementById('calendarBtn').onclick = openCalendarModal;
   document.getElementById('closeCalendarBtn').onclick = closeCalendarModal;
@@ -109,7 +112,6 @@ async function startApp(){
     };
   }
 
-  document.getElementById('globalSearchBtn').onclick = openGlobalSearchModal;
   document.getElementById('closeGlobalSearchBtn').onclick = closeGlobalSearchModal;
   document.getElementById('accountBtnMobile').onclick = openAccountModal;
   document.getElementById('themeBtnMobile').onclick = toggleDarkMode;
