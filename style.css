@@ -105,8 +105,9 @@ body {
 }
 .header-logo {
   display: block;
-  max-width: 220px;
-  height: auto;
+  height: 56px;
+  width: auto;
+  max-width: 90%;
   margin: 4px auto 2px;
 }
 .header-logo-dark {
@@ -2423,7 +2424,7 @@ body.dark-mode .account-error {
     padding: 16px 12px 14px;
   }
   .header-logo {
-    max-width: 160px;
+    height: 42px;
   }
 
   .header-actions-wrap {
