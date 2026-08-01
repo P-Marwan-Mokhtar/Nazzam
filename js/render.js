@@ -250,9 +250,6 @@ export function render(){
             `}
             <div class="task-icons">
             ${(t.subtasks && t.subtasks.length > 0) ? `<button type="button" class="subtasks-badge" data-action="open-subtasks" data-id="${t.id}" title="عرض المهام الفرعية">${t.subtasks.filter(s=>s.done).length}/${t.subtasks.length}</button>` : ''}
-            <button class="priority-btn ${t.priority ? 'priority-' + t.priority : ''}" data-action="toggle-priority-popover" data-id="${t.id}" title="${t.priority ? 'الأهمية: ' + PRIORITY_LABELS[t.priority] : 'حدد مستوى الأهمية'}">
-              <span class="material-icons">flag</span>
-            </button>
             <button class="clock-btn" data-action="toggle-duration" data-id="${t.id}" title="حدد الهدف أو الوقت الفعلي">
               <span class="material-icons">schedule</span>
             </button>
@@ -273,6 +270,9 @@ export function render(){
               <div class="task-more-dropdown ${ui.openTaskMoreId === t.id ? 'open' : ''}" id="taskMoreDropdown_${t.id}">
                 <button class="tmd-btn" data-action="edit-task-today" data-id="${t.id}">
                   <span class="material-icons">edit</span><span>تعديل</span>
+                </button>
+                <button class="tmd-btn priority-btn ${t.priority ? 'priority-' + t.priority : ''}" data-action="toggle-priority-popover" data-id="${t.id}" title="${t.priority ? 'الأهمية: ' + PRIORITY_LABELS[t.priority] : 'حدد مستوى الأهمية'}">
+                  <span class="material-icons">flag</span><span>${t.priority ? 'الأهمية: ' + PRIORITY_LABELS[t.priority] : 'الأهمية'}</span>
                 </button>
                 <button class="tmd-btn ${(state.recurringTasks && state.recurringTasks[t.name] && state.recurringTasks[t.name].length) ? 'active' : ''}" data-action="open-recurrence" data-id="${t.id}">
                   <span class="material-icons">event_repeat</span>
