@@ -100,13 +100,6 @@ export function attachEvents(){
       if(ui.openPriorityPopoverTaskId === id){
         hidePriorityPopover();
       } else {
-        // نقفل قائمة "المزيد" بدون render() الكامل، عشان render() بينده hidePriorityPopover()
-        // في أول سطر منه وكان هيقفل البوباب فور ما نفتحه.
-        if(ui.openTaskMoreId){
-          const openDropdown = document.getElementById(`taskMoreDropdown_${ui.openTaskMoreId}`);
-          if(openDropdown) openDropdown.classList.remove('open');
-          ui.openTaskMoreId = null;
-        }
         showPriorityPopover(id, btn);
       }
     }
