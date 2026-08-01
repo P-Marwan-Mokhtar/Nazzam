@@ -63,12 +63,14 @@ export function render(){
   }
 
   // Keyword Bank Section
+  const bankIsOpen = ui.bankOpen || ui.closingBank;
+  html += `<div class="bank-wrap">`;
   html += `<button class="bank-toggle" data-action="toggle-bank" type="button">
     <span class="bank-toggle-label">بنك المهام</span>
     <span class="bank-toggle-arrow ${ui.bankOpen ? 'open' : ''}"><span class="material-icons">expand_more</span></span>
   </button>`;
 
-  if(ui.bankOpen || ui.closingBank){
+  if(bankIsOpen){
     html += `<div class="bank-content ${ui.justOpenedBank ? 'animate-in' : ''} ${ui.closingBank ? 'animate-out' : ''}">`;
 
     html += `
@@ -174,6 +176,7 @@ export function render(){
 
     html += `</div>`; 
   }
+  html += `</div>`; // close .bank-wrap
 
   // Daily Tasks Section
   const dayFilterLabels = { all: 'الكل', pending: 'متبقية', done: 'منجزة' };
