@@ -103,16 +103,20 @@ body {
     background-color 0.2s ease,
     border-color 0.2s ease;
 }
-h1 {
-  font-family: "Rakkas", serif;
-  font-size: 2rem;
-  margin: 4px 0 2px;
-  color: var(--ink);
+.header-logo {
+  display: block;
+  max-width: 220px;
+  height: auto;
+  margin: 4px auto 2px;
 }
-.subtitle {
-  color: var(--ink-soft);
-  font-size: 0.9rem;
-  margin: 0;
+.header-logo-dark {
+  display: none;
+}
+body.dark-mode .header-logo-light {
+  display: none;
+}
+body.dark-mode .header-logo-dark {
+  display: block;
 }
 
 /* Date nav */
@@ -2418,11 +2422,8 @@ body.dark-mode .account-error {
   .header-card {
     padding: 16px 12px 14px;
   }
-  h1 {
-    font-size: 1.55rem;
-  }
-  .subtitle {
-    font-size: 0.8rem;
+  .header-logo {
+    max-width: 160px;
   }
 
   .header-actions-wrap {
