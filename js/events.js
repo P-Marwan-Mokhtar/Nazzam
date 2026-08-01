@@ -101,6 +101,8 @@ export function attachEvents(){
         hidePriorityPopover();
       } else {
         showPriorityPopover(id, btn);
+        ui.openTaskMoreId = null;
+        render();
       }
     }
     else if(action === 'toggle-duration-view'){
