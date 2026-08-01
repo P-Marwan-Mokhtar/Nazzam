@@ -109,19 +109,15 @@ body {
   width: auto;
   max-width: 90%;
   margin: 4px auto 2px;
-      position: relative;
-    left: 50px;
 }
 .header-logo-dark {
   display: none;
 }
 body.dark-mode .header-logo-light {
   display: none;
-
 }
 body.dark-mode .header-logo-dark {
   display: block;
-
 }
 
 /* Date nav */
@@ -2444,21 +2440,29 @@ body.dark-mode .account-error {
   }
   .header-logo {
     height: 42px;
-    left: 0px;
   }
 
   .header-row {
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 0;
   }
   .header-top-bar {
     display: flex;
     order: 1;
+    border-radius: 0 14px 14px 0;
   }
   .header-actions-wrap {
     order: 2;
     position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--paper);
+    padding: 4px;
+    border-radius: 14px 0 0 14px;
+  }
+  .header-more-btn {
+    background: transparent;
   }
   .header-logo-slot {
     order: 3;
@@ -2936,16 +2940,6 @@ body.dark-mode .account-error {
   font-size: 0.8rem;
   color: var(--ink-soft);
   padding: 8px;
-}
-
-/* إخفاء أيقونات القائمة المنسدلة الخاصة بالموبايل في وضع الديسكتوب */
-@media (min-width: 641px) {
-  #accountBtnMobile,
-  #themeBtnMobile,
-  #globalSearchBtnMobile,
-  #globalSearchBtnMobile + .header-menu-divider {
-    display: none !important;
-  }
 }
 
 /* ===== Toggle Switch ===== */
