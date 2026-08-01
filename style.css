@@ -1170,8 +1170,8 @@ body.dark-mode .priority-choice-medium .material-icons {
   gap: 6px;
   background: var(--card);
   border: 1px solid var(--paper-line);
-  border-radius: 8px;
-  padding-top: 8px;
+  border-radius: 10px;
+  padding-top: 10px;
   padding-bottom: 8px;
   padding-right: 10px;
   padding-left: 10px;
