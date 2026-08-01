@@ -112,8 +112,6 @@ async function startApp(){
   }
 
   document.getElementById('closeGlobalSearchBtn').onclick = closeGlobalSearchModal;
-  document.getElementById('accountBtnMobile').onclick = openAccountModal;
-  document.getElementById('themeBtnMobile').onclick = toggleDarkMode;
   document.getElementById('globalSearchBtnMobile').onclick = openGlobalSearchModal;
   document.getElementById('globalSearchOverlay').onclick = (e) => {
     if(e.target.id === 'globalSearchOverlay') closeGlobalSearchModal();
