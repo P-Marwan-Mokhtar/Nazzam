@@ -10,7 +10,7 @@ import { exportDataAsJSON, importDataFromFile, loadData, saveData } from './data
 import { closeDraftsModal, openDraftsModal, renderDraftsModal } from './drafts.js';
 import { closeAddChoiceModal } from './events.js';
 import { closeNotificationSettingsModal, registerServiceWorker, startNotificationScheduler } from './notifications.js';
-import { hideClockChoicePopover, hideDurationPopover, hidePriorityPopover } from './popovers.js';
+import { hideClockChoicePopover, hideDurationPopover, hidePriorityPopover, hideTaskMoreDropdown } from './popovers.js';
 import { closeRecurrenceModal } from './recurrence.js';
 import { render } from './render.js';
 import { closeGlobalSearchModal, openGlobalSearchModal, renderGlobalSearchResults } from './search.js';
@@ -48,8 +48,7 @@ async function startApp(){
       hidePriorityPopover();
     }
     if(ui.openTaskMoreId && !e.target.closest('.task-more-dropdown') && !e.target.closest('.task-more-btn')){
-      ui.openTaskMoreId = null;
-      render();
+      hideTaskMoreDropdown();
     }
     if(ui.dayStatusFilterOpen && !e.target.closest('.day-filter-wrap')){
       ui.dayStatusFilterOpen = false;
