@@ -338,15 +338,22 @@ body.dark-mode .header-logo-dark {
   pointer-events: auto;
 }
 
+.bank-wrap {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: background-color 0.2s ease;
+}
 .bank-toggle {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--card);
-  box-shadow: var(--shadow);
+  background: transparent;
+  box-shadow: none;
   border: none;
-  border-radius: var(--radius);
+  border-radius: 0;
   cursor: pointer;
   text-align: right;
   padding: 14px 16px;
@@ -354,6 +361,9 @@ body.dark-mode .header-logo-dark {
   font-weight: 800;
   font-size: 1.1rem;
   color: var(--ink);
+}
+.bank-toggle:hover {
+  background: var(--paper);
 }
 .bank-toggle::before {
   content: "";
@@ -382,8 +392,10 @@ body.dark-mode .header-logo-dark {
   transform: rotate(180deg);
 }
 .bank-content {
-  margin-top: 12px;
-  margin-bottom: 8px;
+  margin: 0;
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--paper-line);
+  padding-top: 14px;
   transform-origin: top;
 }
 .bank-content.animate-in {
@@ -433,7 +445,7 @@ body.dark-mode .header-logo-dark {
   height: 40px;
   border-radius: 10px;
   border: 1px solid var(--paper-line);
-  background: var(--card);
+  background: var(--paper);
   color: var(--ink-soft);
   cursor: pointer;
   position: relative;
@@ -483,7 +495,7 @@ body.dark-mode .header-logo-dark {
   padding: 10px 40px 10px 36px;
   font-family: inherit;
   font-size: 0.92rem;
-  background: var(--card);
+  background: var(--paper);
   color: var(--ink);
 }
 .bank-search input:focus {
@@ -1074,7 +1086,7 @@ body.dark-mode .priority-choice-medium .material-icons {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--card);
+  background: var(--paper);
   border: 1px solid var(--paper-line);
   border-radius: 999px;
   padding: 6px 12px;
@@ -1091,7 +1103,7 @@ body.dark-mode .priority-choice-medium .material-icons {
 .filter-chip-wrap {
   display: inline-flex;
   align-items: center;
-  background: var(--card);
+  background: var(--paper);
   border: 1px solid var(--paper-line);
   border-radius: 999px;
   overflow: hidden;
@@ -1119,10 +1131,10 @@ body.dark-mode .priority-choice-medium .material-icons {
   background: transparent;
   display: flex;
   align-items: center;
-  opacity: 0.6;
+  opacity: 0.85;
   padding: 4px;
   cursor: pointer;
-  color: var(--ink);
+  color: var(--missed);
 }
 .filter-chip-x .material-icons {
   font-size: 15px;
@@ -1238,7 +1250,7 @@ body.dark-mode .priority-choice-medium .material-icons {
   gap: 8px;
 }
 .keyword-row {
-  background: var(--card);
+  background: var(--paper);
   border: 1px solid var(--paper-line);
   border-radius: var(--radius);
   padding: 6px 8px 6px 10px;
@@ -1348,21 +1360,23 @@ body.dark-mode .priority-choice-medium .material-icons {
   border: 1px dashed var(--paper-line);
   font-size: 0.92rem;
 }
+.bank-content .empty-state {
+  background: var(--paper);
+}
 
 /* Add Keyword */
 .add-row {
   display: flex;
   gap: 8px;
-  background: var(--card);
+  background: var(--paper);
+  border: 1px solid var(--paper-line);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
   padding: 10px;
-  margin-top: 12px;
 }
 .add-row input {
   flex: 1;
   border: none;
-  background: var(--paper);
+  background: transparent;
   border-radius: 8px;
   padding: 10px 12px;
   font-family: "Tajawal";
