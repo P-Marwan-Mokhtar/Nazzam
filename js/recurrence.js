@@ -2,7 +2,7 @@
 // recurrence.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { SHORT_DAY_NAMES } from './utils.js';
+import { SHORT_DAY_NAMES, fromISO, todayStr } from './utils.js';
 import { showToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
@@ -45,16 +45,35 @@ async function saveRecurrence(){
   const task = state.days[ui.selectedDate].find(x => x.id === ui.activeRecurrenceTaskId);
   if(!task){ closeRecurrenceModal(); return; }
   if(!state.recurringTasks) state.recurringTasks = {};
-  if(ui.pendingRecurrenceDays.length === 0){
-    delete state.recurringTasks[task.name];
+  const taskName = task.name;
+  const newDays = [...ui.pendingRecurrenceDays].sort((a,b) => a-b);
+
+  if(newDays.length === 0){
+    delete state.recurringTasks[taskName];
     showToast('تم إلغاء تكرار المهمة');
   } else {
-    state.recurringTasks[task.name] = [...ui.pendingRecurrenceDays].sort((a,b) => a-b);
+    state.recurringTasks[taskName] = newDays;
     showToast('تم حفظ تكرار المهمة');
   }
+
+  removeStaleRecurringInstances(taskName, newDays);
+
   closeRecurrenceModal();
   render();
   await saveData();
+}
+
+// نشيل أي نسخ من المهمة كانت اتحقنت تلقائيًا في أيام جاية (بسبب التكرار القديم)
+// لكن بقت مش من ضمن أيام التكرار الجديدة — من غير ما نلمس نسخ اليوم الحالي
+// أو أي نسخة المستخدم خلّصها بالفعل (done)، عشان منمسحش إنجاز حقيقي.
+function removeStaleRecurringInstances(taskName, currentDays){
+  const today = todayStr();
+  Object.keys(state.days).forEach(dateStr => {
+    if(dateStr <= ui.selectedDate || dateStr < today) return;
+    const weekday = fromISO(dateStr).getDay();
+    if(currentDays.includes(weekday)) return;
+    state.days[dateStr] = state.days[dateStr].filter(t => !(t.name === taskName && t._fromRecurrence && !t.done));
+  });
 }
 
 document.getElementById('closeRecurrenceBtn').onclick = closeRecurrenceModal;

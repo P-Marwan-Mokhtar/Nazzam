@@ -23,7 +23,7 @@ export function ensureDayMaterialized(dateStr){
     Object.keys(state.recurringTasks).forEach(rName => {
       const rDays = state.recurringTasks[rName] || [];
       if(rDays.includes(weekday) && !state.days[dateStr].some(t => t.name === rName)){
-        state.days[dateStr].push({ id: uid(), name: rName, done: false });
+        state.days[dateStr].push({ id: uid(), name: rName, done: false, _fromRecurrence: true });
         recurringAdded = true;
       }
     });
