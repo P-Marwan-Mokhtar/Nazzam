@@ -1101,6 +1101,12 @@ body.dark-mode .priority-dot-medium {
 
 .filter-chips-wrap {
   overflow: hidden;
+  position: relative;
+  z-index: 5;
+}
+.filter-chips-wrap:has(.filter-more-dropdown.open) {
+  overflow: visible;
+  z-index: 60;
 }
 .filter-chips {
   display: flex;
