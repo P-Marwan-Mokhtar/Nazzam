@@ -499,11 +499,11 @@ body.dark-mode .header-logo-dark {
   background: var(--paper);
   color: var(--ink);
 }
-.bank-search input:focus {
+/* .bank-search input:focus {
   outline: 2px solid var(--pen);
   outline-offset: 1px;
   border-color: var(--pen);
-}
+} */
 .bank-search-clear {
   position: absolute;
   left: 8px;
