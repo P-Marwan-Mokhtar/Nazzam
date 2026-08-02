@@ -1163,7 +1163,7 @@ body.dark-mode .priority-dot-medium {
   display: inline-flex;
 }
 .filter-pin-icon {
-  font-size: 13px !important;
+  font-size: 11px !important;
   vertical-align: middle;
   margin-inline-end: 2px;
 }
