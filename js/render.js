@@ -35,6 +35,8 @@ export function ensureDayMaterialized(dateStr){
 export function render(){
   hideDurationPopover();
   hideClockChoicePopover();
+  const mainLayoutEl = document.querySelector('.main-layout');
+  if(mainLayoutEl) mainLayoutEl.classList.toggle('week-view-active', ui.weekViewOpen);
   if(ui.statsViewOpen){
     renderStatsView();
     return;
