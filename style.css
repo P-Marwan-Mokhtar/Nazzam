@@ -2485,7 +2485,7 @@ body.dark-mode .account-error {
   }
 }
 
-@media (max-width: 1015px) {
+@media (max-width: 1037px) {
   .add-row-group {
     grid-template-columns: 1fr;
   }
