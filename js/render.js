@@ -2,13 +2,12 @@
 // render.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { escapeAttr, escapeHtml, fmtDay, formatHM, formatMinutes, fromISO, highlightMatch, normalizeArabic, parseDurationToMinutes, timeStrToMinutes, todayStr, uid } from './utils.js';
+import { escapeAttr, escapeHtml, fmtDay, formatHM, formatMinutes, fromISO, highlightMatch, normalizeArabic, parseDurationToMinutes, todayStr, uid } from './utils.js';
 import { PRIORITY_LABELS, contentEl, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { attachEvents } from './events.js';
 import { buildFilterDropdown, hideClockChoicePopover, hideDurationPopover } from './popovers.js';
 import { computeTaskStreak, renderStatsView } from './stats.js';
-import { formatTimeArabic } from './timePicker.js';
 import { renderTimerPanel } from './timers.js';
 import { renderWeekView } from './weekView.js';
 
@@ -31,133 +30,6 @@ export function ensureDayMaterialized(dateStr){
     state.pinnedInjected[dateStr] = true;
     if(recurringAdded) saveData();
   }
-}
-
-const TIMELINE_HOUR_PX = 56;
-const TIMELINE_DEFAULT_START_HOUR = 6;
-const TIMELINE_DEFAULT_END_HOUR = 22;
-const TIMELINE_DEFAULT_DURATION_MIN = 30;
-
-// خوارزمية توزيع الأعمدة: أي مهمتين متعارضتين في الوقت بياخدوا نص المساحة كل واحدة (زي جوجل كالندر)
-function layoutTimelineBlocks(items){
-  const sorted = [...items].sort((a, b) => a.startMin - b.startMin);
-  const clusters = [];
-  let current = [];
-  let clusterEnd = -Infinity;
-  sorted.forEach(item => {
-    if(current.length === 0 || item.startMin < clusterEnd){
-      current.push(item);
-      clusterEnd = Math.max(clusterEnd, item.endMin);
-    } else {
-      clusters.push(current);
-      current = [item];
-      clusterEnd = item.endMin;
-    }
-  });
-  if(current.length) clusters.push(current);
-
-  const positioned = [];
-  clusters.forEach(cluster => {
-    const columnsEnd = [];
-    cluster.forEach(item => {
-      let colIndex = columnsEnd.findIndex(endMin => endMin <= item.startMin);
-      if(colIndex === -1){
-        colIndex = columnsEnd.length;
-        columnsEnd.push(item.endMin);
-      } else {
-        columnsEnd[colIndex] = item.endMin;
-      }
-      item.col = colIndex;
-    });
-    const totalCols = columnsEnd.length;
-    cluster.forEach(item => positioned.push({ ...item, totalCols }));
-  });
-  return positioned;
-}
-
-function buildTimelineHtml(tasks){
-  const scheduled = [];
-  const unscheduled = [];
-  tasks.forEach(t => {
-    const startMin = timeStrToMinutes(t.startTime);
-    if(startMin === null){
-      unscheduled.push(t);
-      return;
-    }
-    const durationMin = parseDurationToMinutes(t.duration) || TIMELINE_DEFAULT_DURATION_MIN;
-    scheduled.push({ task: t, startMin, endMin: startMin + durationMin });
-  });
-
-  let startHour = TIMELINE_DEFAULT_START_HOUR;
-  let endHour = TIMELINE_DEFAULT_END_HOUR;
-  scheduled.forEach(({ startMin, endMin }) => {
-    startHour = Math.min(startHour, Math.floor(startMin / 60));
-    endHour = Math.max(endHour, Math.ceil(endMin / 60));
-  });
-  startHour = Math.max(0, startHour);
-  endHour = Math.min(24, endHour);
-
-  const trackHeight = (endHour - startHour) * TIMELINE_HOUR_PX;
-
-  let hoursHtml = '';
-  for(let h = startHour; h <= endHour; h++){
-    const top = (h - startHour) * TIMELINE_HOUR_PX;
-    hoursHtml += `<div class="timeline-hour-line" style="top:${top}px"><span class="timeline-hour-label">${String(h).padStart(2, '0')}:00</span></div>`;
-  }
-
-  const positioned = layoutTimelineBlocks(scheduled);
-  let blocksHtml = '';
-  positioned.forEach(({ task: t, startMin, endMin, col, totalCols }) => {
-    const top = (startMin - startHour * 60) * (TIMELINE_HOUR_PX / 60);
-    const height = Math.max(22, (endMin - startMin) * (TIMELINE_HOUR_PX / 60));
-    const widthPct = 100 / totalCols;
-    const rightPct = col * widthPct;
-    const endLabel = formatTimeArabic(String(Math.floor((endMin % 1440) / 60)).padStart(2, '0') + ':' + String(endMin % 60).padStart(2, '0'));
-    blocksHtml += `
-      <div class="timeline-block task-main ${t.done ? 'done' : ''} ${t.priority ? 'priority-' + t.priority : ''}"
-           style="top:${top}px; height:${height}px; right:calc(${rightPct}% + 2px); width:calc(${widthPct}% - 6px);"
-           data-action="toggle-task" data-id="${t.id}" title="${escapeAttr(t.name)}">
-        <span class="timeline-block-time">${formatTimeArabic(t.startTime)} - ${endLabel}</span>
-        <span class="timeline-block-name">${escapeHtml(t.name)}</span>
-      </div>
-    `;
-  });
-
-  const today = todayStr();
-  let nowLineHtml = '';
-  if(ui.selectedDate === today){
-    const now = new Date();
-    const nowMin = now.getHours() * 60 + now.getMinutes();
-    if(nowMin >= startHour * 60 && nowMin <= endHour * 60){
-      const top = (nowMin - startHour * 60) * (TIMELINE_HOUR_PX / 60);
-      nowLineHtml = `<div class="timeline-now-line" style="top:${top}px"><span class="timeline-now-dot"></span></div>`;
-    }
-  }
-
-  let html = `
-    <div class="timeline-container">
-      <div class="timeline-track" style="height:${trackHeight}px">
-        ${hoursHtml}
-        ${nowLineHtml}
-        ${blocksHtml}
-      </div>
-    </div>
-  `;
-
-  if(unscheduled.length > 0){
-    html += `<div class="timeline-unscheduled">`;
-    html += `<div class="timeline-unscheduled-title">مهام بدون وقت محدد</div>`;
-    unscheduled.forEach(t => {
-      html += `
-        <div class="timeline-unscheduled-row task-main ${t.done ? 'done' : ''}" data-action="toggle-task" data-id="${t.id}">
-          <span class="task-name">${t.priority ? `<span class="priority-dot priority-dot-${t.priority}"></span>` : ''}${escapeHtml(t.name)}</span>
-        </div>
-      `;
-    });
-    html += `</div>`;
-  }
-
-  return html;
 }
 
 export function render(){
@@ -337,14 +209,6 @@ export function render(){
     <div class="section-title" style="margin-top: 32px;">
       <span>مهام اليوم</span>
       <div class="section-title-actions">
-        <div class="day-view-mode-toggle">
-          <button class="mode-toggle-btn ${ui.dayViewMode !== 'timeline' ? 'active' : ''}" data-action="set-day-view-mode" data-mode="list" title="عرض قائمة">
-            <span class="material-icons">list</span>
-          </button>
-          <button class="mode-toggle-btn ${ui.dayViewMode === 'timeline' ? 'active' : ''}" data-action="set-day-view-mode" data-mode="timeline" title="عرض جدول زمني">
-            <span class="material-icons">view_timeline</span>
-          </button>
-        </div>
         <button class="day-filter-btn ${state._sortPriority && state._sortPriority[ui.selectedDate] ? 'active' : ''}" data-action="sort-by-priority" title="رتّب حسب الأهمية">
           <span class="material-icons">sort</span>
           <span class="day-filter-btn-label">ترتيب</span>
@@ -389,8 +253,6 @@ export function render(){
         لا توجد مهام ${dayFilterLabels[ui.dayStatusFilter]} في هذا اليوم.
       </div>
     `;
-  } else if(ui.dayViewMode === 'timeline'){
-    html += buildTimelineHtml(visibleDayTasks);
   } else {
     html += `<div class="task-list">`;
     visibleDayTasks.forEach(t => {
@@ -451,18 +313,6 @@ export function render(){
                     <button class="priority-choice-btn priority-choice-none ${!t.priority ? 'selected' : ''}" data-action="set-task-priority" data-choice="" data-id="${t.id}" type="button">
                       <span class="material-icons">outlined_flag</span>بدون
                     </button>
-                  </div>
-                </div>
-                <div class="priority-submenu-wrap">
-                  <button class="tmd-btn timeblock-btn ${t.startTime ? 'active' : ''}" data-action="toggle-timeblock-popover" data-id="${t.id}" title="حدد وقت بداية المهمة">
-                    <span class="material-icons">schedule</span><span>${t.startTime ? 'الوقت: ' + formatTimeArabic(t.startTime) : 'تحديد وقت البداية'}</span>
-                  </button>
-                  <div class="priority-popover timeblock-popover ${ui.openTimeBlockPopoverTaskId === t.id ? 'open' : ''}">
-                    <input type="time" class="timeblock-input" id="timeblockInput_${t.id}" value="${t.startTime || ''}" />
-                    <div class="timeblock-popover-actions">
-                      <button class="tmd-btn" data-action="save-task-time" data-id="${t.id}">حفظ</button>
-                      ${t.startTime ? `<button class="tmd-btn delete" data-action="clear-task-time" data-id="${t.id}">مسح</button>` : ''}
-                    </div>
                   </div>
                 </div>
                 <button class="tmd-btn ${(state.recurringTasks && state.recurringTasks[t.name] && state.recurringTasks[t.name].length) ? 'active' : ''}" data-action="open-recurrence" data-id="${t.id}">

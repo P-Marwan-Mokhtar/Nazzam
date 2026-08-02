@@ -66,8 +66,6 @@ export const ui = {
   openDurationPopoverTaskId: null,  // المهمة اللي فاتح لها بوب أب (الهدف/الوقت الفعلي) دلوقتي
   openClockChoiceTaskId: null,  // المهمة اللي فاتح لها اختيار (هدف / وقت فعلي) من أيقونة الساعة
   openPriorityPopoverTaskId: null,  // المهمة اللي فاتح لها اختيار مستوى الأهمية دلوقتي
-  openTimeBlockPopoverTaskId: null,  // المهمة اللي فاتح لها تحديد وقت البداية دلوقتي
-  dayViewMode: 'list',  // 'list' أو 'timeline' — شكل عرض مهام اليوم
   activeSubtasksTaskId: null,  // المهمة المفتوح لها نافذة المهام الفرعية
   dayStatusFilter: 'all',  // فلتر حالة مهام اليوم: all | pending | done
   dayStatusFilterOpen: false,  // هل قائمة فلتر الحالة مفتوحة دلوقتي

@@ -77,13 +77,6 @@ export function formatMinutes(totalMinutes){
   return `${mins} دقيقة`;
 }
 
-export function timeStrToMinutes(hhmm){
-  if(!hhmm) return null;
-  const [h, m] = hhmm.split(':').map(Number);
-  if(Number.isNaN(h) || Number.isNaN(m)) return null;
-  return h * 60 + m;
-}
-
 export function uid(){
   return 'id_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 }

@@ -111,35 +111,6 @@ export function attachEvents(){
       render();
       await saveData();
     }
-    else if(action === 'toggle-timeblock-popover'){
-      if(ui.openTimeBlockPopoverTaskId === id){
-        ui.openTimeBlockPopoverTaskId = null;
-      } else {
-        ui.openTimeBlockPopoverTaskId = id;
-      }
-      render();
-    }
-    else if(action === 'save-task-time'){
-      const task = state.days[ui.selectedDate].find(x => x.id === id);
-      const inp = document.getElementById('timeblockInput_' + id);
-      if(task && inp){
-        task.startTime = inp.value || null;
-      }
-      ui.openTimeBlockPopoverTaskId = null;
-      render();
-      await saveData();
-    }
-    else if(action === 'clear-task-time'){
-      const task = state.days[ui.selectedDate].find(x => x.id === id);
-      if(task) task.startTime = null;
-      ui.openTimeBlockPopoverTaskId = null;
-      render();
-      await saveData();
-    }
-    else if(action === 'set-day-view-mode'){
-      ui.dayViewMode = btn.dataset.mode;
-      render();
-    }
     else if(action === 'toggle-duration-view'){
       if(ui.openDurationPopoverTaskId === id){
         hideDurationPopover();
@@ -197,7 +168,6 @@ export function attachEvents(){
     else if(action === 'toggle-task-more'){
       ui.openTaskMoreId = ui.openTaskMoreId === id ? null : id;
       ui.openPriorityPopoverTaskId = null;
-      ui.openTimeBlockPopoverTaskId = null;
       render();
     }
     else if(action === 'open-subtasks'){
