@@ -49,9 +49,14 @@ async function startApp(){
       ui.openPriorityPopoverTaskId = null;
       render();
     }
+    if(ui.openTimeBlockPopoverTaskId && !e.target.closest('.timeblock-popover') && !e.target.closest('.timeblock-btn')){
+      ui.openTimeBlockPopoverTaskId = null;
+      render();
+    }
     if(ui.openTaskMoreId && !e.target.closest('.task-more-dropdown') && !e.target.closest('.task-more-btn')){
       ui.openTaskMoreId = null;
       ui.openPriorityPopoverTaskId = null;
+      ui.openTimeBlockPopoverTaskId = null;
       render();
     }
     if(ui.openFilterMoreId && !e.target.closest('.filter-more-dropdown') && !e.target.closest('.filter-chip-more')){
@@ -281,7 +286,8 @@ async function startApp(){
       if(ui.openDurationPopoverTaskId) hideDurationPopover();
       if(ui.openClockChoiceTaskId) hideClockChoicePopover();
       if(ui.openPriorityPopoverTaskId){ ui.openPriorityPopoverTaskId = null; render(); }
-      if(ui.openTaskMoreId){ ui.openTaskMoreId = null; ui.openPriorityPopoverTaskId = null; render(); }
+      if(ui.openTimeBlockPopoverTaskId){ ui.openTimeBlockPopoverTaskId = null; render(); }
+      if(ui.openTaskMoreId){ ui.openTaskMoreId = null; ui.openPriorityPopoverTaskId = null; ui.openTimeBlockPopoverTaskId = null; render(); }
       if(ui.openFilterMoreId){ ui.openFilterMoreId = null; render(); }
     }
   });
