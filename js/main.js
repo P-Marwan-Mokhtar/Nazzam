@@ -18,6 +18,7 @@ import { renderStatsView } from './stats.js';
 import { closeSubtasksModal } from './subtasks.js';
 import { checkMissedTasksPopup, closeMissedTasksModal, closeTimerTypeModal, ensureAudioContext, getDayTimers, renderTimerPanel, tickTimers } from './timers.js';
 import { closeDurationPicker, commitDurationPicker, openTimerDurationPicker } from './wheelPicker.js';
+import { toggleWeekView } from './weekView.js';
 
 (async function init(){
   // أول حاجة: نتأكد إن فيه مستخدم حقيقي مسجّل دخوله فعليًا قبل ما نعرض أي حاجة من التطبيق.
@@ -87,6 +88,7 @@ async function startApp(){
 
   document.getElementById('calendarBtn').onclick = openCalendarModal;
   document.getElementById('closeCalendarBtn').onclick = closeCalendarModal;
+  document.getElementById('weekViewBtn').onclick = toggleWeekView;
   const calendarOverlay = document.getElementById('calendarOverlay');
   calendarOverlay.addEventListener('click', (e) => {
     if(e.target === calendarOverlay) closeCalendarModal();
@@ -264,6 +266,7 @@ async function startApp(){
   document.addEventListener('keydown', (e) => {
     if(e.key === 'Escape'){
       if(ui.statsViewOpen){ ui.statsViewOpen = false; ui.justReturnedFromStats = true; render(); }
+      if(ui.weekViewOpen){ ui.weekViewOpen = false; ui.justReturnedFromStats = true; render(); }
       if(calendarOverlay.classList.contains('open')) closeCalendarModal();
       if(missedTasksOverlay && missedTasksOverlay.classList.contains('open')) closeMissedTasksModal();
       if(draftsOverlay.classList.contains('open')) closeDraftsModal();

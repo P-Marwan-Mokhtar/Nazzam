@@ -9,6 +9,28 @@ import { attachEvents } from './events.js';
 import { buildFilterDropdown, hideClockChoicePopover, hideDurationPopover } from './popovers.js';
 import { computeTaskStreak, renderStatsView } from './stats.js';
 import { renderTimerPanel } from './timers.js';
+import { renderWeekView } from './weekView.js';
+
+// Auto-Recurrence logic: نضيف المهام المتكررة لليوم/الأيام الجاية لو يوم الأسبوع ده من ضمن أيامها، مرة واحدة بس لكل تاريخ.
+// معزولة في دالة مستقلة عشان تُستخدم مع أي تاريخ (مش بس اليوم المختار)، زي أيام عرض الأسبوع.
+export function ensureDayMaterialized(dateStr){
+  const today = todayStr();
+  if(!state.pinnedInjected) state.pinnedInjected = {};
+  if(dateStr >= today && !state.pinnedInjected[dateStr] && state.recurringTasks && Object.keys(state.recurringTasks).length > 0) {
+    const weekday = fromISO(dateStr).getDay();
+    if(!state.days[dateStr]) state.days[dateStr] = [];
+    let recurringAdded = false;
+    Object.keys(state.recurringTasks).forEach(rName => {
+      const rDays = state.recurringTasks[rName] || [];
+      if(rDays.includes(weekday) && !state.days[dateStr].some(t => t.name === rName)){
+        state.days[dateStr].push({ id: uid(), name: rName, done: false });
+        recurringAdded = true;
+      }
+    });
+    state.pinnedInjected[dateStr] = true;
+    if(recurringAdded) saveData();
+  }
+}
 
 export function render(){
   hideDurationPopover();
@@ -17,26 +39,15 @@ export function render(){
     renderStatsView();
     return;
   }
+  if(ui.weekViewOpen){
+    renderWeekView();
+    return;
+  }
   const today = todayStr();
   const isToday = ui.selectedDate === today;
   const isPastDay = ui.selectedDate < today;
   
-  if(!state.pinnedInjected) state.pinnedInjected = {};
-  // Auto-Recurrence logic: نضيف المهام المتكررة لليوم/الأيام الجاية لو يوم الأسبوع ده من ضمن أيامها، مرة واحدة بس لكل تاريخ
-  if(ui.selectedDate >= today && !state.pinnedInjected[ui.selectedDate] && state.recurringTasks && Object.keys(state.recurringTasks).length > 0) {
-    const weekday = fromISO(ui.selectedDate).getDay();
-    if(!state.days[ui.selectedDate]) state.days[ui.selectedDate] = [];
-    let recurringAdded = false;
-    Object.keys(state.recurringTasks).forEach(rName => {
-      const rDays = state.recurringTasks[rName] || [];
-      if(rDays.includes(weekday) && !state.days[ui.selectedDate].some(t => t.name === rName)){
-        state.days[ui.selectedDate].push({ id: uid(), name: rName, done: false });
-        recurringAdded = true;
-      }
-    });
-    state.pinnedInjected[ui.selectedDate] = true;
-    if(recurringAdded) saveData();
-  }
+  ensureDayMaterialized(ui.selectedDate);
 
   const dayTasks = state.days[ui.selectedDate] || [];
   const doneCount = dayTasks.filter(t => t.done).length;
