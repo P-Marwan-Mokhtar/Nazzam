@@ -236,12 +236,27 @@ export function attachEvents(){
       ui.bankDisplayLimit = 10;
       render();
     }
+    else if(action === 'toggle-filter-more'){
+      ui.openFilterMoreId = ui.openFilterMoreId === id ? null : id;
+      render();
+    }
+    else if(action === 'toggle-pin-filter'){
+      const filter = state.filters.find(f => f.id === id);
+      if(filter){
+        filter.pinned = !filter.pinned;
+        showToast(filter.pinned ? 'تم تثبيت الفلتر' : 'تم إلغاء تثبيت الفلتر');
+      }
+      ui.openFilterMoreId = null;
+      render();
+      await saveData();
+    }
     else if(action === 'delete-filter'){
       if(confirm('هل أنت متأكد من رغبتك في حذف هذا الفلتر؟ ستعود المهام التابعة له بلا تصنيف (وستبقى ظاهرة ضمن الكل).')){
         state.filters = state.filters.filter(f => f.id !== id);
         state.keywords.forEach(k => { if(k.filterId === id) k.filterId = null; });
         if(ui.activeFilter === id) ui.activeFilter = 'all';
         ui.bankDisplayLimit = 10;
+        ui.openFilterMoreId = null;
         render();
         await saveData();
         showToast('تم حذف الفلتر');
@@ -342,7 +357,7 @@ export function attachEvents(){
         showToast('هذا الفلتر موجود بالفعل');
         return;
       }
-      state.filters.push({ id: uid(), name: val });
+      state.filters.push({ id: uid(), name: val, pinned: false });
       newFilterInput.value = '';
       render();
       await saveData();

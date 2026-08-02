@@ -53,6 +53,10 @@ async function startApp(){
       ui.openPriorityPopoverTaskId = null;
       render();
     }
+    if(ui.openFilterMoreId && !e.target.closest('.filter-more-dropdown') && !e.target.closest('.filter-chip-more')){
+      ui.openFilterMoreId = null;
+      render();
+    }
     if(ui.dayStatusFilterOpen && !e.target.closest('.day-filter-wrap')){
       ui.dayStatusFilterOpen = false;
       render();
@@ -275,6 +279,7 @@ async function startApp(){
       if(ui.openClockChoiceTaskId) hideClockChoicePopover();
       if(ui.openPriorityPopoverTaskId){ ui.openPriorityPopoverTaskId = null; render(); }
       if(ui.openTaskMoreId){ ui.openTaskMoreId = null; ui.openPriorityPopoverTaskId = null; render(); }
+      if(ui.openFilterMoreId){ ui.openFilterMoreId = null; render(); }
     }
   });
 

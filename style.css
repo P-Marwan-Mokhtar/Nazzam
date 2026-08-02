@@ -344,6 +344,7 @@ body.dark-mode .header-logo-dark {
   background: var(--card);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  overflow: hidden;
   transition: background-color 0.2s ease;
 }
 .bank-toggle {
@@ -499,11 +500,11 @@ body.dark-mode .header-logo-dark {
   background: var(--paper);
   color: var(--ink);
 }
-/* .bank-search input:focus {
+.bank-search input:focus {
   outline: 2px solid var(--pen);
   outline-offset: 1px;
   border-color: var(--pen);
-} */
+}
 .bank-search-clear {
   position: absolute;
   left: 8px;
@@ -1152,24 +1153,58 @@ body.dark-mode .priority-dot-medium {
 .filter-chip-wrap.active .filter-chip-label {
   color: #fff;
 }
-.filter-chip-x {
+.filter-chip-outer {
+  position: relative;
+  display: inline-flex;
+}
+.filter-pin-icon {
+  font-size: 13px !important;
+  vertical-align: middle;
+  margin-inline-end: 2px;
+}
+.filter-chip-more {
   border: none;
   background: transparent;
   display: flex;
   align-items: center;
-  opacity: 0.85;
+  opacity: 0.7;
   padding: 4px;
   cursor: pointer;
-  color: var(--missed);
+  color: var(--ink-soft);
 }
-.filter-chip-x .material-icons {
-  font-size: 15px;
+.filter-chip-more .material-icons {
+  font-size: 16px;
 }
-.filter-chip-wrap.active .filter-chip-x {
+.filter-chip-wrap.active .filter-chip-more {
   color: #fff;
 }
-.filter-chip-x:hover {
+.filter-chip-more:hover {
   opacity: 1;
+}
+.filter-more-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: var(--card);
+  border: 1px solid var(--paper-line);
+  box-shadow: var(--shadow);
+  border-radius: 10px;
+  padding: 6px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
+  opacity: 0;
+  transform: translateY(-5px);
+  pointer-events: none;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+.filter-more-dropdown.open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
 .add-row-group {
@@ -1300,10 +1335,10 @@ body.dark-mode .priority-dot-medium {
     transform: scale(1);
   }
 }
-/* .keyword-row.editing {
+.keyword-row.editing {
   flex-basis: 100%;
   width: 100%;
-} */
+}
 .add-to-day-btn {
   flex: 0 0 auto;
   background: var(--done-soft);
@@ -1367,7 +1402,7 @@ body.dark-mode .priority-dot-medium {
 }
 
 .edit-input {
-  /* flex:1; */
+  flex: 1;
   font-family: "Tajawal";
   font-size: 0.95rem;
   border: 1.5px solid var(--pen);

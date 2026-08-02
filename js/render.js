@@ -103,11 +103,24 @@ export function render(){
     html += `<div class="filter-chips-wrap ${ui.mobileFiltersOpen ? 'mobile-open' : ''} ${ui.closingMobileFilters ? 'mobile-closing' : ''}" id="filterChipsWrap">`;
     html += `<div class="filter-chips">`;
     html += `<button class="filter-chip ${ui.activeFilter === 'all' ? 'active' : ''}" data-action="select-filter" data-filter-id="all">الكل</button>`;
-    state.filters.forEach(f => {
+    const sortedFilters = [...state.filters].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+    sortedFilters.forEach(f => {
       html += `
-        <span class="filter-chip-wrap ${ui.activeFilter === f.id ? 'active' : ''}">
-          <button class="filter-chip-label" data-action="select-filter" data-filter-id="${f.id}">${escapeHtml(f.name)}</button>
-          <button class="filter-chip-x" data-action="delete-filter" data-id="${f.id}" title="حذف الفلتر"><span class="material-icons">close</span></button>
+        <span class="filter-chip-outer" data-wrap-id="${f.id}">
+          <span class="filter-chip-wrap ${ui.activeFilter === f.id ? 'active' : ''}">
+            <button class="filter-chip-label" data-action="select-filter" data-filter-id="${f.id}">${f.pinned ? '<span class="material-icons filter-pin-icon">push_pin</span>' : ''}${escapeHtml(f.name)}</button>
+            <button class="filter-chip-more" data-action="toggle-filter-more" data-id="${f.id}" title="المزيد">
+              <span class="material-icons">more_vert</span>
+            </button>
+          </span>
+          <div class="filter-more-dropdown ${ui.openFilterMoreId === f.id ? 'open' : ''}">
+            <button class="tmd-btn" data-action="toggle-pin-filter" data-id="${f.id}">
+              <span class="material-icons">push_pin</span><span>${f.pinned ? 'إلغاء التثبيت' : 'تثبيت'}</span>
+            </button>
+            <button class="tmd-btn delete" data-action="delete-filter" data-id="${f.id}">
+              <span class="material-icons">delete</span><span>حذف</span>
+            </button>
+          </div>
         </span>
       `;
     });
