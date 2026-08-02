@@ -1101,12 +1101,6 @@ body.dark-mode .priority-dot-medium {
 
 .filter-chips-wrap {
   overflow: hidden;
-  position: relative;
-  z-index: 5;
-}
-.filter-chips-wrap:has(.filter-more-dropdown.open) {
-  overflow: visible;
-  z-index: 60;
 }
 .filter-chips {
   display: flex;
@@ -1158,58 +1152,24 @@ body.dark-mode .priority-dot-medium {
 .filter-chip-wrap.active .filter-chip-label {
   color: #fff;
 }
-.filter-chip-outer {
-  position: relative;
-  display: inline-flex;
-}
-.filter-pin-icon {
-  font-size: 11px !important;
-  vertical-align: middle;
-  margin-inline-end: 2px;
-}
-.filter-chip-more {
+.filter-chip-x {
   border: none;
   background: transparent;
   display: flex;
   align-items: center;
-  opacity: 0.7;
+  opacity: 0.85;
   padding: 4px;
   cursor: pointer;
-  color: var(--ink-soft);
+  color: var(--missed);
 }
-.filter-chip-more .material-icons {
-  font-size: 16px;
+.filter-chip-x .material-icons {
+  font-size: 15px;
 }
-.filter-chip-wrap.active .filter-chip-more {
+.filter-chip-wrap.active .filter-chip-x {
   color: #fff;
 }
-.filter-chip-more:hover {
+.filter-chip-x:hover {
   opacity: 1;
-}
-.filter-more-dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  background: var(--card);
-  border: 1px solid var(--paper-line);
-  box-shadow: var(--shadow);
-  border-radius: 10px;
-  padding: 6px;
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-  min-width: 140px;
-  opacity: 0;
-  transform: translateY(-5px);
-  pointer-events: none;
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
-}
-.filter-more-dropdown.open {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
 }
 
 .add-row-group {
@@ -1538,7 +1498,7 @@ body.dark-mode .priority-dot-medium {
   transform: translateX(-50%);
   background: var(--ink);
   color: #fff;
-  padding: 9px 18px;
+  padding: 9px 14px 9px 18px;
   border-radius: 20px;
   font-size: 0.85rem;
   box-shadow: var(--shadow);
@@ -1546,9 +1506,28 @@ body.dark-mode .priority-dot-medium {
   pointer-events: none;
   transition: opacity 0.25s ease;
   z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 .toast.show {
   opacity: 1;
+  pointer-events: auto;
+}
+.toast-undo-btn {
+  border: none;
+  background: transparent;
+  color: var(--pen);
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+.toast-undo-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 :focus-visible {
@@ -2346,7 +2325,7 @@ body.dark-mode .account-error {
 
 /* ===== مقارنة الأسبوع بالأسبوع اللي فات ===== */
 .week-compare-card {
-  background: var(--paper);
+  background: var(--card);
   border: 1px solid var(--paper-line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
@@ -2485,7 +2464,7 @@ body.dark-mode .account-error {
   }
 }
 
-@media (max-width: 1037px) {
+@media (max-width: 1015px) {
   .add-row-group {
     grid-template-columns: 1fr;
   }

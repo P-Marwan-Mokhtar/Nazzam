@@ -3,7 +3,7 @@
 // ============================================================
 
 import { addDays, reorderArrayById, todayStr, uid } from './utils.js';
-import { contentEl, showToast, state, ui } from './state.js';
+import { contentEl, showToast, showUndoToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { hideClockChoicePopover, hideDurationPopover, showClockChoicePopover, showDurationPopover, wireCustomSelects, wireDragAndDrop } from './popovers.js';
 import { openRecurrenceModal } from './recurrence.js';
@@ -119,15 +119,18 @@ export function attachEvents(){
       }
     }
     else if(action === 'delete-task'){
-      const taskToDelete = (state.days[ui.selectedDate] || []).find(t => t.id === id);
-      const taskLabel = taskToDelete ? `"${taskToDelete.name}"` : 'هذه المهمة';
-      if(confirm(`هل أنت متأكد من حذف ${taskLabel} من جدول اليوم؟`)){
-        state.days[ui.selectedDate] = state.days[ui.selectedDate].filter(t => t.id !== id);
-        if(ui.pickerTaskId === id) closeDurationPicker();
+      const list = state.days[ui.selectedDate];
+      const idx = list.findIndex(t => t.id === id);
+      if(idx === -1) return;
+      const [removedTask] = list.splice(idx, 1);
+      if(ui.pickerTaskId === id) closeDurationPicker();
+      render();
+      await saveData();
+      showUndoToast(`تم حذف "${removedTask.name}"`, async () => {
+        list.splice(idx, 0, removedTask);
         render();
         await saveData();
-        showToast('تم الحذف من اليوم');
-      }
+      });
     }
     else if(action === 'toggle-day-status-filter'){
       ui.dayStatusFilterOpen = !ui.dayStatusFilterOpen;
@@ -251,16 +254,24 @@ export function attachEvents(){
       await saveData();
     }
     else if(action === 'delete-filter'){
-      if(confirm('هل أنت متأكد من رغبتك في حذف هذا الفلتر؟ ستعود المهام التابعة له بلا تصنيف (وستبقى ظاهرة ضمن الكل).')){
-        state.filters = state.filters.filter(f => f.id !== id);
-        state.keywords.forEach(k => { if(k.filterId === id) k.filterId = null; });
-        if(ui.activeFilter === id) ui.activeFilter = 'all';
-        ui.bankDisplayLimit = 10;
-        ui.openFilterMoreId = null;
+      const idx = state.filters.findIndex(f => f.id === id);
+      if(idx === -1) return;
+      const [removedFilter] = state.filters.splice(idx, 1);
+      const affectedKeywords = state.keywords.filter(k => k.filterId === id);
+      affectedKeywords.forEach(k => { k.filterId = null; });
+      const wasActive = ui.activeFilter === id;
+      if(wasActive) ui.activeFilter = 'all';
+      ui.bankDisplayLimit = 10;
+      ui.openFilterMoreId = null;
+      render();
+      await saveData();
+      showUndoToast(`تم حذف فلتر "${removedFilter.name}"`, async () => {
+        state.filters.splice(idx, 0, removedFilter);
+        affectedKeywords.forEach(k => { k.filterId = id; });
+        if(wasActive) ui.activeFilter = id;
         render();
         await saveData();
-        showToast('تم حذف الفلتر');
-      }
+      });
     }
     else if(action === 'delete-keyword'){
       // بدل الحذف النهائي، بننقلها للـ Drafts عشان البيانات متضيعش

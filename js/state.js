@@ -76,10 +76,44 @@ export const timerPanelEl = document.getElementById('timerPanel');
 
 export const WHEEL_ITEM_H = 42;
 
+let toastTimeoutId = null;
+
 export function showToast(msg){
+  if(toastTimeoutId){ clearTimeout(toastTimeoutId); toastTimeoutId = null; }
+  toastEl.innerHTML = '';
   toastEl.textContent = msg;
   toastEl.classList.add('show');
-  setTimeout(()=> toastEl.classList.remove('show'), 2200);
+  toastTimeoutId = setTimeout(()=> toastEl.classList.remove('show'), 2200);
+}
+
+// توست فيه زرار "تراجع" — يُستخدم بعد أي عملية حذف بدل نافذة confirm المزعجة.
+// onUndo بيتنفذ لو المستخدم دس "تراجع" قبل ما التوست يختفي.
+export function showUndoToast(msg, onUndo){
+  if(toastTimeoutId){ clearTimeout(toastTimeoutId); toastTimeoutId = null; }
+  toastEl.innerHTML = '';
+
+  const msgSpan = document.createElement('span');
+  msgSpan.textContent = msg;
+
+  const undoBtn = document.createElement('button');
+  undoBtn.type = 'button';
+  undoBtn.className = 'toast-undo-btn';
+  undoBtn.textContent = 'تراجع';
+  undoBtn.onclick = async (e) => {
+    e.stopPropagation();
+    if(toastTimeoutId){ clearTimeout(toastTimeoutId); toastTimeoutId = null; }
+    toastEl.classList.remove('show');
+    await onUndo();
+  };
+
+  toastEl.appendChild(msgSpan);
+  toastEl.appendChild(undoBtn);
+  toastEl.classList.add('show');
+
+  toastTimeoutId = setTimeout(() => {
+    toastEl.classList.remove('show');
+    toastTimeoutId = null;
+  }, 5000);
 }
 
 export const PRIORITY_LABELS = { high: 'عالية', medium: 'متوسطة', low: 'منخفضة' };
