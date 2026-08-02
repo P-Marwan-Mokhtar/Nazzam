@@ -2365,7 +2365,7 @@ body.dark-mode .account-error {
 
 /* ===== مقارنة الأسبوع بالأسبوع اللي فات ===== */
 .week-compare-card {
-  background: var(--paper);
+  background: var(--card);
   border: 1px solid var(--paper-line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
@@ -3236,7 +3236,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 }
 .week-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 10px;
   margin-top: 14px;
 }
@@ -3249,6 +3249,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   flex-direction: column;
   gap: 6px;
   min-height: 140px;
+  min-width: 0;
 }
 .week-day-card.today {
   outline: 2px solid var(--pen);
@@ -3301,6 +3302,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   cursor: pointer;
   padding: 3px 4px;
   border-radius: 6px;
+  min-width: 0;
 }
 .week-task-row:hover {
   background: var(--paper);
@@ -3355,6 +3357,8 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 .week-day-more {
   font-size: 0.72rem;
@@ -3370,11 +3374,11 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 
 @media (max-width: 900px) {
   .week-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 @media (max-width: 640px) {
   .week-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
