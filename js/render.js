@@ -8,6 +8,7 @@ import { saveData } from './dataStore.js';
 import { attachEvents } from './events.js';
 import { buildFilterDropdown, hideClockChoicePopover, hideDurationPopover } from './popovers.js';
 import { computeTaskStreak, renderStatsView } from './stats.js';
+import { renderTimeBlockView } from './timeBlocking.js';
 import { renderTimerPanel } from './timers.js';
 import { renderWeekView } from './weekView.js';
 
@@ -36,13 +37,17 @@ export function render(){
   hideDurationPopover();
   hideClockChoicePopover();
   const mainLayoutEl = document.querySelector('.main-layout');
-  if(mainLayoutEl) mainLayoutEl.classList.toggle('week-view-active', ui.weekViewOpen);
+  if(mainLayoutEl) mainLayoutEl.classList.toggle('week-view-active', ui.weekViewOpen || ui.timeBlockViewOpen);
   if(ui.statsViewOpen){
     renderStatsView();
     return;
   }
   if(ui.weekViewOpen){
     renderWeekView();
+    return;
+  }
+  if(ui.timeBlockViewOpen){
+    renderTimeBlockView();
     return;
   }
   const today = todayStr();
