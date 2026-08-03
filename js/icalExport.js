@@ -80,7 +80,8 @@ function buildEventLines(dateStr, task){
 export function exportCalendarAsICS(){
   try{
     const days = state.days || {};
-    const dateKeys = Object.keys(days).sort();
+    const today = todayStr();
+    const dateKeys = Object.keys(days).filter(d => d >= today).sort();
 
     const lines = [
       'BEGIN:VCALENDAR',
