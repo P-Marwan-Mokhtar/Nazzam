@@ -15,6 +15,21 @@ function getLastNDays(n, endDate){
   return list;
 }
 
+// بنحسب الأيام السابقة (من غير النهاردة) اللي خلصت فيها كل مهامها بالكامل، وصولاً للنهاردة نفسها لو خلصت
+function computeCurrentStreak(){
+  let streak = 0;
+  let cursor = addDays(todayStr(), -1);
+  while(true){
+    const tasks = state.days[cursor] || [];
+    if(tasks.length === 0 || !tasks.every(t => t.done)) break;
+    streak++;
+    cursor = addDays(cursor, -1);
+  }
+  const todayTasksForStreak = state.days[todayStr()] || [];
+  if(todayTasksForStreak.length > 0 && todayTasksForStreak.every(t => t.done)) streak++;
+  return streak;
+}
+
 export function computeWeekStats(offsetWeeks){
   offsetWeeks = offsetWeeks || 0;
   const today = todayStr();
@@ -73,18 +88,8 @@ export function computeWeekStats(offsetWeeks){
     dayDoneCounts[date] = dayDone;
   });
 
-  // بنحسب الأيام السابقة (من غير النهاردة) اللي خلصت فيها كل مهامها بالكامل
-  let streak = 0;
-  let cursor = addDays(todayStr(), -1);
-  while(true){
-    const tasks = state.days[cursor] || [];
-    if(tasks.length === 0 || !tasks.every(t => t.done)) break;
-    streak++;
-    cursor = addDays(cursor, -1);
-  }
-  // لو النهاردة كمان خلصت كل مهامها، بتتضاف للسلسلة. لو لسه ما خلصتش، السلسلة بتفضل زي ما هي (ومش بترجع صفر إلا بكرة لو النهاردة فاتت من غير ما تخلص)
-  const todayTasksForStreak = state.days[todayStr()] || [];
-  if(todayTasksForStreak.length > 0 && todayTasksForStreak.every(t => t.done)) streak++;
+  // بنحسب سلسلة الأيام المتتالية اللي خلصت فيها كل المهام (نفس الحساب بغض النظر عن مدى العرض)
+  let streak = computeCurrentStreak();
 
   let bestDay = null, bestDayMs = -1;
   weekDays.forEach(date => {
@@ -120,6 +125,62 @@ export function computeWeekStats(offsetWeeks){
     topFrequent, neglected,
     weekDays, dayTotals, dayTaskCounts, dayDoneCounts, filterTotals,
     estimationAccuracyPct, estimationTasks
+  };
+}
+
+// نسخة "يوم واحد" من computeWeekStats — نفس المنطق بالظبط لكن على يوم واحد بدل 7 أيام
+export function computeDayStats(dateStr){
+  const tasks = state.days[dateStr] || [];
+  let totalMs = 0;
+  let doneCount = 0;
+  const taskTimeMap = {};
+  const filterTotals = {};
+  let longestTask = null;
+  const taskTargetMap = {};
+  const taskActualForEstMap = {};
+  let totalTargetMsWithActual = 0;
+  let totalActualMsForEst = 0;
+
+  const nameToFilterId = {};
+  state.keywords.forEach(k => { if(k.filterId) nameToFilterId[k.name] = k.filterId; });
+
+  tasks.forEach(t => {
+    if(t.done) doneCount++;
+    const ms = parseDurationToMinutes(t.actualDuration) * 60000;
+    if(ms > 0){
+      totalMs += ms;
+      taskTimeMap[t.name] = (taskTimeMap[t.name] || 0) + ms;
+      if(!longestTask || ms > longestTask.ms){
+        longestTask = { ms, name: t.name, date: dateStr };
+      }
+      const fId = nameToFilterId[t.name];
+      if(fId) filterTotals[fId] = (filterTotals[fId] || 0) + ms;
+
+      const targetMs = parseDurationToMinutes(t.duration) * 60000;
+      if(targetMs > 0){
+        taskTargetMap[t.name] = (taskTargetMap[t.name] || 0) + targetMs;
+        taskActualForEstMap[t.name] = (taskActualForEstMap[t.name] || 0) + ms;
+        totalTargetMsWithActual += targetMs;
+        totalActualMsForEst += ms;
+      }
+    }
+  });
+
+  const topTasks = Object.entries(taskTimeMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
+
+  const estimationAccuracyPct = totalTargetMsWithActual > 0
+    ? Math.round((totalActualMsForEst / totalTargetMsWithActual) * 100)
+    : null;
+  const estimationTasks = Object.keys(taskTargetMap)
+    .map(name => ({ name, targetMs: taskTargetMap[name], actualMs: taskActualForEstMap[name] }))
+    .sort((a,b) => (b.targetMs + b.actualMs) - (a.targetMs + a.actualMs))
+    .slice(0, 5);
+
+  return {
+    date: dateStr, totalMs, doneCount, totalTaskCount: tasks.length,
+    topTasks, longestTask, filterTotals,
+    estimationAccuracyPct, estimationTasks,
+    streak: computeCurrentStreak(),
   };
 }
 
@@ -282,7 +343,279 @@ function destroyStatsCharts(){
   ui.statsChartInstances = [];
 }
 
+// نقطة الدخول الوحيدة لشاشة الإحصائيات: بتحدد المدى الحالي (يوم/أسبوع) وتودّي للدالة المناسبة
 export function renderStatsView(){
+  const mode = ui.statsRangeMode || 'week';
+  if(mode === 'day') renderDayStatsView(todayStr());
+  else renderWeekStatsView();
+}
+
+// شريط التبديل بين "اليوم" و"الأسبوع"، مشترك بين الشاشتين
+function renderStatsRangeToggle(mode){
+  return `
+    <div class="stats-range-toggle" role="tablist">
+      <button class="stats-range-btn ${mode === 'day' ? 'active' : ''}" id="statsRangeDayBtn" data-range="day">اليوم</button>
+      <button class="stats-range-btn ${mode === 'week' ? 'active' : ''}" id="statsRangeWeekBtn" data-range="week">الأسبوع</button>
+    </div>
+  `;
+}
+
+function wireStatsRangeToggle(){
+  const dayBtn = document.getElementById('statsRangeDayBtn');
+  const weekBtn = document.getElementById('statsRangeWeekBtn');
+  if(dayBtn) dayBtn.onclick = () => { ui.statsRangeMode = 'day'; render(); };
+  if(weekBtn) weekBtn.onclick = () => { ui.statsRangeMode = 'week'; render(); };
+}
+
+// شاشة إحصائيات اليوم — نفس روح شاشة الأسبوع لكن بعدد أصغر من الـwidgets المناسبة ليوم واحد بس
+// (من غير رسم اتجاه أسبوعي أو مقارنة أيام السبعة، لأنها مش منطقية على يوم واحد)
+function renderDayStatsView(dateStr){
+  const s = computeDayStats(dateStr);
+  const prevS = computeDayStats(addDays(dateStr, -1));
+  const completionPct = s.totalTaskCount > 0 ? Math.round((s.doneCount / s.totalTaskCount) * 100) : 0;
+  const prevCompletionPct = prevS.totalTaskCount > 0 ? Math.round((prevS.doneCount / prevS.totalTaskCount) * 100) : 0;
+
+  function computeDelta(curr, prev){
+    if(prev === 0) return { pct: curr === 0 ? 0 : 100, dir: curr === 0 ? 'same' : 'up' };
+    const pct = Math.round(((curr - prev) / prev) * 100);
+    return { pct: Math.abs(pct), dir: pct > 0 ? 'up' : (pct < 0 ? 'down' : 'same') };
+  }
+  function deltaIcon(dir){
+    return dir === 'up' ? 'arrow_upward' : (dir === 'down' ? 'arrow_downward' : 'remove');
+  }
+  const completionDelta = computeDelta(completionPct, prevCompletionPct);
+  const timeDelta = computeDelta(s.totalMs, prevS.totalMs);
+  const doneDelta = computeDelta(s.doneCount, prevS.doneCount);
+  const hasCompareData = s.totalTaskCount > 0 || prevS.totalTaskCount > 0;
+
+  const isDark = !!state.darkMode;
+  const penColor = isDark ? '#e06046' : '#C5482E';
+  const doneColor = isDark ? '#489970' : '#3E7A5C';
+  const inkColor = isDark ? '#e6edf3' : '#22303D';
+  const inkSoftColor = isDark ? '#8b98a5' : '#5B6B78';
+  const paperLineColor = isDark ? '#2c333c' : '#DCD8C8';
+  const penSoftColor = isDark ? '#38221e' : '#E8DCD6';
+
+  const topTasksLabels = s.topTasks.map(([name]) => name);
+  const topTasksHours = s.topTasks.map(([,ms]) => +(ms / 3600000).toFixed(2));
+
+  const filterEntries = state.filters
+    .map(f => ({ name: f.name, ms: s.filterTotals[f.id] || 0 }))
+    .filter(f => f.ms > 0);
+
+  const estLabels = s.estimationTasks.map(e => e.name);
+  const estTargetHours = s.estimationTasks.map(e => +(e.targetMs / 3600000).toFixed(2));
+  const estActualHours = s.estimationTasks.map(e => +(e.actualMs / 3600000).toFixed(2));
+
+  const html = `
+    <div class="stats-view">
+      <div class="stats-view-header">
+        <button class="nav-btn" id="statsBackBtn" aria-label="رجوع لمهام اليوم"><span class="material-icons">arrow_forward</span></button>
+        <h2>إحصائيات اليوم</h2>
+        <span class="nav-btn" style="visibility:hidden"><span class="material-icons">picture_as_pdf</span></span>
+      </div>
+
+      ${renderStatsRangeToggle('day')}
+
+      <div class="stats-summary-row">
+        <div class="stats-summary-pill">
+          <span class="material-icons">schedule</span>
+          <strong>${formatHM(s.totalMs)}</strong>
+          <small>إجمالي الوقت</small>
+        </div>
+        <div class="stats-summary-pill">
+          <span class="material-icons">task_alt</span>
+          <strong>${completionPct}%</strong>
+          <small>نسبة الإنجاز</small>
+        </div>
+        <div class="stats-summary-pill">
+          <span class="material-icons">bolt</span>
+          <strong>${s.streak}</strong>
+          <small>${s.streak === 1 ? 'يوم متتالي' : 'أيام متتالية'}</small>
+        </div>
+        ${s.estimationAccuracyPct !== null ? `
+        <div class="stats-summary-pill">
+          <span class="material-icons">speed</span>
+          <strong>${s.estimationAccuracyPct}%</strong>
+          <small>دقة تقدير الوقت</small>
+        </div>` : ``}
+      </div>
+
+      ${hasCompareData ? `
+      <div class="week-compare-card">
+        <div class="week-compare-title"><span class="material-icons">trending_up</span>مقارنة بالأمس</div>
+        <div class="week-compare-rows">
+          <div class="week-compare-row">
+            <span class="week-compare-label">نسبة الإنجاز</span>
+            <span class="week-compare-values">${completionPct}% <small>(كان ${prevCompletionPct}%)</small></span>
+            <span class="week-compare-delta ${completionDelta.dir}"><span class="material-icons">${deltaIcon(completionDelta.dir)}</span>${completionDelta.pct}%</span>
+          </div>
+          <div class="week-compare-row">
+            <span class="week-compare-label">الوقت المستثمر</span>
+            <span class="week-compare-values">${formatHM(s.totalMs)} <small>(كان ${formatHM(prevS.totalMs)})</small></span>
+            <span class="week-compare-delta ${timeDelta.dir}"><span class="material-icons">${deltaIcon(timeDelta.dir)}</span>${timeDelta.pct}%</span>
+          </div>
+          <div class="week-compare-row">
+            <span class="week-compare-label">المهام المنجزة</span>
+            <span class="week-compare-values">${s.doneCount} <small>(كان ${prevS.doneCount})</small></span>
+            <span class="week-compare-delta ${doneDelta.dir}"><span class="material-icons">${deltaIcon(doneDelta.dir)}</span>${doneDelta.pct}%</span>
+          </div>
+        </div>
+      </div>` : ``}
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card-title"><span class="material-icons">task_alt</span>نسبة إنجاز اليوم</div>
+          <div class="chart-card-body">
+            ${s.totalTaskCount ? `<canvas id="chartCompletion"></canvas>` : `<div class="stat-empty">لا توجد مهام مسجلة اليوم</div>`}
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-title"><span class="material-icons">local_fire_department</span>أكثر المهام استهلاكًا للوقت اليوم</div>
+          <div class="chart-card-body">
+            ${topTasksLabels.length ? `<canvas id="chartTopTasks"></canvas>` : `<div class="stat-empty">لم تُحدَّد مدة فعلية لأي مهمة اليوم</div>`}
+          </div>
+        </div>
+
+        ${filterEntries.length >= 2 ? `
+        <div class="chart-card chart-card-wide">
+          <div class="chart-card-title"><span class="material-icons">category</span>توزيع الوقت حسب التصنيف اليوم</div>
+          <div class="chart-card-body"><canvas id="chartFilters"></canvas></div>
+        </div>` : ``}
+
+        ${estLabels.length ? `
+        <div class="chart-card chart-card-wide">
+          <div class="chart-card-title"><span class="material-icons">speed</span>الوقت المخطط مقابل الوقت الفعلي اليوم</div>
+          <div class="chart-card-body"><canvas id="chartEstimation"></canvas></div>
+        </div>` : ``}
+      </div>
+    </div>
+  `;
+
+  contentEl.innerHTML = html;
+
+  const backBtn = document.getElementById('statsBackBtn');
+  if(backBtn) backBtn.onclick = () => { ui.statsViewOpen = false; ui.justReturnedFromStats = true; render(); };
+
+  wireStatsRangeToggle();
+
+  destroyStatsCharts();
+
+  if(typeof Chart === 'undefined') return;
+
+  Chart.defaults.font.family = "'Tajawal', sans-serif";
+  Chart.defaults.color = inkColor;
+
+  const ctxCompletion = document.getElementById('chartCompletion');
+  if(ctxCompletion){
+    ui.statsChartInstances.push(new Chart(ctxCompletion, {
+      type: 'doughnut',
+      data: {
+        labels: ['تم إنجازها', 'لم تنجز بعد'],
+        datasets: [{
+          data: [s.doneCount, Math.max(0, s.totalTaskCount - s.doneCount)],
+          backgroundColor: [doneColor, penSoftColor],
+          borderColor: 'transparent'
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', rtl: true, labels: { color: inkColor, font: { size: 11 } } } }
+      }
+    }));
+  }
+
+  const ctxTopTasks = document.getElementById('chartTopTasks');
+  if(ctxTopTasks){
+    ui.statsChartInstances.push(new Chart(ctxTopTasks, {
+      type: 'bar',
+      data: {
+        labels: topTasksLabels,
+        datasets: [{
+          label: 'ساعات',
+          data: topTasksHours,
+          backgroundColor: penColor,
+          borderRadius: 6,
+          maxBarThickness: 40
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: inkColor } },
+          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor } }
+        }
+      }
+    }));
+  }
+
+  const ctxFilters = document.getElementById('chartFilters');
+  if(ctxFilters){
+    ui.statsChartInstances.push(new Chart(ctxFilters, {
+      type: 'radar',
+      data: {
+        labels: filterEntries.map(f => f.name),
+        datasets: [{
+          label: 'ساعات',
+          data: filterEntries.map(f => +(f.ms / 3600000).toFixed(2)),
+          borderColor: doneColor,
+          backgroundColor: doneColor + '33',
+          pointBackgroundColor: doneColor
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          r: {
+            grid: { color: paperLineColor },
+            angleLines: { color: paperLineColor },
+            pointLabels: { color: inkColor, font: { size: 11 } },
+            ticks: { color: inkColor, backdropColor: 'transparent' }
+          }
+        }
+      }
+    }));
+  }
+
+  const ctxEstimation = document.getElementById('chartEstimation');
+  if(ctxEstimation){
+    ui.statsChartInstances.push(new Chart(ctxEstimation, {
+      type: 'bar',
+      data: {
+        labels: estLabels,
+        datasets: [
+          {
+            label: 'الهدف',
+            data: estTargetHours,
+            backgroundColor: inkSoftColor + '99',
+            borderRadius: 6,
+            maxBarThickness: 28
+          },
+          {
+            label: 'الوقت الفعلي',
+            data: estActualHours,
+            backgroundColor: penColor,
+            borderRadius: 6,
+            maxBarThickness: 28
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', rtl: true, labels: { color: inkColor, font: { size: 11 } } } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: inkColor } },
+          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor } }
+        }
+      }
+    }));
+  }
+}
+
+function renderWeekStatsView(){
   const s = computeWeekStats(0);
   const prevS = computeWeekStats(1);
   const completionPct = s.totalTaskCount > 0 ? Math.round((s.doneCount / s.totalTaskCount) * 100) : 0;
@@ -340,6 +673,8 @@ export function renderStatsView(){
         <h2>إحصائيات الأسبوع</h2>
         <button class="nav-btn export-pdf-btn" id="exportPdfBtn" title="تصدير تقرير أسبوعي PDF"><span class="material-icons">picture_as_pdf</span></button>
       </div>
+
+      ${renderStatsRangeToggle('week')}
 
       <div class="stats-summary-row">
         <div class="stats-summary-pill">
@@ -448,6 +783,8 @@ export function renderStatsView(){
 
   const exportPdfBtn = document.getElementById('exportPdfBtn');
   if(exportPdfBtn) exportPdfBtn.onclick = () => exportWeeklyPDF();
+
+  wireStatsRangeToggle();
 
   destroyStatsCharts();
 
