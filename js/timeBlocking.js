@@ -40,6 +40,16 @@ function timeRangeLabel(startMin, durationMin){
   return `${formatTimeArabic(minutesToHHMM(startMin))} - ${formatTimeArabic(minutesToHHMM(startMin + durationMin))}`;
 }
 
+const SHORT_BLOCK_THRESHOLD_MIN = 30;
+
+function isShortBlock(durationMin){
+  return durationMin <= SHORT_BLOCK_THRESHOLD_MIN;
+}
+
+function blockTimeLabel(startMin, durationMin){
+  return isShortBlock(durationMin) ? formatTimeArabic(minutesToHHMM(startMin)) : timeRangeLabel(startMin, durationMin);
+}
+
 // خوارزمية توزيع الأعمدة: أي مهمتين متعارضتين في الوقت بياخدوا نص المساحة كل واحدة (زي جوجل كالندر)
 function layoutTimelineBlocks(items){
   const sorted = [...items].sort((a, b) => a.startMin - b.startMin);
@@ -129,13 +139,13 @@ export function renderTimeBlockView(){
     const widthPct = 100 / totalCols;
     const rightPct = col * widthPct;
     blocksHtml += `
-      <div class="timeline-block ${t.done ? 'done' : ''} ${t.priority ? 'priority-' + t.priority : ''}"
+      <div class="timeline-block ${t.done ? 'done' : ''} ${t.priority ? 'priority-' + t.priority : ''} ${isShortBlock(durationMin) ? 'short' : ''}"
            style="top:${top}px; height:${height}px; right:calc(${rightPct}% + 2px); width:calc(${widthPct}% - 6px);"
            data-id="${t.id}" data-start-min="${startMin}" data-duration-min="${durationMin}" title="${escapeAttr(t.name)}">
         <button class="timeline-block-done-btn" data-action="tb-toggle-done" data-id="${t.id}" title="${t.done ? 'إلغاء الإنجاز' : 'إنجاز'}">
           <span class="material-icons">${t.done ? 'check_circle' : 'radio_button_unchecked'}</span>
         </button>
-        <span class="timeline-block-time">${timeRangeLabel(startMin, durationMin)}</span>
+        <span class="timeline-block-time">${blockTimeLabel(startMin, durationMin)}</span>
         <span class="timeline-block-name">${escapeHtml(t.name)}</span>
         <div class="timeline-block-resize-handle" data-id="${t.id}"></div>
       </div>
@@ -260,7 +270,8 @@ function startBlockMove(e, blockEl){
     newTop = (newStartMin - startHour * 60) / minutesPerPx;
     blockEl.style.top = newTop + 'px';
     const timeLabel = blockEl.querySelector('.timeline-block-time');
-    if(timeLabel) timeLabel.textContent = timeRangeLabel(newStartMin, durationMin);
+    if(timeLabel) timeLabel.textContent = blockTimeLabel(newStartMin, durationMin);
+    blockEl.classList.toggle('short', isShortBlock(durationMin));
     sideCard && sideCard.classList.toggle('drop-target', pointOverSide(ev.clientX, ev.clientY));
   }
 
@@ -304,7 +315,8 @@ function startBlockResize(e, handleEl){
     blockEl.style.height = newHeight + 'px';
     const durationMin = Math.max(MIN_DURATION_MIN, snapMinutes(newHeight * (60 / HOUR_PX)));
     const timeLabel = blockEl.querySelector('.timeline-block-time');
-    if(timeLabel) timeLabel.textContent = timeRangeLabel(startMin, durationMin);
+    if(timeLabel) timeLabel.textContent = blockTimeLabel(startMin, durationMin);
+    blockEl.classList.toggle('short', isShortBlock(durationMin));
   }
 
   function onUp(ev){

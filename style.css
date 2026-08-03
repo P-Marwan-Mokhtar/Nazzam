@@ -3528,6 +3528,20 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   color: var(--ink-soft);
   white-space: nowrap;
 }
+.timeline-block.short {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px 2px 24px;
+  white-space: nowrap;
+}
+.timeline-block.short .timeline-block-time {
+  flex-shrink: 0;
+}
+.timeline-block.short .timeline-block-name {
+  flex: 1 1 auto;
+  min-width: 0;
+}
 .timeline-block-name {
   font-size: 0.8rem;
   font-weight: 700;
