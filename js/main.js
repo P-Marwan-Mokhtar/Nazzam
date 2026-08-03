@@ -7,6 +7,7 @@ import { showToast, state, ui } from './state.js';
 import { closeAccountModal, ensureAuth, openAccountModal, openAuthGate } from './auth.js';
 import { closeCalendarModal, openCalendarModal } from './calendar.js';
 import { exportDataAsJSON, importDataFromFile, loadData, saveData } from './dataStore.js';
+import { exportCalendarAsICS } from './icalExport.js';
 import { closeDraftsModal, openDraftsModal, renderDraftsModal } from './drafts.js';
 import { closeAddChoiceModal } from './events.js';
 import { closeNotificationSettingsModal, registerServiceWorker, startNotificationScheduler } from './notifications.js';
@@ -122,6 +123,8 @@ async function startApp(){
   document.getElementById('closeDraftsBtn').onclick = closeDraftsModal;
 
   document.getElementById('exportDataBtn').onclick = exportDataAsJSON;
+  const exportIcsBtn = document.getElementById('exportIcsBtn');
+  if(exportIcsBtn) exportIcsBtn.onclick = exportCalendarAsICS;
 
   const importDataBtn = document.getElementById('importDataBtn');
   const importDataInput = document.getElementById('importDataInput');
