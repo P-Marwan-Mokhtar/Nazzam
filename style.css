@@ -3454,9 +3454,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 .timeline-container {
   position: relative;
   width: 100%;
-  background: var(--card);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
   padding: 16px 16px 16px 4px;
 }
 .timeline-track {
