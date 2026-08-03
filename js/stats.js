@@ -411,11 +411,9 @@ function renderDayStatsView(dateStr){
     <div class="stats-view">
       <div class="stats-view-header">
         <button class="nav-btn" id="statsBackBtn" aria-label="رجوع لمهام اليوم"><span class="material-icons">arrow_forward</span></button>
-        <h2>إحصائيات اليوم</h2>
+        ${renderStatsRangeToggle('day')}
         <span class="nav-btn" style="visibility:hidden"><span class="material-icons">picture_as_pdf</span></span>
       </div>
-
-      ${renderStatsRangeToggle('day')}
 
       <div class="stats-summary-row">
         <div class="stats-summary-pill">
@@ -670,11 +668,9 @@ function renderWeekStatsView(){
     <div class="stats-view">
       <div class="stats-view-header">
         <button class="nav-btn" id="statsBackBtn" aria-label="رجوع لمهام اليوم"><span class="material-icons">arrow_forward</span></button>
-        <h2>إحصائيات الأسبوع</h2>
+        ${renderStatsRangeToggle('week')}
         <button class="nav-btn export-pdf-btn" id="exportPdfBtn" title="تصدير تقرير أسبوعي PDF"><span class="material-icons">picture_as_pdf</span></button>
       </div>
-
-      ${renderStatsRangeToggle('week')}
 
       <div class="stats-summary-row">
         <div class="stats-summary-pill">
