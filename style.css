@@ -2388,16 +2388,14 @@ body.dark-mode .account-error {
   color: var(--ink-soft);
 }
 
-/* ===== شريط التبديل بين إحصائيات اليوم والأسبوع ===== */
+/* ===== شريط التبديل بين إحصائيات اليوم والأسبوع (جوه الـheader نفسه) ===== */
 .stats-range-toggle {
   display: flex;
   gap: 4px;
-  background: var(--paper);
+  background: var(--card);
   border: 1px solid var(--paper-line);
   border-radius: 12px;
   padding: 4px;
-  margin-bottom: 14px;
-  width: fit-content;
 }
 .stats-range-btn {
   border: none;
