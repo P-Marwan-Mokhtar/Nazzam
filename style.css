@@ -3453,9 +3453,15 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 
 .timeline-container {
   position: relative;
+  width: 100%;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 16px 16px 4px;
 }
 .timeline-track {
   position: relative;
+  width: 100%;
   margin-inline-start: 54px;
   border-inline-start: 1px solid var(--paper-line);
   user-select: none;
@@ -3620,10 +3626,14 @@ body.dark-mode .timeline-block-done-btn {
 @media (max-width: 900px) {
   .timeblock-layout {
     flex-direction: column;
+    align-items: stretch;
   }
   .timeblock-side {
     flex: 1 1 auto;
     position: static;
+    width: 100%;
+  }
+  .timeblock-calendar-col {
     width: 100%;
   }
   .timeblock-unscheduled-list {
