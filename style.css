@@ -2388,6 +2388,37 @@ body.dark-mode .account-error {
   color: var(--ink-soft);
 }
 
+/* ===== شريط التبديل بين إحصائيات اليوم والأسبوع ===== */
+.stats-range-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--paper);
+  border: 1px solid var(--paper-line);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 14px;
+  width: fit-content;
+}
+.stats-range-btn {
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 7px 20px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.stats-range-btn:hover {
+  color: var(--ink);
+}
+.stats-range-btn.active {
+  background: var(--pen);
+  color: #fff;
+}
+
 /* ===== مقارنة الأسبوع بالأسبوع اللي فات ===== */
 .week-compare-card {
   background: var(--card);
