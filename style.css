@@ -3455,7 +3455,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   position: relative;
   width: 96.5%;
   border-radius: var(--radius);
-  padding: 16px 16px 16px 4px;
+  /* padding: 16px 16px 16px 4px; */
 }
 .timeline-track {
   position: relative;
