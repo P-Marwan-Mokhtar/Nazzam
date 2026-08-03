@@ -127,7 +127,7 @@ body.dark-mode .header-logo-dark {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom:10px;
+  margin: 18px 0 10px;
   background: var(--card);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
@@ -1956,6 +1956,31 @@ body.dark-mode .priority-dot-medium {
   background: var(--paper-line);
   margin: 5px 4px;
 }
+.header-menu-group {
+  width: 100%;
+}
+.header-menu-group summary.header-menu-summary {
+  list-style: none;
+  cursor: pointer;
+}
+.header-menu-group summary.header-menu-summary::-webkit-details-marker {
+  display: none;
+}
+.header-menu-summary .header-menu-chevron {
+  margin-inline-start: auto;
+  font-size: 18px;
+  transition: transform 0.15s ease;
+}
+.header-menu-group[open] .header-menu-summary .header-menu-chevron {
+  transform: rotate(180deg);
+}
+.header-menu-subitems {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-inline-start: 14px;
+  margin-top: 2px;
+}
 
 /* ===== Account Modal ===== */
 .account-status {
@@ -2365,7 +2390,7 @@ body.dark-mode .account-error {
 
 /* ===== مقارنة الأسبوع بالأسبوع اللي فات ===== */
 .week-compare-card {
-  background: var(--paper);
+  background: var(--card);
   border: 1px solid var(--paper-line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);

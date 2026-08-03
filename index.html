@@ -161,30 +161,39 @@
                 <span class="header-btn-label">إعدادات التنبيهات</span>
               </button>
               <div class="header-menu-divider"></div>
-              <button
-                class="header-menu-item"
-                id="exportDataBtn"
-                title="تصدير نسخة احتياطية (JSON)"
-              >
-                <span class="material-icons">file_download</span>
-                <span class="header-btn-label">تصدير البيانات</span>
-              </button>
-              <button
-                class="header-menu-item"
-                id="exportIcsBtn"
-                title="تصدير المهام كملف تقويم (.ics) لاستيرادها في Google/Apple Calendar"
-              >
-                <span class="material-icons">event</span>
-                <span class="header-btn-label">تصدير للتقويم (.ics)</span>
-              </button>
-              <button
-                class="header-menu-item"
-                id="importDataBtn"
-                title="استيراد نسخة احتياطية (JSON)"
-              >
-                <span class="material-icons">file_upload</span>
-                <span class="header-btn-label">استيراد البيانات</span>
-              </button>
+              <details class="header-menu-group" id="dataMenuGroup">
+                <summary class="header-menu-item header-menu-summary">
+                  <span class="material-icons">import_export</span>
+                  <span class="header-btn-label">البيانات</span>
+                  <span class="material-icons header-menu-chevron">expand_more</span>
+                </summary>
+                <div class="header-menu-subitems">
+                  <button
+                    class="header-menu-item"
+                    id="importDataBtn"
+                    title="استيراد نسخة احتياطية (JSON)"
+                  >
+                    <span class="material-icons">file_upload</span>
+                    <span class="header-btn-label">استيراد البيانات</span>
+                  </button>
+                  <button
+                    class="header-menu-item"
+                    id="exportDataBtn"
+                    title="تصدير نسخة احتياطية (JSON)"
+                  >
+                    <span class="material-icons">file_download</span>
+                    <span class="header-btn-label">تصدير البيانات</span>
+                  </button>
+                  <button
+                    class="header-menu-item"
+                    id="exportIcsBtn"
+                    title="تصدير المهام (من النهارده وبعده) كملف تقويم لاستيرادها في Google/Apple Calendar"
+                  >
+                    <span class="material-icons">event</span>
+                    <span class="header-btn-label">تصدير للتقويم</span>
+                  </button>
+                </div>
+              </details>
               <input
                 type="file"
                 id="importDataInput"
@@ -699,6 +708,8 @@
           menu.classList.remove("open");
           moreBtn.classList.remove("is-open");
           moreBtn.setAttribute("aria-expanded", "false");
+          const dataGroup = document.getElementById("dataMenuGroup");
+          if (dataGroup) dataGroup.open = false;
         };
 
         moreBtn.addEventListener("click", (e) => {
