@@ -20,6 +20,7 @@ import { checkMissedTasksPopup, closeMissedTasksModal, closeTimerTypeModal, ensu
 import { closeDurationPicker, commitDurationPicker, openTimerDurationPicker } from './wheelPicker.js';
 import { toggleWeekView } from './weekView.js';
 import { toggleTimeBlockView } from './timeBlocking.js';
+import { applyHashToState } from './routing.js';
 
 (async function init(){
   // أول حاجة: نتأكد إن فيه مستخدم حقيقي مسجّل دخوله فعليًا قبل ما نعرض أي حاجة من التطبيق.
@@ -35,8 +36,14 @@ import { toggleTimeBlockView } from './timeBlocking.js';
 })();
 
 async function startApp(){
+  applyHashToState(); // نظبط الشاشة الحالية (إحصائيات/أسبوعي/جدول زمني) حسب الرابط قبل أول render، عشان منعملش وميض لمهام اليوم الأول ثم نتنقل
   render();
   setInterval(tickTimers, 1000);
+
+  window.addEventListener('hashchange', () => {
+    applyHashToState();
+    render();
+  });
 
   document.addEventListener('click', (e) => {
     document.querySelectorAll('.custom-select.open').forEach(s => s.classList.remove('open'));

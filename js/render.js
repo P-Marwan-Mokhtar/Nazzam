@@ -11,6 +11,7 @@ import { computeTaskStreak, renderStatsView } from './stats.js';
 import { renderTimeBlockView } from './timeBlocking.js';
 import { renderTimerPanel } from './timers.js';
 import { renderWeekView } from './weekView.js';
+import { syncHashWithState } from './routing.js';
 
 // Auto-Recurrence logic: نضيف المهام المتكررة لليوم/الأيام الجاية لو يوم الأسبوع ده من ضمن أيامها، مرة واحدة بس لكل تاريخ.
 // معزولة في دالة مستقلة عشان تُستخدم مع أي تاريخ (مش بس اليوم المختار)، زي أيام عرض الأسبوع.
@@ -36,6 +37,7 @@ export function ensureDayMaterialized(dateStr){
 export function render(){
   hideDurationPopover();
   hideClockChoicePopover();
+  syncHashWithState();
   const mainLayoutEl = document.querySelector('.main-layout');
   if(mainLayoutEl) mainLayoutEl.classList.toggle('week-view-active', ui.weekViewOpen || ui.timeBlockViewOpen || ui.statsViewOpen);
   if(ui.statsViewOpen){
