@@ -3453,14 +3453,15 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 
 .timeline-container {
   position: relative;
-  width: 96.5%;
+  width: 100%;
+  /* مساحة ثابتة بالبكسل (مش نسبة مئوية) عشان تفضل كافية لنص الساعة زي "14:00"
+     حتى لما الشاشة تصغر، بدل ما تنكمش النسبة وتخلي النص يعمل overflow */
+  padding-left: 44px;
   border-radius: var(--radius);
-  /* padding: 16px 16px 16px 4px; */
 }
 .timeline-track {
   position: relative;
   width: 100%;
-  /* margin-inline-start: 54px; */
   border-inline-start: 1px solid var(--paper-line);
   user-select: none;
 }
