@@ -164,6 +164,13 @@ export function renderTimeBlockView(){
       ${ui.selectedDate !== today ? `<button class="today-btn" id="tbTodayBtn">اليوم</button>` : ''}
 
       <div class="timeblock-layout">
+        <div class="timeblock-side">
+          <div class="timeblock-side-card">
+            <div class="timeblock-side-title">مهام غير مجدولة</div>
+            <div class="timeblock-unscheduled-list" id="tbUnscheduledList">${sideHtml}</div>
+            <div class="timeblock-side-hint">اسحب المهمة على الجدول عشان تحدد وقتها، واسحب حافة المهمة السفلية عشان تمدها.</div>
+          </div>
+        </div>
         <div class="timeblock-calendar-col">
           <div class="timeline-container">
             <div class="timeline-track" id="tbTrack" data-start-hour="${startHour}" style="height:${trackHeight}px">
@@ -171,13 +178,6 @@ export function renderTimeBlockView(){
               ${nowLineHtml}
               ${blocksHtml}
             </div>
-          </div>
-        </div>
-        <div class="timeblock-side">
-          <div class="timeblock-side-card">
-            <div class="timeblock-side-title">مهام غير مجدولة</div>
-            <div class="timeblock-unscheduled-list" id="tbUnscheduledList">${sideHtml}</div>
-            <div class="timeblock-side-hint">اسحب المهمة على الجدول عشان تحدد وقتها، واسحب حافة المهمة السفلية عشان تمدها.</div>
           </div>
         </div>
       </div>

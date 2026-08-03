@@ -3452,7 +3452,6 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 }
 
 .timeline-container {
-  overflow-x: auto;
   position: relative;
 }
 .timeline-track {
@@ -3606,7 +3605,7 @@ body.dark-mode .timeline-block-done-btn {
 
 @media (max-width: 900px) {
   .timeblock-layout {
-    flex-direction: column-reverse;
+    flex-direction: column;
   }
   .timeblock-side {
     flex: 1 1 auto;
