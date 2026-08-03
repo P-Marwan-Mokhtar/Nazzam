@@ -20,8 +20,14 @@ const DEFAULT_END_HOUR = 22;
 
 export function toggleTimeBlockView(){
   const wasOpen = ui.timeBlockViewOpen;
-  ui.timeBlockViewOpen = !wasOpen;
-  if(wasOpen) ui.justReturnedFromStats = true;
+  if(wasOpen){
+    ui.timeBlockViewOpen = false;
+    ui.justReturnedFromStats = true;
+  } else {
+    ui.timeBlockViewOpen = true;
+    ui.statsViewOpen = false;
+    ui.weekViewOpen = false;
+  }
   render();
 }
 
@@ -411,6 +417,9 @@ async function commitTaskTime(taskId, minutesOrNull){
   const task = (state.days[ui.selectedDate] || []).find(t => t.id === taskId);
   if(!task) return;
   task.startTime = minutesOrNull === null ? null : minutesToHHMM(minutesOrNull);
+  // لما بنشيل المهمة من الجدول الزمني (نرجّعها لغير مجدولة)، بنمسح مدتها كمان
+  // عشان متفضلش القيمة دي عالقة وتظهر في المهام اليومية بعد ما شيلناها من هنا
+  if(minutesOrNull === null) task.duration = '';
   render();
   await saveData();
 }

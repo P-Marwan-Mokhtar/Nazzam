@@ -17,11 +17,14 @@ function getWeekStart(dateStr){
 
 export function toggleWeekView(){
   const wasOpen = ui.weekViewOpen;
-  ui.weekViewOpen = !wasOpen;
-  if(!wasOpen){
-    if(!ui.weekViewDate) ui.weekViewDate = ui.selectedDate;
-  } else {
+  if(wasOpen){
+    ui.weekViewOpen = false;
     ui.justReturnedFromStats = true; // نفس أنيميشن الرجوع المستخدم أصلاً مع الإحصائيات
+  } else {
+    ui.weekViewOpen = true;
+    ui.statsViewOpen = false;
+    ui.timeBlockViewOpen = false;
+    if(!ui.weekViewDate) ui.weekViewDate = ui.selectedDate;
   }
   render();
 }

@@ -80,8 +80,14 @@ async function startApp(){
 
   const toggleStatsView = () => {
     const wasOpen = ui.statsViewOpen;
-    ui.statsViewOpen = !ui.statsViewOpen;
-    if(wasOpen) ui.justReturnedFromStats = true;
+    if(wasOpen){
+      ui.statsViewOpen = false;
+      ui.justReturnedFromStats = true;
+    } else {
+      ui.statsViewOpen = true;
+      ui.weekViewOpen = false;
+      ui.timeBlockViewOpen = false;
+    }
     render();
   };
   const statsBtnTop = document.getElementById('statsBtnTop');

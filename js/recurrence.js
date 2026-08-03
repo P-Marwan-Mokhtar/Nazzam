@@ -64,12 +64,15 @@ async function saveRecurrence(){
 }
 
 // نشيل أي نسخ من المهمة كانت اتحقنت تلقائيًا في أيام جاية (بسبب التكرار القديم)
-// لكن بقت مش من ضمن أيام التكرار الجديدة — من غير ما نلمس نسخ اليوم الحالي
-// أو أي نسخة المستخدم خلّصها بالفعل (done)، عشان منمسحش إنجاز حقيقي.
+// لكن بقت مش من ضمن أيام التكرار الجديدة — من غير ما نلمس نسخة اليوم الحقيقي النهارده
+// أو أي يوم فات، أو أي نسخة المستخدم خلّصها بالفعل (done)، عشان منمسحش إنجاز حقيقي.
+// ملحوظة: المقارنة دايمًا بالنسبة لـ"النهارده" الحقيقي، مش بالنسبة لـ ui.selectedDate —
+// عشان لو المستخدم لغى التكرار وهو واقف على يوم مستقبلي (زي لو كان رايح يشوف الشهر الجاي)،
+// الأيام المستقبلية التانية اللي كان زارها قبل كده (وبالتالي اتحقن فيها نسخة) تتنضف برضو.
 function removeStaleRecurringInstances(taskName, currentDays){
   const today = todayStr();
   Object.keys(state.days).forEach(dateStr => {
-    if(dateStr <= ui.selectedDate || dateStr < today) return;
+    if(dateStr <= today) return;
     const weekday = fromISO(dateStr).getDay();
     if(currentDays.includes(weekday)) return;
     state.days[dateStr] = state.days[dateStr].filter(t => !(t.name === taskName && t._fromRecurrence && !t.done));
