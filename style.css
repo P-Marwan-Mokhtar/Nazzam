@@ -127,7 +127,7 @@ body.dark-mode .header-logo-dark {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 18px 0 10px;
+  margin-bottom:10px;
   background: var(--card);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
@@ -2365,7 +2365,7 @@ body.dark-mode .account-error {
 
 /* ===== مقارنة الأسبوع بالأسبوع اللي فات ===== */
 .week-compare-card {
-  background: var(--card);
+  background: var(--paper;
   border: 1px solid var(--paper-line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
