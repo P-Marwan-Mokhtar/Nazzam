@@ -72,9 +72,10 @@ export function formatMinutes(totalMinutes){
   if(!totalMinutes || totalMinutes <= 0) return '';
   const hours = Math.floor(totalMinutes / 60);
   const mins = Math.round(totalMinutes % 60);
-  if(hours > 0 && mins > 0) return `${hours} ساعة و ${mins} دقيقة`;
-  if(hours > 0) return `${hours} ساعة`;
-  return `${mins} دقيقة`;
+  const seg = (n, unit) => `<bdi dir="ltr">${n} ${unit}</bdi>`;
+  if(hours > 0 && mins > 0) return `${seg(hours,'ساعة')} و ${seg(mins,'دقيقة')}`;
+  if(hours > 0) return seg(hours,'ساعة');
+  return seg(mins,'دقيقة');
 }
 
 export function timeStrToMinutes(hhmm){
@@ -105,10 +106,11 @@ export function formatHM(ms){
   const totalMin = Math.round(ms / 60000);
   const h = Math.floor(totalMin / 60);
   const m = totalMin % 60;
-  if(h > 0 && m > 0) return `${h}س ${m}د`;
-  if(h > 0) return `${h}س`;
-  if(m > 0) return `${m}د`;
-  return '0د';
+  const seg = (n, unit) => `<bdi dir="ltr">${n}${unit}</bdi>`;
+  if(h > 0 && m > 0) return `${seg(h,'س')} ${seg(m,'د')}`;
+  if(h > 0) return seg(h,'س');
+  if(m > 0) return seg(m,'د');
+  return seg(0,'د');
 }
 
 export function normalizeArabic(str){
