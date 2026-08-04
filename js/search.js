@@ -55,6 +55,11 @@ export function renderGlobalSearchResults(){
     btn.onclick = () => {
       ui.selectedDate = btn.dataset.date;
       ui.dayStatusFilter = 'all';
+      // لازم نقفل أي شاشة تانية مفتوحة (إحصائيات/أسبوعي/جدول زمني) عشان render() يعرض
+      // فعلاً مهام اليوم اللي المهمة موجودة فيه، مش يفضل واقف على نفس الشاشة القديمة
+      ui.statsViewOpen = false;
+      ui.weekViewOpen = false;
+      ui.timeBlockViewOpen = false;
       closeGlobalSearchModal();
       render();
     };
