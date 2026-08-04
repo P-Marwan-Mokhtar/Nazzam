@@ -5,7 +5,7 @@
 // ملاحظة مهمة: أي طلبات لسيرفر Supabase أو أي API خارجي بترجع لحالها للشبكة مباشرة
 // (مش بنتدخّل فيها) عشان بيانات المستخدم تفضل دايمًا محدّثة ومتزامنة صح.
 
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4-app-folder';
 const CACHE_NAME = `daily-tasks-shell-${CACHE_VERSION}`;
 
 // الملفات الأساسية اللي بتكوّن "هيكل" التطبيق (App Shell)
