@@ -4,6 +4,16 @@
 
 document.getElementById('lpYear').textContent = new Date().getFullYear();
 
+// لو المتصفح ده عنده تسجيل Service Worker قديم من نطاق الجذر "/" (من قبل نقل
+// التطبيق لمجلد /app/)، نجبره يفحص التحديثات فورًا بدل ما يستنى الفحص التلقائي
+// (اللي ممكن ياخد لحد ٢٤ ساعة) — ده بيشغّل ملف sw.js الجديد (مفتاح الإلغاء)
+// فورًا، فينضف الجهاز من التسجيل القديم من أول زيارة.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then((regs) => {
+    regs.forEach((reg) => reg.update().catch(() => {}));
+  });
+}
+
 // ===== قائمة الموبايل =====
 const header = document.getElementById('lpHeader');
 const navToggle = document.getElementById('lpNavToggle');
