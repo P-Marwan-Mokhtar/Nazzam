@@ -4,6 +4,36 @@
 
 document.getElementById('lpYear').textContent = new Date().getFullYear();
 
+// ===== لو المستخدم مسجّل دخوله بالفعل (نفس الدومين، نفس Supabase session
+// اللي بيستخدمها التطبيق في app/) بنستبدل زراير "تسجيل الدخول" و"ابدأ مجانًا"
+// بزرار واحد يودّيه للتطبيق على طول، بدل ما يشوف زراير دخول ملوش لزمة =====
+(async function checkLoggedInState(){
+  try {
+    // بنستورد نفس الـ Supabase client اللي التطبيق نفسه بيستخدمه (نفس المفاتيح
+    // ونفس مصدر الحقيقة) بدل ما نكرر المفاتيح هنا من جديد
+    const { supabaseClient } = await import('./app/js/config.js');
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const isLoggedIn = !!(session && session.user && !session.user.is_anonymous);
+    if (isLoggedIn) showLoggedInHeaderState();
+  } catch (e) {
+    // لو حصل أي خطأ (مثلاً السكريبت لسه بيتحمل) سيبنا الزراير الافتراضية زي ما هي
+  }
+})();
+
+function showLoggedInHeaderState(){
+  const authBtnHtml = (id) => `<a href="app/" class="lp-btn lp-btn-primary" id="${id}">اذهب إلى نظم</a>`;
+
+  const loginBtn = document.getElementById('lpLoginBtn');
+  const startBtn = document.getElementById('lpStartBtn');
+  if (loginBtn) loginBtn.remove();
+  if (startBtn) startBtn.outerHTML = authBtnHtml('lpStartBtn');
+
+  const loginBtnMobile = document.getElementById('lpLoginBtnMobile');
+  const startBtnMobile = document.getElementById('lpStartBtnMobile');
+  if (loginBtnMobile) loginBtnMobile.remove();
+  if (startBtnMobile) startBtnMobile.outerHTML = authBtnHtml('lpStartBtnMobile');
+}
+
 // لو المتصفح ده عنده تسجيل Service Worker قديم من نطاق الجذر "/" (من قبل نقل
 // التطبيق لمجلد /app/)، نجبره يفحص التحديثات فورًا بدل ما يستنى الفحص التلقائي
 // (اللي ممكن ياخد لحد ٢٤ ساعة) — ده بيشغّل ملف sw.js الجديد (مفتاح الإلغاء)

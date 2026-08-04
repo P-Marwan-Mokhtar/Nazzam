@@ -40,9 +40,9 @@
           <a href="#faq">الأسئلة الشائعة</a>
         </nav>
 
-        <div class="lp-header-actions">
-          <a href="app/" class="lp-link-btn">تسجيل الدخول</a>
-          <a href="app/" class="lp-btn lp-btn-primary">ابدأ مجانًا</a>
+        <div class="lp-header-actions" id="lpHeaderActions">
+          <a href="app/" class="lp-link-btn" id="lpLoginBtn">تسجيل الدخول</a>
+          <a href="app/" class="lp-btn lp-btn-primary" id="lpStartBtn">ابدأ مجانًا</a>
           <button class="lp-nav-toggle" id="lpNavToggle" aria-label="القائمة" aria-expanded="false">
             <span class="material-icons">menu</span>
           </button>
@@ -53,9 +53,9 @@
         <a href="#showcase">استعرض نظم</a>
         <a href="#pricing">الأسعار</a>
         <a href="#faq">الأسئلة الشائعة</a>
-        <div class="lp-mobile-nav-actions">
-          <a href="app/" class="lp-link-btn">تسجيل الدخول</a>
-          <a href="app/" class="lp-btn lp-btn-primary">ابدأ مجانًا</a>
+        <div class="lp-mobile-nav-actions" id="lpMobileNavActions">
+          <a href="app/" class="lp-link-btn" id="lpLoginBtnMobile">تسجيل الدخول</a>
+          <a href="app/" class="lp-btn lp-btn-primary" id="lpStartBtnMobile">ابدأ مجانًا</a>
         </div>
       </div>
     </header>
@@ -473,6 +473,7 @@
       </div>
     </footer>
 
-    <script src="landing.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="landing.js" defer></script>
   </body>
 </html>
