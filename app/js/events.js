@@ -149,7 +149,11 @@ export function attachEvents(){
           const cached = state._taskOrderCache[ui.selectedDate];
           const map = {};
           list.forEach(t => { map[t.id] = t; });
-          state.days[ui.selectedDate] = cached.map(id => map[id]).filter(Boolean);
+          const restored = cached.map(id => map[id]).filter(Boolean);
+          // أي مهمة اتضافت وهي في وضع الترتيب مش موجودة في الـ cache القديم — نضيفها في الآخر بدل ما تتشال
+          const restoredIds = new Set(restored.map(t => t.id));
+          const newlyAdded = list.filter(t => !restoredIds.has(t.id));
+          state.days[ui.selectedDate] = restored.concat(newlyAdded);
         }
         state._sortPriority[ui.selectedDate] = false;
         showToast('تم إلغاء ترتيب الأولوية');
