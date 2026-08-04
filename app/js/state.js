@@ -5,6 +5,7 @@
 import { toISO } from './utils.js';
 
 export const LOCAL_BACKUP_KEY = 'habit-data-v2';
+export const PENDING_SYNC_KEY = 'habit-data-pending-sync-v1'; // بيتسجل '1' لو فيه تعديلات محفوظة محليًا بس لسه ما اترفعتش للسيرفر (مثلًا بسبب انقطاع النت)
 
 export const MISSED_POPUP_SHOWN_KEY = 'nazam-missed-popup-last-shown';
 

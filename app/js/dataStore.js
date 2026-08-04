@@ -4,7 +4,7 @@
 
 import { supabaseClient } from './config.js';
 import { todayStr } from './utils.js';
-import { LOCAL_BACKUP_KEY, showToast, state } from './state.js';
+import { LOCAL_BACKUP_KEY, PENDING_SYNC_KEY, showToast, state } from './state.js';
 import { currentUserId, ensureAuth } from './auth.js';
 import { render } from './render.js';
 
@@ -109,6 +109,19 @@ function loadLocalBackup(){
   }catch(e){ return null; }
 }
 
+// بنعلّم إن فيه تعديلات محفوظة محليًا بس لسه ما اترفعتش للسيرفر، عشان لو
+// المستخدم قفل التطبيق وفتحه تاني قبل ما النت يرجع، ما نجيبش نسخة السيرفر
+// القديمة ونمسح بيها التعديلات دي بالغلط.
+function markPendingSync(){
+  try{ localStorage.setItem(PENDING_SYNC_KEY, '1'); }catch(e){}
+}
+function clearPendingSync(){
+  try{ localStorage.removeItem(PENDING_SYNC_KEY); }catch(e){}
+}
+function hasPendingSync(){
+  try{ return localStorage.getItem(PENDING_SYNC_KEY) === '1'; }catch(e){ return false; }
+}
+
 export async function loadData(){
   await ensureAuth();
 
@@ -116,6 +129,15 @@ export async function loadData(){
     // تعذر الاتصال بـ Supabase (مفيش نت مثلًا) - استخدم آخر نسخة محفوظة محليًا
     showToast('تعذّر الاتصال بالخادم، يعمل التطبيق حاليًا بنسخة محلية');
     applyLoadedState(loadLocalBackup());
+    return;
+  }
+
+  // لو فيه تعديلات محلية لسه ما اترفعتش (من مرة سابقة اتقفل فيها النت)، نرفعها
+  // الأول قبل أي حاجة، عشان منجيبش نسخة السيرفر القديمة ونضيع بيها التعديلات دي.
+  if(hasPendingSync()){
+    applyLoadedState(loadLocalBackup());
+    render();
+    await saveData();
     return;
   }
 
@@ -149,11 +171,19 @@ let saveInFlight = false;
 
 let savePending = false;
 
+// عشان منضايقش المستخدم برسالة فشل الحفظ في كل حرف بيكتبه وهو أوفلاين،
+// نوريها مرة واحدة بس لحد ما يرجع يتصل وينجح الحفظ تاني.
+let offlineToastShown = false;
+
 export async function saveData(){
   saveLocalBackup(); // حفظ فوري محلي مايفوتش أي تحديث حتى لو النت وقع
 
   if(!currentUserId){
-    showToast('تعذّر الحفظ على الخادم (لا يوجد اتصال)، تم الحفظ محليًا فقط');
+    markPendingSync();
+    if(!offlineToastShown){
+      showToast('لا يوجد اتصال بالإنترنت — بياناتك محفوظة على جهازك، وهتترفع تلقائيًا أول ما النت يرجع');
+      offlineToastShown = true;
+    }
     return;
   }
 
@@ -172,9 +202,23 @@ export async function saveData(){
         { onConflict: 'user_id' }
       );
     if(error) throw error;
+    clearPendingSync();
+    if(offlineToastShown){
+      showToast('تم رفع كل التعديلات المحفوظة محليًا للسيرفر بنجاح');
+      offlineToastShown = false;
+    }
   }catch(e){
     console.error('Save failed:', e);
-    showToast('تعذّر الحفظ على الخادم، يرجى المحاولة مرة أخرى');
+    markPendingSync();
+    const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+    if(isOffline){
+      if(!offlineToastShown){
+        showToast('لا يوجد اتصال بالإنترنت — بياناتك محفوظة على جهازك، وهتترفع تلقائيًا أول ما النت يرجع');
+        offlineToastShown = true;
+      }
+    } else {
+      showToast('تعذّر الحفظ على الخادم، سيُعاد المحاولة تلقائيًا — بياناتك محفوظة على جهازك في الوقت الحالي');
+    }
   }finally{
     saveInFlight = false;
     if(savePending){
@@ -182,4 +226,12 @@ export async function saveData(){
       saveData();
     }
   }
+}
+
+// أول ما النت يرجع، نحاول نرفع أي تعديلات معلّقة تلقائيًا من غير ما المستخدم
+// يحتاج يعمل أي تعديل جديد عشان الرفع يتحاول تاني.
+if(typeof window !== 'undefined'){
+  window.addEventListener('online', () => {
+    if(hasPendingSync()) saveData();
+  });
 }
