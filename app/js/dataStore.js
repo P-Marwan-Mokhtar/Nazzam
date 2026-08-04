@@ -4,7 +4,7 @@
 
 import { supabaseClient } from './config.js';
 import { todayStr } from './utils.js';
-import { LOCAL_BACKUP_KEY, showToast, state } from './state.js';
+import { LOCAL_BACKUP_KEY, PENDING_SYNC_KEY, showToast, state } from './state.js';
 import { currentUserId, ensureAuth } from './auth.js';
 import { render } from './render.js';
 
@@ -109,6 +109,42 @@ function loadLocalBackup(){
   }catch(e){ return null; }
 }
 
+// بنعلّم إن فيه تعديل محلي لسه ماوصلش للسيرفر (pending=true)، أو إننا لحقنا نرفعه (pending=false)
+function markPendingSync(pending){
+  try{
+    if(pending) localStorage.setItem(PENDING_SYNC_KEY, '1');
+    else localStorage.removeItem(PENDING_SYNC_KEY);
+  }catch(e){}
+}
+
+function hasPendingSync(){
+  try{ return localStorage.getItem(PENDING_SYNC_KEY) === '1'; }catch(e){ return false; }
+}
+
+// رفع الحالة الحالية مباشرة للسيرفر (نفس منطق الحفظ في saveData، بس من غير التعامل مع طابور الحفظ)
+async function pushToServer(){
+  const { error } = await supabaseClient
+    .from('user_data')
+    .upsert(
+      { user_id: currentUserId, data: state, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id' }
+    );
+  if(error) throw error;
+}
+
+// بتتنادى لما النت يرجع (أونلاين إيفنت) أو عند بداية تحميل البيانات:
+// لو فيه تعديلات محلية معلّقة، تحاول ترفعها للسيرفر قبل أي حاجة تانية
+export async function trySyncPending(){
+  if(!currentUserId || !hasPendingSync()) return;
+  try{
+    await pushToServer();
+    markPendingSync(false);
+    showToast('تمت مزامنة التغييرات اللي عملتها من غير نت بنجاح');
+  }catch(e){
+    console.warn('تعذر مزامنة التغييرات المعلّقة، هنحاول تاني لاحقًا:', e);
+  }
+}
+
 export async function loadData(){
   await ensureAuth();
 
@@ -116,6 +152,16 @@ export async function loadData(){
     // تعذر الاتصال بـ Supabase (مفيش نت مثلًا) - استخدم آخر نسخة محفوظة محليًا
     showToast('تعذّر الاتصال بالخادم، يعمل التطبيق حاليًا بنسخة محلية');
     applyLoadedState(loadLocalBackup());
+    return;
+  }
+
+  // لو فيه تعديلات محلية اتعملت من غير نت ولسه ماوصلتش للسيرفر: منجيبش نسخة
+  // السيرفر (القديمة) دلوقتي، عشان منكتبش فوق التعديلات دي. الأول نستخدم
+  // النسخة المحلية كما هي، ونحاول نرفعها للسيرفر؛ لو نجحنا يبقى الاتنين اتزامنوا،
+  // ولو فشلنا (لسه أوفلاين فعليًا) هنفضل نستخدم المحلية ونعيد المحاولة تاني بعدين.
+  if(hasPendingSync()){
+    applyLoadedState(loadLocalBackup());
+    await trySyncPending();
     return;
   }
 
@@ -151,6 +197,8 @@ let savePending = false;
 
 export async function saveData(){
   saveLocalBackup(); // حفظ فوري محلي مايفوتش أي تحديث حتى لو النت وقع
+  // نعتبر التعديل ده "معلّق" لحد ما نتأكد إنه فعلًا وصل للسيرفر بنجاح تحت
+  markPendingSync(true);
 
   if(!currentUserId){
     showToast('تعذّر الحفظ على الخادم (لا يوجد اتصال)، تم الحفظ محليًا فقط');
@@ -165,16 +213,11 @@ export async function saveData(){
   saveInFlight = true;
 
   try{
-    const { error } = await supabaseClient
-      .from('user_data')
-      .upsert(
-        { user_id: currentUserId, data: state, updated_at: new Date().toISOString() },
-        { onConflict: 'user_id' }
-      );
-    if(error) throw error;
+    await pushToServer();
+    markPendingSync(false); // اتزامنت بنجاح، مبقتش معلّقة
   }catch(e){
     console.error('Save failed:', e);
-    showToast('تعذّر الحفظ على الخادم، يرجى المحاولة مرة أخرى');
+    showToast('تعذّر الحفظ على الخادم، تم الحفظ محليًا وهيتم إعادة المحاولة تلقائيًا عند توفر الاتصال');
   }finally{
     saveInFlight = false;
     if(savePending){

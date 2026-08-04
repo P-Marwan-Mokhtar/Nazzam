@@ -6,6 +6,10 @@ import { toISO } from './utils.js';
 
 export const LOCAL_BACKUP_KEY = 'habit-data-v2';
 
+// بنستخدم المفتاح ده عشان نعرف إن فيه تعديلات محلية لسه ماوصلتش للسيرفر
+// (اتعملت وإحنا أوفلاين مثلًا)، عشان منكتبش فوقها لما نرجع نجيب نسخة السيرفر
+export const PENDING_SYNC_KEY = 'habit-data-pending-sync-v1';
+
 export const MISSED_POPUP_SHOWN_KEY = 'nazam-missed-popup-last-shown';
 
 export const contentEl = document.getElementById('content');

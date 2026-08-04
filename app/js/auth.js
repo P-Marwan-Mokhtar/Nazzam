@@ -19,8 +19,24 @@ let gateMode = 'signin'; // 'signin' | 'signup' | 'forgot' | 'forgot-sent' | 'co
 let accountFormBusy = false;
 
 // ------------------------------------------------------------
+// بتحاول تفرّق بين "فشل التحقق فعلاً" و"فشل بسبب مفيش نت".
+// أي خطأ فيه كلام زي Failed to fetch / NetworkError / Load failed
+// (وده اللي بيرجعه المتصفح لما الطلب مايوصلش للسيرفر أصلًا) بنعتبره مشكلة شبكة.
+// ------------------------------------------------------------
+function isNetworkError(e){
+  if(!navigator.onLine) return true;
+  const msg = ((e && e.message) || '').toLowerCase();
+  return msg.includes('failed to fetch') || msg.includes('networkerror') ||
+         msg.includes('load failed') || msg.includes('network request failed');
+}
+
+// ------------------------------------------------------------
 // فحص الجلسة: بيرجع true لو فيه مستخدم حقيقي مسجّل دخوله (مش مجهول/anonymous).
 // من غير ما ينشئ أي حساب مجهول جديد أبدًا.
+//
+// بيرجع القيمة 'offline' (مش false) لما التحقق نفسه يفشل بسبب مشكلة شبكة/نت،
+// عشان main.js يعرف إنه ميقفلش على المستخدم بشاشة تسجيل الدخول وهو ممكن يكون
+// أصلًا مسجّل دخول وعنده نسخة محلية شغالة، بس مجرد التوكن محتاج تجديد ومحتاج نت.
 // ------------------------------------------------------------
 export async function ensureAuth(){
   try{
@@ -41,6 +57,7 @@ export async function ensureAuth(){
   }catch(e){
     console.error('Auth error:', e);
     currentUserId = null;
+    if(isNetworkError(e)) return 'offline';
     return false;
   }
 }

@@ -6,7 +6,7 @@ import { uid } from './utils.js';
 import { showToast, state, ui } from './state.js';
 import { closeAccountModal, ensureAuth, openAccountModal, openAuthGate } from './auth.js';
 import { closeCalendarModal, openCalendarModal } from './calendar.js';
-import { exportDataAsJSON, importDataFromFile, loadData, saveData } from './dataStore.js';
+import { exportDataAsJSON, importDataFromFile, loadData, saveData, trySyncPending } from './dataStore.js';
 import { exportCalendarAsICS } from './icalExport.js';
 import { closeDraftsModal, openDraftsModal, renderDraftsModal } from './drafts.js';
 import { closeAddChoiceModal } from './events.js';
@@ -25,15 +25,27 @@ import { applyHashToState } from './routing.js';
 
 (async function init(){
   // أول حاجة: نتأكد إن فيه مستخدم حقيقي مسجّل دخوله فعليًا قبل ما نعرض أي حاجة من التطبيق.
-  // لو لأ، بنعرض شاشة تسجيل الدخول الإجبارية ونوقف هنا؛ التطبيق هيبدأ من جديد (reload)
-  // تلقائيًا بعد نجاح تسجيل الدخول أو إنشاء الحساب.
+  // لو لأ (وده فشل حقيقي، مش بسبب النت)، بنعرض شاشة تسجيل الدخول الإجبارية ونوقف هنا؛
+  // التطبيق هيبدأ من جديد (reload) تلقائيًا بعد نجاح تسجيل الدخول أو إنشاء الحساب.
+  //
+  // لو فشل التحقق بسبب مفيش نت (ensureAuth بترجع 'offline')، ميبقاش المفروض نقفل
+  // على المستخدم بشاشة اللوجين، لأنه ممكن يكون أصلًا مسجّل دخول وعنده نسخة محلية
+  // محفوظة (localStorage) من قبل كده. بنكمّل عادي ونسيب loadData() في dataStore.js
+  // تتكفّل بجلب آخر نسخة محلية محفوظة.
   const authed = await ensureAuth();
-  if(!authed){
+  if(authed === false){
     openAuthGate();
     return;
   }
   document.getElementById('app').style.display = '';
+  if(authed === 'offline'){
+    showToast('تعذّر التحقق من الاتصال بالخادم، يعمل التطبيق حاليًا بنسخة محلية');
+  }
   await startApp();
+
+  // لو النت رجع والتطبيق لسه مفتوح (من غير ما المستخدم يعمل reload)،
+  // نحاول نرفع أي تعديلات محلية معلّقة تلقائيًا
+  window.addEventListener('online', () => { trySyncPending(); });
 })();
 
 async function startApp(){
