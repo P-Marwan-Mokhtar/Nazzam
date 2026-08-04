@@ -13,23 +13,30 @@ import { renderTimerPanel } from './timers.js';
 import { renderWeekView } from './weekView.js';
 import { syncHashWithState } from './routing.js';
 
-// Auto-Recurrence logic: نضيف المهام المتكررة لليوم/الأيام الجاية لو يوم الأسبوع ده من ضمن أيامها، مرة واحدة بس لكل تاريخ.
+// Auto-Recurrence logic: نضيف المهام المتكررة لليوم/الأيام الجاية لو يوم الأسبوع ده من ضمن أيامها، مرة واحدة بس لكل (تاريخ + مهمة).
 // معزولة في دالة مستقلة عشان تُستخدم مع أي تاريخ (مش بس اليوم المختار)، زي أيام عرض الأسبوع.
+// ملحوظة: التتبع بقى لكل مهمة على حدة (مش ليوم كامل) — عشان لو المستخدم مسح نسخة مهمة معينة يدويًا
+// من يوم مستقبلي، القرار ده يتحفظ لمهمة دي بس ومش يمنع تقييم مهام متكررة تانية أو نفس المهمة بعد
+// ما يتغيّر التكرار بتاعها (تعديل/إلغاء/إعادة تفعيل) — التصفير بيحصل في recurrence.js.
 export function ensureDayMaterialized(dateStr){
   const today = todayStr();
   if(!state.pinnedInjected) state.pinnedInjected = {};
-  if(dateStr >= today && !state.pinnedInjected[dateStr] && state.recurringTasks && Object.keys(state.recurringTasks).length > 0) {
+  if(dateStr >= today && state.recurringTasks && Object.keys(state.recurringTasks).length > 0) {
     const weekday = fromISO(dateStr).getDay();
     if(!state.days[dateStr]) state.days[dateStr] = [];
+    if(!state.pinnedInjected[dateStr]) state.pinnedInjected[dateStr] = {};
+    const dayPinned = state.pinnedInjected[dateStr];
     let recurringAdded = false;
     Object.keys(state.recurringTasks).forEach(rName => {
       const rDays = state.recurringTasks[rName] || [];
-      if(rDays.includes(weekday) && !state.days[dateStr].some(t => t.name === rName)){
+      if(!rDays.includes(weekday)) return; // مش من أيام تكرارها أصلاً، مفيش قرار نسجله
+      if(dayPinned[rName]) return; // اتقرر مصيرها قبل كده في اليوم ده (اتحطت أو المستخدم شالها بنفسه)
+      if(!state.days[dateStr].some(t => t.name === rName)){
         state.days[dateStr].push({ id: uid(), name: rName, done: false, _fromRecurrence: true });
         recurringAdded = true;
       }
+      dayPinned[rName] = true;
     });
-    state.pinnedInjected[dateStr] = true;
     if(recurringAdded) saveData();
   }
 }

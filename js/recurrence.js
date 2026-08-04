@@ -69,10 +69,14 @@ async function saveRecurrence(){
 // ملحوظة: المقارنة دايمًا بالنسبة لـ"النهارده" الحقيقي، مش بالنسبة لـ ui.selectedDate —
 // عشان لو المستخدم لغى التكرار وهو واقف على يوم مستقبلي (زي لو كان رايح يشوف الشهر الجاي)،
 // الأيام المستقبلية التانية اللي كان زارها قبل كده (وبالتالي اتحقن فيها نسخة) تتنضف برضو.
+// وكمان بنصفّر "قرار" الأيام دي القديم بتاع المهمة دي (pinnedInjected) — عشان لو المستخدم
+// لغى التكرار وبعدين رجّعه تاني (أو غيّر أيامه)، الأيام اللي كان زارها قبل كده تتقيّم من جديد
+// صح على التكرار الجديد بدل ما تفضل عالقة على قرار اتاخد وقت التكرار القديم.
 function removeStaleRecurringInstances(taskName, currentDays){
   const today = todayStr();
   Object.keys(state.days).forEach(dateStr => {
     if(dateStr <= today) return;
+    if(state.pinnedInjected && state.pinnedInjected[dateStr]) delete state.pinnedInjected[dateStr][taskName];
     const weekday = fromISO(dateStr).getDay();
     if(currentDays.includes(weekday)) return;
     state.days[dateStr] = state.days[dateStr].filter(t => !(t.name === taskName && t._fromRecurrence && !t.done));
