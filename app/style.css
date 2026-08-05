@@ -2245,6 +2245,53 @@ body.dark-mode .account-error {
   padding: 16px 18px 20px;
   overflow-y: auto;
 }
+.tl-task-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+  color: var(--ink-soft);
+  margin-bottom: 18px;
+}
+.tl-task-meta .material-icons {
+  font-size: 20px;
+  color: var(--pen);
+}
+.tl-task-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tl-task-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--paper-line);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: start;
+  transition: background 0.15s ease;
+}
+.tl-task-btn:hover {
+  background: var(--pen-soft);
+}
+.tl-task-btn .material-icons {
+  font-size: 20px;
+  color: var(--pen);
+}
+.tl-task-btn.is-done .material-icons {
+  color: var(--done);
+}
+.tl-task-btn.danger .material-icons {
+  color: var(--missed);
+}
 .stat-block {
   background: var(--paper);
   border: 1px solid var(--paper-line);
@@ -3555,13 +3602,13 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   background: var(--pen-soft);
   border-inline-start: 3px solid var(--pen);
   border-radius: 8px;
-  padding: 4px 6px;
+  padding: 4px 8px;
   overflow: hidden;
   cursor: grab;
   touch-action: none;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   transition: box-shadow 0.15s ease;
 }
 .timeline-block.dragging,
@@ -3582,72 +3629,12 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 .timeline-block.priority-high { border-inline-start-color: var(--missed); }
 .timeline-block.priority-medium { border-inline-start-color: #d98c15; }
 .timeline-block.priority-low { border-inline-start-color: var(--done); }
-.timeline-block-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-.timeline-block-done-btn,
-.timeline-block-dup-btn,
-.timeline-block-del-btn {
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-  flex-shrink: 0;
-}
-body.dark-mode .timeline-block-done-btn,
-body.dark-mode .timeline-block-dup-btn,
-body.dark-mode .timeline-block-del-btn {
-  background: rgba(0, 0, 0, 0.3);
-}
-.timeline-block-done-btn .material-icons,
-.timeline-block-dup-btn .material-icons,
-.timeline-block-del-btn .material-icons {
-  font-size: 12px;
-  color: var(--ink);
-}
-.timeline-block-dup-btn .material-icons {
-  color: var(--ink-soft);
-}
-.timeline-block-del-btn .material-icons {
-  color: var(--missed);
-}
-.timeline-block.done .timeline-block-done-btn .material-icons {
-  color: var(--done);
-}
-.timeline-block-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
 .timeline-block-time {
   font-size: 0.68rem;
   color: var(--ink-soft);
   white-space: nowrap;
 }
 .timeline-block.short {
-  gap: 1px;
-  padding: 2px 6px;
-}
-.timeline-block.short .timeline-block-actions {
-  gap: 2px;
-}
-.timeline-block.short .timeline-block-done-btn,
-.timeline-block.short .timeline-block-dup-btn,
-.timeline-block.short .timeline-block-del-btn {
-  width: 13px;
-  height: 13px;
-}
-.timeline-block.short .timeline-block-content {
   flex-direction: row;
   align-items: center;
   gap: 6px;
