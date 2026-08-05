@@ -20,7 +20,7 @@ import { closeSubtasksModal } from './subtasks.js';
 import { checkMissedTasksPopup, closeMissedTasksModal, closeTimerTypeModal, ensureAudioContext, getDayTimers, renderTimerPanel, tickTimers } from './timers.js';
 import { closeDurationPicker, commitDurationPicker, openTimerDurationPicker } from './wheelPicker.js';
 import { toggleWeekView } from './weekView.js';
-import { toggleTimeBlockView } from './timeBlocking.js';
+import { closeTimelineTaskPopup, toggleTimeBlockView } from './timeBlocking.js';
 import { applyHashToState } from './routing.js';
 
 (async function init(){
@@ -329,6 +329,7 @@ async function startApp(){
       if(document.getElementById('recurrenceOverlay').classList.contains('open')) closeRecurrenceModal();
       if(document.getElementById('globalSearchOverlay').classList.contains('open')) closeGlobalSearchModal();
       if(document.getElementById('notificationSettingsOverlay').classList.contains('open')) closeNotificationSettingsModal();
+      if(document.getElementById('timelineTaskOverlay').classList.contains('open')) closeTimelineTaskPopup();
       if(ui.openDurationPopoverTaskId) hideDurationPopover();
       if(ui.openClockChoiceTaskId) hideClockChoicePopover();
       if(ui.openPriorityPopoverTaskId){ ui.openPriorityPopoverTaskId = null; render(); }

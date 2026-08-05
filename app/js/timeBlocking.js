@@ -148,21 +148,8 @@ export function renderTimeBlockView(){
       <div class="timeline-block ${t.done ? 'done' : ''} ${t.priority ? 'priority-' + t.priority : ''} ${isShortBlock(durationMin) ? 'short' : ''}"
            style="top:${top}px; height:${height}px; right:calc(${rightPct}% + 2px); width:calc(${widthPct}% - 6px);"
            data-id="${t.id}" data-start-min="${startMin}" data-duration-min="${durationMin}" title="${escapeAttr(t.name)}">
-        <div class="timeline-block-actions">
-          <button class="timeline-block-done-btn" data-action="tb-toggle-done" data-id="${t.id}" title="${t.done ? 'إلغاء الإنجاز' : 'إنجاز'}">
-            <span class="material-icons">${t.done ? 'check_circle' : 'radio_button_unchecked'}</span>
-          </button>
-          <button class="timeline-block-dup-btn" data-action="tb-duplicate" data-id="${t.id}" title="تكرار المهمة">
-            <span class="material-icons">content_copy</span>
-          </button>
-          <button class="timeline-block-del-btn" data-action="tb-remove" data-id="${t.id}" title="حذف من الجدول الزمني">
-            <span class="material-icons">close</span>
-          </button>
-        </div>
-        <div class="timeline-block-content">
-          <span class="timeline-block-time">${blockTimeLabel(startMin, durationMin)}</span>
-          <span class="timeline-block-name">${escapeHtml(t.name)}</span>
-        </div>
+        <span class="timeline-block-time">${blockTimeLabel(startMin, durationMin)}</span>
+        <span class="timeline-block-name">${escapeHtml(t.name)}</span>
         <div class="timeline-block-resize-handle" data-id="${t.id}"></div>
       </div>
     `;
@@ -224,41 +211,16 @@ function attachTimeBlockEvents(){
   if(nextBtn) nextBtn.onclick = () => { ui.selectedDate = addDays(ui.selectedDate, 1); render(); };
   if(todayBtn) todayBtn.onclick = () => { ui.selectedDate = todayStr(); render(); };
 
-  contentEl.querySelectorAll('.timeline-block-done-btn').forEach(btn => {
-    btn.onclick = async (e) => {
-      e.stopPropagation();
-      const id = btn.dataset.id;
-      const task = (state.days[ui.selectedDate] || []).find(t => t.id === id);
-      if(task){
-        task.done = !task.done;
-        render();
-        await saveData();
-      }
-    };
-  });
-
-  contentEl.querySelectorAll('.timeline-block-dup-btn').forEach(btn => {
-    btn.onclick = async (e) => {
-      e.stopPropagation();
-      duplicateTimelineTask(btn.dataset.id);
-    };
-  });
-
-  contentEl.querySelectorAll('.timeline-block-del-btn').forEach(btn => {
-    btn.onclick = async (e) => {
-      e.stopPropagation();
-      const task = (state.days[ui.selectedDate] || []).find(t => t.id === btn.dataset.id);
-      if(!task) return;
-      const isDup = !!task._dupOf;
-      await commitTaskTime(btn.dataset.id, null);
-      showToast(isDup ? 'تم حذف النسخة من الجدول الزمني' : 'تم إرجاع المهمة لقائمة المهام');
-    };
-  });
-
   contentEl.querySelectorAll('.timeline-block').forEach(blockEl => {
+    const taskId = blockEl.dataset.id;
     blockEl.addEventListener('pointerdown', (e) => {
-      if(e.target.closest('.timeline-block-resize-handle') || e.target.closest('.timeline-block-done-btn') || e.target.closest('.timeline-block-dup-btn') || e.target.closest('.timeline-block-del-btn')) return;
+      if(e.target.closest('.timeline-block-resize-handle')) return;
       startBlockMove(e, blockEl);
+    });
+    blockEl.addEventListener('click', (e) => {
+      if(e.target.closest('.timeline-block-resize-handle')) return;
+      if(lastSuppressedBlockClickId === taskId && Date.now() - lastSuppressedBlockClickAt < 400) return;
+      openTimelineTaskPopup(taskId);
     });
   });
 
@@ -282,7 +244,9 @@ function startBlockMove(e, blockEl){
   const track = document.getElementById('tbTrack');
   const startHour = Number(track.dataset.startHour);
   const startClientY = e.clientY;
+  const startClientX = e.clientX;
   const initialTop = parseFloat(blockEl.style.top);
+  let moved = false;
 
   blockEl.classList.add('dragging');
   try { blockEl.setPointerCapture(e.pointerId); } catch(err) {}
@@ -297,6 +261,7 @@ function startBlockMove(e, blockEl){
   }
 
   function onMove(ev){
+    if(Math.abs(ev.clientX - startClientX) > 4 || Math.abs(ev.clientY - startClientY) > 4) moved = true;
     const deltaY = ev.clientY - startClientY;
     let newTop = Math.max(0, initialTop + deltaY);
     const minutesPerPx = 60 / HOUR_PX;
@@ -317,9 +282,13 @@ function startBlockMove(e, blockEl){
     document.removeEventListener('pointerup', onUp);
 
     if(pointOverSide(ev.clientX, ev.clientY)){
+      if(moved) suppressBlockClick(taskId);
       commitTaskTime(taskId, null);
       return;
     }
+    // لمسة بسيطة من غير سحب — نسيبها للـ click يفتح الـ popup
+    if(!moved) return;
+    suppressBlockClick(taskId);
     const minutesPerPx = 60 / HOUR_PX;
     const finalTop = parseFloat(blockEl.style.top);
     const newStartMin = snapMinutes(startHour * 60 + finalTop * minutesPerPx);
@@ -338,12 +307,14 @@ function startBlockResize(e, handleEl){
   const startMin = Number(blockEl.dataset.startMin);
   const startClientY = e.clientY;
   const initialHeight = parseFloat(blockEl.style.height);
+  let moved = false;
 
   blockEl.classList.add('resizing');
   try { handleEl.setPointerCapture(e.pointerId); } catch(err) {}
 
   function onMove(ev){
     const deltaY = ev.clientY - startClientY;
+    if(Math.abs(deltaY) > 4) moved = true;
     const minHeightPx = MIN_DURATION_MIN * (HOUR_PX / 60);
     let newHeight = Math.max(minHeightPx, initialHeight + deltaY);
     blockEl.style.height = newHeight + 'px';
@@ -358,6 +329,7 @@ function startBlockResize(e, handleEl){
     blockEl.classList.remove('resizing');
     document.removeEventListener('pointermove', onMove);
     document.removeEventListener('pointerup', onUp);
+    if(moved) suppressBlockClick(taskId);
     const finalHeight = parseFloat(blockEl.style.height);
     const durationMin = Math.max(MIN_DURATION_MIN, snapMinutes(finalHeight * (60 / HOUR_PX)));
     commitTaskDuration(taskId, durationMin);
@@ -492,4 +464,76 @@ async function duplicateTimelineTask(taskId){
   render();
   await saveData();
   showToast(`تم تكرار "${task.name}"`);
+}
+
+// ============================================================
+// تفاصيل البلوك — popup زي Google Calendar: يفتح عند الضغط على البلوك
+// ويعرض اسم المهمة والوقت وأزرار (إنجاز / تكرار / حذف من الجدول الزمني)
+// ============================================================
+
+let lastSuppressedBlockClickId = null;
+let lastSuppressedBlockClickAt = 0;
+
+function suppressBlockClick(taskId){
+  lastSuppressedBlockClickId = taskId;
+  lastSuppressedBlockClickAt = Date.now();
+}
+
+export function openTimelineTaskPopup(taskId){
+  ui.activeTimelineTaskId = taskId;
+  renderTimelineTaskPopup();
+  document.getElementById('timelineTaskOverlay').classList.add('open');
+}
+
+export function closeTimelineTaskPopup(){
+  document.getElementById('timelineTaskOverlay').classList.remove('open');
+  ui.activeTimelineTaskId = null;
+}
+
+function renderTimelineTaskPopup(){
+  const overlay = document.getElementById('timelineTaskOverlay');
+  if(!overlay) return;
+  const task = (state.days[ui.selectedDate] || []).find(t => t.id === ui.activeTimelineTaskId);
+  if(!task){
+    closeTimelineTaskPopup();
+    return;
+  }
+  const startMin = timeStrToMinutes(task.startTime);
+  const durationMin = Math.max(MIN_DURATION_MIN, parseDurationToMinutes(task.duration) || DEFAULT_DURATION_MIN);
+  document.getElementById('timelineTaskTitle').textContent = task.name;
+  document.getElementById('timelineTaskTime').textContent = blockTimeLabel(startMin === null ? 0 : startMin, durationMin);
+  const doneBtn = document.getElementById('timelineTaskDoneBtn');
+  doneBtn.classList.toggle('is-done', !!task.done);
+  doneBtn.querySelector('.material-icons').textContent = task.done ? 'check_circle' : 'radio_button_unchecked';
+  document.getElementById('timelineTaskDoneLabel').textContent = task.done ? 'إلغاء الإنجاز' : 'إنجاز';
+}
+
+const timelineTaskOverlay = document.getElementById('timelineTaskOverlay');
+if(timelineTaskOverlay){
+  timelineTaskOverlay.addEventListener('click', (e) => {
+    if(e.target.id === 'timelineTaskOverlay') closeTimelineTaskPopup();
+  });
+  document.getElementById('closeTimelineTaskBtn').onclick = closeTimelineTaskPopup;
+  document.getElementById('timelineTaskDoneBtn').onclick = async () => {
+    const task = (state.days[ui.selectedDate] || []).find(t => t.id === ui.activeTimelineTaskId);
+    if(!task) return;
+    task.done = !task.done;
+    render();
+    renderTimelineTaskPopup();
+    await saveData();
+  };
+  document.getElementById('timelineTaskDupBtn').onclick = () => {
+    if(!ui.activeTimelineTaskId) return;
+    const id = ui.activeTimelineTaskId;
+    closeTimelineTaskPopup();
+    duplicateTimelineTask(id);
+  };
+  document.getElementById('timelineTaskDelBtn').onclick = async () => {
+    const id = ui.activeTimelineTaskId;
+    const task = (state.days[ui.selectedDate] || []).find(t => t.id === id);
+    const isDup = !!(task && task._dupOf);
+    closeTimelineTaskPopup();
+    await commitTaskTime(id, null);
+    showToast(isDup ? 'تم حذف النسخة من الجدول الزمني' : 'تم إرجاع المهمة لقائمة المهام');
+  };
 }
