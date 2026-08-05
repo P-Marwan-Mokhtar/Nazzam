@@ -16,7 +16,11 @@
             window.location.replace(
               p + "/" + window.location.search + window.location.hash
             );
+            return;
           }
+          // بنعلّم إن التاب ده جوا التطبيق — عشان لو حد مسح /app/ من الرابط
+          // ووصل للجذر، اللاندينج تعرف إنه كان جوا التطبيق وترجّعه فورًا.
+          sessionStorage.setItem("nazam-in-app", "1");
         } catch (e) {}
       })();
     </script>
