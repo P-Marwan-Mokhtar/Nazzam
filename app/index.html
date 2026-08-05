@@ -4,6 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NAZZAM</title>
+
+    <script>
+      // لو فتح الموقع على /app من غير الـ slash الأخيرة (app بدل app/) بتكسر كل
+      // المسارات النسبية (js/main.js، img/...)، فالموقع بيظهر بايظ. نرجّعه فورًا
+      // للنسخة الصحيحة app/ مع الحفاظ على أي بحث أو hash في الرابط.
+      (function () {
+        try {
+          var p = window.location.pathname;
+          if (/\/app$/.test(p)) {
+            window.location.replace(
+              p + "/" + window.location.search + window.location.hash
+            );
+          }
+        } catch (e) {}
+      })();
+    </script>
     <meta
       name="description"
       content="بنك مهامك الجاهز.. نظّم مهامك اليومية، تابع الوقت، وحقق أهدافك"
@@ -87,17 +103,21 @@
             </button>
           </div>
 
-         <a href="/app/"> <div class="header-logo-slot">
-            <img
-              src="img/logo-light.png"
-              alt="Nazzam"
-              class="header-logo header-logo-light"
-            /></a>
-         <a href="/app/">   <img
-              src="img/logo-dark.png"
-              alt="Nazzam"
-              class="header-logo header-logo-dark"
-            /></a>
+          <div class="header-logo-slot">
+            <a href="./" class="js-header-logo" title="العودة إلى مهام اليوم">
+              <img
+                src="img/logo-light.png"
+                alt="Nazzam"
+                class="header-logo header-logo-light"
+              />
+            </a>
+            <a href="./" class="js-header-logo" title="العودة إلى مهام اليوم">
+              <img
+                src="img/logo-dark.png"
+                alt="Nazzam"
+                class="header-logo header-logo-dark"
+              />
+            </a>
           </div>
 
           <div class="header-actions-wrap">
