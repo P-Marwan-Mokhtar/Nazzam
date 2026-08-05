@@ -3591,7 +3591,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   flex-direction: row;
   align-items: center;
   gap: 6px;
-  padding: 2px 8px 2px 44px;
+  padding: 2px 8px 2px 66px;
   white-space: nowrap;
 }
 .timeline-block.short .timeline-block-time {
@@ -3655,6 +3655,28 @@ body.dark-mode .timeline-block-dup-btn {
 .timeline-block-dup-btn .material-icons {
   font-size: 13px;
   color: var(--ink-soft);
+}
+.timeline-block-del-btn {
+  position: absolute;
+  top: 3px;
+  left: 45px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+body.dark-mode .timeline-block-del-btn {
+  background: rgba(0, 0, 0, 0.3);
+}
+.timeline-block-del-btn .material-icons {
+  font-size: 13px;
+  color: var(--missed);
 }
 .timeline-block-resize-handle {
   position: absolute;
