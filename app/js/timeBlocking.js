@@ -5,8 +5,8 @@
 // زي Google Calendar.
 // ============================================================
 
-import { addDays, escapeAttr, escapeHtml, fmtDay, formatMinutes, fromISO, parseDurationToMinutes, timeStrToMinutes, todayStr } from './utils.js';
-import { contentEl, state, ui } from './state.js';
+import { addDays, escapeAttr, escapeHtml, fmtDay, formatMinutes, fromISO, parseDurationToMinutes, timeStrToMinutes, todayStr, uid } from './utils.js';
+import { contentEl, showToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { formatTimeArabic } from './timePicker.js';
 import { ensureDayMaterialized, render } from './render.js';
@@ -151,6 +151,9 @@ export function renderTimeBlockView(){
         <button class="timeline-block-done-btn" data-action="tb-toggle-done" data-id="${t.id}" title="${t.done ? 'إلغاء الإنجاز' : 'إنجاز'}">
           <span class="material-icons">${t.done ? 'check_circle' : 'radio_button_unchecked'}</span>
         </button>
+        <button class="timeline-block-dup-btn" data-action="tb-duplicate" data-id="${t.id}" title="تكرار المهمة">
+          <span class="material-icons">content_copy</span>
+        </button>
         <span class="timeline-block-time">${blockTimeLabel(startMin, durationMin)}</span>
         <span class="timeline-block-name">${escapeHtml(t.name)}</span>
         <div class="timeline-block-resize-handle" data-id="${t.id}"></div>
@@ -227,9 +230,16 @@ function attachTimeBlockEvents(){
     };
   });
 
+  contentEl.querySelectorAll('.timeline-block-dup-btn').forEach(btn => {
+    btn.onclick = async (e) => {
+      e.stopPropagation();
+      duplicateTimelineTask(btn.dataset.id);
+    };
+  });
+
   contentEl.querySelectorAll('.timeline-block').forEach(blockEl => {
     blockEl.addEventListener('pointerdown', (e) => {
-      if(e.target.closest('.timeline-block-resize-handle') || e.target.closest('.timeline-block-done-btn')) return;
+      if(e.target.closest('.timeline-block-resize-handle') || e.target.closest('.timeline-block-done-btn') || e.target.closest('.timeline-block-dup-btn')) return;
       startBlockMove(e, blockEl);
     });
   });
@@ -430,4 +440,27 @@ async function commitTaskDuration(taskId, minutes){
   task.duration = formatMinutes(minutes);
   render();
   await saveData();
+}
+
+async function duplicateTimelineTask(taskId){
+  const tasks = state.days[ui.selectedDate] || [];
+  const task = tasks.find(t => t.id === taskId);
+  if(!task) return;
+  const startMin = timeStrToMinutes(task.startTime);
+  const durationMin = Math.max(MIN_DURATION_MIN, parseDurationToMinutes(task.duration) || DEFAULT_DURATION_MIN);
+  const copy = {
+    id: uid(),
+    name: task.name,
+    done: false,
+    startTime: minutesToHHMM((startMin === null ? 0 : startMin) + durationMin),
+    duration: task.duration || formatMinutes(durationMin),
+  };
+  if(task.priority) copy.priority = task.priority;
+  if(task.subtasks && task.subtasks.length){
+    copy.subtasks = task.subtasks.map(s => ({ id: uid(), title: s.title, done: false }));
+  }
+  tasks.push(copy);
+  render();
+  await saveData();
+  showToast(`تم تكرار "${task.name}"`);
 }
