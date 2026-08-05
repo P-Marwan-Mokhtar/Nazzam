@@ -39,7 +39,7 @@ export function renderWeekView(){
   for(let i = 0; i < 7; i++){
     const dateStr = addDays(weekStart, i);
     ensureDayMaterialized(dateStr);
-    days.push({ dateStr, tasks: state.days[dateStr] || [] });
+    days.push({ dateStr, tasks: (state.days[dateStr] || []).filter(t => !t._dupOf) });
   }
 
   const d0 = fromISO(weekStart);

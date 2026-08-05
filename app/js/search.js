@@ -19,6 +19,7 @@ export function renderGlobalSearchResults(){
   const matches = [];
   Object.keys(state.days).forEach(date => {
     (state.days[date] || []).forEach(t => {
+      if(t._dupOf) return;
       if(normalizeArabic(t.name).includes(q)){
         matches.push({ date, task: t });
       }

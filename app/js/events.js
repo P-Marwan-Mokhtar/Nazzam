@@ -123,11 +123,24 @@ export function attachEvents(){
       const idx = list.findIndex(t => t.id === id);
       if(idx === -1) return;
       const [removedTask] = list.splice(idx, 1);
+      // النسخ المكررة تبع المهمة دي بتتشال معاها عشان متفضلش معلقة في الجدول الزمني
+      const removedDupIndices = [];
+      const removedDups = [];
+      for(let i = list.length - 1; i >= 0; i--){
+        if(list[i]._dupOf === id){
+          removedDupIndices.push(i);
+          removedDups.push(list[i]);
+          list.splice(i, 1);
+        }
+      }
       if(ui.pickerTaskId === id) closeDurationPicker();
       render();
       await saveData();
       showUndoToast(`تم حذف "${removedTask.name}"`, async () => {
         list.splice(idx, 0, removedTask);
+        removedDupIndices.forEach((pos, k) => {
+          list.splice(pos, 0, removedDups[k]);
+        });
         render();
         await saveData();
       });

@@ -424,8 +424,18 @@ function startSideItemDrag(e, itemEl){
 }
 
 async function commitTaskTime(taskId, minutesOrNull){
-  const task = (state.days[ui.selectedDate] || []).find(t => t.id === taskId);
-  if(!task) return;
+  const tasks = state.days[ui.selectedDate] || [];
+  const idx = tasks.findIndex(t => t.id === taskId);
+  if(idx === -1) return;
+  const task = tasks[idx];
+  // النسخ المكررة عايشة في الجدول الزمني بس — لو رجعناها لغير مجدولة بنشيلها خالص
+  // عشان متظهرش تاني في قائمة المهام أو في القائمة الجانبية
+  if(minutesOrNull === null && task._dupOf){
+    tasks.splice(idx, 1);
+    render();
+    await saveData();
+    return;
+  }
   task.startTime = minutesOrNull === null ? null : minutesToHHMM(minutesOrNull);
   // لما بنشيل المهمة من الجدول الزمني (نرجّعها لغير مجدولة)، بنمسح مدتها كمان
   // عشان متفضلش القيمة دي عالقة وتظهر في المهام اليومية بعد ما شيلناها من هنا
@@ -450,6 +460,7 @@ async function duplicateTimelineTask(taskId){
   const durationMin = Math.max(MIN_DURATION_MIN, parseDurationToMinutes(task.duration) || DEFAULT_DURATION_MIN);
   const copy = {
     id: uid(),
+    _dupOf: task._dupOf || task.id,
     name: task.name,
     done: false,
     startTime: minutesToHHMM((startMin === null ? 0 : startMin) + durationMin),
