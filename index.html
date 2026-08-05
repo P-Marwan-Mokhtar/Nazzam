@@ -4,6 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>نظم — نظّم يومك، لا مهامك فقط</title>
+
+    <script>
+      // لو فتح الموقع على /app من غير الـ slash الأخيرة (app بدل app/) قد تخدم
+      // بعض السيرفرات صفحة اللاندينج على المسار ده بدل التطبيق. نرجّع المستخدم
+      // فورًا للنسخة الصحيحة app/ مع الحفاظ على أي بحث أو hash في الرابط.
+      (function () {
+        try {
+          var p = window.location.pathname;
+          if (/\/app$/.test(p)) {
+            window.location.replace(
+              p + "/" + window.location.search + window.location.hash
+            );
+          }
+        } catch (e) {}
+      })();
+    </script>
     <meta
       name="description"
       content="نظم يجمع لك المهام والوقت والتكرار في بنك واحد ذكي. جدول زمني بالسحب والإفلات، مؤقتات تركيز، إحصائيات وسلسلة إنجاز يومية، ويعمل حتى دون اتصال بالإنترنت."
