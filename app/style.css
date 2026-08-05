@@ -3591,7 +3591,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   flex-direction: row;
   align-items: center;
   gap: 6px;
-  padding: 2px 8px 2px 24px;
+  padding: 2px 8px 2px 44px;
   white-space: nowrap;
 }
 .timeline-block.short .timeline-block-time {
@@ -3633,6 +3633,28 @@ body.dark-mode .timeline-block-done-btn {
 }
 .timeline-block.done .timeline-block-done-btn .material-icons {
   color: var(--done);
+}
+.timeline-block-dup-btn {
+  position: absolute;
+  top: 3px;
+  left: 24px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+body.dark-mode .timeline-block-dup-btn {
+  background: rgba(0, 0, 0, 0.3);
+}
+.timeline-block-dup-btn .material-icons {
+  font-size: 13px;
+  color: var(--ink-soft);
 }
 .timeline-block-resize-handle {
   position: absolute;
