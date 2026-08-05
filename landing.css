@@ -263,54 +263,6 @@ h1, h2, h3 {
   50% { transform: translateY(-8px); }
 }
 
-/* ===== لقطات شاشة حقيقية من التطبيق ===== */
-.lp-shot-wrap {
-  position: relative;
-  isolation: isolate;
-}
-.lp-shot-wrap::before {
-  content: "";
-  position: absolute;
-  inset: -12% -10%;
-  background:
-    radial-gradient(closest-side, rgba(237, 75, 43, 0.18), transparent 72%),
-    radial-gradient(closest-side, rgba(62, 122, 92, 0.14), transparent 70%);
-  background-position: 12% 15%, 88% 90%;
-  background-repeat: no-repeat;
-  background-size: 60% 60%, 55% 55%;
-  filter: blur(18px);
-  z-index: -1;
-  pointer-events: none;
-}
-.lp-shot {
-  display: block;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--paper-line);
-  background: var(--card);
-  transform: rotate(-1.4deg);
-  transition: transform 0.35s ease, box-shadow 0.35s ease;
-}
-.lp-shot img {
-  width: 100%;
-  display: block;
-}
-.lp-shot-wrap:hover .lp-shot {
-  transform: rotate(0deg) translateY(-6px);
-  box-shadow: 0 22px 44px rgba(34, 48, 61, 0.18), 0 8px 16px rgba(34, 48, 61, 0.08);
-}
-
-/* لقطات صفوف المميزات: بدون ميلان، تبقى مستقيمة ومحاذية للنص */
-.lp-feature-visual .lp-shot { transform: none; }
-.lp-feature-visual .lp-shot-wrap:hover .lp-shot { transform: translateY(-6px); }
-.lp-feature-visual .lp-shot-wrap::before { inset: -8% -6%; }
-
-/* لقطات الكاروسيل: أصغر ومتمركزة */
-.lp-shot-small { max-width: 460px; margin: 0 auto; }
-.lp-shot-small .lp-shot { transform: none; }
-.lp-shot-small:hover .lp-shot { transform: translateY(-4px); }
-
 /* ===== شريط المميزات المتحرك ===== */
 .lp-strip {
   border-top: 1px solid var(--paper-line);
