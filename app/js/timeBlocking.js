@@ -154,6 +154,9 @@ export function renderTimeBlockView(){
         <button class="timeline-block-dup-btn" data-action="tb-duplicate" data-id="${t.id}" title="تكرار المهمة">
           <span class="material-icons">content_copy</span>
         </button>
+        <button class="timeline-block-del-btn" data-action="tb-remove" data-id="${t.id}" title="حذف من الجدول الزمني">
+          <span class="material-icons">delete</span>
+        </button>
         <span class="timeline-block-time">${blockTimeLabel(startMin, durationMin)}</span>
         <span class="timeline-block-name">${escapeHtml(t.name)}</span>
         <div class="timeline-block-resize-handle" data-id="${t.id}"></div>
@@ -237,9 +240,20 @@ function attachTimeBlockEvents(){
     };
   });
 
+  contentEl.querySelectorAll('.timeline-block-del-btn').forEach(btn => {
+    btn.onclick = async (e) => {
+      e.stopPropagation();
+      const task = (state.days[ui.selectedDate] || []).find(t => t.id === btn.dataset.id);
+      if(!task) return;
+      const isDup = !!task._dupOf;
+      await commitTaskTime(btn.dataset.id, null);
+      showToast(isDup ? 'تم حذف النسخة من الجدول الزمني' : 'تم إرجاع المهمة لقائمة المهام');
+    };
+  });
+
   contentEl.querySelectorAll('.timeline-block').forEach(blockEl => {
     blockEl.addEventListener('pointerdown', (e) => {
-      if(e.target.closest('.timeline-block-resize-handle') || e.target.closest('.timeline-block-done-btn') || e.target.closest('.timeline-block-dup-btn')) return;
+      if(e.target.closest('.timeline-block-resize-handle') || e.target.closest('.timeline-block-done-btn') || e.target.closest('.timeline-block-dup-btn') || e.target.closest('.timeline-block-del-btn')) return;
       startBlockMove(e, blockEl);
     });
   });
