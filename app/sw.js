@@ -5,11 +5,17 @@
 // ملاحظة مهمة: أي طلبات لسيرفر Supabase أو أي API خارجي بترجع لحالها للشبكة مباشرة
 // (مش بنتدخّل فيها) عشان بيانات المستخدم تفضل دايمًا محدّثة ومتزامنة صح.
 
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const CACHE_NAME = `daily-tasks-shell-${CACHE_VERSION}`;
 
 // الملفات الأساسية اللي بتكوّن "هيكل" التطبيق (App Shell)
-// ملحوظة: شلنا app.js من هنا لأنه بقى مقسّم لملفات متعددة في مجلد js/
+// ملحوظة: لازم كل ملفات js/ تتحط هنا صراحةً (كانت قبل كده بتتخزن "بالصدفة" بس
+// لو المستخدم فتح الموقع أونلاين قبل كده - أول فتحة أوفلاين كانت ممكن تفشل).
+// كمان ضفنا نسخة محلية من مكتبتي Supabase و Chart.js (js/vendor/) بدل الاعتماد
+// على CDN خارجي، لأن الـ fetch handler تحت ده بيسيب أي طلب من دومين تاني (CDN)
+// يمشي عادي للشبكة من غير كاش - فلو محصلش نت، السكريبتات دي كانت بتفشل تتحمل
+// وده كان بيوقف main.js كله (لأنه module واحد بيعمل import لباقي الملفات)
+// فالتطبيق كان بيفضل شاشة فاضية (مفيش غير الهيدر بتاع المتصفح).
 const PRECACHE_URLS = [
   './',
   './index.html',
@@ -19,6 +25,35 @@ const PRECACHE_URLS = [
   './icons/icon-512.png',
   './icons/icon-maskable-192.png',
   './icons/icon-maskable-512.png',
+  './icons/favicon.ico',
+  './icons/apple-touch-icon.png',
+  './img/logo-light.png',
+  './img/logo-dark.png',
+  './js/main.js',
+  './js/config.js',
+  './js/auth.js',
+  './js/state.js',
+  './js/utils.js',
+  './js/render.js',
+  './js/routing.js',
+  './js/dataStore.js',
+  './js/calendar.js',
+  './js/drafts.js',
+  './js/events.js',
+  './js/icalExport.js',
+  './js/notifications.js',
+  './js/popovers.js',
+  './js/recurrence.js',
+  './js/search.js',
+  './js/stats.js',
+  './js/subtasks.js',
+  './js/timeBlocking.js',
+  './js/timePicker.js',
+  './js/timers.js',
+  './js/weekView.js',
+  './js/wheelPicker.js',
+  './js/vendor/supabase.js',
+  './js/vendor/chart.umd.min.js',
 ];
 
 self.addEventListener('install', (event) => {
