@@ -16,6 +16,13 @@
             window.location.replace(
               p + "/" + window.location.search + window.location.hash
             );
+            return;
+          }
+          // لو التاب ده كان جوا التطبيق (app/) ومسح /app/ من الرابط ووصل هنا،
+          // نرجّعه فورًا للتطبيق بدل ما يفتح اللاندينج — العلامة دي بتتحط من
+          // app/index.html في sessionStorage وبتفضل موجودة في نفس التاب بس.
+          if (sessionStorage.getItem("nazam-in-app") === "1") {
+            window.location.replace("./app/");
           }
         } catch (e) {}
       })();
