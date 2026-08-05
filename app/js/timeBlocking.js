@@ -148,17 +148,21 @@ export function renderTimeBlockView(){
       <div class="timeline-block ${t.done ? 'done' : ''} ${t.priority ? 'priority-' + t.priority : ''} ${isShortBlock(durationMin) ? 'short' : ''}"
            style="top:${top}px; height:${height}px; right:calc(${rightPct}% + 2px); width:calc(${widthPct}% - 6px);"
            data-id="${t.id}" data-start-min="${startMin}" data-duration-min="${durationMin}" title="${escapeAttr(t.name)}">
-        <button class="timeline-block-done-btn" data-action="tb-toggle-done" data-id="${t.id}" title="${t.done ? 'إلغاء الإنجاز' : 'إنجاز'}">
-          <span class="material-icons">${t.done ? 'check_circle' : 'radio_button_unchecked'}</span>
-        </button>
-        <button class="timeline-block-dup-btn" data-action="tb-duplicate" data-id="${t.id}" title="تكرار المهمة">
-          <span class="material-icons">content_copy</span>
-        </button>
-        <button class="timeline-block-del-btn" data-action="tb-remove" data-id="${t.id}" title="حذف من الجدول الزمني">
-          <span class="material-icons">close</span>
-        </button>
-        <span class="timeline-block-time">${blockTimeLabel(startMin, durationMin)}</span>
-        <span class="timeline-block-name">${escapeHtml(t.name)}</span>
+        <div class="timeline-block-actions">
+          <button class="timeline-block-done-btn" data-action="tb-toggle-done" data-id="${t.id}" title="${t.done ? 'إلغاء الإنجاز' : 'إنجاز'}">
+            <span class="material-icons">${t.done ? 'check_circle' : 'radio_button_unchecked'}</span>
+          </button>
+          <button class="timeline-block-dup-btn" data-action="tb-duplicate" data-id="${t.id}" title="تكرار المهمة">
+            <span class="material-icons">content_copy</span>
+          </button>
+          <button class="timeline-block-del-btn" data-action="tb-remove" data-id="${t.id}" title="حذف من الجدول الزمني">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+        <div class="timeline-block-content">
+          <span class="timeline-block-time">${blockTimeLabel(startMin, durationMin)}</span>
+          <span class="timeline-block-name">${escapeHtml(t.name)}</span>
+        </div>
         <div class="timeline-block-resize-handle" data-id="${t.id}"></div>
       </div>
     `;
