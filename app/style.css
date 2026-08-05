@@ -3555,7 +3555,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   background: var(--pen-soft);
   border-inline-start: 3px solid var(--pen);
   border-radius: 8px;
-  padding: 4px 8px;
+  padding: 4px 8px 4px 66px;
   overflow: hidden;
   cursor: grab;
   touch-action: none;
