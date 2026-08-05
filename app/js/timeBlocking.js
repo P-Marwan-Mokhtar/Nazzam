@@ -501,7 +501,7 @@ function renderTimelineTaskPopup(){
   const startMin = timeStrToMinutes(task.startTime);
   const durationMin = Math.max(MIN_DURATION_MIN, parseDurationToMinutes(task.duration) || DEFAULT_DURATION_MIN);
   document.getElementById('timelineTaskTitle').textContent = task.name;
-  document.getElementById('timelineTaskTime').textContent = blockTimeLabel(startMin === null ? 0 : startMin, durationMin);
+  document.getElementById('timelineTaskTime').textContent = timeRangeLabel(startMin === null ? 0 : startMin, durationMin);
   const doneBtn = document.getElementById('timelineTaskDoneBtn');
   doneBtn.classList.toggle('is-done', !!task.done);
   doneBtn.querySelector('.material-icons').textContent = task.done ? 'check_circle' : 'radio_button_unchecked';
