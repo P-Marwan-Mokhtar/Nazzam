@@ -15,8 +15,8 @@ const HOUR_PX = 64;
 const SNAP_MIN = 5;
 const DEFAULT_DURATION_MIN = 30;
 const MIN_DURATION_MIN = 10;
-const DEFAULT_START_HOUR = 6;
-const DEFAULT_END_HOUR = 22;
+const DEFAULT_START_HOUR = 1;
+const DEFAULT_END_HOUR = 23;
 
 export function toggleTimeBlockView(){
   const wasOpen = ui.timeBlockViewOpen;
@@ -123,7 +123,7 @@ export function renderTimeBlockView(){
   let hoursHtml = '';
   for(let h = startHour; h <= endHour; h++){
     const top = (h - startHour) * HOUR_PX;
-    hoursHtml += `<div class="timeline-hour-line" style="top:${top}px"><span class="timeline-hour-label">${String(h).padStart(2, '0')}:00</span></div>`;
+    hoursHtml += `<div class="timeline-hour-line" style="top:${top}px"><span class="timeline-hour-label">${formatTimeArabic(String(h).padStart(2, '0') + ':00')}</span></div>`;
   }
 
   let nowLineHtml = '';
