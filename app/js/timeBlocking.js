@@ -155,7 +155,7 @@ export function renderTimeBlockView(){
           <span class="material-icons">content_copy</span>
         </button>
         <button class="timeline-block-del-btn" data-action="tb-remove" data-id="${t.id}" title="حذف من الجدول الزمني">
-          <span class="material-icons">delete</span>
+          <span class="material-icons">close</span>
         </button>
         <span class="timeline-block-time">${blockTimeLabel(startMin, durationMin)}</span>
         <span class="timeline-block-name">${escapeHtml(t.name)}</span>
