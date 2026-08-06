@@ -105,7 +105,7 @@ export function formatHM(ms){
   const totalMin = Math.round(ms / 60000);
   const h = Math.floor(totalMin / 60);
   const m = totalMin % 60;
-  if(h > 0 && m > 0) return ` ${m}س${h}د `;
+  if(h > 0 && m > 0) return `${m}س${h} د`;
   if(h > 0) return `${h}س`;
   if(m > 0) return `${m}د`;
   return '0د';
