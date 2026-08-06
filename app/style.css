@@ -1720,6 +1720,7 @@ body.dark-mode .priority-dot-medium {
   display: flex;
   align-items: center;
   gap: 3px;
+  direction: ltr;
 }
 .timer-target-label .material-icons {
   font-size: 13px;
@@ -2429,6 +2430,7 @@ body.dark-mode .account-error {
 .stats-summary-pill strong {
   font-size: 1.15rem;
   color: var(--ink);
+  direction: ltr;
 }
 .stats-summary-pill small {
   font-size: 0.72rem;
@@ -2514,6 +2516,7 @@ body.dark-mode .account-error {
   font-weight: 800;
   color: var(--ink);
   white-space: nowrap;
+  direction: ltr;
 }
 .week-compare-values small {
   font-size: 0.72rem;
