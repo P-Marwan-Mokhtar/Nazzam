@@ -2516,7 +2516,7 @@ body.dark-mode .account-error {
   font-weight: 800;
   color: var(--ink);
   white-space: nowrap;
-  direction: ltr;
+  direction: rtl;
 }
 .week-compare-values small {
   font-size: 0.72rem;
