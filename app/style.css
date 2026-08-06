@@ -686,7 +686,7 @@ body.dark-mode .header-logo-dark {
   color: var(--ink-soft);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
-  direction: ltr;
+
 }
 .duration-badge-actual-only .material-icons {
   font-size: 15px;
@@ -2430,7 +2430,7 @@ body.dark-mode .account-error {
 .stats-summary-pill strong {
   font-size: 1.15rem;
   color: var(--ink);
-  direction: ltr;
+  
 }
 .stats-summary-pill small {
   font-size: 0.72rem;
