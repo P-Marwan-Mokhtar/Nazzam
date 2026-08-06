@@ -739,7 +739,7 @@ body.dark-mode .header-logo-dark {
   font-weight: 800;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
-  direction: ltr;
+ 
 }
 .duration-popover-row.is-over .duration-popover-value {
   color: var(--pen);
