@@ -346,7 +346,7 @@ function destroyStatsCharts(){
 // نقطة الدخول الوحيدة لشاشة الإحصائيات: بتحدد المدى الحالي (يوم/أسبوع) وتودّي للدالة المناسبة
 export function renderStatsView(){
   const mode = ui.statsRangeMode || 'week';
-  if(mode === 'day') renderDayStatsView(todayStr());
+  if(mode === 'day') renderDayStatsView(ui.selectedDate || todayStr());
   else renderWeekStatsView();
 }
 
