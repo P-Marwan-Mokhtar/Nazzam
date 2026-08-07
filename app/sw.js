@@ -141,8 +141,8 @@ self.addEventListener('push', (event) => {
   const title = data.title || 'المهام اليومية';
   const options = {
     body: data.body || 'عندك مهام تستحق الإنجاز اليوم',
-    icon: 'icons/icon-192.png',
-    badge: 'icons/icon-192.png',
+    icon: '/app/icons/icon-192.png',
+    badge: '/app/icons/icon-192.png',
     dir: 'rtl',
     lang: 'ar',
     data: { url: data.url || './index.html' }
