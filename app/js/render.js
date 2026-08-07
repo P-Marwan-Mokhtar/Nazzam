@@ -278,6 +278,11 @@ export function render(){
 
       html += `
         <div class="task-row ${t.done?'done':''} ${(!t.done && isPastDay)?'missed':''}" draggable="true" data-drag-id="${t.id}">
+          ${t.remindAt ? `
+            <button class="reminder-float" data-action="open-reminder" data-id="${t.id}" title="تذكير: ${formatTimeArabic(t.remindAt)} — اضغط للتعديل أو الإزالة">
+              <span class="material-icons">notifications_active</span>
+            </button>
+          ` : ''}
           <div class="task-main" data-action="toggle-task" data-id="${t.id}">
             ${ui.editingTaskId === t.id ? `
               <div class="inline-edit-wrap">
@@ -293,11 +298,6 @@ export function render(){
             <button class="clock-btn" data-action="toggle-duration" data-id="${t.id}" title="حدد الهدف أو الوقت الفعلي">
               <span class="material-icons">schedule</span>
             </button>
-            ${t.remindAt ? `
-              <button class="reminder-badge" data-action="open-reminder" data-id="${t.id}" title="تذكير: ${formatTimeArabic(t.remindAt)} — اضغط للتعديل">
-                <span class="material-icons">notifications_active</span>${formatTimeArabic(t.remindAt)}
-              </button>
-            ` : ``}
             ${(t.duration || t.actualDuration) ? `
               <button class="duration-badge ${targetMin > 0 && pct >= 100 ? 'over' : ''}" id="durationBadge_${t.id}" data-action="toggle-duration-view" data-id="${t.id}" title="اضغط لعرض الهدف والوقت الفعلي">
                 ${targetMin > 0 ? `

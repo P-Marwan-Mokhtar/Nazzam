@@ -551,6 +551,7 @@ body.dark-mode .header-logo-dark {
   width: auto;
   align-items: center;
   gap: 8px;
+  position: relative;
   transition:
     opacity 0.15s ease,
     box-shadow 0.15s ease,
@@ -3088,30 +3089,33 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   color: var(--done);
 }
 
-.reminder-badge {
+.reminder-float {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  z-index: 2;
   background: var(--paper);
   color: var(--pen);
-  font-size: 0.75rem;
-  padding: 2px 6px;
-  border-radius: 4px;
-  margin-right: 8px;
   border: 1px solid var(--paper-line);
-  font-weight: 700;
-  cursor: pointer;
-  font-family: "Tajawal", sans-serif;
-  display: inline-flex;
+  border-radius: 999px;
+  padding: 2px;
+  line-height: 1;
+  display: flex;
   align-items: center;
-  gap: 3px;
+  justify-content: center;
+  cursor: pointer;
   transition:
     background 0.15s,
-    color 0.15s;
+    color 0.15s,
+    transform 0.15s;
 }
-.reminder-badge .material-icons {
-  font-size: 14px;
+.reminder-float .material-icons {
+  font-size: 13px;
 }
-.reminder-badge:hover {
+.reminder-float:hover {
   background: var(--done-soft);
   color: var(--done);
+  transform: scale(1.08);
 }
 
 .subtask-item {
