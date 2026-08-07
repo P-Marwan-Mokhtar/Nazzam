@@ -3,7 +3,7 @@
 // ============================================================
 
 import { VAPID_PUBLIC_KEY, supabaseClient } from './config.js';
-import { todayStr } from './utils.js';
+import { detectTimezone, todayStr } from './utils.js';
 import { showToast, state } from './state.js';
 import { currentUserId } from './auth.js';
 import { saveData } from './dataStore.js';
@@ -96,14 +96,6 @@ export function ensureNotificationSettings(){
   // نحدّثها كل مرة عشان لو المستخدم سافر أو غيّر منطقة جهازه، الإعداد يفضل مطابق لمكانه الحالي فعليًا
   state.notificationSettings.timezone = detectTimezone();
   return state.notificationSettings;
-}
-
-function detectTimezone(){
-  try{
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Africa/Cairo';
-  }catch(e){
-    return 'Africa/Cairo';
-  }
 }
 
 export function currentHHMM(){

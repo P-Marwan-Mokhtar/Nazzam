@@ -3,7 +3,7 @@
 // ============================================================
 
 import { supabaseClient } from './config.js';
-import { todayStr } from './utils.js';
+import { detectTimezone, todayStr } from './utils.js';
 import { LOCAL_BACKUP_KEY, PENDING_SYNC_KEY, showToast, state } from './state.js';
 import { currentUserId, ensureAuth } from './auth.js';
 import { render } from './render.js';
@@ -123,6 +123,9 @@ function hasPendingSync(){
 
 // رفع الحالة الحالية مباشرة للسيرفر (نفس منطق الحفظ في saveData، بس من غير التعامل مع طابور الحفظ)
 async function pushToServer(){
+  // بنسجّل دايما منطقة الزمن الحالية للمستخدم عشان فنكشن التنبيهات على السيرفر
+  // تحسب وقت التنبيه بمنطقة المستخدم نفسه بدل منطقة ثابتة
+  if(state.notificationSettings) state.notificationSettings.timezone = detectTimezone();
   const { error } = await supabaseClient
     .from('user_data')
     .upsert(
