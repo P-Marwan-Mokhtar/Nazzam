@@ -24,9 +24,9 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")! // مفتاح السيرفر (service role)، مش الـ anon key
 );
 
-function nowHHMM(): string {
+function nowHHMM(timeZone: string): string {
   const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: APP_TIMEZONE,
+    timeZone,
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
@@ -36,9 +36,9 @@ function nowHHMM(): string {
   return `${hh}:${mm}`;
 }
 
-function todayYMD(): string {
+function todayYMD(timeZone: string): string {
   // صيغة YYYY-MM-DD زي بالظبط اللي التطبيق بيستخدمها كمفتاح لـ state.days
-  return new Intl.DateTimeFormat("en-CA", { timeZone: APP_TIMEZONE }).format(new Date());
+  return new Intl.DateTimeFormat("en-CA", { timeZone }).format(new Date());
 }
 
 async function sendToSubs(subs: any[], title: string, body: string) {
@@ -59,9 +59,6 @@ async function sendToSubs(subs: any[], title: string, body: string) {
 
 Deno.serve(async () => {
   try {
-    const nowHM = nowHHMM();
-    const today = todayYMD();
-
     const { data: subs, error: subsErr } = await supabase.from("push_subscriptions").select("*");
     if (subsErr) throw subsErr;
     if (!subs || subs.length === 0) {
@@ -87,6 +84,12 @@ Deno.serve(async () => {
       const appState = row.data as any;
       const ns = appState.notificationSettings;
       if (!ns || (!ns.morningEnabled && !ns.eveningEnabled)) continue;
+
+      // بنحسب الوقت بالمنطقة الزمنية اللي التطبيق سجّلها لكل مستخدم (من جهازه)،
+      // ونقع على APP_TIMEZONE لو المستخدم ما تسجلش له منطقة (بيانات قديمة مثلًا)
+      const userTz = ns.timezone || APP_TIMEZONE;
+      const nowHM = nowHHMM(userTz);
+      const today = todayYMD(userTz);
 
       const userSubs = subs.filter((s) => s.user_id === userId);
       if (userSubs.length === 0) continue;
