@@ -7,7 +7,9 @@ import { state, ui } from './state.js';
 import { render } from './render.js';
 
 function renderCalendarModal(){
-  const d = fromISO(ui.selectedDate);
+  // بنعرض شهر "المعاينة" المستقل (calendarViewDate) مش اليوم المختار نفسه —
+  // عشان التنقل بالأسهم في النافذة ميتغيرش اليوم المختار فعليًا
+  const d = fromISO(ui.calendarViewDate || ui.selectedDate);
   const year = d.getFullYear();
   const month = d.getMonth();
 
@@ -33,7 +35,7 @@ function renderCalendarModal(){
     const prevMonth = month === 0 ? 11 : month - 1;
     const prevYear = month === 0 ? year - 1 : year;
     const dateStr = `${prevYear}-${String(prevMonth+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
-    const hasTasks = (state.days[dateStr] && state.days[dateStr].length > 0);
+    const hasTasks = (state.days[dateStr] && state.days[dateStr].some(t => !t._dupOf));
     gridHtml += `
       <button class="cal-day other-month ${dateStr === ui.selectedDate ? 'selected' : ''}" data-date="${dateStr}">
         <span>${dayNum}</span>
@@ -46,7 +48,7 @@ function renderCalendarModal(){
     const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     const isToday = dateStr === todayStr();
     const isSelected = dateStr === ui.selectedDate;
-    const hasTasks = (state.days[dateStr] && state.days[dateStr].length > 0);
+    const hasTasks = (state.days[dateStr] && state.days[dateStr].some(t => !t._dupOf));
     gridHtml += `
       <button class="cal-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" data-date="${dateStr}">
         <span>${day}</span>
@@ -62,7 +64,7 @@ function renderCalendarModal(){
     const nextMonth = month === 11 ? 0 : month + 1;
     const nextYear = month === 11 ? year + 1 : year;
     const dateStr = `${nextYear}-${String(nextMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-    const hasTasks = (state.days[dateStr] && state.days[dateStr].length > 0);
+    const hasTasks = (state.days[dateStr] && state.days[dateStr].some(t => !t._dupOf));
     gridHtml += `
       <button class="cal-day other-month ${dateStr === ui.selectedDate ? 'selected' : ''}" data-date="${dateStr}">
         <span>${day}</span>
@@ -78,14 +80,14 @@ function renderCalendarModal(){
   if(prevBtn){
     prevBtn.onclick = () => {
       const newD = new Date(year, month - 1, 1);
-      ui.selectedDate = toISO(newD);
+      ui.calendarViewDate = toISO(newD);
       renderCalendarModal();
     };
   }
   if(nextBtn){
     nextBtn.onclick = () => {
       const newD = new Date(year, month + 1, 1);
-      ui.selectedDate = toISO(newD);
+      ui.calendarViewDate = toISO(newD);
       renderCalendarModal();
     };
   }
@@ -93,6 +95,7 @@ function renderCalendarModal(){
   gridEl.querySelectorAll('.cal-day').forEach(btn => {
     btn.onclick = () => {
       ui.selectedDate = btn.dataset.date;
+      ui.calendarViewDate = btn.dataset.date;
       closeCalendarModal();
       render();
     };
@@ -100,6 +103,8 @@ function renderCalendarModal(){
 }
 
 export function openCalendarModal(){
+  // نفتح النافذة على شهر اليوم المختار الحالي كل مرة — من غير ما نلمس selectedDate
+  ui.calendarViewDate = ui.selectedDate;
   renderCalendarModal();
   document.getElementById('calendarOverlay').classList.add('open');
 }

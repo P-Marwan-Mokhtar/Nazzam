@@ -54,7 +54,7 @@ export function computeWeekStats(offsetWeeks){
   state.keywords.forEach(k => { if(k.filterId) nameToFilterId[k.name] = k.filterId; });
 
   weekDays.forEach(date => {
-    const tasks = state.days[date] || [];
+    const tasks = (state.days[date] || []).filter(t => !t._dupOf);
     let dayMs = 0;
     let dayDone = 0;
     const isPastDay = date < today;
@@ -100,7 +100,10 @@ export function computeWeekStats(offsetWeeks){
   const topTasks = Object.entries(taskTimeMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
   const freqMap = {};
   Object.values(state.days).forEach(tasks => {
-    tasks.forEach(t => { freqMap[t.name] = (freqMap[t.name] || 0) + 1; });
+    tasks.forEach(t => {
+      if(t._dupOf) return;
+      freqMap[t.name] = (freqMap[t.name] || 0) + 1;
+    });
   });
   const topFrequent = Object.entries(freqMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
 
@@ -130,7 +133,7 @@ export function computeWeekStats(offsetWeeks){
 
 // نسخة "يوم واحد" من computeWeekStats — نفس المنطق بالظبط لكن على يوم واحد بدل 7 أيام
 export function computeDayStats(dateStr){
-  const tasks = state.days[dateStr] || [];
+  const tasks = (state.days[dateStr] || []).filter(t => !t._dupOf);
   let totalMs = 0;
   let doneCount = 0;
   const taskTimeMap = {};

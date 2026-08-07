@@ -208,12 +208,34 @@ export function attachEvents(){
       const inp = document.getElementById('inlineEditInput_' + id);
       if(task && inp){
         const newName = inp.value.trim();
-        if(newName){
-          if(state.recurringTasks && state.recurringTasks[task.name]){
-            state.recurringTasks[newName] = state.recurringTasks[task.name];
-            delete state.recurringTasks[task.name];
+        if(newName && newName !== task.name){
+          const oldName = task.name;
+          if(state.recurringTasks && state.recurringTasks[oldName]){
+            state.recurringTasks[newName] = state.recurringTasks[oldName];
+            delete state.recurringTasks[oldName];
           }
-          task.name = newName;
+          // بنعيد التسمية على كل نسخ المهمة عبر كل الأيام (غير نسخ الجدول الزمني المكررة)
+          // عشان النسخ اللي اتحقنت تلقائيًا في الأيام الجاية بالاسم القديم ميتسابش ليها
+          // نسخ يتيمة بالاسم القديم، ونسخ جديدة بالاسم الجديد تتحقن جنبهم (تكرار).
+          // وبما إن التكرار متعرف بالاسم، فإعادة التسمية = إعادة تسمية المهمة في كل مكان.
+          Object.keys(state.days).forEach(dateStr => {
+            state.days[dateStr] = state.days[dateStr].map(t => {
+              if(t.name === oldName && !t._dupOf) return { ...t, name: newName };
+              return t;
+            });
+          });
+          // بنرحّل "قرار" الأيام بتاع الاسم القديم للاسم الجديد في pinnedInjected
+          // عشان القرارات اللي اتخدت (مثلاً: مسحت نسخة من يوم مستقبلي) تفضل شغالة
+          // على الاسم الجديد، وكل يوم يفضل مقرر مصيره مرة واحدة بس من غير تكرر.
+          if(state.pinnedInjected){
+            Object.keys(state.pinnedInjected).forEach(dateStr => {
+              const dayPinned = state.pinnedInjected[dateStr];
+              if(dayPinned && dayPinned[oldName]){
+                dayPinned[newName] = dayPinned[oldName];
+                delete dayPinned[oldName];
+              }
+            });
+          }
         }
       }
       ui.editingTaskId = null;

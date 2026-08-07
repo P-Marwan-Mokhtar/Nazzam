@@ -84,8 +84,27 @@ export function timeStrToMinutes(hhmm){
   return h * 60 + m;
 }
 
+// رمز ثابت لكل تثبيت (بتتولد مرة واحدة وبتتخزن في localStorage) —
+// بنضمه للمعرّف عشان يبقى فريد عالميًا حتى لو جهازين عملوا مهام في نفس
+// اللحظة أوفلاين. من غير ده، احتمال تصادم ID كان بيسبب مشاكل زي تعارض
+// UID في ملفات التقويم (المصدرة في icalExport.js) وصراع تعديلات في المزامنة.
+let deviceToken = null;
+function getDeviceToken(){
+  if(deviceToken) return deviceToken;
+  try{
+    deviceToken = localStorage.getItem('nazzam-device-token');
+    if(!deviceToken){
+      deviceToken = Math.random().toString(36).slice(2, 10);
+      localStorage.setItem('nazzam-device-token', deviceToken);
+    }
+  }catch(e){
+    deviceToken = Math.random().toString(36).slice(2, 10);
+  }
+  return deviceToken;
+}
+
 export function uid(){
-  return 'id_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+  return 'id_' + getDeviceToken() + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
 }
 
 export function getElapsedMs(t){

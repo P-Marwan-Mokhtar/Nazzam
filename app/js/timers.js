@@ -3,7 +3,7 @@
 // ============================================================
 
 import { addDays, escapeHtml, formatElapsed, formatHM, getElapsedMs, todayStr } from './utils.js';
-import { MISSED_POPUP_SHOWN_KEY, showToast, state, timerPanelEl, ui } from './state.js';
+import { MISSED_POPUP_SHOWN_KEY, showToast, showUndoToast, state, timerPanelEl, ui } from './state.js';
 import { saveData } from './dataStore.js';
 
 export function getDayTimers(date){
@@ -18,7 +18,7 @@ export function checkMissedTasksPopup(){
     localStorage.setItem(MISSED_POPUP_SHOWN_KEY, today);
 
     const yesterday = addDays(today, -1);
-    const yTasks = state.days[yesterday] || [];
+    const yTasks = (state.days[yesterday] || []).filter(t => !t._dupOf);
     const missed = yTasks.filter(t => !t.done);
     if(missed.length === 0) return; // خلص كل حاجة أو مفيش مهام أصلاً، مفيش داعي نضايقه
 
@@ -121,11 +121,19 @@ export function renderTimerPanel(){
         await saveData();
       }
       else if(action === 'delete-timer'){
-        if(confirm(`هل أنت متأكد من رغبتك في حذف المؤقت "${t.name}"؟`)){
-          state.timers[ui.selectedDate] = list.filter(x => x.id !== id);
+        // حذف فوري + توست تراجع، متسق مع باقي حذف التطبيق (بدل نافذة confirm القديمة)
+        const deletedDate = ui.selectedDate;
+        const removedTimer = t;
+        const removedIndex = list.indexOf(t);
+        state.timers[deletedDate] = list.filter(x => x.id !== id);
+        renderTimerPanel();
+        await saveData();
+        showUndoToast(`تم حذف المؤقت "${t.name}"`, async () => {
+          if(!state.timers[deletedDate]) state.timers[deletedDate] = [];
+          state.timers[deletedDate].splice(Math.min(removedIndex, state.timers[deletedDate].length), 0, removedTimer);
           renderTimerPanel();
           await saveData();
-        }
+        });
       }
     };
   });

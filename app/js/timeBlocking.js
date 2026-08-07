@@ -186,7 +186,7 @@ export function renderTimeBlockView(){
         </div>
         <div class="timeblock-calendar-col">
           <div class="timeline-container">
-            <div class="timeline-track" id="tbTrack" data-start-hour="${startHour}" style="height:${trackHeight}px">
+            <div class="timeline-track" id="tbTrack" data-start-hour="${startHour}" data-end-hour="${endHour}" style="height:${trackHeight}px">
               ${hoursHtml}
               ${nowLineHtml}
               ${blocksHtml}
@@ -263,10 +263,15 @@ function startBlockMove(e, blockEl){
   function onMove(ev){
     if(Math.abs(ev.clientX - startClientX) > 4 || Math.abs(ev.clientY - startClientY) > 4) moved = true;
     const deltaY = ev.clientY - startClientY;
-    let newTop = Math.max(0, initialTop + deltaY);
+    const endHour = Number(track.dataset.endHour);
     const minutesPerPx = 60 / HOUR_PX;
-    let newStartMin = snapMinutes(startHour * 60 + newTop * minutesPerPx);
-    newTop = (newStartMin - startHour * 60) / minutesPerPx;
+    // بنقفل حدود السحب: البلوك مينفعش يطلع فوق بداية الجدول ولا ينزل تحت نهايته
+    // (يعني مفيش جزء منه برّه منطقة الساعات المعروضة)
+    const minStart = startHour * 60;
+    const maxStart = Math.max(minStart, endHour * 60 - durationMin);
+    let newStartMin = snapMinutes(minStart + Math.max(0, initialTop + deltaY) * minutesPerPx);
+    newStartMin = Math.min(maxStart, Math.max(minStart, newStartMin));
+    const newTop = (newStartMin - startHour * 60) / minutesPerPx;
     blockEl.style.top = newTop + 'px';
     const timeLabel = blockEl.querySelector('.timeline-block-time');
     if(timeLabel) timeLabel.textContent = blockTimeLabel(newStartMin, durationMin);
@@ -315,8 +320,12 @@ function startBlockResize(e, handleEl){
   function onMove(ev){
     const deltaY = ev.clientY - startClientY;
     if(Math.abs(deltaY) > 4) moved = true;
+    const track = blockEl.closest('.timeline-track');
+    const endHour = Number(track.dataset.endHour);
     const minHeightPx = MIN_DURATION_MIN * (HOUR_PX / 60);
-    let newHeight = Math.max(minHeightPx, initialHeight + deltaY);
+    // أقصى ارتفاع للبلوك = لحد نهاية منطقة الساعات المعروضة — من غير ما يتعداها
+    const maxHeightPx = Math.max(minHeightPx, (endHour * 60 - startMin) * (HOUR_PX / 60));
+    let newHeight = Math.min(maxHeightPx, Math.max(minHeightPx, initialHeight + deltaY));
     blockEl.style.height = newHeight + 'px';
     const durationMin = Math.max(MIN_DURATION_MIN, snapMinutes(newHeight * (60 / HOUR_PX)));
     const timeLabel = blockEl.querySelector('.timeline-block-time');
@@ -404,7 +413,16 @@ function startSideItemDrag(e, itemEl){
     document.removeEventListener('pointerup', onUp);
 
     if(pointOverTrack(ev.clientX, ev.clientY)){
-      const minutes = minutesFromClientY(ev.clientY);
+      const startHour = Number(track.dataset.startHour);
+      const endHour = Number(track.dataset.endHour);
+      let minutes = minutesFromClientY(ev.clientY);
+      // نسيب المهمة تتحط عند أدنى نقطة صالحة بس — من غير ما يبقى جزء منها
+      // برّه منطقة الساعات المعروضة (البلوك بيترسم طوله كامل على طول)
+      const tasks = state.days[ui.selectedDate] || [];
+      const t = tasks.find(x => x.id === taskId);
+      const durationMin = Math.max(MIN_DURATION_MIN, parseDurationToMinutes(t && t.duration) || DEFAULT_DURATION_MIN);
+      minutes = Math.min(minutes, endHour * 60 - durationMin);
+      minutes = Math.max(startHour * 60, minutes);
       commitTaskTime(taskId, minutes);
     }
   }

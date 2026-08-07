@@ -79,7 +79,16 @@ function applyLoadedState(parsed){
     state.notificationSettings = Object.assign({}, state.notificationSettings, parsed.notificationSettings);
   }
   if(parsed._sortPriority) state._sortPriority = parsed._sortPriority;
+  else state._sortPriority = {};
   if(parsed._taskOrderCache) state._taskOrderCache = parsed._taskOrderCache;
+  else state._taskOrderCache = {};
+  // قرارات تثبيت/حذف نسخ التكرار لكل يوم (pinnedInjected) لازم تترجّع برضو:
+  // لو المستخدم مسح نسخة تكرار من يوم مستقبلي، القرار ده كان بيتخزن في state
+  // وبيترفع للسيرفر، لكن كان بيتهمل عند التحميل => بعد أي reload المهمة كانت
+  // بترجع تتحقن تاني في اليوم اللي اتشالت منه. ولو الـ state الجاين مافيهوش
+  // pinnedInjected (نسخة قديمة أو ملف استيراد جديد)، بنبدأ من أول وجديد بدل ما
+  // نفضل على قرارات من الجلسة القديمة (واللي كان ممكن تمنع حقن مهام الملف المستورد).
+  state.pinnedInjected = (parsed.pinnedInjected && typeof parsed.pinnedInjected === 'object') ? parsed.pinnedInjected : {};
   // توافق مع الإصدار القديم: تثبيت يومي كان بيتخزن كأسماء بس (بدون أيام)، نحوّله لتكرار يومي كامل
   if(parsed.pinnedTaskNames && parsed.pinnedTaskNames.length){
     if(!state.recurringTasks) state.recurringTasks = {};

@@ -3,7 +3,7 @@
 // ============================================================
 
 import { highlightMatch, normalizeArabic } from './utils.js';
-import { showToast, state, ui } from './state.js';
+import { showToast, showUndoToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
 
@@ -49,12 +49,21 @@ export function renderDraftsModal(){
           showToast('تمت استعادة المهمة إلى بنك المهام');
         }
       } else if(action === 'delete-draft-permanently'){
-        if(confirm('هل أنت متأكد من حذف هذه المسودة نهائيًا؟')){
-          state.drafts = state.drafts.filter(x => x.id !== id);
-          renderDraftsModal();
-          await saveData();
-          showToast('تم الحذف النهائي');
-        }
+        // حذف فوري + توست تراجع، متسق مع باقي حذف التطبيق (بدل نافذة confirm القديمة)
+        const removedDraft = state.drafts.find(x => x.id === id);
+        const removedIndex = state.drafts.indexOf(removedDraft);
+        state.drafts = state.drafts.filter(x => x.id !== id);
+        renderDraftsModal();
+        await saveData();
+        showUndoToast('تم حذف المسودة نهائيًا', async () => {
+          if(removedDraft){
+            const restored = [...state.drafts];
+            restored.splice(Math.min(removedIndex, restored.length), 0, removedDraft);
+            state.drafts = restored;
+            renderDraftsModal();
+            await saveData();
+          }
+        });
       }
     };
   });

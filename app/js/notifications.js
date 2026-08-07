@@ -125,21 +125,18 @@ async function checkAndFireDigestNotifications(){
   if(!ns.morningEnabled && !ns.eveningEnabled) return;
   if(!('Notification' in window) || Notification.permission !== 'granted') return;
 
-  // لو فيه اشتراك Push فعّال، السيرفر هو المسؤول عن الإرسال في وقته حتى لو التطبيق مقفول —
-  // نتجنب تكرار نفس التنبيه محليًا كمان.
-  if(swRegistration){
-    try{
-      const existingSub = await swRegistration.pushManager.getSubscription();
-      if(existingSub) return;
-    }catch(e){ /* تجاهل، هنكمل بالمنطق المحلي كـ fallback */ }
-  }
-
+  // ملاحظة مهمة: بنبعت التنبيه محليًا دايمًا كـ fallback — مش بنعتمد على السيرفر.
+  // لو اشتراك الـ push شغال والسيرفر بيعت برضو، ممكن يحصل تكرار نادرًا لما التطبيق
+  // يكون مفتوح لحظة الموعد — لكن ده أفضل بكتير من إننا نعتمد على السيرفر 100%:
+  // لو الفنكشن مش منشورة أو مش مجدولة (cron)، المستخدم كان هيقعد من غير أي تنبيه خالص.
+  // التكرار بيتبظبط لوحده: اللي يشتغل الأول بيعيّن lastFiredDate = النهارده
+  // (والقرار بيتحفظ للسيرفر فيوصل لكل الأجهزة)، فالتاني يقف.
   const today = todayStr();
   const nowHM = currentHHMM();
   let changed = false;
 
   if(ns.morningEnabled && ns.lastMorningFiredDate !== today && nowHM >= ns.morningTime){
-    const todayTasks = state.days[today] || [];
+    const todayTasks = (state.days[today] || []).filter(t => !t._dupOf);
     const total = todayTasks.length;
     const body = total > 0
       ? `عندك ${total} ${total === 1 ? 'مهمة' : 'مهام'} على جدول النهاردة، يلا نبدأ!`
@@ -150,7 +147,7 @@ async function checkAndFireDigestNotifications(){
   }
 
   if(ns.eveningEnabled && ns.lastEveningFiredDate !== today && nowHM >= ns.eveningTime){
-    const todayTasks = state.days[today] || [];
+    const todayTasks = (state.days[today] || []).filter(t => !t._dupOf);
     const total = todayTasks.length;
     const done = todayTasks.filter(t => t.done).length;
     const weekS = computeWeekStats(0);

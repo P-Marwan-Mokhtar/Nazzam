@@ -72,7 +72,12 @@ function buildEventLines(dateStr, task){
 
   const summaryPrefix = task.done ? '✓ ' : '';
   lines.push(foldLine(`SUMMARY:${summaryPrefix}${escapeICSText(task.name)}`));
-  if(task.done) lines.push('STATUS:CONFIRMED');
+  if(task.done){
+    // المهام المنجزة بتتصدر كـ COMPLETED (مع نسبة 100%) بدل CONFIRMED —
+    // عشان تطبيقات التقويم اللي بتدعم التمييز تعرضها كمهمة خلصت مش حدث مؤكد
+    lines.push('STATUS:COMPLETED');
+    lines.push('PERCENT-COMPLETE:100');
+  }
   lines.push('END:VEVENT');
   return lines;
 }
@@ -93,7 +98,7 @@ export function exportCalendarAsICS(){
     let eventCount = 0;
     dateKeys.forEach(dateStr => {
       (days[dateStr] || []).forEach(task => {
-        if(!task || !task.name) return;
+        if(!task || !task.name || task._dupOf) return;
         lines.push(...buildEventLines(dateStr, task));
         eventCount++;
       });

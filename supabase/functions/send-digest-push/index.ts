@@ -94,7 +94,7 @@ Deno.serve(async () => {
       const userSubs = subs.filter((s) => s.user_id === userId);
       if (userSubs.length === 0) continue;
 
-      const todayTasks = (appState.days && appState.days[today]) || [];
+      const todayTasks = ((appState.days && appState.days[today]) || []).filter((t: any) => !t._dupOf);
       const total = todayTasks.length;
       const done = todayTasks.filter((t: any) => t.done).length;
 

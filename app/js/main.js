@@ -44,8 +44,14 @@ import { applyHashToState } from './routing.js';
   await startApp();
 
   // لو النت رجع والتطبيق لسه مفتوح (من غير ما المستخدم يعمل reload)،
-  // نحاول نرفع أي تعديلات محلية معلّقة تلقائيًا
-  window.addEventListener('online', () => { trySyncPending(); });
+  // نحاول نرفع أي تعديلات محلية معلّقة تلقائيًا.
+  // مهم: لو التطبيق فُتح أصلًا أوفلاين، ensureAuth فشل وcurrentUserId فضلت null،
+  // فبنعيد التحقق الأول (ensureAuth) عشان trySyncPending يلاقي مستخدم حقيقي
+  // يرفعله البيانات — من غيرها التعديلات المعلّقة كانت بتفضل محلية لحد ما يعمل reload.
+  window.addEventListener('online', async () => {
+    await ensureAuth();
+    trySyncPending();
+  });
 })();
 
 async function startApp(){

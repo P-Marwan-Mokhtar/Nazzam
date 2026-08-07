@@ -40,6 +40,7 @@ export function resetState(){
 
 export const ui = {
   selectedDate: toISO(new Date()),
+  calendarViewDate: null,  // الشهر المعروض حاليًا في نافذة التقويم (مستقل عن selectedDate)
   editingKeywordId: null,
   activeFilter: 'all',
   bankOpen: true,
