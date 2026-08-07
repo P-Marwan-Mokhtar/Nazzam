@@ -126,13 +126,12 @@ export function attachEvents(){
       if(ui.openClockChoiceTaskId === id){
         hideClockChoicePopover();
       } else {
-        // بنسجّل مكان الزرار قبل الـ render (الـ render بيقفل القايمة المنسدلة وبيعيد رسم الصفوف،
-        // فمش هنقدر ناخد موقع الزرار بعده). وبعدين نوقف انتشار النقرة عشان الـ document handler
-        // مايقفلش البوب أب فورًا في نفس النقرة.
-        const rect = btn.getBoundingClientRect();
-        ui.openTaskMoreId = null;
-        render();
-        showClockChoicePopoverAt(id, rect);
+        // القايمة المنسدلة (المزيد) بتفضل مفتوحة، وبوب أب الوقت يفتح جنبها.
+        // بنسجّل موقع القايمة الحالي عشان نفتح البوب أب على جنبها مباشرة.
+        const dropdownEl = document.querySelector(`.task-more-menu-wrap[data-wrap-id="${id}"] .task-more-dropdown`);
+        const rect = dropdownEl ? dropdownEl.getBoundingClientRect() : btn.getBoundingClientRect();
+        showClockChoicePopoverAt(id, rect, 'beside');
+        // بنوقف انتشار النقرة عشان الـ document handler مايقفلش البوب أب ولا القايمة في نفس النقرة
         e.stopPropagation();
       }
     }

@@ -119,7 +119,33 @@ export function showClockChoicePopover(taskId, anchorEl){
   showClockChoicePopoverAt(taskId, anchorEl.getBoundingClientRect());
 }
 
-export function showClockChoicePopoverAt(taskId, rect){
+export function showClockChoicePopoverAt(taskId, rect, placement = 'over'){
+  const pop = buildClockChoicePopover(taskId);
+  pop.classList.add('open');
+
+  const popRect = pop.getBoundingClientRect();
+  if(placement === 'beside'){
+    // يفتح جنب القايمة (المزيد): شمالها أولًا، ولو مفيش مكان يفتح يمينها
+    let left = rect.left - popRect.width - 8;
+    if(left < 8) left = rect.right + 8;
+    left = Math.max(8, Math.min(left, window.innerWidth - popRect.width - 8));
+    let top = rect.top;
+    top = Math.max(8, Math.min(top, window.innerHeight - popRect.height - 8));
+    pop.style.top = `${top}px`;
+    pop.style.left = `${left}px`;
+  } else {
+    let top = rect.top - popRect.height - 8;
+    if(top < 8) top = rect.bottom + 8;
+    let left = rect.left + rect.width / 2 - popRect.width / 2;
+    left = Math.max(8, Math.min(left, window.innerWidth - popRect.width - 8));
+    pop.style.top = `${top}px`;
+    pop.style.left = `${left}px`;
+  }
+
+  ui.openClockChoiceTaskId = taskId;
+}
+
+function buildClockChoicePopover(taskId){
   const pop = document.getElementById('clockChoicePopover');
   pop.innerHTML = `
     <button class="clock-choice-btn" data-choice="target" type="button">
@@ -132,18 +158,6 @@ export function showClockChoicePopoverAt(taskId, rect){
       <span class="material-icons">play_circle_outline</span>بدء تايمر
     </button>
   `;
-  pop.classList.add('open');
-
-  const popRect = pop.getBoundingClientRect();
-  let top = rect.top - popRect.height - 8;
-  if(top < 8) top = rect.bottom + 8;
-  let left = rect.left + rect.width / 2 - popRect.width / 2;
-  left = Math.max(8, Math.min(left, window.innerWidth - popRect.width - 8));
-  pop.style.top = `${top}px`;
-  pop.style.left = `${left}px`;
-
-  ui.openClockChoiceTaskId = taskId;
-
   pop.querySelector('[data-choice="target"]').onclick = () => {
     hideClockChoicePopover();
     openDurationPicker(taskId);
@@ -158,6 +172,7 @@ export function showClockChoicePopoverAt(taskId, rect){
     if(!task) return;
     await requestNewTimer(task.name);
   };
+  return pop;
 }
 
 export function hideClockChoicePopover(){
