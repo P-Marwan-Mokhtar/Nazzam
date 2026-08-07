@@ -11,6 +11,40 @@ import { render } from './render.js';
 import { openSubtasksModal } from './subtasks.js';
 import { requestNewTimer } from './timers.js';
 import { closeDurationPicker } from './wheelPicker.js';
+import { ensureNotificationPermission, currentHHMM } from './notifications.js';
+import { formatTimeArabic, openTimePicker } from './timePicker.js';
+
+// تذكير المهمة: بيفتح الـ time picker بتاع التطبيق (الموجود أصلًا لتنبيه الصباح/المساء)
+// في وضع تذكير — أول ما يتأكد، بينادي callback الضبط (مع طلب إذن التنبيهات لو مش ممنوح)
+// و callback الإزالة لو المستخدم ضغط "إزالة التذكير". التذكير بيتخزن على نسخة المهمة نفسها
+// (remindAt) وبيتشيك عليه المجدول كل دقيقة في notifications.js.
+function openReminderPicker(taskId){
+  const task = state.days[ui.selectedDate].find(x => x.id === taskId);
+  if(!task) return;
+  openTimePicker({
+    title: 'وقت تذكير المهمة',
+    initialTime: task.remindAt || currentHHMM(),
+    onConfirm: async (hhmm) => {
+      const granted = await ensureNotificationPermission();
+      if(!granted){
+        showToast('محتاجين إذنك من المتصفح عشان التذكير يشتغل');
+        return;
+      }
+      task.remindAt = hhmm;
+      task.reminded = false;
+      await saveData();
+      render();
+      showToast(`تم ضبط تذكير "${task.name}" الساعة ${formatTimeArabic(hhmm)}`);
+    },
+    onRemove: async () => {
+      delete task.remindAt;
+      delete task.reminded;
+      await saveData();
+      render();
+      showToast('تم إزالة التذكير');
+    }
+  });
+}
 
 export function attachEvents(){
   document.getElementById('prevBtn').onclick = () => { ui.selectedDate = addDays(ui.selectedDate, -1); render(); };
@@ -258,6 +292,11 @@ export function attachEvents(){
       if(!task) return;
       await requestNewTimer(task.name);
     }
+    else if(action === 'open-reminder'){
+      ui.openTaskMoreId = null;
+      openReminderPicker(id);
+      render();
+    }
     else if(action === 'add-to-day'){
       const name = btn.dataset.name;
       if(!state.days[ui.selectedDate]) state.days[ui.selectedDate] = [];
@@ -313,14 +352,23 @@ export function attachEvents(){
       });
     }
     else if(action === 'delete-keyword'){
-      // بدل الحذف النهائي، بننقلها للـ Drafts عشان البيانات متضيعش
+      // بدل الحذف النهائي، بننقلها للـ Drafts عشان البيانات متضيعش —
+      // مع توست تراجع لو المستخدم داس بالغلط يرجعها مكانها فورًا
       const kw = state.keywords.find(k => k.id === id);
       if(kw){
+        const removedIndex = state.keywords.indexOf(kw);
         state.keywords = state.keywords.filter(k => k.id !== id);
         state.drafts.push(kw);
         render();
         await saveData();
-        showToast('تم نقل المهمة إلى المسودات بنجاح');
+        showUndoToast(`تم نقل "${kw.name}" إلى المسودات`, async () => {
+          state.drafts = state.drafts.filter(d => d.id !== id);
+          const restored = [...state.keywords];
+          restored.splice(Math.min(removedIndex, restored.length), 0, kw);
+          state.keywords = restored;
+          render();
+          await saveData();
+        });
       }
     }
     else if(action === 'edit-keyword'){

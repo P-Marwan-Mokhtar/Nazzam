@@ -10,6 +10,7 @@ import { buildFilterDropdown, hideClockChoicePopover, hideDurationPopover } from
 import { computeTaskStreak, renderStatsView } from './stats.js';
 import { renderTimeBlockView } from './timeBlocking.js';
 import { renderTimerPanel } from './timers.js';
+import { formatTimeArabic } from './timePicker.js';
 import { renderWeekView } from './weekView.js';
 import { syncHashWithState } from './routing.js';
 
@@ -292,6 +293,11 @@ export function render(){
             <button class="clock-btn" data-action="toggle-duration" data-id="${t.id}" title="حدد الهدف أو الوقت الفعلي">
               <span class="material-icons">schedule</span>
             </button>
+            ${t.remindAt ? `
+              <button class="reminder-badge" data-action="open-reminder" data-id="${t.id}" title="تذكير: ${formatTimeArabic(t.remindAt)} — اضغط للتعديل">
+                <span class="material-icons">notifications_active</span>${formatTimeArabic(t.remindAt)}
+              </button>
+            ` : ``}
             ${(t.duration || t.actualDuration) ? `
               <button class="duration-badge ${targetMin > 0 && pct >= 100 ? 'over' : ''}" id="durationBadge_${t.id}" data-action="toggle-duration-view" data-id="${t.id}" title="اضغط لعرض الهدف والوقت الفعلي">
                 ${targetMin > 0 ? `
@@ -335,6 +341,9 @@ export function render(){
                 </button>
                 <button class="tmd-btn" data-action="start-timer-from-task" data-id="${t.id}">
                   <span class="material-icons">play_circle_outline</span><span>بدء تايمر</span>
+                </button>
+                <button class="tmd-btn ${t.remindAt ? 'active' : ''}" data-action="open-reminder" data-id="${t.id}" title="${t.remindAt ? 'اضغط لتعديل أو إزالة التذكير' : 'حدد وقت تذكير'}">
+                  <span class="material-icons">${t.remindAt ? 'notifications_active' : 'notifications_none'}</span><span>${t.remindAt ? 'تذكير: ' + formatTimeArabic(t.remindAt) : 'تذكير'}</span>
                 </button>
                 <button class="tmd-btn" data-action="open-subtasks" data-id="${t.id}">
                   <span class="material-icons">account_tree</span><span>مهام فرعية</span>

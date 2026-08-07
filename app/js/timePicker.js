@@ -28,16 +28,17 @@ export function formatTimeArabic(hhmm){
   return `${hour12}:${String(minute).padStart(2, '0')} ${period}`;
 }
 
-let activeTimePickerTarget = null;
+let activeTimePickerConfig = null;
 
-function openTimePicker(target){
-  activeTimePickerTarget = target;
-  const ns = ensureNotificationSettings();
-  const currentValue = target === 'morning' ? ns.morningTime : ns.eveningTime;
+// الـ Picker بقى عام: بياخد إعدادات (عنوان + وقت مبدئي + callback للتأكيد + callback اختياري للإزالة)
+// بدل ما كان مربوط بوقت تنبيه الصباح/المساء بس. لسه مستخدم للتطبيقين برضو.
+export function openTimePicker(config){
+  activeTimePickerConfig = config || {};
+  const currentValue = config.initialTime || '08:00';
   const { hour12, minute, period } = parse24HourString(currentValue);
 
   const titleEl = document.getElementById('timePickerTitle');
-  if(titleEl) titleEl.textContent = target === 'morning' ? 'وقت تنبيه الصباح' : 'وقت تنبيه المساء';
+  if(titleEl) titleEl.textContent = config.title || 'وقت التذكير';
 
   const hourCol = document.getElementById('tpHourWheel');
   const hourList = document.getElementById('tpHourWheelList');
@@ -52,16 +53,20 @@ function openTimePicker(target){
   // loop = false: عجلة عادية بعنصرين بس (ص/م)، من غير خدعة التكرار الثلاثي بتاعة العجلات اللانهائية
   initWheel(periodCol, periodList, 2, period === 'ص' ? 0 : 1, ['ص', 'م'], false);
 
+  // زرار "إزالة" بيظهر بس لما يكون في callback للإزالة (وضع تذكير المهمة)
+  const removeBtn = document.getElementById('timePickerRemoveBtn');
+  if(removeBtn) removeBtn.classList.toggle('visible', typeof config.onRemove === 'function');
+
   document.getElementById('timeOfDayPickerOverlay').classList.add('open');
 }
 
 function closeTimePicker(){
   document.getElementById('timeOfDayPickerOverlay').classList.remove('open');
-  activeTimePickerTarget = null;
+  activeTimePickerConfig = null;
 }
 
 async function confirmTimePicker(){
-  if(!activeTimePickerTarget){ closeTimePicker(); return; }
+  if(!activeTimePickerConfig){ closeTimePicker(); return; }
   const hourCol = document.getElementById('tpHourWheel');
   const minuteCol = document.getElementById('tpMinuteWheel');
   const periodCol = document.getElementById('tpPeriodWheel');
@@ -71,32 +76,51 @@ async function confirmTimePicker(){
   const period = periodCol._value === 1 ? 'م' : 'ص';
   const hhmm = to24HourString(hour12, minute, period);
 
-  const ns = ensureNotificationSettings();
-  if(activeTimePickerTarget === 'morning'){
-    ns.morningTime = hhmm;
-    if(ns.lastMorningFiredDate === todayStr() && currentHHMM() < ns.morningTime){
-      ns.lastMorningFiredDate = null;
-    }
-  } else {
-    ns.eveningTime = hhmm;
-    if(ns.lastEveningFiredDate === todayStr() && currentHHMM() < ns.eveningTime){
-      ns.lastEveningFiredDate = null;
-    }
-  }
-
+  const onConfirm = activeTimePickerConfig.onConfirm;
   closeTimePicker();
-  renderNotificationSettingsModal();
-  await saveData();
+  if(onConfirm) await onConfirm(hhmm);
+}
+
+async function removeTimePicker(){
+  const cfg = activeTimePickerConfig;
+  closeTimePicker();
+  if(cfg && cfg.onRemove) await cfg.onRemove();
 }
 
 document.getElementById('timePickerCancelBtn').onclick = closeTimePicker;
 
 document.getElementById('timePickerDoneBtn').onclick = confirmTimePicker;
 
+document.getElementById('timePickerRemoveBtn').onclick = removeTimePicker;
+
 document.getElementById('timeOfDayPickerOverlay').onclick = (e) => {
   if(e.target.id === 'timeOfDayPickerOverlay') closeTimePicker();
 };
 
-document.getElementById('morningNotifTimeBtn').onclick = () => openTimePicker('morning');
+document.getElementById('morningNotifTimeBtn').onclick = () => {
+  const ns = ensureNotificationSettings();
+  openTimePicker({
+    title: 'وقت تنبيه الصباح',
+    initialTime: ns.morningTime,
+    onConfirm: async (hhmm) => {
+      ns.morningTime = hhmm;
+      if(ns.lastMorningFiredDate === todayStr() && currentHHMM() < hhmm) ns.lastMorningFiredDate = null;
+      renderNotificationSettingsModal();
+      await saveData();
+    }
+  });
+};
 
-document.getElementById('eveningNotifTimeBtn').onclick = () => openTimePicker('evening');
+document.getElementById('eveningNotifTimeBtn').onclick = () => {
+  const ns = ensureNotificationSettings();
+  openTimePicker({
+    title: 'وقت تنبيه المساء',
+    initialTime: ns.eveningTime,
+    onConfirm: async (hhmm) => {
+      ns.eveningTime = hhmm;
+      if(ns.lastEveningFiredDate === todayStr() && currentHHMM() < hhmm) ns.lastEveningFiredDate = null;
+      renderNotificationSettingsModal();
+      await saveData();
+    }
+  });
+};

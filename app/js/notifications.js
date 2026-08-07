@@ -167,8 +167,33 @@ async function checkAndFireDigestNotifications(){
 
 export function startNotificationScheduler(){
   checkAndFireDigestNotifications();
+  checkAndFireTaskReminders();
   if(notificationCheckInterval) return;
-  notificationCheckInterval = setInterval(checkAndFireDigestNotifications, 60 * 1000);
+  notificationCheckInterval = setInterval(() => {
+    checkAndFireDigestNotifications();
+    checkAndFireTaskReminders();
+  }, 60 * 1000);
+}
+
+// تذكير المهام: أي مهمة من مهام "النهاردة" عندها remindAt (وقت تذكير) ولسه
+// reminded = false ومش منجزة done، وأذّنت الساعة بتاعتها → بنبعت تنبيه محلي
+// مرة واحدة بس (بنحوّل reminded لـ true عشان ميتكررش).
+// التذكير شغال محليًا (لما التطبيق مفتوح) زي تنبيه الصباح/المساء بالظبط.
+async function checkAndFireTaskReminders(){
+  if(!('Notification' in window) || Notification.permission !== 'granted') return;
+  const today = todayStr();
+  const tasks = (state.days[today] || []).filter(t => !t._dupOf && t.remindAt && !t.reminded && !t.done);
+  if(tasks.length === 0) return;
+  const nowHM = currentHHMM();
+  let changed = false;
+  tasks.forEach(t => {
+    if(nowHM >= t.remindAt){
+      fireLocalNotification('تذكير ⏰', `حان وقت "${t.name}"`);
+      t.reminded = true;
+      changed = true;
+    }
+  });
+  if(changed) await saveData();
 }
 
 function updateNotifPermissionStatusUI(){
@@ -209,7 +234,7 @@ export function renderNotificationSettingsModal(){
   updateNotifPermissionStatusUI();
 }
 
-async function ensureNotificationPermission(){
+export async function ensureNotificationPermission(){
   if(!('Notification' in window)) return false;
   if(Notification.permission === 'granted') return true;
   if(Notification.permission === 'denied') return false;

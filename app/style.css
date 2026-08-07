@@ -956,6 +956,21 @@ body.dark-mode .priority-choice-medium .material-icons {
 .picker-done {
   color: var(--pen);
 }
+.picker-remove {
+  display: none;
+  margin: 14px auto 0;
+  background: none;
+  border: none;
+  font-family: "Tajawal";
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #d93025;
+  cursor: pointer;
+  padding: 6px 12px;
+}
+.picker-remove.visible {
+  display: block;
+}
 .picker-body {
   padding: 6px 0 22px;
 }
@@ -3069,6 +3084,32 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
     color 0.15s;
 }
 .subtasks-badge:hover {
+  background: var(--done-soft);
+  color: var(--done);
+}
+
+.reminder-badge {
+  background: var(--paper);
+  color: var(--pen);
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-right: 8px;
+  border: 1px solid var(--paper-line);
+  font-weight: 700;
+  cursor: pointer;
+  font-family: "Tajawal", sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.reminder-badge .material-icons {
+  font-size: 14px;
+}
+.reminder-badge:hover {
   background: var(--done-soft);
   color: var(--done);
 }
