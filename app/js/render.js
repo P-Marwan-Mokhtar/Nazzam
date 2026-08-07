@@ -314,7 +314,7 @@ export function render(){
                 </button>
                 <div class="priority-submenu-wrap">
                   <button class="tmd-btn priority-btn ${t.priority ? 'priority-' + t.priority : ''}" data-action="toggle-priority-popover" data-id="${t.id}" title="${t.priority ? 'الأهمية: ' + PRIORITY_LABELS[t.priority] : 'حدد مستوى الأهمية'}">
-                    <span class="material-icons">flag</span><span>${t.priority ? 'الأهمية: ' + PRIORITY_LABELS[t.priority] : 'الأهمية'}</span>
+                    <span class="material-icons">flag</span><span>الأهمية</span>
                   </button>
                   <div class="priority-popover ${ui.openPriorityPopoverTaskId === t.id ? 'open' : ''}">
                     <button class="priority-choice-btn priority-choice-high ${t.priority === 'high' ? 'selected' : ''}" data-action="set-task-priority" data-choice="high" data-id="${t.id}" type="button">
