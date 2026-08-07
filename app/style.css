@@ -634,7 +634,6 @@ body.dark-mode .header-logo-dark {
 }
 .duration-badge {
   flex: 1 1 auto;
-  min-width: 64px;
   max-width: 150px;
   display: flex;
   align-items: center;
@@ -748,7 +747,7 @@ body.dark-mode .header-logo-dark {
 /* ===== بوب أب اختيار الهدف / الوقت الفعلي (من أيقونة الساعة) ===== */
 .clock-choice-popover {
   position: fixed;
-  z-index: 40;
+  z-index: 110;
   background: var(--card);
   border: 1px solid var(--paper-line);
   border-radius: 12px;
