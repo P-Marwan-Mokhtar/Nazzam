@@ -4,8 +4,7 @@
 
 import { escapeHtml, formatHM, parseDurationToMinutes } from './utils.js';
 import { state, ui } from './state.js';
-import { openActualDurationPicker, openDurationPicker } from './wheelPicker.js';
-import { requestNewTimer } from './timers.js';
+import { render } from './render.js';
 
 export function buildFilterDropdown(id, selectedId){
   const options = [{ id: '', name: 'بدون فلتر' }, ...state.filters];
@@ -115,68 +114,9 @@ export function hideDurationPopover(){
   ui.openDurationPopoverTaskId = null;
 }
 
-export function showClockChoicePopover(taskId, anchorEl){
-  showClockChoicePopoverAt(taskId, anchorEl.getBoundingClientRect());
-}
-
-export function showClockChoicePopoverAt(taskId, rect, placement = 'over'){
-  const pop = buildClockChoicePopover(taskId);
-  pop.classList.add('open');
-
-  const popRect = pop.getBoundingClientRect();
-  if(placement === 'beside'){
-    // يفتح جنب القايمة (المزيد): شمالها أولًا، ولو مفيش مكان يفتح يمينها
-    let left = rect.left - popRect.width - 8;
-    if(left < 8) left = rect.right + 8;
-    left = Math.max(8, Math.min(left, window.innerWidth - popRect.width - 8));
-    let top = rect.top;
-    top = Math.max(8, Math.min(top, window.innerHeight - popRect.height - 8));
-    pop.style.top = `${top}px`;
-    pop.style.left = `${left}px`;
-  } else {
-    let top = rect.top - popRect.height - 8;
-    if(top < 8) top = rect.bottom + 8;
-    let left = rect.left + rect.width / 2 - popRect.width / 2;
-    left = Math.max(8, Math.min(left, window.innerWidth - popRect.width - 8));
-    pop.style.top = `${top}px`;
-    pop.style.left = `${left}px`;
-  }
-
-  ui.openClockChoiceTaskId = taskId;
-}
-
-function buildClockChoicePopover(taskId){
-  const pop = document.getElementById('clockChoicePopover');
-  pop.innerHTML = `
-    <button class="clock-choice-btn" data-choice="target" type="button">
-      <span class="material-icons">flag</span>الهدف
-    </button>
-    <button class="clock-choice-btn" data-choice="actual" type="button">
-      <span class="material-icons">timelapse</span>الوقت الفعلي
-    </button>
-    <button class="clock-choice-btn" data-choice="timer" type="button">
-      <span class="material-icons">play_circle_outline</span>بدء تايمر
-    </button>
-  `;
-  pop.querySelector('[data-choice="target"]').onclick = () => {
-    hideClockChoicePopover();
-    openDurationPicker(taskId);
-  };
-  pop.querySelector('[data-choice="actual"]').onclick = () => {
-    hideClockChoicePopover();
-    openActualDurationPicker(taskId);
-  };
-  pop.querySelector('[data-choice="timer"]').onclick = async () => {
-    hideClockChoicePopover();
-    const task = (state.days[ui.selectedDate] || []).find(x => x.id === taskId);
-    if(!task) return;
-    await requestNewTimer(task.name);
-  };
-  return pop;
-}
-
 export function hideClockChoicePopover(){
-  const pop = document.getElementById('clockChoicePopover');
-  if(pop) pop.classList.remove('open');
-  ui.openClockChoiceTaskId = null;
+  if(ui.openClockChoiceTaskId){
+    ui.openClockChoiceTaskId = null;
+    render();
+  }
 }

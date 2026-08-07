@@ -745,8 +745,13 @@ body.dark-mode .header-logo-dark {
 }
 
 /* ===== بوب أب اختيار الهدف / الوقت الفعلي (من أيقونة الساعة) ===== */
+.time-choice-submenu-wrap {
+  position: relative;
+}
 .clock-choice-popover {
-  position: fixed;
+  position: absolute;
+  top: -6px;
+  right: calc(100% + 8px);
   z-index: 110;
   background: var(--card);
   border: 1px solid var(--paper-line);
@@ -754,20 +759,19 @@ body.dark-mode .header-logo-dark {
   box-shadow: var(--shadow);
   padding: 6px;
   min-width: 150px;
-  display: none;
+  display: flex;
   flex-direction: column;
   gap: 3px;
   opacity: 0;
-  transform: translateY(6px);
+  transform: translateX(6px);
+  pointer-events: none;
   transition:
     opacity 0.15s ease,
     transform 0.15s ease;
-  pointer-events: none;
 }
 .clock-choice-popover.open {
-  display: flex;
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(0);
   pointer-events: auto;
 }
 .clock-choice-btn {
@@ -3346,7 +3350,8 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 
 /* على الموبايل، قائمة الأولوية الفرعية تفتح في الاتجاه العكسي عن سطح المكتب */
 @media (max-width: 640px) {
-  .priority-popover {
+  .priority-popover,
+  .clock-choice-popover {
     right: auto;
     left: calc(100% + 8px);
   }

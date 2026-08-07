@@ -6,7 +6,7 @@ import { escapeAttr, escapeHtml, fmtDay, formatHM, formatMinutes, fromISO, highl
 import { PRIORITY_LABELS, contentEl, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { attachEvents } from './events.js';
-import { buildFilterDropdown, hideClockChoicePopover, hideDurationPopover } from './popovers.js';
+import { buildFilterDropdown, hideDurationPopover } from './popovers.js';
 import { computeTaskStreak, renderStatsView } from './stats.js';
 import { renderTimeBlockView } from './timeBlocking.js';
 import { renderTimerPanel } from './timers.js';
@@ -44,7 +44,6 @@ export function ensureDayMaterialized(dateStr){
 
 export function render(){
   hideDurationPopover();
-  hideClockChoicePopover();
   syncHashWithState();
   const mainLayoutEl = document.querySelector('.main-layout');
   if(mainLayoutEl) mainLayoutEl.classList.toggle('week-view-active', ui.weekViewOpen || ui.timeBlockViewOpen || ui.statsViewOpen);
@@ -336,9 +335,22 @@ export function render(){
                   <span class="material-icons">event_repeat</span>
                   <span>تكرار المهمة</span>
                 </button>
-                <button class="tmd-btn" data-action="toggle-duration" data-id="${t.id}" title="ضبط الهدف أو الوقت الفعلي أو بدء تايمر">
-                  <span class="material-icons">schedule</span><span>الوقت</span>
-                </button>
+                <div class="time-choice-submenu-wrap">
+                  <button class="tmd-btn" data-action="toggle-duration" data-id="${t.id}" title="ضبط الهدف أو الوقت الفعلي أو بدء تايمر">
+                    <span class="material-icons">schedule</span><span>الوقت</span>
+                  </button>
+                  <div class="clock-choice-popover ${ui.openClockChoiceTaskId === t.id ? 'open' : ''}">
+                    <button class="clock-choice-btn" data-action="clock-choice-target" data-id="${t.id}" type="button">
+                      <span class="material-icons">flag</span>الهدف
+                    </button>
+                    <button class="clock-choice-btn" data-action="clock-choice-actual" data-id="${t.id}" type="button">
+                      <span class="material-icons">timelapse</span>الوقت الفعلي
+                    </button>
+                    <button class="clock-choice-btn" data-action="clock-choice-timer" data-id="${t.id}" type="button">
+                      <span class="material-icons">play_circle_outline</span>بدء تايمر
+                    </button>
+                  </div>
+                </div>
                 <button class="tmd-btn ${t.remindAt ? 'active' : ''}" data-action="open-reminder" data-id="${t.id}" title="${t.remindAt ? 'اضغط لتعديل أو إزالة التذكير' : 'حدد وقت تذكير'}">
                   <span class="material-icons">${t.remindAt ? 'notifications_active' : 'notifications_none'}</span><span>${t.remindAt ? 'تذكير: ' + formatTimeArabic(t.remindAt) : 'تذكير'}</span>
                 </button>

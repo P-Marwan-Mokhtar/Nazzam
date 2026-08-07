@@ -5,13 +5,14 @@
 import { addDays, reorderArrayById, todayStr, uid } from './utils.js';
 import { contentEl, showToast, showUndoToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
-import { hideClockChoicePopover, hideDurationPopover, showClockChoicePopoverAt, showDurationPopover, wireCustomSelects, wireDragAndDrop } from './popovers.js';
+import { hideDurationPopover, showDurationPopover, wireCustomSelects, wireDragAndDrop } from './popovers.js';
 import { openRecurrenceModal } from './recurrence.js';
 import { render } from './render.js';
 import { openSubtasksModal } from './subtasks.js';
-import { closeDurationPicker } from './wheelPicker.js';
+import { closeDurationPicker, openActualDurationPicker, openDurationPicker } from './wheelPicker.js';
 import { ensureNotificationPermission, currentHHMM } from './notifications.js';
 import { formatTimeArabic, openTimePicker } from './timePicker.js';
+import { requestNewTimer } from './timers.js';
 
 // تذكير المهمة: بيفتح الـ time picker بتاع التطبيق (الموجود أصلًا لتنبيه الصباح/المساء)
 // في وضع تذكير — أول ما يتأكد، بينادي callback الضبط (مع طلب إذن التنبيهات لو مش ممنوح)
@@ -123,19 +124,16 @@ export function attachEvents(){
       render();
     }
     else if(action === 'toggle-duration'){
+      ui.openPriorityPopoverTaskId = null;
       if(ui.openClockChoiceTaskId === id){
-        hideClockChoicePopover();
+        ui.openClockChoiceTaskId = null;
       } else {
-        // القايمة المنسدلة (المزيد) بتفضل مفتوحة، وبوب أب الوقت يفتح جنبها.
-        // بنسجّل موقع القايمة الحالي عشان نفتح البوب أب على جنبها مباشرة.
-        const dropdownEl = document.querySelector(`.task-more-menu-wrap[data-wrap-id="${id}"] .task-more-dropdown`);
-        const rect = dropdownEl ? dropdownEl.getBoundingClientRect() : btn.getBoundingClientRect();
-        showClockChoicePopoverAt(id, rect, 'beside');
-        // بنوقف انتشار النقرة عشان الـ document handler مايقفلش البوب أب ولا القايمة في نفس النقرة
-        e.stopPropagation();
+        ui.openClockChoiceTaskId = id;
       }
+      render();
     }
     else if(action === 'toggle-priority-popover'){
+      ui.openClockChoiceTaskId = null;
       if(ui.openPriorityPopoverTaskId === id){
         ui.openPriorityPopoverTaskId = null;
       } else {
@@ -224,7 +222,28 @@ export function attachEvents(){
     else if(action === 'toggle-task-more'){
       ui.openTaskMoreId = ui.openTaskMoreId === id ? null : id;
       ui.openPriorityPopoverTaskId = null;
+      ui.openClockChoiceTaskId = null;
       render();
+    }
+    else if(action === 'clock-choice-target'){
+      ui.openClockChoiceTaskId = null;
+      ui.openTaskMoreId = null;
+      render();
+      openDurationPicker(id);
+    }
+    else if(action === 'clock-choice-actual'){
+      ui.openClockChoiceTaskId = null;
+      ui.openTaskMoreId = null;
+      render();
+      openActualDurationPicker(id);
+    }
+    else if(action === 'clock-choice-timer'){
+      ui.openClockChoiceTaskId = null;
+      ui.openTaskMoreId = null;
+      render();
+      const task = (state.days[ui.selectedDate] || []).find(x => x.id === id);
+      if(!task) return;
+      await requestNewTimer(task.name);
     }
     else if(action === 'open-subtasks'){
       ui.openTaskMoreId = null;
