@@ -116,6 +116,10 @@ export function hideDurationPopover(){
 }
 
 export function showClockChoicePopover(taskId, anchorEl){
+  showClockChoicePopoverAt(taskId, anchorEl.getBoundingClientRect());
+}
+
+export function showClockChoicePopoverAt(taskId, rect){
   const pop = document.getElementById('clockChoicePopover');
   pop.innerHTML = `
     <button class="clock-choice-btn" data-choice="target" type="button">
@@ -130,7 +134,6 @@ export function showClockChoicePopover(taskId, anchorEl){
   `;
   pop.classList.add('open');
 
-  const rect = anchorEl.getBoundingClientRect();
   const popRect = pop.getBoundingClientRect();
   let top = rect.top - popRect.height - 8;
   if(top < 8) top = rect.bottom + 8;

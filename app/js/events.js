@@ -5,7 +5,7 @@
 import { addDays, reorderArrayById, todayStr, uid } from './utils.js';
 import { contentEl, showToast, showUndoToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
-import { hideClockChoicePopover, hideDurationPopover, showClockChoicePopover, showDurationPopover, wireCustomSelects, wireDragAndDrop } from './popovers.js';
+import { hideClockChoicePopover, hideDurationPopover, showClockChoicePopoverAt, showDurationPopover, wireCustomSelects, wireDragAndDrop } from './popovers.js';
 import { openRecurrenceModal } from './recurrence.js';
 import { render } from './render.js';
 import { openSubtasksModal } from './subtasks.js';
@@ -126,11 +126,14 @@ export function attachEvents(){
       if(ui.openClockChoiceTaskId === id){
         hideClockChoicePopover();
       } else {
-        // القايمة المنسدلة بتتقفل الأول عشان البوب أب (الهدف/الوقت الفعلي) يبان فوقها بشكل نضيف
+        // بنسجّل مكان الزرار قبل الـ render (الـ render بيقفل القايمة المنسدلة وبيعيد رسم الصفوف،
+        // فمش هنقدر ناخد موقع الزرار بعده). وبعدين نوقف انتشار النقرة عشان الـ document handler
+        // مايقفلش البوب أب فورًا في نفس النقرة.
+        const rect = btn.getBoundingClientRect();
         ui.openTaskMoreId = null;
         render();
-        const anchor = document.querySelector(`.task-more-btn[data-id="${id}"]`) || btn;
-        showClockChoicePopover(id, anchor);
+        showClockChoicePopoverAt(id, rect);
+        e.stopPropagation();
       }
     }
     else if(action === 'toggle-priority-popover'){

@@ -336,8 +336,8 @@ export function render(){
                   <span class="material-icons">event_repeat</span>
                   <span>تكرار المهمة</span>
                 </button>
-                <button class="tmd-btn" data-action="toggle-duration" data-id="${t.id}" title="ضبط مدة الهدف أو الوقت الفعلي">
-                  <span class="material-icons">schedule</span><span>الهدف أو الوقت الفعلي</span>
+                <button class="tmd-btn" data-action="toggle-duration" data-id="${t.id}" title="ضبط الهدف أو الوقت الفعلي أو بدء تايمر">
+                  <span class="material-icons">schedule</span><span>الوقت</span>
                 </button>
                 <button class="tmd-btn ${t.remindAt ? 'active' : ''}" data-action="open-reminder" data-id="${t.id}" title="${t.remindAt ? 'اضغط لتعديل أو إزالة التذكير' : 'حدد وقت تذكير'}">
                   <span class="material-icons">${t.remindAt ? 'notifications_active' : 'notifications_none'}</span><span>${t.remindAt ? 'تذكير: ' + formatTimeArabic(t.remindAt) : 'تذكير'}</span>
