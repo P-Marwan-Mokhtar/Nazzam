@@ -5,6 +5,7 @@
 import { escapeHtml, formatHM, parseDurationToMinutes } from './utils.js';
 import { state, ui } from './state.js';
 import { openActualDurationPicker, openDurationPicker } from './wheelPicker.js';
+import { requestNewTimer } from './timers.js';
 
 export function buildFilterDropdown(id, selectedId){
   const options = [{ id: '', name: 'بدون فلتر' }, ...state.filters];
@@ -123,6 +124,9 @@ export function showClockChoicePopover(taskId, anchorEl){
     <button class="clock-choice-btn" data-choice="actual" type="button">
       <span class="material-icons">timelapse</span>الوقت الفعلي
     </button>
+    <button class="clock-choice-btn" data-choice="timer" type="button">
+      <span class="material-icons">play_circle_outline</span>بدء تايمر
+    </button>
   `;
   pop.classList.add('open');
 
@@ -144,6 +148,12 @@ export function showClockChoicePopover(taskId, anchorEl){
   pop.querySelector('[data-choice="actual"]').onclick = () => {
     hideClockChoicePopover();
     openActualDurationPicker(taskId);
+  };
+  pop.querySelector('[data-choice="timer"]').onclick = async () => {
+    hideClockChoicePopover();
+    const task = (state.days[ui.selectedDate] || []).find(x => x.id === taskId);
+    if(!task) return;
+    await requestNewTimer(task.name);
   };
 }
 

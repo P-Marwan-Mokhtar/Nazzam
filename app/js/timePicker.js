@@ -47,17 +47,23 @@ export function openTimePicker(config){
   const periodCol = document.getElementById('tpPeriodWheel');
   const periodList = document.getElementById('tpPeriodWheelList');
 
-  const hourLabels = Array.from({ length: 12 }, (_, i) => String(i + 1));
-  initWheel(hourCol, hourList, 12, hour12 - 1, hourLabels);
-  initWheel(minuteCol, minuteList, 60, minute);
-  // loop = false: عجلة عادية بعنصرين بس (ص/م)، من غير خدعة التكرار الثلاثي بتاعة العجلات اللانهائية
-  initWheel(periodCol, periodList, 2, period === 'ص' ? 0 : 1, ['ص', 'م'], false);
-
   // زرار "إزالة" بيظهر بس لما يكون في callback للإزالة (وضع تذكير المهمة)
   const removeBtn = document.getElementById('timePickerRemoveBtn');
   if(removeBtn) removeBtn.classList.toggle('visible', typeof config.onRemove === 'function');
 
   document.getElementById('timeOfDayPickerOverlay').classList.add('open');
+
+  // مهم: بنفتح الـ overlay الأول وبعدين نرسم العجلات جوه requestAnimationFrame
+  // (زي بيكرات المدة). لو رسمناها والـ overlay لسه مخفي (display:none)، الـ scrollTop
+  // بيتضبط بصفر فالفرجار بيبان واقف عند أول قيمة (1:00 ص) لكن _value تفضل بتاعة
+  // الـ initialTime — فالوقت المحفوظ بيبقى مختلف عن اللي ظاهر للمستخدم.
+  requestAnimationFrame(() => {
+    const hourLabels = Array.from({ length: 12 }, (_, i) => String(i + 1));
+    initWheel(hourCol, hourList, 12, hour12 - 1, hourLabels);
+    initWheel(minuteCol, minuteList, 60, minute);
+    // loop = false: عجلة عادية بعنصرين بس (ص/م)، من غير خدعة التكرار الثلاثي بتاعة العجلات اللانهائية
+    initWheel(periodCol, periodList, 2, period === 'ص' ? 0 : 1, ['ص', 'م'], false);
+  });
 }
 
 function closeTimePicker(){

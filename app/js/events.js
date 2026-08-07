@@ -9,7 +9,6 @@ import { hideClockChoicePopover, hideDurationPopover, showClockChoicePopover, sh
 import { openRecurrenceModal } from './recurrence.js';
 import { render } from './render.js';
 import { openSubtasksModal } from './subtasks.js';
-import { requestNewTimer } from './timers.js';
 import { closeDurationPicker } from './wheelPicker.js';
 import { ensureNotificationPermission, currentHHMM } from './notifications.js';
 import { formatTimeArabic, openTimePicker } from './timePicker.js';
@@ -127,7 +126,11 @@ export function attachEvents(){
       if(ui.openClockChoiceTaskId === id){
         hideClockChoicePopover();
       } else {
-        showClockChoicePopover(id, btn);
+        // القايمة المنسدلة بتتقفل الأول عشان البوب أب (الهدف/الوقت الفعلي) يبان فوقها بشكل نضيف
+        ui.openTaskMoreId = null;
+        render();
+        const anchor = document.querySelector(`.task-more-btn[data-id="${id}"]`) || btn;
+        showClockChoicePopover(id, anchor);
       }
     }
     else if(action === 'toggle-priority-popover'){
@@ -284,13 +287,6 @@ export function attachEvents(){
       ui.openTaskMoreId = null;
       openRecurrenceModal(id);
       render();
-    }
-    else if(action === 'start-timer-from-task'){
-      ui.openTaskMoreId = null;
-      render();
-      const task = state.days[ui.selectedDate].find(x => x.id === id);
-      if(!task) return;
-      await requestNewTimer(task.name);
     }
     else if(action === 'open-reminder'){
       ui.openTaskMoreId = null;

@@ -278,11 +278,6 @@ export function render(){
 
       html += `
         <div class="task-row ${t.done?'done':''} ${(!t.done && isPastDay)?'missed':''}" draggable="true" data-drag-id="${t.id}">
-          ${t.remindAt ? `
-            <button class="reminder-float" data-action="open-reminder" data-id="${t.id}" title="تذكير: ${formatTimeArabic(t.remindAt)} — اضغط للتعديل أو الإزالة">
-              <span class="material-icons">notifications_active</span>
-            </button>
-          ` : ''}
           <div class="task-main" data-action="toggle-task" data-id="${t.id}">
             ${ui.editingTaskId === t.id ? `
               <div class="inline-edit-wrap">
@@ -295,9 +290,6 @@ export function render(){
             `}
             <div class="task-icons">
             ${(t.subtasks && t.subtasks.length > 0) ? `<button type="button" class="subtasks-badge" data-action="open-subtasks" data-id="${t.id}" title="عرض المهام الفرعية">${t.subtasks.filter(s=>s.done).length}/${t.subtasks.length}</button>` : ''}
-            <button class="clock-btn" data-action="toggle-duration" data-id="${t.id}" title="حدد الهدف أو الوقت الفعلي">
-              <span class="material-icons">schedule</span>
-            </button>
             ${(t.duration || t.actualDuration) ? `
               <button class="duration-badge ${targetMin > 0 && pct >= 100 ? 'over' : ''}" id="durationBadge_${t.id}" data-action="toggle-duration-view" data-id="${t.id}" title="اضغط لعرض الهدف والوقت الفعلي">
                 ${targetMin > 0 ? `
@@ -306,6 +298,11 @@ export function render(){
                 ` : `
                   <span class="duration-badge-actual-only"><span class="material-icons">timelapse</span>${formatHM(actualMin*60000)}</span>
                 `}
+              </button>
+            ` : ``}
+            ${t.remindAt ? `
+              <button class="clock-btn reminder-row-btn" data-action="open-reminder" data-id="${t.id}" title="تذكير: ${formatTimeArabic(t.remindAt)} — اضغط للتعديل أو الإزالة">
+                <span class="material-icons">notifications_active</span>
               </button>
             ` : ``}
             <div class="task-more-menu-wrap" data-wrap-id="${t.id}">
@@ -339,8 +336,8 @@ export function render(){
                   <span class="material-icons">event_repeat</span>
                   <span>تكرار المهمة</span>
                 </button>
-                <button class="tmd-btn" data-action="start-timer-from-task" data-id="${t.id}">
-                  <span class="material-icons">play_circle_outline</span><span>بدء تايمر</span>
+                <button class="tmd-btn" data-action="toggle-duration" data-id="${t.id}" title="ضبط مدة الهدف أو الوقت الفعلي">
+                  <span class="material-icons">schedule</span><span>الهدف أو الوقت الفعلي</span>
                 </button>
                 <button class="tmd-btn ${t.remindAt ? 'active' : ''}" data-action="open-reminder" data-id="${t.id}" title="${t.remindAt ? 'اضغط لتعديل أو إزالة التذكير' : 'حدد وقت تذكير'}">
                   <span class="material-icons">${t.remindAt ? 'notifications_active' : 'notifications_none'}</span><span>${t.remindAt ? 'تذكير: ' + formatTimeArabic(t.remindAt) : 'تذكير'}</span>

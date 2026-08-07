@@ -551,7 +551,6 @@ body.dark-mode .header-logo-dark {
   width: auto;
   align-items: center;
   gap: 8px;
-  position: relative;
   transition:
     opacity 0.15s ease,
     box-shadow 0.15s ease,
@@ -3089,33 +3088,9 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   color: var(--done);
 }
 
-.reminder-float {
-  position: absolute;
-  top: 2px;
-  right: 4px;
-  z-index: 2;
-  background: var(--paper);
+.reminder-row-btn {
   color: var(--pen);
-  border: 1px solid var(--paper-line);
-  border-radius: 999px;
-  padding: 2px;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition:
-    background 0.15s,
-    color 0.15s,
-    transform 0.15s;
-}
-.reminder-float .material-icons {
-  font-size: 13px;
-}
-.reminder-float:hover {
-  background: var(--done-soft);
-  color: var(--done);
-  transform: scale(1.08);
+  opacity: 1;
 }
 
 .subtask-item {
