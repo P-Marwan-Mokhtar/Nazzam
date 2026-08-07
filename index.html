@@ -3,36 +3,38 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NAZZAM</title>
+    <title>نظم — نظّم يومك، لا مهامك فقط</title>
+
+    <script>
+      // لو فتح الموقع على /app من غير الـ slash الأخيرة (app بدل app/) قد تخدم
+      // بعض السيرفرات صفحة اللاندينج على المسار ده بدل التطبيق. نرجّع المستخدم
+      // فورًا للنسخة الصحيحة app/ مع الحفاظ على أي بحث أو hash في الرابط.
+      (function () {
+        try {
+          var p = window.location.pathname;
+          if (/\/app$/.test(p)) {
+            window.location.replace(
+              p + "/" + window.location.search + window.location.hash
+            );
+            return;
+          }
+          // لو التاب ده كان جوا التطبيق (app/) ومسح /app/ من الرابط ووصل هنا،
+          // نرجّعه فورًا للتطبيق بدل ما يفتح اللاندينج — العلامة دي بتتحط من
+          // app/index.html في sessionStorage وبتفضل موجودة في نفس التاب بس.
+          if (sessionStorage.getItem("nazam-in-app") === "1") {
+            window.location.replace("./app/");
+          }
+        } catch (e) {}
+      })();
+    </script>
     <meta
       name="description"
-      content="بنك مهامك الجاهز.. نظّم مهامك اليومية، تابع الوقت، وحقق أهدافك"
+      content="نظم يجمع لك المهام والوقت والتكرار في بنك واحد ذكي. جدول زمني بالسحب والإفلات، مؤقتات تركيز، إحصائيات وسلسلة إنجاز يومية، ويعمل حتى دون اتصال بالإنترنت."
     />
-
-    <!-- PWA: Manifest + أيقونات -->
-    <link rel="manifest" href="manifest.json" />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="512x512"
-      href="icons/icon-512.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="192x192"
-      href="icons/icon-192.png"
-    />
-    <link rel="icon" href="icons/favicon.icon" />
-    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
-    <meta name="theme-color" content="#C5482E" id="themeColorMeta" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="مهامي" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
+    <meta name="theme-color" content="#C5482E" />
+    <link rel="icon" type="image/png" sizes="512x512" href="app/icons/icon-512.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="app/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="app/icons/apple-touch-icon.png" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -44,689 +46,457 @@
       href="https://fonts.googleapis.com/icon?family=Material+Icons"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="landing.css" />
   </head>
   <body>
-    <script>
-      (function () {
-        try {
-          var raw = localStorage.getItem("habit-data-v2");
-          if (raw) {
-            var parsed = JSON.parse(raw);
-            if (parsed && parsed.darkMode) {
-              document.body.classList.add("dark-mode");
-              var meta = document.getElementById("themeColorMeta");
-              if (meta) meta.setAttribute("content", "#14181c");
-            }
-          }
-        } catch (e) {}
-      })();
-    </script>
-    <div class="sync-bar" id="syncBar"></div>
-    <div class="wrap" id="app" style="display:none">
-      <div class="binding">
-        <span></span><span></span><span></span><span></span><span></span>
+    <!-- ========================= الهيدر ========================= -->
+    <header class="lp-header" id="lpHeader">
+      <div class="lp-container lp-header-inner">
+        <a href="./" class="lp-logo">
+          <img src="app/img/logo-light.png" alt="نظم" />
+        </a>
+
+        <nav class="lp-nav" id="lpNav">
+          <a href="#features">المميزات</a>
+          <a href="#showcase">استعرض نظم</a>
+          <a href="#pricing">الأسعار</a>
+          <a href="#faq">الأسئلة الشائعة</a>
+        </nav>
+
+        <div class="lp-header-actions" id="lpHeaderActions">
+          <a href="app/" class="lp-link-btn" id="lpLoginBtn">تسجيل الدخول</a>
+          <a href="app/" class="lp-btn lp-btn-primary" id="lpStartBtn">ابدأ مجانًا</a>
+          <button class="lp-nav-toggle" id="lpNavToggle" aria-label="القائمة" aria-expanded="false">
+            <span class="material-icons">menu</span>
+          </button>
+        </div>
       </div>
-      <div class="header-card">
-        <div class="header-row">
-          <div class="header-top-bar" id="headerTopBar">
-            <button class="header-icon-btn" id="accountBtn" title="الحساب">
-              <span class="material-icons" id="accountIcon"
-                >person_outline</span
-              >
-            </button>
-            <button
-              class="header-icon-btn"
-              id="statsBtnTop"
-              title="الإحصائيات"
-            >
-              <span class="material-icons">insights</span>
-            </button>
-            <button class="header-icon-btn" id="themeBtn" title="الوضع الليلي">
-              <span class="material-icons" id="themeIcon">dark_mode</span>
-            </button>
+      <div class="lp-mobile-nav" id="lpMobileNav">
+        <a href="#features">المميزات</a>
+        <a href="#showcase">استعرض نظم</a>
+        <a href="#pricing">الأسعار</a>
+        <a href="#faq">الأسئلة الشائعة</a>
+        <div class="lp-mobile-nav-actions" id="lpMobileNavActions">
+          <a href="app/" class="lp-link-btn" id="lpLoginBtnMobile">تسجيل الدخول</a>
+          <a href="app/" class="lp-btn lp-btn-primary" id="lpStartBtnMobile">ابدأ مجانًا</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- ========================= الهيرو ========================= -->
+      <section class="lp-hero">
+        <div class="lp-container lp-hero-inner">
+          <div class="lp-hero-text">
+            <span class="lp-eyebrow"><span class="material-icons">bolt</span>تطبيق عربي بالكامل، يعمل دون اتصال بالإنترنت</span>
+            <h1 class="lp-hero-title">نظّم يومك، <span class="lp-underline">لا مهامك فقط</span>.</h1>
+            <p class="lp-hero-sub">
+              يجمع لك نظم المهام والوقت والتكرار في بنك واحد ذكي — تكتب مهمة اليوم،
+              فيتذكّرها لك غدًا وما بعده. حدّد لها وقتًا في جدولك، وشغّل مؤقتًا أثناء
+              العمل عليها، وفي النهاية اعرف كيف انقضى يومك بالضبط.
+            </p>
+            <div class="lp-hero-ctas">
+              <a href="app/" class="lp-btn lp-btn-primary lp-btn-lg">
+                ابدأ مجانًا ١٤ يومًا
+                <span class="material-icons">arrow_back</span>
+              </a>
+              <a href="#showcase" class="lp-btn lp-btn-ghost lp-btn-lg">شاهد كيف يعمل</a>
+            </div>
+            <p class="lp-hero-note">دون بطاقة ائتمان — ودون أي التزام</p>
           </div>
 
-         <a href="/"> <div class="header-logo-slot">
-            <img
-              src="img/logo-light.png"
-              alt="Nazzam"
-              class="header-logo header-logo-light"
-            /></a>
-         <a href="/">   <img
-              src="img/logo-dark.png"
-              alt="Nazzam"
-              class="header-logo header-logo-dark"
-            /></a>
-          </div>
-
-          <div class="header-actions-wrap">
-            <button
-              class="header-icon-btn header-more-btn"
-              id="headerMoreBtn"
-              title="المزيد"
-              aria-label="المزيد من الخيارات"
-              aria-expanded="false"
-            >
-              <span class="material-icons">more_horiz</span>
-            </button>
-            <div class="header-actions-panel" id="headerActionsPanel">
-              <button
-                class="header-menu-item"
-                id="globalSearchBtnMobile"
-                title="البحث في كل المهام"
-              >
-                <span class="material-icons">manage_search</span>
-                <span class="header-btn-label">البحث في جميع المهام</span>
-              </button>
-              <button
-                class="header-menu-item"
-                id="draftsBtn"
-                title="المهام المؤرشفة"
-              >
-                <span class="material-icons">drafts</span>
-                <span class="header-btn-label">المهام المؤرشفة</span>
-              </button>
-              <div class="header-menu-divider"></div>
-              <button
-                class="header-menu-item"
-                id="calendarBtn"
-                title="التقويم"
-              >
-                <span class="material-icons">calendar_today</span>
-                <span class="header-btn-label">التقويم</span>
-              </button>
-              <button
-                class="header-menu-item"
-                id="weekViewBtn"
-                title="عرض الأسبوع"
-              >
-                <span class="material-icons">view_week</span>
-                <span class="header-btn-label">عرض الأسبوع</span>
-              </button>
-              <button
-                class="header-menu-item"
-                id="timeBlockViewBtn"
-                title="الجدول الزمني"
-              >
-                <span class="material-icons">event_note</span>
-                <span class="header-btn-label">الجدول الزمني</span>
-              </button>
-              <button
-                class="header-menu-item"
-                id="notificationSettingsBtn"
-                title="إعدادات التنبيهات"
-              >
-                <span class="material-icons">notifications</span>
-                <span class="header-btn-label">إعدادات التنبيهات</span>
-              </button>
-              <div class="header-menu-divider"></div>
-              <details class="header-menu-group" id="dataMenuGroup">
-                <summary class="header-menu-item header-menu-summary">
-                  <span class="material-icons">import_export</span>
-                  <span class="header-btn-label">البيانات</span>
-                  <span class="material-icons header-menu-chevron">expand_more</span>
-                </summary>
-                <div class="header-menu-subitems">
-                  <button
-                    class="header-menu-item"
-                    id="importDataBtn"
-                    title="استيراد نسخة احتياطية (JSON)"
-                  >
-                    <span class="material-icons">file_upload</span>
-                    <span class="header-btn-label">استيراد البيانات</span>
-                  </button>
-                  <button
-                    class="header-menu-item"
-                    id="exportDataBtn"
-                    title="تصدير نسخة احتياطية (JSON)"
-                  >
-                    <span class="material-icons">file_download</span>
-                    <span class="header-btn-label">تصدير البيانات</span>
-                  </button>
-                  <button
-                    class="header-menu-item"
-                    id="exportIcsBtn"
-                    title="تصدير المهام (من النهارده وبعده) كملف تقويم لاستيرادها في Google/Apple Calendar"
-                  >
-                    <span class="material-icons">event</span>
-                    <span class="header-btn-label">تصدير للتقويم</span>
-                  </button>
+          <div class="lp-hero-visual" aria-hidden="true">
+            <div class="lp-mock-window lp-mock-day">
+              <div class="lp-mock-topbar">
+                <div class="lp-mock-streak"><span class="material-icons">local_fire_department</span>١٢ يومًا متتاليًا</div>
+                <div class="lp-mock-date">الثلاثاء، ٤ أغسطس</div>
+              </div>
+              <div class="lp-mock-tasks">
+                <div class="lp-mock-task is-done">
+                  <span class="lp-mock-check material-icons">check_circle</span>
+                  <span class="lp-mock-task-name">مراجعة تقرير الأسبوع</span>
+                  <span class="lp-mock-badge done">٤٥ د</span>
                 </div>
-              </details>
-              <input
-                type="file"
-                id="importDataInput"
-                accept=".json,application/json"
-                style="display: none"
-              />
+                <div class="lp-mock-task is-active">
+                  <span class="lp-mock-check material-icons">radio_button_unchecked</span>
+                  <span class="lp-mock-task-name">جلسة تركيز — كتابة المحتوى</span>
+                  <span class="lp-mock-badge timer"><span class="material-icons">timer</span>١٨:٢٤</span>
+                </div>
+                <div class="lp-mock-task">
+                  <span class="lp-mock-check material-icons">radio_button_unchecked</span>
+                  <span class="lp-mock-task-name">مكالمة متابعة مع الفريق</span>
+                  <span class="lp-mock-badge">٣٠ د</span>
+                </div>
+                <div class="lp-mock-task">
+                  <span class="lp-mock-check material-icons">radio_button_unchecked</span>
+                  <span class="lp-mock-task-name">رياضة — نصف ساعة جري</span>
+                  <span class="lp-mock-badge">٣٠ د</span>
+                </div>
+              </div>
+            </div>
+            <div class="lp-mock-float lp-mock-float-1">
+              <span class="material-icons">check</span>
+              <span>تم إنجازها</span>
+            </div>
+            <div class="lp-mock-float lp-mock-float-2">
+              <span class="material-icons">trending_up</span>
+              <span>+١٨٪ عن الأسبوع الماضي</span>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="main-layout">
-        <div class="main-col">
-          <div id="content"></div>
+        <div class="lp-strip">
+          <div class="lp-strip-track">
+            <span><span class="material-icons">schedule</span>تتبّع الوقت الفعلي</span>
+            <span><span class="material-icons">autorenew</span>تكرار تلقائي ذكي</span>
+            <span><span class="material-icons">bar_chart</span>إحصائيات وسلسلة إنجاز</span>
+            <span><span class="material-icons">event_note</span>جدول زمني بالسحب والإفلات</span>
+            <span><span class="material-icons">notifications</span>تنبيهات صباحية ومسائية</span>
+            <span><span class="material-icons">wifi_off</span>يعمل دون اتصال بالإنترنت</span>
+            <!-- تكرار للحلقة اللانهائية -->
+            <span aria-hidden="true"><span class="material-icons">schedule</span>تتبّع الوقت الفعلي</span>
+            <span aria-hidden="true"><span class="material-icons">autorenew</span>تكرار تلقائي ذكي</span>
+            <span aria-hidden="true"><span class="material-icons">bar_chart</span>إحصائيات وسلسلة إنجاز</span>
+            <span aria-hidden="true"><span class="material-icons">event_note</span>جدول زمني بالسحب والإفلات</span>
+            <span aria-hidden="true"><span class="material-icons">notifications</span>تنبيهات صباحية ومسائية</span>
+            <span aria-hidden="true"><span class="material-icons">wifi_off</span>يعمل دون اتصال بالإنترنت</span>
+          </div>
         </div>
-        <div class="timer-col">
-          <div id="timerPanel"></div>
-        </div>
-      </div>
-    </div>
+      </section>
 
-    <div class="modal-overlay" id="calendarOverlay">
-      <div class="modal-card" style="max-width: 380px">
-        <div class="modal-header">
-          <h2>التقويم</h2>
-          <button class="icon-btn" id="closeCalendarBtn" title="إغلاق">
-            <span class="material-icons">close</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="calendar-card">
-            <div class="calendar-header">
-              <button
-                class="nav-btn"
-                id="calPrevMonth"
-                style="width: 34px; height: 34px"
-              >
-                <span class="material-icons">chevron_right</span>
-              </button>
-              <span class="calendar-month-title" id="calMonthTitle"></span>
-              <button
-                class="nav-btn"
-                id="calNextMonth"
-                style="width: 34px; height: 34px"
-              >
-                <span class="material-icons">chevron_left</span>
-              </button>
+      <!-- ========================= المميزات الكبيرة ========================= -->
+      <section class="lp-section" id="features">
+        <div class="lp-container">
+
+          <div class="lp-feature-row">
+            <div class="lp-feature-text">
+              <span class="lp-eyebrow">البداية</span>
+              <h2>اكتب المهمة مرة، واستخدمها طوال الوقت</h2>
+              <p>
+                بنك المهام مكانٌ تحفظ فيه كل المهام المتكررة في حياتك — العمل، المنزل،
+                الدراسة — وتسحبها إلى يومك بضغطة واحدة بدلًا من كتابتها من جديد كل مرة.
+              </p>
+              <ul class="lp-check-list">
+                <li><span class="material-icons">check</span>فلاتر وتصنيفات لكل مجال في حياتك</li>
+                <li><span class="material-icons">check</span>بحث فوري في جميع مهامك القديمة والحالية</li>
+                <li><span class="material-icons">check</span>أرشيف للمهام غير النشطة حاليًا</li>
+              </ul>
             </div>
-            <div class="calendar-grid" id="calGrid"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal للـ Drafts مع البحث الذكي -->
-    <div class="modal-overlay" id="draftsOverlay">
-      <div class="modal-card" style="max-width: 500px">
-        <div class="modal-header">
-          <h2>بنك المسودات</h2>
-          <button class="icon-btn" id="closeDraftsBtn" title="إغلاق">
-            <span class="material-icons">close</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="bank-search" style="margin-top: 0; margin-bottom: 14px">
-            <span class="material-icons bank-search-icon">search</span>
-            <input
-              type="text"
-              id="draftsSearchInput"
-              placeholder="بحث ذكي في المسودات..."
-            />
-            <button
-              class="bank-search-clear"
-              id="draftsSearchClear"
-              style="display: none"
-              title="مسح البحث"
-            >
-              <span class="material-icons">close</span>
-            </button>
-          </div>
-          <div
-            id="draftsModalList"
-            style="
-              display: flex;
-              flex-direction: column;
-              gap: 8px;
-              max-height: 350px;
-              overflow-y: auto;
-            "
-          >
-            <!-- سيتم تعبئتها ديناميكياً -->
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal البحث الشامل عبر كل الأيام -->
-    <div class="modal-overlay" id="globalSearchOverlay">
-      <div class="modal-card" style="max-width: 500px">
-        <div class="modal-header">
-          <h2>البحث في جميع المهام</h2>
-          <button class="icon-btn" id="closeGlobalSearchBtn" title="إغلاق">
-            <span class="material-icons">close</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="bank-search" style="margin-top: 0; margin-bottom: 14px">
-            <span class="material-icons bank-search-icon">search</span>
-            <input
-              type="text"
-              id="globalSearchInput"
-              placeholder="ابحث عن مهمة سابقة..."
-            />
-            <button
-              class="bank-search-clear"
-              id="globalSearchClear"
-              style="display: none"
-              title="مسح البحث"
-            >
-              <span class="material-icons">close</span>
-            </button>
-          </div>
-          <div
-            id="globalSearchResultsList"
-            style="
-              display: flex;
-              flex-direction: column;
-              gap: 8px;
-              max-height: 400px;
-              overflow-y: auto;
-            "
-          >
-            <!-- سيتم تعبئتها ديناميكياً -->
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal إعدادات التنبيهات -->
-    <div class="modal-overlay" id="notificationSettingsOverlay">
-      <div class="modal-card" style="max-width: 440px">
-        <div class="modal-header">
-          <h2>إعدادات التنبيهات</h2>
-          <button
-            class="icon-btn"
-            id="closeNotificationSettingsBtn"
-            title="إغلاق"
-          >
-            <span class="material-icons">close</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="notif-setting-row">
-            <div class="notif-setting-info">
-              <span class="notif-setting-title">
-                <span class="material-icons">wb_sunny</span>
-                تنبيه الصباح
-              </span>
-              <span class="notif-setting-desc">تذكير بمهام وعادات اليوم</span>
+            <div class="lp-feature-visual">
+              <div class="lp-mock-window lp-mock-bank">
+                <div class="lp-mock-bank-title"><span class="material-icons">inventory_2</span>بنك المهام</div>
+                <div class="lp-mock-chip-row">
+                  <span class="lp-mock-chip active">الكل</span>
+                  <span class="lp-mock-chip">العمل</span>
+                  <span class="lp-mock-chip">المنزل</span>
+                  <span class="lp-mock-chip">الصحة</span>
+                </div>
+                <div class="lp-mock-bank-list">
+                  <div class="lp-mock-bank-item">إعداد عرض العميل</div>
+                  <div class="lp-mock-bank-item">قراءة عشرين صفحة</div>
+                  <div class="lp-mock-bank-item">شراء مستلزمات المنزل</div>
+                  <div class="lp-mock-bank-item">متابعة الفواتير</div>
+                </div>
+              </div>
             </div>
-            <label class="toggle">
-              <input type="checkbox" id="morningNotifToggle" />
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="notif-setting-time-row" id="morningTimeRow">
-            <span>الوقت</span>
-            <button
-              type="button"
-              class="notif-time-btn"
-              id="morningNotifTimeBtn"
-              data-target="morning"
-            >
-              8:00 ص
-            </button>
           </div>
 
-          <div class="notif-setting-row">
-            <div class="notif-setting-info">
-              <span class="notif-setting-title">
-                <span class="material-icons">nights_stay</span>
-                تنبيه المساء
-              </span>
-              <span class="notif-setting-desc"
-                >مراجعة إنجازات اليوم والسلسلة</span
-              >
+          <div class="lp-feature-row lp-feature-row-reverse">
+            <div class="lp-feature-text">
+              <span class="lp-eyebrow">التنظيم</span>
+              <h2>اعرف وقتك قبل أن يمضي</h2>
+              <p>
+                اسحب أي مهمة وضعها في وقتها المناسب على جدول زمني مرئي، تمامًا كأي
+                تقويم تعرفه — لتعرف شكل يومك منذ الصباح، ولا تُفاجَأ بوقتٍ انقضى
+                دون أن تشعر.
+              </p>
+              <ul class="lp-check-list">
+                <li><span class="material-icons">check</span>سحب وإفلات مباشر لأي مهمة على الجدول</li>
+                <li><span class="material-icons">check</span>تحديد المدة بحرية بالسحب من الحافة</li>
+                <li><span class="material-icons">check</span>عرض أسبوعي كامل إلى جانب عرض اليوم</li>
+              </ul>
             </div>
-            <label class="toggle">
-              <input type="checkbox" id="eveningNotifToggle" />
-              <span class="toggle-slider"></span>
-            </label>
+            <div class="lp-feature-visual">
+              <div class="lp-mock-window lp-mock-timeline">
+                <div class="lp-mock-timeline-track">
+                  <div class="lp-mock-hour"><span>٩:٠٠</span><i></i></div>
+                  <div class="lp-mock-hour"><span>١٠:٠٠</span><i></i></div>
+                  <div class="lp-mock-hour"><span>١١:٠٠</span><i></i></div>
+                  <div class="lp-mock-hour"><span>١٢:٠٠</span><i></i></div>
+                  <div class="lp-mock-block" style="top:6px; height:52px;">اجتماع الفريق</div>
+                  <div class="lp-mock-block alt" style="top:96px; height:80px;">تصميم الشاشة الجديدة</div>
+                  <div class="lp-mock-block" style="top:210px; height:40px;">الرد على العملاء</div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="notif-setting-time-row" id="eveningTimeRow">
-            <span>الوقت</span>
-            <button
-              type="button"
-              class="notif-time-btn"
-              id="eveningNotifTimeBtn"
-              data-target="evening"
-            >
-              9:00 م
-            </button>
+
+          <div class="lp-feature-row">
+            <div class="lp-feature-text">
+              <span class="lp-eyebrow">التحفيز</span>
+              <h2>اعرف تقدّمك، لا مهامك فقط</h2>
+              <p>
+                كل يوم تُنجز فيه مهامك يُضاف إلى سلسلة إنجازك المتتالية. تُظهر لك
+                الإحصائيات أين يذهب وقتك فعلًا، وكيف تتحسّن دقة تقديرك للوقت مع الأيام.
+              </p>
+              <ul class="lp-check-list">
+                <li><span class="material-icons">check</span>سلسلة أيام متتالية (Streak) تحفّزك على الاستمرار</li>
+                <li><span class="material-icons">check</span>مقارنة بالأسبوع أو اليوم السابق</li>
+                <li><span class="material-icons">check</span>تصدير تقرير PDF أسبوعي كامل</li>
+              </ul>
+            </div>
+            <div class="lp-feature-visual">
+              <div class="lp-mock-window lp-mock-stats">
+                <div class="lp-mock-donut" style="--pct: 72"><span>٧٢٪</span></div>
+                <div class="lp-mock-stats-side">
+                  <div class="lp-mock-stat-pill"><span class="material-icons">schedule</span>٤ ساعات و١٠ دقائق إجمالًا</div>
+                  <div class="lp-mock-stat-pill"><span class="material-icons">local_fire_department</span>١٢ يومًا متتاليًا</div>
+                  <div class="lp-mock-stat-pill"><span class="material-icons">speed</span>دقة تقدير ٩٤٪</div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <p class="notif-setting-status" id="notifPermissionStatus"></p>
         </div>
-      </div>
-    </div>
+      </section>
 
-    <!-- Modal الحساب: ربط الحساب المجهول بإيميل/باسورد أو تسجيل الدخول -->
-    <div class="modal-overlay" id="accountOverlay">
-      <div class="modal-card" style="max-width: 420px">
-        <div class="modal-header">
-          <h2 id="accountModalTitle">الحساب</h2>
-          <button class="icon-btn" id="closeAccountBtn" title="إغلاق">
-            <span class="material-icons">close</span>
-          </button>
-        </div>
-        <div class="modal-body" id="accountBody"></div>
-        <div id="turnstileContainer"></div>
-      </div>
-    </div>
-
-    <div class="modal-overlay picker-overlay" id="durationPickerOverlay">
-      <div class="picker-sheet">
-        <div class="picker-header">
-          <button class="picker-cancel" id="pickerCancelBtn">إلغاء</button>
-          <h3 id="pickerTitle">مدة المهمة</h3>
-          <button class="picker-done" id="pickerDoneBtn">تم</button>
-        </div>
-        <div class="picker-body">
-          <div class="wheel-picker">
-            <div class="wheel-highlight"></div>
-            <div class="wheel-col" id="hoursWheel">
-              <ul class="wheel-list" id="hoursWheelList"></ul>
-            </div>
-            <div class="wheel-label-col">س</div>
-            <div class="wheel-col" id="minutesWheel">
-              <ul class="wheel-list" id="minutesWheelList"></ul>
-            </div>
-            <div class="wheel-label-col">د</div>
+      <!-- ========================= شبكة مميزات صغيرة ========================= -->
+      <section class="lp-section lp-section-tint">
+        <div class="lp-container">
+          <div class="lp-section-head">
+            <span class="lp-eyebrow">وأيضًا</span>
+            <h2>كل ما تحتاجه، دون فتح تطبيق آخر</h2>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal-overlay picker-overlay" id="timeOfDayPickerOverlay">
-      <div class="picker-sheet">
-        <div class="picker-header">
-          <button class="picker-cancel" id="timePickerCancelBtn">إلغاء</button>
-          <h3 id="timePickerTitle">وقت التنبيه</h3>
-          <button class="picker-done" id="timePickerDoneBtn">تم</button>
-        </div>
-        <div class="picker-body">
-          <div class="wheel-picker">
-            <div class="wheel-highlight"></div>
-            <div class="wheel-col" id="tpHourWheel">
-              <ul class="wheel-list" id="tpHourWheelList"></ul>
+          <div class="lp-mini-grid">
+            <div class="lp-mini-card">
+              <span class="material-icons">autorenew</span>
+              <h3>تكرار تلقائي</h3>
+              <p>حدّد أيام تكرار المهمة، فتظهر تلقائيًا كل مرة دون الحاجة لكتابتها من جديد.</p>
             </div>
-            <div class="wheel-label-col">:</div>
-            <div class="wheel-col" id="tpMinuteWheel">
-              <ul class="wheel-list" id="tpMinuteWheelList"></ul>
+            <div class="lp-mini-card">
+              <span class="material-icons">timer</span>
+              <h3>مؤقتات التركيز</h3>
+              <p>شغّل مؤقتًا مفتوحًا أو محدد المدة أثناء العمل، ويُحتسب وقتك الفعلي تلقائيًا.</p>
             </div>
-            <div class="wheel-col" id="tpPeriodWheel">
-              <ul class="wheel-list" id="tpPeriodWheelList"></ul>
+            <div class="lp-mini-card">
+              <span class="material-icons">notifications_active</span>
+              <h3>تنبيهات ذكية</h3>
+              <p>تنبيه صباحي يذكّرك بيومك، وتنبيه مسائي يسألك إن أنجزت مهامك أم لا.</p>
+            </div>
+            <div class="lp-mini-card">
+              <span class="material-icons">event</span>
+              <h3>تصدير إلى التقويم</h3>
+              <p>صدّر مهامك كملف تقويم قياسي (.ics) واستورده في Google أو Apple Calendar بضغطة واحدة.</p>
+            </div>
+            <div class="lp-mini-card">
+              <span class="material-icons">dark_mode</span>
+              <h3>الوضع الليلي</h3>
+              <p>واجهة مريحة للعين ليلًا ونهارًا، تتبدّل بضغطة واحدة وتبقى كما هي.</p>
+            </div>
+            <div class="lp-mini-card">
+              <span class="material-icons">install_mobile</span>
+              <h3>يُثبَّت كالتطبيقات</h3>
+              <p>ثبّته على هاتفك أو جهازك كأي تطبيق عادي، ويعمل حتى دون اتصال بالإنترنت.</p>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </section>
 
-    <!-- Modal مكان إضافة المهمة -->
-    <div class="modal-overlay" id="addChoiceOverlay">
-      <div class="modal-card" style="max-width: 440px">
-        <div class="modal-header">
-          <h2>مكان إضافة المهمة</h2>
-          <button class="icon-btn" id="closeAddChoiceBtn" title="إغلاق">
-            <span class="material-icons">close</span>
-          </button>
+      <!-- ========================= إزاي يبدأ يومك ========================= -->
+      <section class="lp-section">
+        <div class="lp-container">
+          <div class="lp-section-head">
+            <span class="lp-eyebrow">البداية سهلة</span>
+            <h2>ثلاث خطوات، وتصبح جاهزًا</h2>
+          </div>
+          <div class="lp-steps">
+            <div class="lp-step">
+              <div class="lp-step-num">١</div>
+              <h3>أنشئ حسابك</h3>
+              <p>بريد إلكتروني أو حساب Google — أقل من دقيقة، ودون بطاقة ائتمان.</p>
+            </div>
+            <div class="lp-step">
+              <div class="lp-step-num">٢</div>
+              <h3>جهّز بنك مهامك</h3>
+              <p>اكتب المهام المتكررة في حياتك مرة واحدة، وسيتذكّرها نظم نيابةً عنك.</p>
+            </div>
+            <div class="lp-step">
+              <div class="lp-step-num">٣</div>
+              <h3>عِش يومك</h3>
+              <p>يذكّرك نظم بمهامك، ويتابع وقتك، ويبني سلسلة إنجازك يومًا بعد يوم.</p>
+            </div>
+          </div>
         </div>
-        <div class="modal-body">
-          <p
-            style="
-              color: var(--ink-soft);
-              font-size: 0.95rem;
-              margin-top: 0;
-              margin-bottom: 16px;
-              line-height: 1.5;
-            "
-          >
-            أين تريد إضافة المهمة
-            <strong
-              id="pendingTaskNameDisplay"
-              style="color: var(--pen)"
-            ></strong>
-            بالضبط؟
+      </section>
+
+      <!-- ========================= معرض/كاروسيل ========================= -->
+      <section class="lp-section lp-section-tint" id="showcase">
+        <div class="lp-container">
+          <div class="lp-section-head">
+            <span class="lp-eyebrow">شاهد بنفسك</span>
+            <h2>استعرض نظم عمليًا</h2>
+          </div>
+
+          <div class="lp-carousel" id="lpCarousel">
+            <div class="lp-carousel-track" id="lpCarouselTrack">
+              <div class="lp-carousel-slide">
+                <div class="lp-mock-window lp-mock-day lp-mock-small">
+                  <div class="lp-mock-topbar">
+                    <div class="lp-mock-streak"><span class="material-icons">local_fire_department</span>٩ أيام</div>
+                    <div class="lp-mock-date">مهام اليوم</div>
+                  </div>
+                  <div class="lp-mock-tasks">
+                    <div class="lp-mock-task is-done"><span class="lp-mock-check material-icons">check_circle</span><span class="lp-mock-task-name">تمرين الصباح</span><span class="lp-mock-badge done">٢٠ د</span></div>
+                    <div class="lp-mock-task"><span class="lp-mock-check material-icons">radio_button_unchecked</span><span class="lp-mock-task-name">مراجعة البريد الإلكتروني</span><span class="lp-mock-badge">١٥ د</span></div>
+                    <div class="lp-mock-task"><span class="lp-mock-check material-icons">radio_button_unchecked</span><span class="lp-mock-task-name">اجتماع فريق التصميم</span><span class="lp-mock-badge">٤٥ د</span></div>
+                  </div>
+                </div>
+                <p class="lp-carousel-caption">مهام اليوم — بنك جاهز، وترتيب واضح</p>
+              </div>
+
+              <div class="lp-carousel-slide">
+                <div class="lp-mock-window lp-mock-timeline lp-mock-small">
+                  <div class="lp-mock-timeline-track">
+                    <div class="lp-mock-hour"><span>٩:٠٠</span><i></i></div>
+                    <div class="lp-mock-hour"><span>١٠:٠٠</span><i></i></div>
+                    <div class="lp-mock-hour"><span>١١:٠٠</span><i></i></div>
+                    <div class="lp-mock-block" style="top:6px; height:60px;">وقت عميق للكتابة</div>
+                    <div class="lp-mock-block alt" style="top:110px; height:45px;">مكالمة سريعة</div>
+                  </div>
+                </div>
+                <p class="lp-carousel-caption">الجدول الزمني — يومك مرسوم أمامك</p>
+              </div>
+
+              <div class="lp-carousel-slide">
+                <div class="lp-mock-window lp-mock-stats lp-mock-small">
+                  <div class="lp-mock-donut" style="--pct: 85"><span>٨٥٪</span></div>
+                  <div class="lp-mock-stats-side">
+                    <div class="lp-mock-stat-pill"><span class="material-icons">local_fire_department</span>٩ أيام متتالية</div>
+                    <div class="lp-mock-stat-pill"><span class="material-icons">schedule</span>٣ ساعات و٤٠ دقيقة</div>
+                  </div>
+                </div>
+                <p class="lp-carousel-caption">الإحصائيات — تقدّمك أمام عينيك</p>
+              </div>
+
+              <div class="lp-carousel-slide">
+                <div class="lp-mock-window lp-mock-week lp-mock-small">
+                  <div class="lp-mock-week-row">
+                    <div class="lp-mock-week-day"><span>السبت</span><i class="full"></i></div>
+                    <div class="lp-mock-week-day"><span>الأحد</span><i class="full"></i></div>
+                    <div class="lp-mock-week-day today"><span>الاثنين</span><i class="half"></i></div>
+                    <div class="lp-mock-week-day"><span>الثلاثاء</span><i></i></div>
+                    <div class="lp-mock-week-day"><span>الأربعاء</span><i></i></div>
+                    <div class="lp-mock-week-day"><span>الخميس</span><i></i></div>
+                    <div class="lp-mock-week-day"><span>الجمعة</span><i></i></div>
+                  </div>
+                </div>
+                <p class="lp-carousel-caption">العرض الأسبوعي — الصورة الكاملة لأسبوعك</p>
+              </div>
+            </div>
+
+            <div class="lp-carousel-dots" id="lpCarouselDots"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================= الأسعار ========================= -->
+      <section class="lp-section" id="pricing">
+        <div class="lp-container lp-pricing">
+          <span class="lp-eyebrow">الأسعار</span>
+          <h2>مجاني بالكامل حاليًا</h2>
+          <p class="lp-pricing-sub">
+            لا يزال نظم في مرحلة الإطلاق، وجميع مميزاته دون استثناء متاحة مجانًا
+            بالكامل. سنعلن عن خطط الاشتراك قريبًا، وسنُبلغ كل من لديه حساب حاليًا
+            أولًا قبل أي أحد.
           </p>
-          <div style="display: flex; flex-direction: column; gap: 10px">
-            <button class="choice-btn choice-today" id="choiceTodayBtn">
-              <span class="material-icons">today</span>
-              <div class="choice-text">
-                <strong>مهام اليوم فقط</strong>
-                <span>تُضاف إلى جدول اليوم فقط ولن تُحفظ في البنك</span>
-              </div>
-            </button>
-            <button class="choice-btn" id="choiceBankBtn">
-              <span class="material-icons">inventory_2</span>
-              <div class="choice-text">
-                <strong>بنك المهام</strong>
-                <span>تُحفظ في البنك حتى تتمكن من اضافتها في أي يوم لاحقًا</span>
-              </div>
-            </button>
-            <button class="choice-btn choice-both" id="choiceBothBtn">
-              <span class="material-icons">done_all</span>
-              <div class="choice-text">
-                <strong>كلاهما معًا</strong>
-                <span>تُحفظ في البنك وتُضاف إلى جدول اليوم في الوقت نفسه</span>
-              </div>
-            </button>
+          <div class="lp-pricing-card">
+            <div class="lp-pricing-badge">أثناء الإطلاق</div>
+            <div class="lp-pricing-amount">مجانًا<span>/ حاليًا ودون تاريخ انتهاء محدد</span></div>
+            <ul class="lp-check-list lp-pricing-list">
+              <li><span class="material-icons">check</span>جميع المميزات دون قيود</li>
+              <li><span class="material-icons">check</span>عدد غير محدود من المهام</li>
+              <li><span class="material-icons">check</span>يعمل على جميع أجهزتك</li>
+            </ul>
+            <a href="app/" class="lp-btn lp-btn-primary lp-btn-lg lp-btn-block">ابدأ مجانًا الآن</a>
           </div>
         </div>
-      </div>
-    </div>
+      </section>
 
-    <!-- Modal اختيار نوع المؤقت: وقت مفتوح أو وقت محدد -->
-    <div class="modal-overlay" id="timerTypeOverlay">
-      <div class="modal-card" style="max-width: 420px">
-        <div class="modal-header">
-          <h2>نوع المؤقت</h2>
-          <button class="icon-btn" id="closeTimerTypeBtn" title="إغلاق">
-            <span class="material-icons">close</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <p
-            style="
-              color: var(--ink-soft);
-              font-size: 0.95rem;
-              margin-top: 0;
-              margin-bottom: 16px;
-              line-height: 1.5;
-            "
-          >
-            كيف تريد أن يكون مؤقت
-            <strong
-              id="pendingTimerNameDisplay"
-              style="color: var(--pen)"
-            ></strong
-            >؟
-          </p>
-          <div style="display: flex; flex-direction: column; gap: 10px">
-            <button class="choice-btn" id="timerTypeOpenBtn">
-              <span class="material-icons">all_inclusive</span>
-              <div class="choice-text">
-                <strong>وقت مفتوح</strong>
-                <span
-                  >يَعُدّ تصاعديًا دون حد معيّن، ويمكنك إيقافه في أي وقت
-                  تريد</span
-                >
-              </div>
-            </button>
-            <button class="choice-btn choice-both" id="timerTypeFixedBtn">
-              <span class="material-icons">hourglass_bottom</span>
-              <div class="choice-text">
-                <strong>وقت محدد</strong>
-                <span
-                  >تحدّد مدة (مثل 15 دقيقة) وسينبهك التطبيق بصوت عند
-                  انتهائها</span
-                >
-              </div>
-            </button>
+      <!-- ========================= الأسئلة الشائعة ========================= -->
+      <section class="lp-section lp-section-tint" id="faq">
+        <div class="lp-container lp-faq-container">
+          <div class="lp-section-head">
+            <span class="lp-eyebrow">أسئلة شائعة</span>
+            <h2>إن كان لديك سؤال، ستجد إجابته هنا على الأرجح</h2>
+          </div>
+
+          <div class="lp-faq-list">
+            <details class="lp-faq-item">
+              <summary>كيف تكون بياناتي آمنة؟</summary>
+              <p>ترتبط جميع بياناتك بحسابك الشخصي وتُحفظ بشكل آمن، ولا يمكن لأحد غيرك الاطلاع عليها. يمكنك تصدير نسخة احتياطية من بياناتك في أي وقت من إعدادات التطبيق.</p>
+            </details>
+            <details class="lp-faq-item">
+              <summary>هل يعمل نظم دون اتصال بالإنترنت؟</summary>
+              <p>نعم، نظم تطبيق ويب تقدّمي (PWA) — يمكنك تثبيته على هاتفك أو جهازك، وسيستمر في العمل وعرض مهامك حتى لو انقطع الإنترنت، ويُزامن أي تغيير فور عودة الاتصال.</p>
+            </details>
+            <details class="lp-faq-item">
+              <summary>هل سيكون هناك اشتراك مدفوع؟</summary>
+              <p>ستتوفر خطط مدفوعة مستقبلًا لمزايا إضافية، لكن حاليًا وأثناء مرحلة الإطلاق، كل شيء متاح مجانًا بالكامل، وسيُبلَّغ كل من لديه حساب حاليًا أولًا قبل أي تغيير.</p>
+            </details>
+            <details class="lp-faq-item">
+              <summary>هل يمكنني تصدير مهامي إلى تقويم آخر؟</summary>
+              <p>نعم، يمكنك تصدير مهامك كملف تقويم قياسي (.ics) واستيراده مباشرة في Google Calendar أو Apple Calendar أو أي تطبيق تقويم تستخدمه.</p>
+            </details>
+            <details class="lp-faq-item">
+              <summary>هل أحتاج إلى تثبيت شيء لاستخدامه؟</summary>
+              <p>لا، يعمل نظم مباشرة من المتصفح دون تنزيل، ويمكنك أيضًا تثبيته على الشاشة الرئيسية لهاتفك بضغطة واحدة ليفتح كأي تطبيق آخر.</p>
+            </details>
+            <details class="lp-faq-item">
+              <summary>هل يمكنني حذف حسابي وبياناتي؟</summary>
+              <p>نعم، بياناتك ملكٌ لك، ويمكنك تصديرها أو طلب حذفها بالكامل في أي وقت.</p>
+            </details>
           </div>
         </div>
-      </div>
-    </div>
+      </section>
 
-    <!-- Modal مهام الأمس اللي متعملتلهاش check -->
-    <div class="modal-overlay" id="missedTasksOverlay">
-      <div class="modal-card" style="max-width: 420px">
-        <div class="modal-header">
-          <h2>مهام الأمس</h2>
-          <button class="icon-btn" id="closeMissedTasksBtn" title="إغلاق">
-            <span class="material-icons">close</span>
-          </button>
+      <!-- ========================= CTA أخير ========================= -->
+      <section class="lp-final-cta">
+        <div class="lp-container lp-final-cta-inner">
+          <h2>يومك بانتظار أن يُنظَّم</h2>
+          <p>ابدأ الآن مجانًا، وشاهد الفرق بعد أسبوع واحد فقط.</p>
+          <a href="app/" class="lp-btn lp-btn-primary lp-btn-lg">
+            ابدأ مجانًا الآن
+            <span class="material-icons">arrow_back</span>
+          </a>
         </div>
-        <div class="modal-body">
-          <p
-            style="
-              color: var(--ink-soft);
-              font-size: 0.95rem;
-              margin-top: 0;
-              margin-bottom: 16px;
-              line-height: 1.5;
-            "
-          >
-            هذه المهام كانت في جدول الأمس ولم تُنجز بعد:
-          </p>
-          <ul class="stat-list" id="missedTasksList"></ul>
-        </div>
-      </div>
-    </div>
+      </section>
+    </main>
 
-    <div class="duration-popover" id="durationPopover"></div>
-    <div class="clock-choice-popover" id="clockChoicePopover"></div>
-    <div class="toast" id="toast"></div>
-
-    <!-- Modal تكرار المهمة -->
-    <div class="modal-overlay" id="recurrenceOverlay">
-      <div class="modal-card" style="max-width: 420px">
-        <div class="modal-header">
-          <h2>تكرار المهمة</h2>
-          <button class="icon-btn" id="closeRecurrenceBtn" title="إغلاق">
-            <span class="material-icons">close</span>
-          </button>
+    <!-- ========================= الفوتر ========================= -->
+    <footer class="lp-footer">
+      <div class="lp-container lp-footer-inner">
+        <div class="lp-footer-brand">
+          <img src="app/img/logo-light.png" alt="نظم" />
+          <p>بنك مهامك الجاهز.. نظّم مهامك اليومية، وتابع وقتك، وحقق أهدافك.</p>
         </div>
-        <div class="modal-body">
-          <p
-            style="
-              color: var(--ink-soft);
-              font-size: 0.95rem;
-              margin-top: 0;
-              margin-bottom: 14px;
-              line-height: 1.5;
-            "
-          >
-            اختر الأيام التي ترغب
-            <strong
-              id="recurrenceTaskNameDisplay"
-              style="color: var(--pen)"
-            ></strong>
-            تتكرر فيها تلقائيًا كل أسبوع:
-          </p>
-          <div class="recurrence-days-grid" id="recurrenceDaysGrid"></div>
-          <div class="recurrence-quick-actions">
-            <button
-              type="button"
-              class="recurrence-quick-btn"
-              id="recurrenceSelectAllBtn"
-            >
-              كل يوم
-            </button>
-            <button
-              type="button"
-              class="recurrence-quick-btn"
-              id="recurrenceClearBtn"
-            >
-              إلغاء التكرار
-            </button>
-          </div>
-          <button
-            type="button"
-            class="add-btn"
-            id="saveRecurrenceBtn"
-            style="width: 100%; margin-top: 18px; padding: 12px"
-          >
-            حفظ
-          </button>
+        <div class="lp-footer-col">
+          <h4>المنتج</h4>
+          <a href="#features">المميزات</a>
+          <a href="#pricing">الأسعار</a>
+          <a href="#faq">الأسئلة الشائعة</a>
+        </div>
+        <div class="lp-footer-col">
+          <h4>الحساب</h4>
+          <a href="app/">تسجيل الدخول</a>
+          <a href="app/">إنشاء حساب</a>
         </div>
       </div>
-    </div>
-
-    <!-- Modal المهام الفرعية -->
-    <div class="modal-overlay" id="subtasksOverlay">
-      <div class="modal-card" style="max-width: 420px">
-        <div class="modal-header">
-          <h2>مهام فرعية</h2>
-          <button class="icon-btn" id="closeSubtasksBtn" title="إغلاق">
-            <span class="material-icons">close</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="add-row" style="margin-top: 0; margin-bottom: 16px">
-            <input
-              type="text"
-              id="newSubtaskInput"
-              placeholder="أضف مهمة فرعية..."
-            />
-            <button class="add-btn" id="addSubtaskBtn">إضافة</button>
-          </div>
-          <div
-            id="subtasksList"
-            style="
-              display: flex;
-              flex-direction: column;
-              gap: 8px;
-              max-height: 300px;
-              overflow-y: auto;
-            "
-          ></div>
-        </div>
+      <div class="lp-container lp-footer-bottom">
+        <span>© <span id="lpYear"></span> نظم. جميع الحقوق محفوظة.</span>
       </div>
-    </div>
+    </footer>
 
-    <script
-      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
-      defer
-    ></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4" defer></script>
-    <script
-      src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-      defer
-    ></script>
-    <script type="module" src="js/main.js"></script>
-    <script>
-      // فتح/قفل قائمة "المزيد" على الموبايل — منفصل عن منطق التطبيق الأساسي
-      document.addEventListener("DOMContentLoaded", () => {
-        const moreBtn = document.getElementById("headerMoreBtn");
-        const menu = document.getElementById("headerActionsPanel");
-        if (!moreBtn || !menu) return;
-
-        const closeMenu = () => {
-          menu.classList.remove("open");
-          moreBtn.classList.remove("is-open");
-          moreBtn.setAttribute("aria-expanded", "false");
-          const dataGroup = document.getElementById("dataMenuGroup");
-          if (dataGroup) dataGroup.open = false;
-        };
-
-        moreBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const isOpen = menu.classList.toggle("open");
-          moreBtn.classList.toggle("is-open", isOpen);
-          moreBtn.setAttribute("aria-expanded", String(isOpen));
-        });
-
-        // إقفال القائمة عند الضغط على أي زرار جواها أو برّه
-        menu
-          .querySelectorAll("button")
-          .forEach((btn) => btn.addEventListener("click", closeMenu));
-        document.addEventListener("click", (e) => {
-          if (!menu.contains(e.target) && e.target !== moreBtn) closeMenu();
-        });
-      });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="landing.js" defer></script>
   </body>
 </html>

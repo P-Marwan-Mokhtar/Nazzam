@@ -1,0 +1,9 @@
+# صور سكرين شوت موقّتة
+brave_screenshot_*.png
+
+# ملفات نظام التشغيل
+Thumbs.db
+.DS_Store
+
+# ملفات مؤقتة
+*.log
