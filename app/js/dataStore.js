@@ -157,8 +157,11 @@ export async function trySyncPending(){
   }
 }
 
-export async function loadData(){
-  await ensureAuth();
+export async function loadData(skipAuthCheck){
+  // init في main.js بيعمل ensureAuth() الأول (وممكن loadData تُستدعى بعده مباشرة)،
+  // فلو اتمُرر skipAuthCheck بنستغني عن إعادة الفحص ونستخدم نتيجة الفحص اللي حصل
+  // لتوّه — كان الفحص يتكرر أوفلاين وبياخد ثواني فاضية (الـ header كان بيظهر والـ content لسه).
+  if(!skipAuthCheck) await ensureAuth();
 
   if(!currentUserId){
     // تعذر الاتصال بـ Supabase (مفيش نت مثلًا) - استخدم آخر نسخة محفوظة محليًا

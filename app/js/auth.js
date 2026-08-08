@@ -39,6 +39,13 @@ function isNetworkError(e){
 // أصلًا مسجّل دخول وعنده نسخة محلية شغالة، بس مجرد التوكن محتاج تجديد ومحتاج نت.
 // ------------------------------------------------------------
 export async function ensureAuth(){
+  // لو الجهاز نفسه أوفلاين (الواي فاي/البيانات مقطوعة)، منعملش طلب شبكة أصلًا
+  // ونرجّع 'offline' فورًا — المطلوب في الحالة دي هو استخدام النسخة المحلية،
+  // ومفيش داعي نستنى الـ fetch يفشل (بياخد ثواني) عشان نحكم.
+  if(!navigator.onLine){
+    currentUserId = null;
+    return 'offline';
+  }
   try{
     const { data: { session } } = await supabaseClient.auth.getSession();
     if(session && session.user){
