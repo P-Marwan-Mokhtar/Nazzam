@@ -5,6 +5,7 @@
 // في كل تشغيلة، بتقرا إعدادات كل مستخدم (وقت الصباح/المساء ومفعّل ولا لأ) من نفس عمود
 // user_data.data اللي التطبيق أصلاً بيحفظ فيه كل حاجة، وبتبعت التنبيه لما يجي وقته بالظبط،
 // وبتسجّل إنها بعثت عشان ميتكررش نفس التنبيه في نفس اليوم.
+// كمان بتبعت تذكير المهام (remindAt) — أي مهمة لليوم حان وقت تذكيرها.
 
 import webpush from "npm:web-push@3.6.7";
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -120,6 +121,18 @@ Deno.serve(async () => {
         ns.lastEveningFiredDate = today;
         stateChanged = true;
         sentCount++;
+      }
+
+      // تذكير المهام: أي مهمة ليومنا ده عندها remindAt ولسه مش منبّهة (reminded = false)
+      // ومش منجزة وحان وقتها → بنبعت لها push ونعلّم reminded عشان ميتكررش (بنفس منطق التطبيق المحلي)
+      const reminderTasks = todayTasks.filter((t: any) => t.remindAt && !t.reminded && !t.done);
+      for (const t of reminderTasks) {
+        if (nowHM >= t.remindAt) {
+          await sendToSubs(userSubs, "تذكير ⏰", `حان وقت "${t.name}"`);
+          t.reminded = true;
+          stateChanged = true;
+          sentCount++;
+        }
       }
 
       if (stateChanged) {
