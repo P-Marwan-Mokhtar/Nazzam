@@ -312,6 +312,29 @@ export function render(){
                 <button class="tmd-btn" data-action="edit-task-today" data-id="${t.id}">
                   <span class="material-icons">edit</span><span>تعديل</span>
                 </button>
+                <div class="time-choice-submenu-wrap">
+                  <button class="tmd-btn" data-action="toggle-duration" data-id="${t.id}" title="ضبط الهدف أو الوقت الفعلي أو بدء تايمر">
+                    <span class="material-icons">schedule</span><span>الوقت</span>
+                  </button>
+                  <div class="clock-choice-popover ${ui.openClockChoiceTaskId === t.id ? 'open' : ''}">
+                    <button class="clock-choice-btn" data-action="clock-choice-target" data-id="${t.id}" type="button">
+                      <span class="material-icons">flag</span>الهدف
+                    </button>
+                    <button class="clock-choice-btn" data-action="clock-choice-actual" data-id="${t.id}" type="button">
+                      <span class="material-icons">timelapse</span>الوقت الفعلي
+                    </button>
+                    <button class="clock-choice-btn" data-action="clock-choice-timer" data-id="${t.id}" type="button">
+                      <span class="material-icons">play_circle_outline</span>بدء تايمر
+                    </button>
+                  </div>
+                </div>
+                <button class="tmd-btn" data-action="open-subtasks" data-id="${t.id}">
+                  <span class="material-icons">account_tree</span><span>مهام فرعية</span>
+                </button>
+                <button class="tmd-btn ${(state.recurringTasks && state.recurringTasks[t.name] && state.recurringTasks[t.name].length) ? 'active' : ''}" data-action="open-recurrence" data-id="${t.id}">
+                  <span class="material-icons">event_repeat</span>
+                  <span>تكرار المهمة</span>
+                </button>
                 <div class="priority-submenu-wrap">
                   <button class="tmd-btn priority-btn ${t.priority ? 'priority-' + t.priority : ''}" data-action="toggle-priority-popover" data-id="${t.id}" title="${t.priority ? 'الأهمية: ' + PRIORITY_LABELS[t.priority] : 'حدد مستوى الأهمية'}">
                     <span class="material-icons">flag</span><span>الأهمية</span>
@@ -331,31 +354,8 @@ export function render(){
                     </button>
                   </div>
                 </div>
-                <button class="tmd-btn ${(state.recurringTasks && state.recurringTasks[t.name] && state.recurringTasks[t.name].length) ? 'active' : ''}" data-action="open-recurrence" data-id="${t.id}">
-                  <span class="material-icons">event_repeat</span>
-                  <span>تكرار المهمة</span>
-                </button>
-                <div class="time-choice-submenu-wrap">
-                  <button class="tmd-btn" data-action="toggle-duration" data-id="${t.id}" title="ضبط الهدف أو الوقت الفعلي أو بدء تايمر">
-                    <span class="material-icons">schedule</span><span>الوقت</span>
-                  </button>
-                  <div class="clock-choice-popover ${ui.openClockChoiceTaskId === t.id ? 'open' : ''}">
-                    <button class="clock-choice-btn" data-action="clock-choice-target" data-id="${t.id}" type="button">
-                      <span class="material-icons">flag</span>الهدف
-                    </button>
-                    <button class="clock-choice-btn" data-action="clock-choice-actual" data-id="${t.id}" type="button">
-                      <span class="material-icons">timelapse</span>الوقت الفعلي
-                    </button>
-                    <button class="clock-choice-btn" data-action="clock-choice-timer" data-id="${t.id}" type="button">
-                      <span class="material-icons">play_circle_outline</span>بدء تايمر
-                    </button>
-                  </div>
-                </div>
                 <button class="tmd-btn ${t.remindAt ? 'active' : ''}" data-action="open-reminder" data-id="${t.id}" title="${t.remindAt ? 'اضغط لتعديل أو إزالة التذكير' : 'حدد وقت تذكير'}">
                   <span class="material-icons">${t.remindAt ? 'notifications_active' : 'notifications_none'}</span><span>${t.remindAt ? 'تذكير: ' + formatTimeArabic(t.remindAt) : 'تذكير'}</span>
-                </button>
-                <button class="tmd-btn" data-action="open-subtasks" data-id="${t.id}">
-                  <span class="material-icons">account_tree</span><span>مهام فرعية</span>
                 </button>
                 <button class="tmd-btn delete" data-action="delete-task" data-id="${t.id}">
                   <span class="material-icons">delete</span><span>حذف</span>
