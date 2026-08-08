@@ -6,14 +6,10 @@ import { DAY_NAMES, addDays, escapeHtml, fmtDay, formatHM, formatMinutes, fromIS
 import { contentEl, showToast, state, ui } from './state.js';
 import { render } from './render.js';
 
-// تنسيق قيمة على محور رسم بياني للوقت (بوحدة دقايق): أقل من ساعة → د،
-// وساعة أو أكتر → س (المدة البينية زي 90 دقيقة بتتكتب بالساعة ككسر عشري).
+// تنسيق قيمة على محور رسم بياني للوقت (بوحدة دقايق): 100 دقيقة → "1س 40د"
 function fmtAxisTime(v){
   if(v <= 0) return '0';
-  if(v < 60) return `${Math.round(v)}د`;
-  const h = v / 60;
-  if(Number.isInteger(h)) return `${h}س`;
-  return `${h.toFixed(1)}س`;
+  return formatHM(Math.round(v) * 60000);
 }
 
 function getLastNDays(n, endDate){
