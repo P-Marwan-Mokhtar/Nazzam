@@ -6,10 +6,9 @@ import { DAY_NAMES, addDays, escapeHtml, fmtDay, formatHM, formatMinutes, fromIS
 import { contentEl, showToast, state, ui } from './state.js';
 import { render } from './render.js';
 
-// تنسيق قيمة على محور رسم بياني للوقت (بوحدة دقايق): 100 دقيقة → "1س 40د"
-function fmtAxisTime(v){
-  if(v <= 0) return '0';
-  return formatHM(Math.round(v) * 60000);
+// محور الوقت بيظهر كأرقام ساعات صحيحة (1، 2، 3...) والتفاصيل بالدقايق في التلميح
+function fmtAxisHours(v){
+  return String(Math.round(v / 60));
 }
 
 function getLastNDays(n, endDate){
@@ -555,7 +554,7 @@ function renderDayStatsView(dateStr){
         },
         scales: {
           x: { grid: { display: false }, ticks: { color: inkColor } },
-          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, callback: (v) => fmtAxisTime(v) } }
+          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, stepSize: 60, callback: (v) => fmtAxisHours(v) }, afterDataLimits(s){ if(s.max < 60) s.max = 60; } }
         }
       }
     }));
@@ -586,7 +585,7 @@ function renderDayStatsView(dateStr){
             grid: { color: paperLineColor },
             angleLines: { color: paperLineColor },
             pointLabels: { color: inkColor, font: { size: 11 } },
-            ticks: { color: inkColor, backdropColor: 'transparent', callback: (v) => fmtAxisTime(v) }
+            ticks: { display: false }
           }
         }
       }
@@ -624,7 +623,7 @@ function renderDayStatsView(dateStr){
         },
         scales: {
           x: { grid: { display: false }, ticks: { color: inkColor } },
-          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, callback: (v) => fmtAxisTime(v) } }
+          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, stepSize: 60, callback: (v) => fmtAxisHours(v) }, afterDataLimits(s){ if(s.max < 60) s.max = 60; } }
         }
       }
     }));
@@ -850,7 +849,7 @@ function renderWeekStatsView(){
         },
         scales: {
           x: { grid: { display: false }, ticks: { color: inkColor } },
-          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, callback: (v) => fmtAxisTime(v) } }
+          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, stepSize: 60, callback: (v) => fmtAxisHours(v) }, afterDataLimits(s){ if(s.max < 60) s.max = 60; } }
         }
       }
     }));
@@ -881,7 +880,7 @@ function renderWeekStatsView(){
         },
         scales: {
           x: { grid: { display: false }, ticks: { color: inkColor } },
-          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, callback: (v) => fmtAxisTime(v) } }
+          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, stepSize: 60, callback: (v) => fmtAxisHours(v) }, afterDataLimits(s){ if(s.max < 60) s.max = 60; } }
         }
       }
     }));
@@ -951,7 +950,7 @@ function renderWeekStatsView(){
             grid: { color: paperLineColor },
             angleLines: { color: paperLineColor },
             pointLabels: { color: inkColor, font: { size: 11 } },
-            ticks: { color: inkColor, backdropColor: 'transparent', callback: (v) => fmtAxisTime(v) }
+            ticks: { display: false }
           }
         }
       }
@@ -990,7 +989,7 @@ function renderWeekStatsView(){
         },
         scales: {
           x: { grid: { display: false }, ticks: { color: inkColor } },
-          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, callback: (v) => fmtAxisTime(v) } }
+          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, stepSize: 60, callback: (v) => fmtAxisHours(v) }, afterDataLimits(s){ if(s.max < 60) s.max = 60; } }
         }
       }
     }));
