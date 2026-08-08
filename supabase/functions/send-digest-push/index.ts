@@ -104,8 +104,8 @@ Deno.serve(async () => {
       if (ns.morningEnabled && ns.lastMorningFiredDate !== today && nowHM >= ns.morningTime) {
         const body =
           total > 0
-            ? `عندك ${total} ${total === 1 ? "مهمة" : "مهام"} على جدول النهاردة، يلا نبدأ!`
-            : "مفيش مهام مضافة لسه النهاردة، افتح البنك واسحب اللي هتنجزه.";
+            ? `لديك ${total} ${total === 1 ? "مهمة" : "مهام"} على جدول اليوم، هيا نبدأ!`
+            : "لا توجد مهام مضافة اليوم بعد، افتح بنك المهام واسحب ما تريد إنجازه.";
         await sendToSubs(userSubs, "صباح الخير ☀️", body);
         ns.lastMorningFiredDate = today;
         stateChanged = true;
@@ -115,8 +115,8 @@ Deno.serve(async () => {
       if (ns.eveningEnabled && ns.lastEveningFiredDate !== today && nowHM >= ns.eveningTime) {
         const body =
           total > 0
-            ? `خلصت ${done} من ${total} مهمة النهاردة.`
-            : "وقت مراجعة يومك — افتح التطبيق وسجّل اللي عملته.";
+            ? `أنجزت ${done} من أصل ${total} مهمة اليوم.`
+            : "وقت مراجعة يومك — افتح التطبيق وسجّل ما أنجزته.";
         await sendToSubs(userSubs, "وقت المراجعة 🌙", body);
         ns.lastEveningFiredDate = today;
         stateChanged = true;

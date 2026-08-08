@@ -164,7 +164,7 @@ export function openTimerDurationPicker(name){
   ui.pickerTaskId = null;
 
   const titleEl = document.getElementById('pickerTitle');
-  if(titleEl) titleEl.textContent = 'مدة التايمر';
+  if(titleEl) titleEl.textContent = 'مدة المؤقت';
 
   const hoursCol = document.getElementById('hoursWheel');
   const hoursList = document.getElementById('hoursWheelList');
@@ -211,7 +211,7 @@ export async function commitDurationPicker(){
       targetMs,
       alerted: false
     });
-    showToast(`بدأ تايمر محدد لـ "${name}"`);
+    showToast(`بدأ مؤقت محدد لـ "${name}"`);
     ui.pendingNewTimerName = '';
     ui.pickerMode = 'task';
     document.getElementById('durationPickerOverlay').classList.remove('open');

@@ -173,7 +173,7 @@ export async function requestNewTimer(name){
   if(t){
     ensureAudioContext();
     if(t.running){
-      showToast(`تايمر "${name}" شغال بالفعل`);
+      showToast(`مؤقت "${name}" يعمل بالفعل`);
     } else {
       if(t.mode === 'countdown' && t.elapsedMs >= t.targetMs){
         t.elapsedMs = 0;
@@ -181,7 +181,7 @@ export async function requestNewTimer(name){
       }
       t.running = true;
       t.startedAt = Date.now();
-      showToast(`كمّلنا تايمر "${name}"`);
+      showToast(`تم استئناف المؤقت "${name}"`);
     }
     renderTimerPanel();
     ui.timerPanelRenderedForDate = ui.selectedDate;
@@ -217,7 +217,7 @@ export function tickTimers(){
           t.startedAt = null;
           timersChanged = true;
           playAlertSound();
-          showToast(`⏰ خلص وقت "${t.name}"`);
+          showToast(`⏰ انتهى وقت "${t.name}"`);
           renderTimerPanel();
           ui.timerPanelRenderedForDate = ui.selectedDate;
         }

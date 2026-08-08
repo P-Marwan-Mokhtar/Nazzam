@@ -260,7 +260,7 @@ function renderAuthGate(errorMsg){
 
   if(gateMode === 'signup'){
     bodyEl.innerHTML = `
-      <div class="account-hint">أنشئ حسابًا ببريد إلكتروني وكلمة مرور عشان تقدر تدخل بياناتك وتستخدم التطبيق.</div>
+      <div class="account-hint">أنشئ حسابًا بالبريد الإلكتروني وكلمة مرور لتتمكن من حفظ بياناتك واستخدام التطبيق.</div>
       ${errorHtml}
       <div class="account-form" id="accForm">
         <input type="email" class="account-input" id="accEmail" placeholder="البريد الإلكتروني" autocomplete="email" />
@@ -294,7 +294,7 @@ function renderAuthGate(errorMsg){
 
   // الوضع الافتراضي: تسجيل الدخول
   bodyEl.innerHTML = `
-    <div class="account-hint">لازم تسجّل الدخول أولًا عشان تقدر تستخدم التطبيق وتشوف بياناتك.</div>
+    <div class="account-hint">يجب تسجيل الدخول أولًا لتتمكن من استخدام التطبيق وعرض بياناتك.</div>
     ${errorHtml}
     <div class="account-form" id="accForm">
       <input type="email" class="account-input" id="accEmail" placeholder="البريد الإلكتروني" autocomplete="email" />

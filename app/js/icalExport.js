@@ -107,7 +107,7 @@ export function exportCalendarAsICS(){
     lines.push('END:VCALENDAR');
 
     if(eventCount === 0){
-      showToast('لا يوجد مهام لتصديرها');
+      showToast('لا توجد مهام لتصديرها');
       return;
     }
 

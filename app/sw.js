@@ -5,7 +5,7 @@
 // رقم الإصدار (CACHE_VERSION) بيتغيّر تلقائيًا مع أي تغيير في المحتوى.
 // ============================================================
 
-const CACHE_VERSION = 'v23ee02f297';
+const CACHE_VERSION = 'v910d325ffa';
 const CACHE_NAME = 'daily-tasks-shell-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -135,8 +135,8 @@ self.addEventListener('push', (event) => {
   const title = data.title || 'المهام اليومية';
   const options = {
     body: data.body || 'عندك مهام تستحق الإنجاز اليوم',
-    icon: '/app/icons/icon-192.png',
-    badge: '/app/icons/icon-192.png',
+    icon: './icons/icon-192.png',
+    badge: './icons/icon-192.png',
     dir: 'rtl',
     lang: 'ar',
     data: { url: data.url || './index.html' }

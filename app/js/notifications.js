@@ -139,8 +139,8 @@ async function checkAndFireDigestNotifications(){
     const todayTasks = (state.days[today] || []).filter(t => !t._dupOf);
     const total = todayTasks.length;
     const body = total > 0
-      ? `عندك ${total} ${total === 1 ? 'مهمة' : 'مهام'} على جدول النهاردة، يلا نبدأ!`
-      : 'مفيش مهام مضافة لسه النهاردة، افتح البنك واسحب اللي هتنجزه.';
+      ? `لديك ${total} ${total === 1 ? 'مهمة' : 'مهام'} على جدول اليوم، هيا نبدأ!`
+      : 'لا توجد مهام مضافة اليوم بعد، افتح بنك المهام واسحب ما تريد إنجازه.';
     await fireLocalNotification('صباح الخير ☀️', body);
     ns.lastMorningFiredDate = today;
     changed = true;
@@ -153,10 +153,10 @@ async function checkAndFireDigestNotifications(){
     const weekS = computeWeekStats(0);
     const streakPart = weekS.streak > 0
       ? `سلسلتك: ${weekS.streak} ${weekS.streak === 1 ? 'يوم متتالي' : 'أيام متتالية'} 🔥`
-      : 'يلا سجّل إنجازك النهاردة!';
+      : 'هيا سجّل إنجازك اليوم!';
     const body = total > 0
-      ? `خلصت ${done} من ${total} مهمة النهاردة. ${streakPart}`
-      : 'وقت مراجعة يومك — افتح التطبيق وسجّل اللي عملته.';
+      ? `أنجزت ${done} من أصل ${total} مهمة اليوم. ${streakPart}`
+      : 'وقت مراجعة يومك — افتح التطبيق وسجّل ما أنجزته.';
     await fireLocalNotification('وقت المراجعة 🌙', body);
     ns.lastEveningFiredDate = today;
     changed = true;
@@ -200,7 +200,7 @@ function updateNotifPermissionStatusUI(){
   const statusEl = document.getElementById('notifPermissionStatus');
   if(!statusEl) return;
   if(!('Notification' in window)){
-    statusEl.textContent = 'المتصفح ده مش بيدعم التنبيهات.';
+    statusEl.textContent = 'هذا المتصفح لا يدعم التنبيهات.';
     statusEl.classList.add('denied');
     return;
   }
@@ -267,7 +267,7 @@ document.getElementById('morningNotifToggle').onchange = async (e) => {
     if(!granted){
       e.target.checked = false;
       renderNotificationSettingsModal();
-      showToast('محتاجين إذنك من المتصفح عشان نقدر نبعتلك تنبيه الصباح');
+      showToast('نحتاج إذنك من المتصفح لنتمكن من إرسال تنبيه الصباح إليك');
       return;
     }
     await ensurePushSubscription();
@@ -288,7 +288,7 @@ document.getElementById('eveningNotifToggle').onchange = async (e) => {
     if(!granted){
       e.target.checked = false;
       renderNotificationSettingsModal();
-      showToast('محتاجين إذنك من المتصفح عشان نقدر نبعتلك تنبيه المساء');
+      showToast('نحتاج إذنك من المتصفح لنتمكن من إرسال تنبيه المساء إليك');
       return;
     }
     await ensurePushSubscription();

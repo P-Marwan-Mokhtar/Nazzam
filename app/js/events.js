@@ -27,7 +27,7 @@ function openReminderPicker(taskId){
     onConfirm: async (hhmm) => {
       const granted = await ensureNotificationPermission();
       if(!granted){
-        showToast('محتاجين إذنك من المتصفح عشان التذكير يشتغل');
+        showToast('نحتاج إذنك من المتصفح لكي يعمل التذكير');
         return;
       }
       task.remindAt = hhmm;

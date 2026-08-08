@@ -184,8 +184,8 @@ const swSource =
 "  const title = data.title || 'المهام اليومية';\n" +
 '  const options = {\n' +
 "    body: data.body || 'عندك مهام تستحق الإنجاز اليوم',\n" +
-"    icon: '/app/icons/icon-192.png',\n" +
-"    badge: '/app/icons/icon-192.png',\n" +
+"    icon: './icons/icon-192.png',\n" +
+"    badge: './icons/icon-192.png',\n" +
 "    dir: 'rtl',\n" +
 "    lang: 'ar',\n" +
 "    data: { url: data.url || './index.html' }\n" +

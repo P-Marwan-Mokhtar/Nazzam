@@ -294,7 +294,7 @@ async function startApp(){
       startedAt: Date.now(),
       mode: 'open'
     });
-    showToast(`بدأ تايمر مفتوح لـ "${ui.pendingNewTimerName}"`);
+    showToast(`بدأ مؤقت مفتوح لـ "${ui.pendingNewTimerName}"`);
     closeTimerTypeModal();
     renderTimerPanel();
     ui.timerPanelRenderedForDate = ui.selectedDate;

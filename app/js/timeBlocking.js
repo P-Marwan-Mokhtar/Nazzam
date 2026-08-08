@@ -157,7 +157,7 @@ export function renderTimeBlockView(){
 
   let sideHtml = '';
   if(unscheduled.length === 0){
-    sideHtml = `<div class="timeblock-side-empty">${dayTasks.length === 0 ? 'مفيش مهام في اليوم ده لسه' : 'كل المهام متجدولة 🎉'}</div>`;
+    sideHtml = `<div class="timeblock-side-empty">${dayTasks.length === 0 ? 'لا توجد مهام في هذا اليوم بعد' : 'كل المهام متجدولة 🎉'}</div>`;
   } else {
     unscheduled.forEach(t => {
       sideHtml += `<div class="timeblock-side-item" data-id="${t.id}" data-name="${escapeAttr(t.name)}">${escapeHtml(t.name)}</div>`;
@@ -181,7 +181,7 @@ export function renderTimeBlockView(){
           <div class="timeblock-side-card">
             <div class="timeblock-side-title">مهام غير مجدولة</div>
             <div class="timeblock-unscheduled-list" id="tbUnscheduledList">${sideHtml}</div>
-            <div class="timeblock-side-hint">اسحب المهمة على الجدول عشان تحدد وقتها، واسحب حافة المهمة السفلية عشان تمدها.</div>
+            <div class="timeblock-side-hint">اسحب المهمة إلى الجدول لتحديد وقتها، واسحب حافة المهمة السفلية لتمديدها.</div>
           </div>
         </div>
         <div class="timeblock-calendar-col">

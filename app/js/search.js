@@ -30,7 +30,7 @@ export function renderGlobalSearchResults(){
   matches.sort((a, b) => b.date.localeCompare(a.date));
 
   if(matches.length === 0){
-    listEl.innerHTML = `<div class="empty-state">لا يوجد نتائج مطابقة لـ "${escapeHtml(ui.globalSearchQuery.trim())}".</div>`;
+    listEl.innerHTML = `<div class="empty-state">لا توجد نتائج مطابقة لـ "${escapeHtml(ui.globalSearchQuery.trim())}".</div>`;
     return;
   }
 
@@ -48,7 +48,7 @@ export function renderGlobalSearchResults(){
     `;
   });
   if(matches.length > shown.length){
-    html += `<div class="global-search-more-note">وفيه ${matches.length - shown.length} توجد نتائج إضافية، يُرجى تضييق نطاق البحث لعرضها.</div>`;
+    html += `<div class="global-search-more-note">هناك ${matches.length - shown.length} نتائج إضافية، يُرجى تضييق نطاق البحث لعرضها.</div>`;
   }
   listEl.innerHTML = html;
 

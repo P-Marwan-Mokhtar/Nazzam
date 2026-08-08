@@ -46,14 +46,14 @@ export function importDataFromFile(file){
     try{
       parsed = JSON.parse(e.target.result);
     }catch(err){
-      showToast('الملف تالف أو مش JSON صحيح');
+      showToast('الملف تالف أو ليس ملف JSON صحيحًا');
       return;
     }
     if(!isPlausibleBackupShape(parsed)){
-      showToast('الملف ده مش نسخة احتياطية معروفة من التطبيق');
+      showToast('هذا الملف ليس نسخة احتياطية معروفة من التطبيق');
       return;
     }
-    if(!confirm('استيراد هذا الملف هيستبدل كل بياناتك الحالية (المهام، البنك، المسودات، إلخ) بالبيانات اللي في الملف. هل تريد المتابعة؟')){
+    if(!confirm('سيستبدل استيراد هذا الملف جميع بياناتك الحالية (المهام، البنك، المسودات، إلخ) بالبيانات الموجودة في الملف. هل تريد المتابعة؟')){
       return;
     }
     applyLoadedState(parsed);
@@ -151,7 +151,7 @@ export async function trySyncPending(){
   try{
     await pushToServer();
     markPendingSync(false);
-    showToast('تمت مزامنة التغييرات اللي عملتها من غير نت بنجاح');
+    showToast('تمت مزامنة التغييرات التي أجريتها دون اتصال بالإنترنت بنجاح');
   }catch(e){
     console.warn('تعذر مزامنة التغييرات المعلّقة، هنحاول تاني لاحقًا:', e);
   }
@@ -229,7 +229,7 @@ export async function saveData(){
     markPendingSync(false); // اتزامنت بنجاح، مبقتش معلّقة
   }catch(e){
     console.error('Save failed:', e);
-    showToast('تعذّر الحفظ على الخادم، تم الحفظ محليًا وهيتم إعادة المحاولة تلقائيًا عند توفر الاتصال');
+    showToast('تعذّر الحفظ على الخادم، تم الحفظ محليًا وسيتم إعادة المحاولة تلقائيًا عند توفر الاتصال');
   }finally{
     saveInFlight = false;
     if(savePending){
