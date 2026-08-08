@@ -68,7 +68,7 @@ export function render(){
   const dayTasks = (state.days[ui.selectedDate] || []).filter(t => !t._dupOf);
   const doneCount = dayTasks.filter(t => t.done).length;
   const totalActualMinutes = dayTasks.reduce((sum, t) => sum + parseDurationToMinutes(t.actualDuration), 0);
-  const totalHoursText = totalActualMinutes > 0 ? `الوقت الفعلي: ${formatMinutes(totalActualMinutes)}` : '';
+  const totalHoursText = totalActualMinutes > 0 ? `الوقت الفعلي: ${formatHM(totalActualMinutes * 60000)}` : '';
 
   let html = '';
 

@@ -2,9 +2,19 @@
 // stats.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { DAY_NAMES, addDays, escapeHtml, fmtDay, formatHM, fromISO, parseDurationToMinutes, todayStr } from './utils.js';
+import { DAY_NAMES, addDays, escapeHtml, fmtDay, formatHM, formatMinutes, fromISO, parseDurationToMinutes, todayStr } from './utils.js';
 import { contentEl, showToast, state, ui } from './state.js';
 import { render } from './render.js';
+
+// تنسيق قيمة على محور رسم بياني للوقت (بوحدة دقايق): أقل من ساعة → دقايق،
+// وساعة كاملة أو أكتر → ساعة/ساعات. المدة البينية (زي 90 دقيقة) بتتكتب بالساعة ككسر عشري.
+function fmtAxisTime(v){
+  if(v <= 0) return '0';
+  if(v < 60) return `${v} دقيقة`;
+  const h = v / 60;
+  if(Number.isInteger(h)) return h === 1 ? '1 ساعة' : `${h} ساعات`;
+  return `${h.toFixed(1)} ساعة`;
+}
 
 function getLastNDays(n, endDate){
   const end = endDate || todayStr();
@@ -400,15 +410,15 @@ function renderDayStatsView(dateStr){
   const penSoftColor = isDark ? '#38221e' : '#E8DCD6';
 
   const topTasksLabels = s.topTasks.map(([name]) => name);
-  const topTasksHours = s.topTasks.map(([,ms]) => +(ms / 3600000).toFixed(2));
+  const topTasksMinutes = s.topTasks.map(([,ms]) => Math.round(ms / 60000));
 
   const filterEntries = state.filters
     .map(f => ({ name: f.name, ms: s.filterTotals[f.id] || 0 }))
     .filter(f => f.ms > 0);
 
   const estLabels = s.estimationTasks.map(e => e.name);
-  const estTargetHours = s.estimationTasks.map(e => +(e.targetMs / 3600000).toFixed(2));
-  const estActualHours = s.estimationTasks.map(e => +(e.actualMs / 3600000).toFixed(2));
+  const estTargetMinutes = s.estimationTasks.map(e => Math.round(e.targetMs / 60000));
+  const estActualMinutes = s.estimationTasks.map(e => Math.round(e.actualMs / 60000));
 
   const html = `
     <div class="stats-view">
@@ -534,8 +544,8 @@ function renderDayStatsView(dateStr){
       data: {
         labels: topTasksLabels,
         datasets: [{
-          label: 'ساعات',
-          data: topTasksHours,
+          label: 'دقيقة',
+          data: topTasksMinutes,
           backgroundColor: penColor,
           borderRadius: 6,
           maxBarThickness: 40
@@ -543,10 +553,13 @@ function renderDayStatsView(dateStr){
       },
       options: {
         responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (ctx) => formatMinutes(ctx.parsed.y) } }
+        },
         scales: {
           x: { grid: { display: false }, ticks: { color: inkColor } },
-          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor } }
+          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, callback: (v) => fmtAxisTime(v) } }
         }
       }
     }));
@@ -559,8 +572,8 @@ function renderDayStatsView(dateStr){
       data: {
         labels: filterEntries.map(f => f.name),
         datasets: [{
-          label: 'ساعات',
-          data: filterEntries.map(f => +(f.ms / 3600000).toFixed(2)),
+          label: 'دقيقة',
+          data: filterEntries.map(f => Math.round(f.ms / 60000)),
           borderColor: doneColor,
           backgroundColor: doneColor + '33',
           pointBackgroundColor: doneColor
@@ -568,13 +581,16 @@ function renderDayStatsView(dateStr){
       },
       options: {
         responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (ctx) => formatMinutes(ctx.parsed.r) } }
+        },
         scales: {
           r: {
             grid: { color: paperLineColor },
             angleLines: { color: paperLineColor },
             pointLabels: { color: inkColor, font: { size: 11 } },
-            ticks: { color: inkColor, backdropColor: 'transparent' }
+            ticks: { color: inkColor, backdropColor: 'transparent', callback: (v) => fmtAxisTime(v) }
           }
         }
       }
@@ -590,14 +606,14 @@ function renderDayStatsView(dateStr){
         datasets: [
           {
             label: 'الهدف',
-            data: estTargetHours,
+            data: estTargetMinutes,
             backgroundColor: inkSoftColor + '99',
             borderRadius: 6,
             maxBarThickness: 28
           },
           {
             label: 'الوقت الفعلي',
-            data: estActualHours,
+            data: estActualMinutes,
             backgroundColor: penColor,
             borderRadius: 6,
             maxBarThickness: 28
@@ -606,10 +622,13 @@ function renderDayStatsView(dateStr){
       },
       options: {
         responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', rtl: true, labels: { color: inkColor, font: { size: 11 } } } },
+        plugins: {
+          legend: { position: 'bottom', rtl: true, labels: { color: inkColor, font: { size: 11 } } },
+          tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${formatMinutes(ctx.parsed.y)}` } }
+        },
         scales: {
           x: { grid: { display: false }, ticks: { color: inkColor } },
-          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor } }
+          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, callback: (v) => fmtAxisTime(v) } }
         }
       }
     }));
@@ -648,7 +667,7 @@ function renderWeekStatsView(){
   const shortDayLabel = (dateStr) => DAY_NAMES[fromISO(dateStr).getDay()];
 
   const weekLabels = s.weekDays.map(shortDayLabel);
-  const weekHours = s.weekDays.map(d => +(s.dayTotals[d] / 3600000).toFixed(2));
+  const weekMinutes = s.weekDays.map(d => Math.round(s.dayTotals[d] / 60000));
   const weekTaskCounts = s.weekDays.map(d => s.dayTaskCounts[d] || 0);
   const weekCompletionPct = s.weekDays.map(d => {
     const total = s.dayTaskCounts[d] || 0;
@@ -657,15 +676,15 @@ function renderWeekStatsView(){
   });
 
   const topTasksLabels = s.topTasks.map(([name]) => name);
-  const topTasksHours = s.topTasks.map(([,ms]) => +(ms / 3600000).toFixed(2));
+  const topTasksMinutes = s.topTasks.map(([,ms]) => Math.round(ms / 60000));
 
   const filterEntries = state.filters
     .map(f => ({ name: f.name, ms: s.filterTotals[f.id] || 0 }))
     .filter(f => f.ms > 0);
 
   const estLabels = s.estimationTasks.map(e => e.name);
-  const estTargetHours = s.estimationTasks.map(e => +(e.targetMs / 3600000).toFixed(2));
-  const estActualHours = s.estimationTasks.map(e => +(e.actualMs / 3600000).toFixed(2));
+  const estTargetMinutes = s.estimationTasks.map(e => Math.round(e.targetMs / 60000));
+  const estActualMinutes = s.estimationTasks.map(e => Math.round(e.actualMs / 60000));
 
   let html = `
     <div class="stats-view">
@@ -820,8 +839,8 @@ function renderWeekStatsView(){
       data: {
         labels: topTasksLabels,
         datasets: [{
-          label: 'ساعات',
-          data: topTasksHours,
+          label: 'دقيقة',
+          data: topTasksMinutes,
           backgroundColor: penColor,
           borderRadius: 6,
           maxBarThickness: 40
@@ -829,10 +848,13 @@ function renderWeekStatsView(){
       },
       options: {
         responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (ctx) => formatMinutes(ctx.parsed.y) } }
+        },
         scales: {
           x: { grid: { display: false }, ticks: { color: inkColor } },
-          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor } }
+          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, callback: (v) => fmtAxisTime(v) } }
         }
       }
     }));
@@ -846,8 +868,8 @@ function renderWeekStatsView(){
       data: {
         labels: weekLabels,
         datasets: [{
-          label: 'ساعات في اليوم',
-          data: weekHours,
+          label: 'دقيقة في اليوم',
+          data: weekMinutes,
           borderColor: penColor,
           backgroundColor: penColor + '33',
           fill: true,
@@ -857,10 +879,13 @@ function renderWeekStatsView(){
       },
       options: {
         responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (ctx) => formatMinutes(ctx.parsed.y) } }
+        },
         scales: {
           x: { grid: { display: false }, ticks: { color: inkColor } },
-          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor } }
+          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, callback: (v) => fmtAxisTime(v) } }
         }
       }
     }));
@@ -912,8 +937,8 @@ function renderWeekStatsView(){
       data: {
         labels: filterEntries.map(f => f.name),
         datasets: [{
-          label: 'ساعات',
-          data: filterEntries.map(f => +(f.ms / 3600000).toFixed(2)),
+          label: 'دقيقة',
+          data: filterEntries.map(f => Math.round(f.ms / 60000)),
           borderColor: doneColor,
           backgroundColor: doneColor + '33',
           pointBackgroundColor: doneColor
@@ -921,13 +946,16 @@ function renderWeekStatsView(){
       },
       options: {
         responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (ctx) => formatMinutes(ctx.parsed.r) } }
+        },
         scales: {
           r: {
             grid: { color: paperLineColor },
             angleLines: { color: paperLineColor },
             pointLabels: { color: inkColor, font: { size: 11 } },
-            ticks: { color: inkColor, backdropColor: 'transparent' }
+            ticks: { color: inkColor, backdropColor: 'transparent', callback: (v) => fmtAxisTime(v) }
           }
         }
       }
@@ -944,14 +972,14 @@ function renderWeekStatsView(){
         datasets: [
           {
             label: 'الهدف',
-            data: estTargetHours,
+            data: estTargetMinutes,
             backgroundColor: inkSoftColor + '99',
             borderRadius: 6,
             maxBarThickness: 28
           },
           {
             label: 'الوقت الفعلي',
-            data: estActualHours,
+            data: estActualMinutes,
             backgroundColor: penColor,
             borderRadius: 6,
             maxBarThickness: 28
@@ -960,10 +988,13 @@ function renderWeekStatsView(){
       },
       options: {
         responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', rtl: true, labels: { color: inkColor, font: { size: 11 } } } },
+        plugins: {
+          legend: { position: 'bottom', rtl: true, labels: { color: inkColor, font: { size: 11 } } },
+          tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${formatMinutes(ctx.parsed.y)}` } }
+        },
         scales: {
           x: { grid: { display: false }, ticks: { color: inkColor } },
-          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor } }
+          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, callback: (v) => fmtAxisTime(v) } }
         }
       }
     }));

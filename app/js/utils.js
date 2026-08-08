@@ -72,8 +72,8 @@ export function formatMinutes(totalMinutes){
   if(!totalMinutes || totalMinutes <= 0) return '';
   const hours = Math.floor(totalMinutes / 60);
   const mins = Math.round(totalMinutes % 60);
-  if(hours > 0 && mins > 0) return `${hours} ساعة و ${mins} دقيقة`;
-  if(hours > 0) return `${hours} ساعة`;
+  if(hours > 0 && mins > 0) return `${hours} ${hours === 1 ? 'ساعة' : 'ساعات'} و ${mins} دقيقة`;
+  if(hours > 0) return `${hours} ${hours === 1 ? 'ساعة' : 'ساعات'}`;
   return `${mins} دقيقة`;
 }
 
