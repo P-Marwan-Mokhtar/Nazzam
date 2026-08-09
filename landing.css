@@ -323,14 +323,6 @@ h2, h3, h4 {
 
 /* ===== الهيرو ===== */
 .lp-hero { position: relative; overflow: hidden; }
-.lp-hero-bg {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(44% 55% at 90% 8%, var(--brand-glow), transparent 70%),
-    radial-gradient(32% 42% at 6% 36%, rgba(47, 158, 110, 0.07), transparent 70%);
-}
 .lp-hero-inner {
   position: relative;
   display: grid;
@@ -342,8 +334,6 @@ h2, h3, h4 {
 .lp-hero-title { font-size: clamp(3rem, 7vw, 5rem); line-height: 1.15; margin-bottom: 20px; }
 .lp-highlight {
   color: var(--brand);
-  box-shadow: inset 0 -0.45em 0 var(--brand-soft);
-  padding-inline: 0.08em;
 }
 .lp-hero-sub { font-size: 1.12rem; color: var(--ink-soft); max-width: 540px; margin: 0 0 30px; }
 .lp-hero-ctas { display: flex; flex-wrap: wrap; gap: 14px; }
