@@ -125,6 +125,7 @@ function attachWeekViewEvents(){
       const task = (state.days[dateStr] || []).find(t => t.id === id);
       if(task){
         task.done = e.target.checked;
+        if(task.done){ delete task.remindAt; delete task.reminded; } // المهمة اتنجزت — التذكير/الجرس مالوش لزمة
         renderWeekView();
         await saveData();
       }

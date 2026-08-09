@@ -69,6 +69,7 @@ export function attachEvents(){
         const task = state.days[ui.selectedDate].find(t => t.id === taskId);
         if(task){
           task.done = !task.done;
+          if(task.done){ delete task.remindAt; delete task.reminded; } // المهمة اتنجزت — التذكير/الجرس مالوش لزمة
           render();
           await saveData();
         }

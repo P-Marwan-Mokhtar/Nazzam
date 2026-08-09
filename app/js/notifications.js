@@ -189,7 +189,10 @@ async function checkAndFireTaskReminders(){
   tasks.forEach(t => {
     if(nowHM >= t.remindAt){
       fireLocalNotification('تذكير ⏰', `حان وقت "${t.name}"`);
-      t.reminded = true;
+      // التذكير خلص شغله — بنشيله من المهمة عشان جرس التذكير يقفل أوتوماتيك
+      // وميستنىش المستخدم يشيله يدويًا.
+      delete t.remindAt;
+      delete t.reminded;
       changed = true;
     }
   });
