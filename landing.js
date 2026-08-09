@@ -13,7 +13,7 @@ document.getElementById('lpYear').textContent = new Date().getFullYear();
 // ===== الوضع الليلي =====
 // بنقرأ الإعداد اللي التطبيق نفسه حافظه (habit-data-v2) — اللاندينج والتطبيق
 // دايماً بنفس الهوية. والتغيير هنا بيعاد كتابته في نفس المكان للتطبيق كمان.
-const THEME_LIGHT = '#FAF8F4';
+const THEME_LIGHT = '#F7F8FA';
 const THEME_DARK = '#0E141B';
 
 function applyThemeMeta() {

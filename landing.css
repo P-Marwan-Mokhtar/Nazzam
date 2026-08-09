@@ -1,62 +1,62 @@
 /* ============================================================
-   landing.css — صفحة تسويقية لنازّم (REDESIGN)
-   لغة بصرية جديدة: نظام تصميم واضح، هايراركية تايبوغرافية قوية،
-   فراغات سخية، تدرجات لونية منسقة، وحركات دقيقة (reveal / marquee /
-   عدّادات / hover). فاتح وداكن. نفس هوية البراند (البرتقالي) لكن
-   بهيئة مؤسساتية معاصرة.
+   landing.css — صفحة تسويقية لنازّم (REDESIGN v2)
+   توجّه جديد: محايد، بارد، إيقاع تحريري. عناوين Tajawal 800
+   (باستثناء لحظة الهوية في الهيرو بـ Rakkas)، لون واحد أساسي
+   يُستخدم بذكاء، ودرجة داكنة كبرى للمقارنة. بدون نقاط ورق،
+   بدون جراادينت متعدد، بدون حبوب مكررة في كل قسم.
    ============================================================ */
 
 :root {
   color-scheme: light;
 
-  /* الأسطح */
-  --bg: #faf8f4;
-  --bg-soft: #f3eee5;
+  /* الأسطح — محايدة باردة */
+  --bg: #f7f8fa;
+  --bg-soft: #f0f2f6;
   --surface: #ffffff;
-  --surface-2: #f6f2ea;
-  --surface-3: #fbf9f4;
+  --surface-2: #f4f6f9;
+  --surface-3: #fafbfd;
 
   /* النص */
-  --ink: #1c2733;
-  --ink-soft: #5c6b7a;
-  --ink-faint: #8a97a6;
+  --ink: #101828;
+  --ink-soft: #5b6b7e;
+  --ink-faint: #98a2b3;
 
   /* الخطوط الفاصلة */
-  --line: rgba(28, 39, 51, 0.08);
-  --line-strong: rgba(28, 39, 51, 0.16);
+  --line: rgba(16, 24, 40, 0.08);
+  --line-strong: rgba(16, 24, 40, 0.15);
 
-  /* البراند */
+  /* البراند — هوية نظم الأصلية */
   --brand: #ed4b2b;
   --brand-strong: #d6401f;
   --brand-deep: #b9361b;
-  --brand-soft: #fdebe4;
-  --brand-glow: rgba(237, 75, 43, 0.14);
-  --brand-grad: linear-gradient(135deg, #ff8a5c 0%, #ed4b2b 50%, #d6401f 100%);
-  --btn-grad: linear-gradient(135deg, #ff7a45 0%, #ed4b2b 55%, #d6401f 100%);
+  --brand-soft: #fbece7;
+  --brand-glow: rgba(237, 75, 43, 0.12);
 
   /* الحالات */
   --ok: #2f9e6e;
-  --ok-soft: #e3f2ea;
-  --amber: #d99106;
-  --amber-soft: #fcf2dc;
+  --ok-soft: #e4f3ec;
+  --amber: #c77e00;
+  --amber-soft: #fbf0dc;
 
   /* متنوع */
-  --header-bg: rgba(250, 248, 244, 0.8);
-  --header-line: rgba(28, 39, 51, 0.08);
-  --dot: rgba(28, 39, 51, 0.06);
-  --frame: #1c2733;
+  --header-bg: rgba(247, 248, 250, 0.82);
+  --header-line: rgba(16, 24, 40, 0.08);
+  --frame: #141c26;
+  --devband: #0e1a29;
+  --devband-ink: #eaf1f9;
+  --devband-accent: #8fb8ff;
 
   /* الظلال */
   --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
   --shadow: 0 4px 16px -4px rgba(16, 24, 40, 0.1), 0 2px 8px -2px rgba(16, 24, 40, 0.05);
-  --shadow-lg: 0 24px 48px -12px rgba(16, 24, 40, 0.18), 0 8px 20px -8px rgba(16, 24, 40, 0.08);
-  --shadow-brand: 0 14px 30px -10px rgba(237, 75, 43, 0.5);
+  --shadow-lg: 0 24px 48px -12px rgba(16, 24, 40, 0.16), 0 8px 20px -8px rgba(16, 24, 40, 0.07);
+  --shadow-brand: 0 12px 28px -8px rgba(237, 75, 43, 0.45);
 
   /* الأشكال */
-  --r-sm: 12px;
-  --r: 18px;
-  --r-lg: 26px;
-  --r-xl: 36px;
+  --r-sm: 10px;
+  --r: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
   --container: 1200px;
 
   /* الحركة */
@@ -67,41 +67,38 @@
 :root.dark {
   color-scheme: dark;
 
-  --bg: #0e141b;
-  --bg-soft: #131b24;
-  --surface: #18212c;
-  --surface-2: #1c2733;
-  --surface-3: #16202b;
+  --bg: #0a0e14;
+  --bg-soft: #0f141c;
+  --surface: #141b25;
+  --surface-2: #1a2330;
+  --surface-3: #111722;
 
-  --ink: #eef2f7;
-  --ink-soft: #9aa8b8;
-  --ink-faint: #68788a;
+  --ink: #edf1f6;
+  --ink-soft: #9aa7b7;
+  --ink-faint: #667488;
 
-  --line: rgba(238, 242, 247, 0.08);
-  --line-strong: rgba(238, 242, 247, 0.16);
+  --line: rgba(237, 241, 246, 0.08);
+  --line-strong: rgba(237, 241, 246, 0.16);
 
-  --brand: #ff6a47;
-  --brand-strong: #ff8164;
-  --brand-deep: #ff8a5c;
-  --brand-soft: rgba(255, 106, 71, 0.14);
-  --brand-glow: rgba(255, 106, 71, 0.22);
-  --brand-grad: linear-gradient(135deg, #ff9a72 0%, #ff6a47 50%, #e0522f 100%);
-  --btn-grad: linear-gradient(135deg, #ff8a5c 0%, #ff6a47 55%, #e0522f 100%);
+  --brand: #ff5f3c;
+  --brand-strong: #ff7a5c;
+  --brand-deep: #ff8a66;
+  --brand-soft: rgba(255, 95, 60, 0.13);
+  --brand-glow: rgba(255, 95, 60, 0.2);
 
-  --ok: #4fbf8e;
-  --ok-soft: rgba(79, 191, 142, 0.14);
-  --amber: #f0a62a;
-  --amber-soft: rgba(240, 166, 42, 0.14);
+  --ok: #38b57e;
+  --ok-soft: rgba(56, 181, 126, 0.14);
+  --amber: #e6a23c;
+  --amber-soft: rgba(230, 162, 60, 0.15);
 
-  --header-bg: rgba(14, 20, 27, 0.72);
-  --header-line: rgba(238, 242, 247, 0.08);
-  --dot: rgba(238, 242, 247, 0.05);
+  --header-bg: rgba(10, 14, 20, 0.72);
+  --header-line: rgba(237, 241, 246, 0.08);
   --frame: #3a4657;
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.2);
   --shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.35), 0 2px 8px -2px rgba(0, 0, 0, 0.25);
   --shadow-lg: 0 24px 48px -12px rgba(0, 0, 0, 0.5), 0 8px 20px -8px rgba(0, 0, 0, 0.3);
-  --shadow-brand: 0 14px 30px -10px rgba(255, 106, 71, 0.35);
+  --shadow-brand: 0 14px 30px -10px rgba(255, 95, 60, 0.35);
 }
 
 /* ===== أساسيات ===== */
@@ -127,9 +124,18 @@ button { font-family: inherit; }
 ::selection { background: var(--brand); color: #fff; }
 :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
 
-h1, h2, h3, h4 {
+/* عناوين: الهيرو فقط Rakkas (لحظة الهوية)، والباقي Tajawal 800
+   زي بقية أقسام منتجات الـ SaaS المحترفة */
+h1 {
   font-family: "Rakkas", serif;
   font-weight: 400;
+  color: var(--ink);
+  margin: 0;
+  line-height: 1.15;
+}
+h2, h3, h4 {
+  font-family: "Tajawal", sans-serif;
+  font-weight: 800;
   color: var(--ink);
   margin: 0;
   line-height: 1.3;
@@ -144,7 +150,7 @@ h1, h2, h3, h4 {
 /* ===== الإظهار عند التمرير (Reveal) ===== */
 .lp-reveal {
   opacity: 0;
-  transform: translateY(26px);
+  transform: translateY(18px);
   transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
   transition-delay: var(--d, 0s);
   will-change: opacity, transform;
@@ -157,30 +163,29 @@ h1, h2, h3, h4 {
   align-items: center;
   justify-content: center;
   gap: 9px;
-  padding: 12px 24px;
-  border-radius: 999px;
+  padding: 12px 22px;
+  border-radius: 12px;
   font-weight: 800;
-  font-size: 0.98rem;
+  font-size: 0.96rem;
   border: 1px solid transparent;
   cursor: pointer;
   white-space: nowrap;
   transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease),
-    background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, filter 0.2s ease;
 }
 .lp-btn .material-icons { font-size: 20px; }
 .lp-btn:active { transform: translateY(0) scale(0.98); }
-.lp-btn-primary { background: var(--btn-grad); color: #fff; box-shadow: var(--shadow-brand); }
-.lp-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -10px rgba(237, 75, 43, 0.55); }
-.lp-btn-ghost {
-  background: var(--surface);
-  border-color: var(--line-strong);
-  color: var(--ink);
-  box-shadow: var(--shadow-sm);
+.lp-btn-primary {
+  background: linear-gradient(180deg, #f25a33 0%, #ed4b2b 100%);
+  color: #fff;
+  box-shadow: var(--shadow-brand);
 }
+.lp-btn-primary:hover { transform: translateY(-2px); filter: brightness(1.05); box-shadow: 0 16px 34px -10px rgba(237, 75, 43, 0.55); }
+.lp-btn-ghost { background: var(--surface); border-color: var(--line-strong); color: var(--ink); }
 .lp-btn-ghost:hover { transform: translateY(-2px); border-color: var(--brand); color: var(--brand); box-shadow: var(--shadow); }
 .lp-btn-inverse { background: #fff; color: var(--brand-deep); box-shadow: 0 14px 30px -10px rgba(0, 0, 0, 0.35); }
 .lp-btn-inverse:hover { transform: translateY(-2px); box-shadow: 0 20px 42px -12px rgba(0, 0, 0, 0.4); }
-.lp-btn-lg { padding: 15px 30px; font-size: 1.05rem; }
+.lp-btn-lg { padding: 15px 28px; font-size: 1.02rem; }
 .lp-btn-block { width: 100%; }
 .lp-link-btn {
   font-weight: 800;
@@ -191,18 +196,23 @@ h1, h2, h3, h4 {
 }
 .lp-link-btn:hover { color: var(--brand); }
 
-/* ===== شارة القسم ===== */
+/* ===== شارة القسم (label بسيط + خط قصير) ===== */
 .lp-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  font-size: 0.82rem;
+  gap: 9px;
+  font-size: 0.8rem;
   font-weight: 800;
   color: var(--brand);
-  background: var(--brand-soft);
-  padding: 7px 15px;
-  border-radius: 999px;
   margin-bottom: 16px;
+  letter-spacing: 0.02em;
+}
+.lp-eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
 }
 .lp-eyebrow .material-icons { font-size: 16px; }
 
@@ -249,7 +259,7 @@ h1, h2, h3, h4 {
   bottom: 0;
   height: 2px;
   border-radius: 2px;
-  background: var(--btn-grad);
+  background: var(--brand);
   transform: scaleX(0);
   transform-origin: center;
   transition: transform 0.25s var(--ease);
@@ -264,7 +274,7 @@ h1, h2, h3, h4 {
   justify-content: center;
   width: 42px;
   height: 42px;
-  border-radius: 50%;
+  border-radius: 12px;
   border: 1px solid var(--line-strong);
   background: var(--surface);
   color: var(--ink-soft);
@@ -318,9 +328,8 @@ h1, h2, h3, h4 {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(42% 52% at 85% 8%, var(--brand-glow), transparent 70%),
-    radial-gradient(30% 40% at 8% 34%, var(--ok-glow, rgba(47, 158, 110, 0.06)), transparent 70%),
-    radial-gradient(var(--dot) 1px, transparent 1px) 0 0 / 26px 26px;
+    radial-gradient(44% 55% at 90% 8%, var(--brand-glow), transparent 70%),
+    radial-gradient(32% 42% at 6% 36%, rgba(47, 158, 110, 0.07), transparent 70%);
 }
 .lp-hero-inner {
   position: relative;
@@ -330,12 +339,11 @@ h1, h2, h3, h4 {
   align-items: center;
   padding: 84px 0 96px;
 }
-.lp-hero-title { font-size: clamp(2.7rem, 6.2vw, 4.4rem); line-height: 1.24; margin-bottom: 18px; }
-.lp-gradient-text {
-  background: var(--brand-grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+.lp-hero-title { font-size: clamp(3rem, 7vw, 5rem); line-height: 1.15; margin-bottom: 20px; }
+.lp-highlight {
+  color: var(--brand);
+  box-shadow: inset 0 -0.45em 0 var(--brand-soft);
+  padding-inline: 0.08em;
 }
 .lp-hero-sub { font-size: 1.12rem; color: var(--ink-soft); max-width: 540px; margin: 0 0 30px; }
 .lp-hero-ctas { display: flex; flex-wrap: wrap; gap: 14px; }
@@ -358,6 +366,19 @@ h1, h2, h3, h4 {
   box-shadow: var(--shadow-lg);
   padding: 18px;
 }
+.lp-mock-chrome {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+  flex: 1 1 100%;
+}
+.lp-mock-chrome i { width: 9px; height: 9px; border-radius: 50%; background: var(--line-strong); }
+.lp-mock-chrome i:nth-child(1) { background: var(--brand); }
+.lp-mock-chrome i:nth-child(2) { background: var(--amber); }
+.lp-mock-chrome i:nth-child(3) { background: var(--ok); }
 
 /* ===== Mockup الهيرو ===== */
 .lp-hero-visual { position: relative; }
@@ -370,7 +391,7 @@ h1, h2, h3, h4 {
   z-index: 0;
 }
 .lp-hero-visual > * { position: relative; z-index: 1; }
-.lp-hero-visual .lp-mock-window { transform: rotate(-1.2deg); transition: transform 0.45s var(--ease); }
+.lp-hero-visual .lp-mock-window { transform: rotate(-1deg); transition: transform 0.45s var(--ease); }
 .lp-hero-visual .lp-mock-window:hover { transform: rotate(0deg) translateY(-4px); }
 
 .lp-mock-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
@@ -449,12 +470,11 @@ h1, h2, h3, h4 {
   50% { transform: translateY(-9px); }
 }
 
-/* ===== شريط المميزات المتحرك ===== */
+/* ===== شريط المميزات المتحرك (نص خفيف بدون حبوب) ===== */
 .lp-strip {
   position: relative;
   border-block: 1px solid var(--line);
   background: var(--surface);
-  padding: 16px 0;
   overflow: hidden;
 }
 .lp-strip::before, .lp-strip::after {
@@ -470,22 +490,27 @@ h1, h2, h3, h4 {
 .lp-strip::after { inset-inline-end: 0; background: linear-gradient(to right, transparent, var(--surface)); }
 .lp-strip-track {
   display: flex;
-  gap: 16px;
+  align-items: center;
+  gap: 0;
   width: max-content;
-  animation: lpScroll 30s linear infinite;
+  padding: 18px 0;
+  animation: lpScroll 32s linear infinite;
 }
 .lp-strip-track span {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.88rem;
-  font-weight: 800;
+  font-size: 0.92rem;
+  font-weight: 700;
   color: var(--ink-soft);
   white-space: nowrap;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 9px 18px;
+  margin-inline-end: 34px;
+}
+.lp-strip-track span::after {
+  content: "•";
+  color: var(--brand);
+  opacity: 0.5;
+  margin-inline-start: 34px;
 }
 .lp-strip-track .material-icons { font-size: 18px; color: var(--brand); }
 @keyframes lpScroll {
@@ -500,12 +525,18 @@ h1, h2, h3, h4 {
   border-block: 1px solid var(--line);
 }
 .lp-section-head {
+  max-width: 720px;
+  margin: 0 auto clamp(40px, 6vw, 60px);
   text-align: center;
-  max-width: 620px;
-  margin: 0 auto clamp(40px, 6vw, 64px);
 }
-.lp-section-head h2 { font-size: clamp(1.9rem, 3.8vw, 3rem); line-height: 1.3; margin-bottom: 14px; }
+.lp-section-head h2 {
+  font-size: clamp(1.9rem, 3.4vw, 2.6rem);
+  letter-spacing: -0.015em;
+  line-height: 1.28;
+  margin-bottom: 14px;
+}
 .lp-section-head p { color: var(--ink-soft); font-size: 1.05rem; margin: 0; }
+.lp-section-head-start { text-align: start; margin-inline: 0; }
 
 /* ===== شريط القيم ===== */
 .lp-metrics { padding-bottom: clamp(48px, 6vw, 80px); }
@@ -519,44 +550,23 @@ h1, h2, h3, h4 {
   overflow: hidden;
 }
 .lp-metric {
-  position: relative;
-  padding: 40px 26px;
-  text-align: center;
+  padding: 36px 30px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 12px;
+  gap: 4px;
+  text-align: start;
 }
-.lp-metric + .lp-metric::before {
-  content: "";
-  position: absolute;
-  inset-inline-start: 0;
-  top: 24%;
-  bottom: 24%;
-  width: 1px;
-  background: var(--line);
+.lp-metric + .lp-metric { border-inline-start: 1px solid var(--line); }
+.lp-metric-icon { color: var(--brand); font-size: 22px; margin-bottom: 8px; }
+.lp-metric-value {
+  font-family: "Tajawal", sans-serif;
+  font-weight: 800;
+  font-size: 1.75rem;
+  line-height: 1.3;
+  color: var(--ink);
 }
-.lp-metric-icon {
-  font-size: 26px;
-  width: 56px;
-  height: 56px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 16px;
-  color: var(--brand);
-  background: var(--brand-soft);
-  margin-bottom: 4px;
-}
-.lp-metric-value { font-family: "Rakkas", serif; font-size: 1.5rem; line-height: 1.35; color: var(--ink); }
-.lp-metric-value-big {
-  font-size: 2.6rem;
-  background: var(--brand-grad);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-.lp-metric p { margin: 0; color: var(--ink-soft); font-size: 0.86rem; font-weight: 500; }
+.lp-metric-value-big { color: var(--brand); font-size: 2.4rem; }
+.lp-metric p { color: var(--ink-soft); font-size: 0.86rem; margin: 0; }
 
 /* ===== صفوف المميزات الكبيرة ===== */
 .lp-feature-row {
@@ -569,7 +579,7 @@ h1, h2, h3, h4 {
 .lp-feature-row + .lp-feature-row { border-top: 1px solid var(--line); }
 .lp-feature-row-reverse .lp-feature-text { order: 2; }
 .lp-feature-row-reverse .lp-feature-visual { order: 1; }
-.lp-feature-text h2 { font-size: clamp(1.6rem, 3vw, 2.3rem); line-height: 1.32; margin-bottom: 16px; }
+.lp-feature-text h2 { font-size: clamp(1.5rem, 2.6vw, 2.1rem); letter-spacing: -0.015em; line-height: 1.3; margin-bottom: 16px; }
 .lp-feature-text p { color: var(--ink-soft); font-size: 1.04rem; margin: 0 0 20px; }
 .lp-check-list li {
   display: flex;
@@ -668,7 +678,7 @@ h1, h2, h3, h4 {
 .lp-mock-block.alt { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
 
 /* Mockup: الإحصائيات */
-.lp-mock-stats { display: flex; align-items: center; gap: 28px; padding: 32px 26px; }
+.lp-mock-stats { display: flex; align-items: center; gap: 28px; padding: 24px 26px; flex-wrap: wrap; }
 .lp-mock-donut {
   --pct: 70;
   width: 136px;
@@ -736,28 +746,29 @@ h1, h2, h3, h4 {
 .lp-mock-week-day.today { color: var(--brand); }
 
 /* ===== شبكة مميزات صغيرة ===== */
-.lp-mini-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.lp-mini-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .lp-mini-card {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  padding: 30px 26px;
+  padding: 28px 24px;
   transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease), border-color 0.3s ease;
 }
-.lp-mini-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); border-color: var(--line-strong); }
+.lp-mini-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--line-strong); }
 .lp-mini-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  font-size: 23px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  font-size: 21px;
   color: var(--brand);
-  background: var(--brand-soft);
-  margin-bottom: 18px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  margin-bottom: 16px;
 }
-.lp-mini-card h3 { font-family: "Tajawal", sans-serif; font-weight: 800; font-size: 1.08rem; margin-bottom: 8px; }
+.lp-mini-card h3 { font-size: 1.05rem; margin-bottom: 8px; }
 .lp-mini-card p { color: var(--ink-soft); font-size: 0.9rem; margin: 0; }
 
 /* ===== خطوات البداية ===== */
@@ -766,26 +777,27 @@ h1, h2, h3, h4 {
 .lp-step + .lp-step::before {
   content: "";
   position: absolute;
-  top: 28px;
+  top: 26px;
   inset-inline-start: -30px;
   width: 30px;
   border-top: 2px dashed var(--line-strong);
 }
 .lp-step-num {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: var(--brand-grad);
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--brand);
   color: #fff;
   box-shadow: var(--shadow-brand);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: "Rakkas", serif;
-  font-size: 1.35rem;
-  margin: 0 auto 18px;
+  font-family: "Tajawal", sans-serif;
+  font-weight: 800;
+  font-size: 1.15rem;
+  margin: 0 auto 16px;
 }
-.lp-step h3 { font-family: "Tajawal", sans-serif; font-weight: 800; font-size: 1.12rem; margin-bottom: 8px; }
+.lp-step h3 { font-size: 1.1rem; margin-bottom: 8px; }
 .lp-step p { color: var(--ink-soft); font-size: 0.92rem; margin: 0; }
 
 /* ===== التكاملات ===== */
@@ -794,33 +806,41 @@ h1, h2, h3, h4 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  padding: 30px 20px;
+  padding: 28px 20px;
   text-align: center;
   transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease), border-color 0.3s ease;
 }
-.lp-integration:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); border-color: var(--line-strong); }
+.lp-integration:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--line-strong); }
 .lp-integration span { font-weight: 800; font-size: 0.92rem; }
 .lp-placeholder {
-  border: 1.5px dashed var(--line-strong);
-  background: var(--surface-2);
-  color: var(--ink-faint);
-  font-size: 0.58rem;
-  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  line-height: 1.4;
-  padding: 6px;
-  border-radius: 12px;
+  border: 1px dashed var(--line-strong);
+  background: var(--surface-2);
+  color: var(--ink-faint);
 }
-.lp-placeholder-logo { width: 64px; height: 64px; border-radius: 16px; }
+.lp-placeholder-logo { width: 64px; height: 64px; border-radius: 14px; }
+.lp-placeholder-logo .material-icons { font-size: 26px; }
 
-/* ===== عرض الأجهزة ===== */
+/* ===== عرض الأجهزة — شريط داكن (لحظة مميزة) ===== */
+.lp-dark-band {
+  background:
+    radial-gradient(60% 80% at 50% -10%, rgba(59, 130, 246, 0.16), transparent 60%),
+    var(--devband);
+  color: var(--devband-ink);
+}
+.lp-dark-band .lp-section-head h2 { color: var(--devband-ink); }
+.lp-dark-band .lp-section-head p { color: rgba(234, 241, 249, 0.72); }
+.lp-dark-band .lp-eyebrow { color: var(--devband-accent); }
+.lp-dark-band .lp-mock-window,
+.lp-dark-band .lp-phone,
+.lp-dark-band .lp-desktop { border-color: rgba(255, 255, 255, 0.14); }
+
 .lp-device-showcase {
   display: grid;
   grid-template-columns: 340px 1fr;
@@ -832,7 +852,7 @@ h1, h2, h3, h4 {
 .lp-device-phone { justify-self: center; }
 .lp-phone {
   width: 300px;
-  border-radius: 44px;
+  border-radius: 40px;
   border: 8px solid var(--frame);
   background: var(--surface);
   box-shadow: var(--shadow-lg);
@@ -867,7 +887,7 @@ h1, h2, h3, h4 {
 }
 .lp-phone-progress strong { color: var(--brand); font-size: 0.82rem; }
 .lp-phone-progress i { display: block; flex: 1; height: 6px; border-radius: 999px; background: var(--line-strong); overflow: hidden; }
-.lp-phone-progress b { display: block; height: 100%; border-radius: 999px; background: var(--btn-grad); }
+.lp-phone-progress b { display: block; height: 100%; border-radius: 999px; background: var(--brand); }
 .lp-phone-tasks { display: flex; flex-direction: column; gap: 9px; }
 .lp-phone-nav { display: flex; justify-content: space-around; border-top: 1px solid var(--line); padding: 10px 0; }
 .lp-phone-nav .material-icons { font-size: 20px; color: var(--ink-faint); }
@@ -902,6 +922,7 @@ h1, h2, h3, h4 {
   align-items: center;
   gap: 8px;
   font-family: "Rakkas", serif;
+  font-weight: 400;
   font-size: 1.2rem;
   color: var(--ink);
   padding: 2px 8px 16px;
@@ -922,41 +943,11 @@ h1, h2, h3, h4 {
 .lp-desktop-side nav a .material-icons { font-size: 18px; }
 .lp-desktop-main { padding: 20px; }
 .lp-desktop-main-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.lp-desktop-main-head h3 { font-size: 1.25rem; }
+.lp-desktop-main-head h3 { font-size: 1.2rem; }
 .lp-desktop-tasks { display: flex; flex-direction: column; gap: 10px; }
 
-/* ===== آراء المستخدمين ===== */
-.lp-testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
-.lp-testimonial {
-  position: relative;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  padding: 30px 26px 24px;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
-}
-.lp-testimonial:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
-.lp-testimonial-quote-mark {
-  position: absolute;
-  top: 16px;
-  inset-inline-end: 22px;
-  font-size: 42px;
-  color: var(--brand);
-  opacity: 0.22;
-  transform: scaleX(-1);
-}
-.lp-testimonial blockquote { margin: 0; font-size: 0.98rem; font-weight: 500; color: var(--ink); line-height: 1.85; }
-.lp-testimonial figcaption { display: flex; align-items: center; gap: 14px; margin-top: auto; }
-.lp-placeholder-avatar { width: 80px; height: 80px; border-radius: 50%; }
-.lp-testimonial-author strong { display: block; font-weight: 800; font-size: 0.95rem; }
-.lp-testimonial-author span { display: block; color: var(--ink-soft); font-size: 0.82rem; }
-
 /* ===== المقارنة / المزايا ===== */
-.lp-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; max-width: 980px; margin: 0 auto; }
+.lp-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 980px; margin: 0 auto; }
 .lp-compare-col { border-radius: var(--r-xl); padding: 38px 34px; }
 .lp-compare-before { background: var(--surface-2); border: 1px solid var(--line); }
 .lp-compare-after {
@@ -975,7 +966,7 @@ h1, h2, h3, h4 {
 }
 .lp-compare-before .lp-compare-tag { background: var(--line-strong); color: var(--ink-soft); }
 .lp-compare-after .lp-compare-tag { background: var(--brand-soft); color: var(--brand); }
-.lp-compare-col h3 { font-size: 1.5rem; margin-bottom: 18px; }
+.lp-compare-col h3 { font-size: 1.4rem; margin-bottom: 18px; }
 .lp-compare-col ul { display: flex; flex-direction: column; gap: 14px; }
 .lp-compare-col li { display: flex; align-items: flex-start; gap: 11px; font-size: 0.96rem; font-weight: 500; line-height: 1.6; }
 .lp-compare-col li .material-icons { font-size: 18px; margin-top: 2px; flex-shrink: 0; }
@@ -1024,9 +1015,9 @@ h1, h2, h3, h4 {
   top: 50%;
   transform: translateY(-50%);
   z-index: 3;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--ink);
@@ -1037,14 +1028,14 @@ h1, h2, h3, h4 {
   box-shadow: var(--shadow);
   transition: color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
-.lp-carousel-arrow:hover { color: var(--brand); border-color: var(--brand); transform: translateY(-50%) scale(1.08); }
+.lp-carousel-arrow:hover { color: var(--brand); border-color: var(--brand); transform: translateY(-50%) scale(1.05); }
 .lp-carousel-arrow .material-icons { font-size: 24px; }
 .lp-carousel-prev { inset-inline-start: 18px; }
 .lp-carousel-next { inset-inline-end: 18px; }
 
 /* ===== الأسعار ===== */
 .lp-pricing { text-align: center; max-width: 640px; }
-.lp-pricing h2 { font-size: clamp(1.9rem, 3.4vw, 2.7rem); margin-bottom: 14px; }
+.lp-pricing h2 { font-size: clamp(1.9rem, 3.4vw, 2.6rem); margin-bottom: 14px; }
 .lp-pricing-sub { color: var(--ink-soft); font-size: 1.04rem; margin: 0 auto 40px; max-width: 560px; }
 .lp-pricing-card {
   position: relative;
@@ -1061,8 +1052,8 @@ h1, h2, h3, h4 {
   position: absolute;
   inset-inline: 0;
   top: 0;
-  height: 4px;
-  background: var(--btn-grad);
+  height: 3px;
+  background: var(--brand);
 }
 .lp-pricing-badge {
   display: inline-flex;
@@ -1077,8 +1068,15 @@ h1, h2, h3, h4 {
   margin-bottom: 16px;
 }
 .lp-pricing-badge .material-icons { font-size: 16px; }
-.lp-pricing-amount { font-family: "Rakkas", serif; font-size: 2.6rem; color: var(--ink); margin-bottom: 20px; }
-.lp-pricing-amount span { font-family: "Tajawal", sans-serif; font-size: 0.95rem; font-weight: 500; color: var(--ink-soft); }
+.lp-pricing-amount {
+  font-family: "Tajawal", sans-serif;
+  font-weight: 800;
+  font-size: 2.9rem;
+  line-height: 1.2;
+  color: var(--brand);
+  margin-bottom: 18px;
+}
+.lp-pricing-amount span { font-size: 0.95rem; font-weight: 500; color: var(--ink-soft); }
 .lp-pricing-list { margin-bottom: 26px; }
 .lp-pricing-card .lp-btn-block { margin-top: 6px; }
 
@@ -1127,19 +1125,17 @@ h1, h2, h3, h4 {
 .lp-final-cta {
   position: relative;
   overflow: hidden;
-  background: var(--brand-grad);
+  background: linear-gradient(180deg, #f25a33 0%, #d6401f 100%);
   padding: clamp(84px, 10vw, 128px) 0;
 }
 .lp-final-cta-bg {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(50% 70% at 50% -10%, rgba(255, 255, 255, 0.28), transparent 70%),
-    radial-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px) 0 0 / 26px 26px;
+  background: radial-gradient(50% 70% at 50% -10%, rgba(255, 255, 255, 0.28), transparent 70%);
 }
 .lp-final-cta-inner { position: relative; text-align: center; color: #fff; }
-.lp-final-cta h2 { color: #fff; font-size: clamp(2.1rem, 4.5vw, 3.4rem); margin-bottom: 14px; }
+.lp-final-cta h2 { font-family: "Rakkas", serif; font-weight: 400; color: #fff; font-size: clamp(2.1rem, 4.5vw, 3.4rem); margin-bottom: 14px; }
 .lp-final-cta p { color: rgba(255, 255, 255, 0.92); font-size: 1.12rem; margin: 0 0 34px; }
 .lp-final-cta-badge {
   display: inline-flex;
@@ -1175,13 +1171,7 @@ h1, h2, h3, h4 {
 :root.dark .lp-footer-brand .lp-logo-dark { display: block; }
 :root.dark .lp-footer-brand .lp-logo-light { display: none; }
 .lp-footer-brand p { color: var(--ink-soft); font-size: 0.9rem; max-width: 320px; margin: 0; }
-.lp-footer-col h4 {
-  font-size: 0.95rem;
-  margin-bottom: 16px;
-  color: var(--ink);
-  font-family: "Tajawal", sans-serif;
-  font-weight: 800;
-}
+.lp-footer-col h4 { font-size: 0.95rem; margin-bottom: 16px; color: var(--ink); }
 .lp-footer-col a {
   display: block;
   color: var(--ink-soft);
@@ -1200,9 +1190,8 @@ h1, h2, h3, h4 {
 
 /* ===== الاستجابة ===== */
 @media (max-width: 1024px) {
-  .lp-metrics-band { grid-template-columns: repeat(2, 1fr); }
-  .lp-metric:nth-child(n + 3) { border-top: 1px solid var(--line); }
-  .lp-metric:nth-child(n + 3)::before { display: none; }
+  .lp-metrics-band { grid-template-columns: 1fr 1fr; }
+  .lp-metric:nth-child(n + 3) { border-inline-start: 0; border-top: 1px solid var(--line); }
   .lp-integrations-grid { grid-template-columns: repeat(2, 1fr); }
   .lp-device-showcase { grid-template-columns: 1fr; justify-items: center; }
   .lp-desktop { width: 100%; max-width: 640px; }
@@ -1216,7 +1205,7 @@ h1, h2, h3, h4 {
 
   .lp-hero-inner { grid-template-columns: 1fr; gap: 48px; padding: 56px 0 72px; }
   .lp-hero-text { text-align: center; }
-  .lp-hero-title { font-size: clamp(2.2rem, 8vw, 3rem); }
+  .lp-hero-title { font-size: clamp(2.4rem, 8vw, 3.2rem); }
   .lp-hero-sub { margin-inline: auto; }
   .lp-hero-ctas { justify-content: center; }
   .lp-hero-visual { max-width: 460px; margin: 0 auto; }
@@ -1230,18 +1219,17 @@ h1, h2, h3, h4 {
   .lp-mini-grid { grid-template-columns: 1fr 1fr; }
   .lp-steps { grid-template-columns: 1fr; gap: 40px; }
   .lp-step + .lp-step::before { display: none; }
-  .lp-testimonials-grid { grid-template-columns: 1fr 1fr; }
   .lp-compare { grid-template-columns: 1fr; }
   .lp-footer-inner { grid-template-columns: 1fr; gap: 32px; }
   .lp-section { padding: clamp(56px, 8vw, 88px) 0; }
 }
 
 @media (max-width: 560px) {
-  .lp-hero-title { font-size: clamp(1.85rem, 7vw, 2.3rem); }
+  .lp-hero-title { font-size: clamp(2rem, 7vw, 2.4rem); }
   .lp-hero-ctas { flex-direction: column; }
   .lp-hero-ctas .lp-btn { width: 100%; }
   .lp-mini-grid { grid-template-columns: 1fr; }
-  .lp-metric { padding: 28px 18px; }
+  .lp-metric { padding: 28px 22px; }
   .lp-carousel-arrow { display: none; }
   .lp-carousel { padding-inline: 6px; }
   .lp-pricing-card { padding: 32px 24px; }
@@ -1255,5 +1243,5 @@ h1, h2, h3, h4 {
   html { scroll-behavior: auto; }
   .lp-reveal { opacity: 1; transform: none; transition: none; }
   .lp-mock-float, .lp-strip-track { animation: none; }
-  .lp-btn, .lp-mini-card, .lp-integration, .lp-testimonial { transition: none; }
+  .lp-btn, .lp-mini-card, .lp-integration { transition: none; }
 }

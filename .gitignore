@@ -7,3 +7,4 @@ Thumbs.db
 
 # ملفات مؤقتة
 *.log
+supabase/.temp/
