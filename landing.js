@@ -1,8 +1,58 @@
 // ============================================================
-// landing.js — تفاعلات بسيطة لصفحة التسويق (قائمة الموبايل + الكاروسيل)
+// landing.js — تفاعلات صفحة التسويق:
+//   • الوضع الليلي (متزامن مع إعداد التطبيق habit-data-v2)
+//   • إظهار العناصر عند التمرير + عدّادات متحركة
+//   • حالة الهيدر عند التمرير (خلفية ضبابية)
+//   • قائمة الموبايل
+//   • الكاروسيل (نقاط + أسهم + سوايب)
+//   • زراير الحالة (تسجيل دخول / اذهب إلى نظم) اللي بتعتمد على الـ session
 // ============================================================
 
 document.getElementById('lpYear').textContent = new Date().getFullYear();
+
+// ===== الوضع الليلي =====
+// بنقرأ الإعداد اللي التطبيق نفسه حافظه (habit-data-v2) — اللاندينج والتطبيق
+// دايماً بنفس الهوية. والتغيير هنا بيعاد كتابته في نفس المكان للتطبيق كمان.
+const THEME_LIGHT = '#FAF8F4';
+const THEME_DARK = '#0E141B';
+
+function applyThemeMeta() {
+  const meta = document.getElementById('themeColorMeta');
+  if (meta) {
+    meta.setAttribute(
+      'content',
+      document.documentElement.classList.contains('dark') ? THEME_DARK : THEME_LIGHT
+    );
+  }
+}
+
+function writeThemeToApp(dark) {
+  try {
+    const raw = localStorage.getItem('habit-data-v2');
+    const parsed = raw ? JSON.parse(raw) : {};
+    parsed.darkMode = dark;
+    localStorage.setItem('habit-data-v2', JSON.stringify(parsed));
+  } catch (e) {}
+}
+
+const themeToggle = document.getElementById('lpThemeToggle');
+if (themeToggle) {
+  themeToggle.addEventListener('click', () => {
+    const dark = document.documentElement.classList.toggle('dark');
+    writeThemeToApp(dark);
+    applyThemeMeta();
+  });
+}
+applyThemeMeta();
+
+// ===== حالة الهيدر عند التمرير (frosted blur) =====
+const header = document.getElementById('lpHeader');
+function onHeaderScroll() {
+  if (!header) return;
+  header.classList.toggle('is-scrolled', window.scrollY > 8);
+}
+window.addEventListener('scroll', onHeaderScroll, { passive: true });
+onHeaderScroll();
 
 // ===== لو المستخدم مسجّل دخوله بالفعل (نفس الدومين، نفس Supabase session
 // اللي بيستخدمها التطبيق في app/) بنستبدل زراير "تسجيل الدخول" و"ابدأ مجانًا"
@@ -44,8 +94,52 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// ===== الإظهار عند التمرير + العدّادات المتحركة =====
+const ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
+const toArabicDigits = (n) => String(n).replace(/\d/g, (d) => ARABIC_DIGITS[d]);
+
+function animateCount(el) {
+  const target = parseInt(el.dataset.count, 10);
+  if (isNaN(target)) return;
+  const duration = 1100;
+  const start = performance.now();
+  function frame(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = toArabicDigits(Math.round(target * eased));
+    if (progress < 1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+(function initRevealAndCounters() {
+  const revealEls = document.querySelectorAll('.lp-reveal');
+  if (!revealEls.length) return;
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion || !('IntersectionObserver' in window)) {
+    revealEls.forEach((el) => {
+      el.classList.add('is-visible');
+      el.querySelectorAll('[data-count]').forEach(animateCount);
+    });
+    return;
+  }
+
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        entry.target.querySelectorAll('[data-count]').forEach(animateCount);
+        io.unobserve(entry.target);
+      });
+    },
+    { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+  );
+  revealEls.forEach((el) => io.observe(el));
+})();
+
 // ===== قائمة الموبايل =====
-const header = document.getElementById('lpHeader');
 const navToggle = document.getElementById('lpNavToggle');
 if (navToggle) {
   navToggle.addEventListener('click', () => {
@@ -71,6 +165,7 @@ if (track && dotsWrap && carousel) {
   const slides = Array.from(track.children);
   let index = 0;
   let timer = null;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   slides.forEach((_, i) => {
     const dot = document.createElement('button');
@@ -95,7 +190,12 @@ if (track && dotsWrap && carousel) {
     if (timer) clearInterval(timer);
   }
 
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // أسهم التنقل (الموجودة على الجنب)
+  const prevBtn = document.getElementById('lpCarouselPrev');
+  const nextBtn = document.getElementById('lpCarouselNext');
+  if (prevBtn) prevBtn.addEventListener('click', () => { stopAutoplay(); goTo(index - 1); if (!reduceMotion) startAutoplay(); });
+  if (nextBtn) nextBtn.addEventListener('click', () => { stopAutoplay(); goTo(index + 1); if (!reduceMotion) startAutoplay(); });
+
   if (!reduceMotion) {
     startAutoplay();
     carousel.addEventListener('mouseenter', stopAutoplay);

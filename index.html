@@ -31,10 +31,36 @@
       name="description"
       content="نظم يجمع لك المهام والوقت والتكرار في بنك واحد ذكي. جدول زمني بالسحب والإفلات، مؤقتات تركيز، إحصائيات وسلسلة إنجاز يومية، ويعمل حتى دون اتصال بالإنترنت."
     />
-    <meta name="theme-color" content="#C5482E" />
+    <meta name="theme-color" content="#FAF8F4" id="themeColorMeta" />
     <link rel="icon" type="image/png" sizes="512x512" href="app/icons/icon-512.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="app/icons/icon-192.png" />
     <link rel="apple-touch-icon" href="app/icons/apple-touch-icon.png" />
+
+    <script>
+      // تطبيق الوضع الليلي قبل تحميل الـ CSS عشان منحصلش وميض لون (flash) —
+      // بنقرأ نفس إعداد التطبيق الفعلي (habit-data-v2) عشان اللاندينج والتطبيق
+      // يفضلوا دايماً بنفس الهوية، وبنتحط على prefers-color-scheme كاحتياط.
+      (function () {
+        try {
+          var dark = false;
+          var raw = localStorage.getItem("habit-data-v2");
+          if (raw) {
+            var parsed = JSON.parse(raw);
+            if (parsed && typeof parsed.darkMode === "boolean") dark = parsed.darkMode;
+          } else if (
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches
+          ) {
+            dark = true;
+          }
+          if (dark) {
+            document.documentElement.classList.add("dark");
+            var meta = document.getElementById("themeColorMeta");
+            if (meta) meta.setAttribute("content", "#0E141B");
+          }
+        } catch (e) {}
+      })();
+    </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -52,18 +78,23 @@
     <!-- ========================= الهيدر ========================= -->
     <header class="lp-header" id="lpHeader">
       <div class="lp-container lp-header-inner">
-        <a href="./" class="lp-logo">
-          <img src="app/img/logo-light.png" alt="نظم" />
+        <a href="./" class="lp-logo" aria-label="نظم — الصفحة الرئيسية">
+          <img src="app/img/logo-light.png" alt="نظم" class="lp-logo-img lp-logo-light" />
+          <img src="app/img/logo-dark.png" alt="نظم" class="lp-logo-img lp-logo-dark" />
         </a>
 
         <nav class="lp-nav" id="lpNav">
           <a href="#features">المميزات</a>
-          <a href="#showcase">استعرض نظم</a>
+          <a href="#benefits">المزايا</a>
           <a href="#pricing">الأسعار</a>
           <a href="#faq">الأسئلة الشائعة</a>
         </nav>
 
         <div class="lp-header-actions" id="lpHeaderActions">
+          <button class="lp-theme-toggle" id="lpThemeToggle" aria-label="تبديل الوضع الليلي" title="الوضع الليلي">
+            <span class="material-icons lp-icon-sun">light_mode</span>
+            <span class="material-icons lp-icon-moon">dark_mode</span>
+          </button>
           <a href="app/" class="lp-link-btn" id="lpLoginBtn">تسجيل الدخول</a>
           <a href="app/" class="lp-btn lp-btn-primary" id="lpStartBtn">ابدأ مجانًا</a>
           <button class="lp-nav-toggle" id="lpNavToggle" aria-label="القائمة" aria-expanded="false">
@@ -73,7 +104,7 @@
       </div>
       <div class="lp-mobile-nav" id="lpMobileNav">
         <a href="#features">المميزات</a>
-        <a href="#showcase">استعرض نظم</a>
+        <a href="#benefits">المزايا</a>
         <a href="#pricing">الأسعار</a>
         <a href="#faq">الأسئلة الشائعة</a>
         <div class="lp-mobile-nav-actions" id="lpMobileNavActions">
@@ -86,26 +117,34 @@
     <main>
       <!-- ========================= الهيرو ========================= -->
       <section class="lp-hero">
+        <div class="lp-hero-bg" aria-hidden="true"></div>
         <div class="lp-container lp-hero-inner">
           <div class="lp-hero-text">
-            <span class="lp-eyebrow"><span class="material-icons">bolt</span>تطبيق عربي بالكامل، يعمل دون اتصال بالإنترنت</span>
-            <h1 class="lp-hero-title">نظّم يومك، <span class="lp-underline">لا مهامك فقط</span>.</h1>
-            <p class="lp-hero-sub">
-              يجمع لك نظم المهام والوقت والتكرار في بنك واحد ذكي — تكتب مهمة اليوم،
-              فيتذكّرها لك غدًا وما بعده. حدّد لها وقتًا في جدولك، وشغّل مؤقتًا أثناء
-              العمل عليها، وفي النهاية اعرف كيف انقضى يومك بالضبط.
+            <span class="lp-eyebrow lp-reveal"><span class="material-icons">bolt</span>تطبيق عربي بالكامل، يعمل دون اتصال بالإنترنت</span>
+            <h1 class="lp-hero-title lp-reveal" style="--d: 0.08s">
+              نظّم يومك، <span class="lp-gradient-text">لا مهامك فقط</span>.
+            </h1>
+            <p class="lp-hero-sub lp-reveal" style="--d: 0.16s">
+              يجمع لك نظم المهام والوقت والتكرار في بنك واحد ذكي — تكتب المهمة مرة،
+              فيتذكّرها لك غدًا وما بعده.
             </p>
-            <div class="lp-hero-ctas">
+            <div class="lp-hero-ctas lp-reveal" style="--d: 0.24s">
               <a href="app/" class="lp-btn lp-btn-primary lp-btn-lg">
-                ابدأ مجانًا ١٤ يومًا
+                ابدأ مجانًا
                 <span class="material-icons">arrow_back</span>
               </a>
-              <a href="#showcase" class="lp-btn lp-btn-ghost lp-btn-lg">شاهد كيف يعمل</a>
+              <a href="#showcase" class="lp-btn lp-btn-ghost lp-btn-lg">
+                <span class="material-icons">play_arrow</span>
+                شاهد كيف يعمل
+              </a>
             </div>
-            <p class="lp-hero-note">دون بطاقة ائتمان — ودون أي التزام</p>
+            <p class="lp-hero-note lp-reveal" style="--d: 0.32s">
+              <span class="material-icons">verified_user</span>
+              دون بطاقة ائتمان — ودون أي التزام
+            </p>
           </div>
 
-          <div class="lp-hero-visual" aria-hidden="true">
+          <div class="lp-hero-visual lp-reveal" style="--d: 0.2s" aria-hidden="true">
             <div class="lp-mock-window lp-mock-day">
               <div class="lp-mock-topbar">
                 <div class="lp-mock-streak"><span class="material-icons">local_fire_department</span>١٢ يومًا متتاليًا</div>
@@ -135,7 +174,7 @@
               </div>
             </div>
             <div class="lp-mock-float lp-mock-float-1">
-              <span class="material-icons">check</span>
+              <span class="material-icons">check_circle</span>
               <span>تم إنجازها</span>
             </div>
             <div class="lp-mock-float lp-mock-float-2">
@@ -145,7 +184,7 @@
           </div>
         </div>
 
-        <div class="lp-strip">
+        <div class="lp-strip" aria-hidden="true">
           <div class="lp-strip-track">
             <span><span class="material-icons">schedule</span>تتبّع الوقت الفعلي</span>
             <span><span class="material-icons">autorenew</span>تكرار تلقائي ذكي</span>
@@ -164,12 +203,40 @@
         </div>
       </section>
 
+      <!-- ========================= شريط القيم ========================= -->
+      <section class="lp-section lp-metrics">
+        <div class="lp-container">
+          <div class="lp-metrics-band">
+            <div class="lp-metric lp-reveal">
+              <span class="lp-metric-icon material-icons">translate</span>
+              <div class="lp-metric-value lp-metric-value-big"><span data-count="100">٠</span>٪</div>
+              <p>عربي بالكامل</p>
+            </div>
+            <div class="lp-metric lp-reveal" style="--d: 0.08s">
+              <span class="lp-metric-icon material-icons">wifi_off</span>
+              <div class="lp-metric-value">يعمل دون اتصال</div>
+              <p>تطبيقك وبياناتك معاك في كل مكان</p>
+            </div>
+            <div class="lp-metric lp-reveal" style="--d: 0.16s">
+              <span class="lp-metric-icon material-icons">sync</span>
+              <div class="lp-metric-value">تزامن تلقائي</div>
+              <p>عبر جميع أجهزتك بنفس الحساب</p>
+            </div>
+            <div class="lp-metric lp-reveal" style="--d: 0.24s">
+              <span class="lp-metric-icon material-icons">file_download</span>
+              <div class="lp-metric-value">تصدير في أي وقت</div>
+              <p>بياناتك ملكك — صدّرها متى شئت</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ========================= المميزات الكبيرة ========================= -->
       <section class="lp-section" id="features">
         <div class="lp-container">
 
           <div class="lp-feature-row">
-            <div class="lp-feature-text">
+            <div class="lp-feature-text lp-reveal">
               <span class="lp-eyebrow">البداية</span>
               <h2>اكتب المهمة مرة، واستخدمها طوال الوقت</h2>
               <p>
@@ -182,7 +249,8 @@
                 <li><span class="material-icons">check</span>أرشيف للمهام غير النشطة حاليًا</li>
               </ul>
             </div>
-            <div class="lp-feature-visual">
+            <div class="lp-feature-visual lp-reveal" style="--d: 0.12s">
+              <div class="lp-visual-glow"></div>
               <div class="lp-mock-window lp-mock-bank">
                 <div class="lp-mock-bank-title"><span class="material-icons">inventory_2</span>بنك المهام</div>
                 <div class="lp-mock-chip-row">
@@ -202,7 +270,7 @@
           </div>
 
           <div class="lp-feature-row lp-feature-row-reverse">
-            <div class="lp-feature-text">
+            <div class="lp-feature-text lp-reveal">
               <span class="lp-eyebrow">التنظيم</span>
               <h2>اعرف وقتك قبل أن يمضي</h2>
               <p>
@@ -216,7 +284,8 @@
                 <li><span class="material-icons">check</span>عرض أسبوعي كامل إلى جانب عرض اليوم</li>
               </ul>
             </div>
-            <div class="lp-feature-visual">
+            <div class="lp-feature-visual lp-reveal" style="--d: 0.12s">
+              <div class="lp-visual-glow"></div>
               <div class="lp-mock-window lp-mock-timeline">
                 <div class="lp-mock-timeline-track">
                   <div class="lp-mock-hour"><span>٩:٠٠</span><i></i></div>
@@ -232,7 +301,7 @@
           </div>
 
           <div class="lp-feature-row">
-            <div class="lp-feature-text">
+            <div class="lp-feature-text lp-reveal">
               <span class="lp-eyebrow">التحفيز</span>
               <h2>اعرف تقدّمك، لا مهامك فقط</h2>
               <p>
@@ -245,7 +314,8 @@
                 <li><span class="material-icons">check</span>تصدير تقرير PDF أسبوعي كامل</li>
               </ul>
             </div>
-            <div class="lp-feature-visual">
+            <div class="lp-feature-visual lp-reveal" style="--d: 0.12s">
+              <div class="lp-visual-glow"></div>
               <div class="lp-mock-window lp-mock-stats">
                 <div class="lp-mock-donut" style="--pct: 72"><span>٧٢٪</span></div>
                 <div class="lp-mock-stats-side">
@@ -266,35 +336,36 @@
           <div class="lp-section-head">
             <span class="lp-eyebrow">وأيضًا</span>
             <h2>كل ما تحتاجه، دون فتح تطبيق آخر</h2>
+            <p>أدوات مكتملة تتكامل مع بعضها، عشان تقضي وقتك في الإنجاز مش في التنقل.</p>
           </div>
           <div class="lp-mini-grid">
-            <div class="lp-mini-card">
-              <span class="material-icons">autorenew</span>
+            <div class="lp-mini-card lp-reveal">
+              <span class="lp-mini-icon material-icons">autorenew</span>
               <h3>تكرار تلقائي</h3>
               <p>حدّد أيام تكرار المهمة، فتظهر تلقائيًا كل مرة دون الحاجة لكتابتها من جديد.</p>
             </div>
-            <div class="lp-mini-card">
-              <span class="material-icons">timer</span>
+            <div class="lp-mini-card lp-reveal" style="--d: 0.08s">
+              <span class="lp-mini-icon material-icons">timer</span>
               <h3>مؤقتات التركيز</h3>
               <p>شغّل مؤقتًا مفتوحًا أو محدد المدة أثناء العمل، ويُحتسب وقتك الفعلي تلقائيًا.</p>
             </div>
-            <div class="lp-mini-card">
-              <span class="material-icons">notifications_active</span>
+            <div class="lp-mini-card lp-reveal" style="--d: 0.16s">
+              <span class="lp-mini-icon material-icons">notifications_active</span>
               <h3>تنبيهات ذكية</h3>
               <p>تنبيه صباحي يذكّرك بيومك، وتنبيه مسائي يسألك إن أنجزت مهامك أم لا.</p>
             </div>
-            <div class="lp-mini-card">
-              <span class="material-icons">event</span>
+            <div class="lp-mini-card lp-reveal" style="--d: 0.24s">
+              <span class="lp-mini-icon material-icons">event</span>
               <h3>تصدير إلى التقويم</h3>
               <p>صدّر مهامك كملف تقويم قياسي (.ics) واستورده في Google أو Apple Calendar بضغطة واحدة.</p>
             </div>
-            <div class="lp-mini-card">
-              <span class="material-icons">dark_mode</span>
+            <div class="lp-mini-card lp-reveal" style="--d: 0.32s">
+              <span class="lp-mini-icon material-icons">dark_mode</span>
               <h3>الوضع الليلي</h3>
               <p>واجهة مريحة للعين ليلًا ونهارًا، تتبدّل بضغطة واحدة وتبقى كما هي.</p>
             </div>
-            <div class="lp-mini-card">
-              <span class="material-icons">install_mobile</span>
+            <div class="lp-mini-card lp-reveal" style="--d: 0.4s">
+              <span class="lp-mini-icon material-icons">install_mobile</span>
               <h3>يُثبَّت كالتطبيقات</h3>
               <p>ثبّته على هاتفك أو جهازك كأي تطبيق عادي، ويعمل حتى دون اتصال بالإنترنت.</p>
             </div>
@@ -303,27 +374,256 @@
       </section>
 
       <!-- ========================= إزاي يبدأ يومك ========================= -->
-      <section class="lp-section">
+      <section class="lp-section" id="how">
         <div class="lp-container">
           <div class="lp-section-head">
             <span class="lp-eyebrow">البداية سهلة</span>
             <h2>ثلاث خطوات، وتصبح جاهزًا</h2>
           </div>
           <div class="lp-steps">
-            <div class="lp-step">
+            <div class="lp-step lp-reveal">
               <div class="lp-step-num">١</div>
               <h3>أنشئ حسابك</h3>
               <p>بريد إلكتروني أو حساب Google — أقل من دقيقة، ودون بطاقة ائتمان.</p>
             </div>
-            <div class="lp-step">
+            <div class="lp-step lp-reveal" style="--d: 0.12s">
               <div class="lp-step-num">٢</div>
               <h3>جهّز بنك مهامك</h3>
               <p>اكتب المهام المتكررة في حياتك مرة واحدة، وسيتذكّرها نظم نيابةً عنك.</p>
             </div>
-            <div class="lp-step">
+            <div class="lp-step lp-reveal" style="--d: 0.24s">
               <div class="lp-step-num">٣</div>
               <h3>عِش يومك</h3>
               <p>يذكّرك نظم بمهامك، ويتابع وقتك، ويبني سلسلة إنجازك يومًا بعد يوم.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================= التكاملات ========================= -->
+      <section class="lp-section lp-section-tint" id="integrations">
+        <div class="lp-container">
+          <div class="lp-section-head">
+            <span class="lp-eyebrow">محيطك الرقمي</span>
+            <h2>يعمل مع أدواتك المعتادة</h2>
+            <p>لا عوازل ولا سحابات مغلقة — بياناتك تتحرك بسلاسة مع ما تستخدمه.</p>
+          </div>
+          <div class="lp-integrations-grid">
+            <div class="lp-integration lp-reveal">
+              <div class="lp-placeholder lp-placeholder-logo">[Placeholder: Google Calendar logo 64×64]</div>
+              <span>Google Calendar</span>
+            </div>
+            <div class="lp-integration lp-reveal" style="--d: 0.08s">
+              <div class="lp-placeholder lp-placeholder-logo">[Placeholder: Apple Calendar logo 64×64]</div>
+              <span>Apple Calendar</span>
+            </div>
+            <div class="lp-integration lp-reveal" style="--d: 0.16s">
+              <div class="lp-placeholder lp-placeholder-logo">[Placeholder: Google logo 64×64]</div>
+              <span>تسجيل الدخول عبر Google</span>
+            </div>
+            <div class="lp-integration lp-reveal" style="--d: 0.24s">
+              <div class="lp-placeholder lp-placeholder-logo">[Placeholder: PWA badge 64×64]</div>
+              <span>PWA — يُثبَّت على أي جهاز</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================= عرض الأجهزة ========================= -->
+      <section class="lp-section" id="devices">
+        <div class="lp-container">
+          <div class="lp-section-head">
+            <span class="lp-eyebrow">في كل مكان</span>
+            <h2>هاتفك وجهازك — نفس التطبيق</h2>
+            <p>نفس البيانات ونفس الحساب، على شاشة صغيرة أو كبيرة، حتى لو انقطع الإنترنت.</p>
+          </div>
+
+          <div class="lp-device-showcase">
+            <div class="lp-device lp-device-phone lp-reveal">
+              <div class="lp-phone">
+                <div class="lp-phone-status">
+                  <span>٩:٤١</span>
+                  <span class="material-icons">signal_cellular_alt</span>
+                  <span class="material-icons">battery_full</span>
+                </div>
+                <div class="lp-phone-screen">
+                  <div class="lp-phone-head">
+                    <span class="material-icons lp-phone-logo">checklist</span>
+                    <span class="lp-phone-day">الثلاثاء، ٤ أغسطس</span>
+                  </div>
+                  <div class="lp-phone-progress">
+                    <span>إنجاز اليوم</span>
+                    <strong>٧٢٪</strong>
+                    <i><b style="width: 72%"></b></i>
+                  </div>
+                  <div class="lp-phone-tasks">
+                    <div class="lp-mock-task is-done">
+                      <span class="lp-mock-check material-icons">check_circle</span>
+                      <span class="lp-mock-task-name">تمرين الصباح</span>
+                      <span class="lp-mock-badge done">٢٠ د</span>
+                    </div>
+                    <div class="lp-mock-task is-active">
+                      <span class="lp-mock-check material-icons">radio_button_unchecked</span>
+                      <span class="lp-mock-task-name">جلسة تركيز</span>
+                      <span class="lp-mock-badge timer"><span class="material-icons">timer</span>١٨:٢٤</span>
+                    </div>
+                    <div class="lp-mock-task">
+                      <span class="lp-mock-check material-icons">radio_button_unchecked</span>
+                      <span class="lp-mock-task-name">اجتماع الفريق</span>
+                      <span class="lp-mock-badge">٤٥ د</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="lp-phone-nav">
+                  <span class="material-icons">today</span>
+                  <span class="material-icons">event_note</span>
+                  <span class="material-icons">insights</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="lp-device lp-device-desktop lp-reveal" style="--d: 0.12s">
+              <div class="lp-desktop">
+                <div class="lp-desktop-bar">
+                  <span class="lp-desktop-dot"></span>
+                  <span class="lp-desktop-dot"></span>
+                  <span class="lp-desktop-dot"></span>
+                </div>
+                <div class="lp-desktop-body">
+                  <aside class="lp-desktop-side">
+                    <div class="lp-desktop-side-logo">
+                      <span class="material-icons">checklist</span>
+                      نظم
+                    </div>
+                    <nav>
+                      <a class="on"><span class="material-icons">today</span>مهام اليوم</a>
+                      <a><span class="material-icons">inventory_2</span>بنك المهام</a>
+                      <a><span class="material-icons">event_note</span>الجدول الزمني</a>
+                      <a><span class="material-icons">insights</span>الإحصائيات</a>
+                    </nav>
+                  </aside>
+                  <div class="lp-desktop-main">
+                    <div class="lp-desktop-main-head">
+                      <h3>مهام اليوم</h3>
+                      <span class="lp-mock-streak"><span class="material-icons">local_fire_department</span>١٢ يومًا</span>
+                    </div>
+                    <div class="lp-desktop-tasks">
+                      <div class="lp-mock-task is-done">
+                        <span class="lp-mock-check material-icons">check_circle</span>
+                        <span class="lp-mock-task-name">مراجعة تقرير الأسبوع</span>
+                        <span class="lp-mock-badge done">٤٥ د</span>
+                      </div>
+                      <div class="lp-mock-task is-active">
+                        <span class="lp-mock-check material-icons">radio_button_unchecked</span>
+                        <span class="lp-mock-task-name">جلسة تركيز — كتابة المحتوى</span>
+                        <span class="lp-mock-badge timer"><span class="material-icons">timer</span>١٨:٢٤</span>
+                      </div>
+                      <div class="lp-mock-task">
+                        <span class="lp-mock-check material-icons">radio_button_unchecked</span>
+                        <span class="lp-mock-task-name">مكالمة متابعة مع الفريق</span>
+                        <span class="lp-mock-badge">٣٠ د</span>
+                      </div>
+                      <div class="lp-mock-task">
+                        <span class="lp-mock-check material-icons">radio_button_unchecked</span>
+                        <span class="lp-mock-task-name">رياضة — نصف ساعة جري</span>
+                        <span class="lp-mock-badge">٣٠ د</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================= آراء المستخدمين ========================= -->
+      <section class="lp-section lp-section-tint" id="testimonials">
+        <div class="lp-container">
+          <div class="lp-section-head">
+            <span class="lp-eyebrow">آراء حقيقية</span>
+            <h2>أشخاص بدأوا ينظّموا يومهم</h2>
+          </div>
+          <div class="lp-testimonials-grid">
+            <figure class="lp-testimonial lp-reveal">
+              <span class="lp-testimonial-quote-mark material-icons">format_quote</span>
+              <blockquote>أول مرة أحس إن يومي بيتنظّم فعلاً مش بس بيتكتب. بنك المهام خلّصني من كتابة نفس الحاجات كل يوم.</blockquote>
+              <figcaption>
+                <div class="lp-placeholder lp-placeholder-avatar">[Placeholder: avatar 80×80]</div>
+                <div class="lp-testimonial-author"><strong>أحمد</strong><span>محاسب</span></div>
+              </figcaption>
+            </figure>
+            <figure class="lp-testimonial lp-reveal" style="--d: 0.08s">
+              <span class="lp-testimonial-quote-mark material-icons">format_quote</span>
+              <blockquote>مؤقت التركيز غيّر شغلي بالكامل — بقيت أعرف بالظبط كل مهمة خدت قد إيه، وأحسّن تقديري للوقت كل أسبوع.</blockquote>
+              <figcaption>
+                <div class="lp-placeholder lp-placeholder-avatar">[Placeholder: avatar 80×80]</div>
+                <div class="lp-testimonial-author"><strong>سارة</strong><span>مصممة جرافيك</span></div>
+              </figcaption>
+            </figure>
+            <figure class="lp-testimonial lp-reveal" style="--d: 0.16s">
+              <span class="lp-testimonial-quote-mark material-icons">format_quote</span>
+              <blockquote>سلسلة الإنجاز اللي مش بتبطّل خلتني أكمّل، بقيت كل يوم عايز أشوفها بتكبر قدامي.</blockquote>
+              <figcaption>
+                <div class="lp-placeholder lp-placeholder-avatar">[Placeholder: avatar 80×80]</div>
+                <div class="lp-testimonial-author"><strong>مصطفى</strong><span>مطوّر برمجيات</span></div>
+              </figcaption>
+            </figure>
+            <figure class="lp-testimonial lp-reveal" style="--d: 0.24s">
+              <span class="lp-testimonial-quote-mark material-icons">format_quote</span>
+              <blockquote>الجدول الزمني بالسحب والإفلات أقرب حاجة للمفكرة اللي كنت بحلم بيها — شغل واضح ومرتب.</blockquote>
+              <figcaption>
+                <div class="lp-placeholder lp-placeholder-avatar">[Placeholder: avatar 80×80]</div>
+                <div class="lp-testimonial-author"><strong>ليلى</strong><span>مديرة مشاريع</span></div>
+              </figcaption>
+            </figure>
+            <figure class="lp-testimonial lp-reveal" style="--d: 0.32s">
+              <span class="lp-testimonial-quote-mark material-icons">format_quote</span>
+              <blockquote>بستخدمه على التليفون واللابتوب، والتنبيه الصباحي بيفهمني إن اليوم اتبدأ ومحتاج يتنظّم.</blockquote>
+              <figcaption>
+                <div class="lp-placeholder lp-placeholder-avatar">[Placeholder: avatar 80×80]</div>
+                <div class="lp-testimonial-author"><strong>عمر</strong><span>كاتب محتوى</span></div>
+              </figcaption>
+            </figure>
+            <figure class="lp-testimonial lp-reveal" style="--d: 0.4s">
+              <span class="lp-testimonial-quote-mark material-icons">format_quote</span>
+              <blockquote>أهم حاجة إن كل حاجة عربي والأرقام عربية — حسيت إن التطبيق اتعلّم أصلاً عشاني أنا.</blockquote>
+              <figcaption>
+                <div class="lp-placeholder lp-placeholder-avatar">[Placeholder: avatar 80×80]</div>
+                <div class="lp-testimonial-author"><strong>مريم</strong><span>مدرّسة</span></div>
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================= المقارنة / المزايا ========================= -->
+      <section class="lp-section" id="benefits">
+        <div class="lp-container">
+          <div class="lp-section-head">
+            <span class="lp-eyebrow">المزايا</span>
+            <h2>قبل نظم… وبعد نظم</h2>
+          </div>
+          <div class="lp-compare">
+            <div class="lp-compare-col lp-compare-before lp-reveal">
+              <span class="lp-compare-tag">من غير نظم</span>
+              <h3>كل يوم يبدأ من الصفر</h3>
+              <ul>
+                <li><span class="material-icons">close</span>مهامك متناثرة بين الورق والذاكرة والتطبيقات</li>
+                <li><span class="material-icons">close</span>وقتك بيفوت من غير ما تعرف هروح فين</li>
+                <li><span class="material-icons">close</span>المهام المتكررة بتتكتب من جديد كل يوم</li>
+                <li><span class="material-icons">close</span>تقدّمك بيتقاس بمزاجك مش بأرقام</li>
+              </ul>
+            </div>
+            <div class="lp-compare-col lp-compare-after lp-reveal" style="--d: 0.12s">
+              <span class="lp-compare-tag">مع نظم</span>
+              <h3>يومك في مكان واحد منظم</h3>
+              <ul>
+                <li><span class="material-icons">check</span>بنك مهام واحد يجمع كل مجالات حياتك</li>
+                <li><span class="material-icons">check</span>يومك مرسوم على جدول زمني واضح</li>
+                <li><span class="material-icons">check</span>التكرار بيحصل لوحده — تكتب مرة واحدة</li>
+                <li><span class="material-icons">check</span>إحصائيات وسلسلة إنجاز قدامك كل يوم</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -394,6 +694,13 @@
               </div>
             </div>
 
+            <button class="lp-carousel-arrow lp-carousel-prev" id="lpCarouselPrev" aria-label="السابق">
+              <span class="material-icons">chevron_right</span>
+            </button>
+            <button class="lp-carousel-arrow lp-carousel-next" id="lpCarouselNext" aria-label="التالي">
+              <span class="material-icons">chevron_left</span>
+            </button>
+
             <div class="lp-carousel-dots" id="lpCarouselDots"></div>
           </div>
         </div>
@@ -409,8 +716,8 @@
             بالكامل. سنعلن عن خطط الاشتراك قريبًا، وسنُبلغ كل من لديه حساب حاليًا
             أولًا قبل أي أحد.
           </p>
-          <div class="lp-pricing-card">
-            <div class="lp-pricing-badge">أثناء الإطلاق</div>
+          <div class="lp-pricing-card lp-reveal">
+            <div class="lp-pricing-badge"><span class="material-icons">local_fire_department</span>أثناء الإطلاق</div>
             <div class="lp-pricing-amount">مجانًا<span>/ حاليًا ودون تاريخ انتهاء محدد</span></div>
             <ul class="lp-check-list lp-pricing-list">
               <li><span class="material-icons">check</span>جميع المميزات دون قيود</li>
@@ -431,27 +738,27 @@
           </div>
 
           <div class="lp-faq-list">
-            <details class="lp-faq-item">
+            <details class="lp-faq-item lp-reveal">
               <summary>كيف تكون بياناتي آمنة؟</summary>
               <p>ترتبط جميع بياناتك بحسابك الشخصي وتُحفظ بشكل آمن، ولا يمكن لأحد غيرك الاطلاع عليها. يمكنك تصدير نسخة احتياطية من بياناتك في أي وقت من إعدادات التطبيق.</p>
             </details>
-            <details class="lp-faq-item">
+            <details class="lp-faq-item lp-reveal" style="--d: 0.06s">
               <summary>هل يعمل نظم دون اتصال بالإنترنت؟</summary>
               <p>نعم، نظم تطبيق ويب تقدّمي (PWA) — يمكنك تثبيته على هاتفك أو جهازك، وسيستمر في العمل وعرض مهامك حتى لو انقطع الإنترنت، ويُزامن أي تغيير فور عودة الاتصال.</p>
             </details>
-            <details class="lp-faq-item">
+            <details class="lp-faq-item lp-reveal" style="--d: 0.12s">
               <summary>هل سيكون هناك اشتراك مدفوع؟</summary>
               <p>ستتوفر خطط مدفوعة مستقبلًا لمزايا إضافية، لكن حاليًا وأثناء مرحلة الإطلاق، كل شيء متاح مجانًا بالكامل، وسيُبلَّغ كل من لديه حساب حاليًا أولًا قبل أي تغيير.</p>
             </details>
-            <details class="lp-faq-item">
+            <details class="lp-faq-item lp-reveal" style="--d: 0.18s">
               <summary>هل يمكنني تصدير مهامي إلى تقويم آخر؟</summary>
               <p>نعم، يمكنك تصدير مهامك كملف تقويم قياسي (.ics) واستيراده مباشرة في Google Calendar أو Apple Calendar أو أي تطبيق تقويم تستخدمه.</p>
             </details>
-            <details class="lp-faq-item">
+            <details class="lp-faq-item lp-reveal" style="--d: 0.24s">
               <summary>هل أحتاج إلى تثبيت شيء لاستخدامه؟</summary>
               <p>لا، يعمل نظم مباشرة من المتصفح دون تنزيل، ويمكنك أيضًا تثبيته على الشاشة الرئيسية لهاتفك بضغطة واحدة ليفتح كأي تطبيق آخر.</p>
             </details>
-            <details class="lp-faq-item">
+            <details class="lp-faq-item lp-reveal" style="--d: 0.3s">
               <summary>هل يمكنني حذف حسابي وبياناتي؟</summary>
               <p>نعم، بياناتك ملكٌ لك، ويمكنك تصديرها أو طلب حذفها بالكامل في أي وقت.</p>
             </details>
@@ -461,13 +768,18 @@
 
       <!-- ========================= CTA أخير ========================= -->
       <section class="lp-final-cta">
-        <div class="lp-container lp-final-cta-inner">
+        <div class="lp-final-cta-bg" aria-hidden="true"></div>
+        <div class="lp-container lp-final-cta-inner lp-reveal">
           <h2>يومك بانتظار أن يُنظَّم</h2>
           <p>ابدأ الآن مجانًا، وشاهد الفرق بعد أسبوع واحد فقط.</p>
-          <a href="app/" class="lp-btn lp-btn-primary lp-btn-lg">
+          <a href="app/" class="lp-btn lp-btn-inverse lp-btn-lg">
             ابدأ مجانًا الآن
             <span class="material-icons">arrow_back</span>
           </a>
+          <div class="lp-final-cta-badge">
+            <span class="material-icons">install_mobile</span>
+            قابل للتثبيت كتطبيق — ويعمل دون اتصال
+          </div>
         </div>
       </section>
     </main>
@@ -476,12 +788,14 @@
     <footer class="lp-footer">
       <div class="lp-container lp-footer-inner">
         <div class="lp-footer-brand">
-          <img src="app/img/logo-light.png" alt="نظم" />
+          <img src="app/img/logo-light.png" alt="نظم" class="lp-logo-light" />
+          <img src="app/img/logo-dark.png" alt="نظم" class="lp-logo-dark" />
           <p>بنك مهامك الجاهز.. نظّم مهامك اليومية، وتابع وقتك، وحقق أهدافك.</p>
         </div>
         <div class="lp-footer-col">
           <h4>المنتج</h4>
           <a href="#features">المميزات</a>
+          <a href="#benefits">المزايا</a>
           <a href="#pricing">الأسعار</a>
           <a href="#faq">الأسئلة الشائعة</a>
         </div>
