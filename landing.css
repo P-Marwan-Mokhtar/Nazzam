@@ -380,6 +380,18 @@ h2, h3, h4 {
 .lp-mock-chrome i:nth-child(2) { background: var(--amber); }
 .lp-mock-chrome i:nth-child(3) { background: var(--ok); }
 
+/* ===== لقطات شاشات حقيقية بدل الموكبوات الـ CSS ===== */
+.lp-mock-shot {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 10px;
+  background: var(--surface);
+}
+.lp-phone-shot { width: 100%; height: auto; display: block; }
+.lp-desktop-shot { width: 100%; height: auto; display: block; }
+.lp-carousel-slide img.lp-mock-shot { height: 340px; object-fit: contain; }
+
 /* ===== Mockup الهيرو ===== */
 .lp-hero-visual { position: relative; }
 .lp-hero-visual::before {
@@ -393,57 +405,6 @@ h2, h3, h4 {
 .lp-hero-visual > * { position: relative; z-index: 1; }
 .lp-hero-visual .lp-mock-window { transform: rotate(-1deg); transition: transform 0.45s var(--ease); }
 .lp-hero-visual .lp-mock-window:hover { transform: rotate(0deg) translateY(-4px); }
-
-.lp-mock-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.lp-mock-streak {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.8rem;
-  font-weight: 800;
-  color: var(--amber);
-  background: var(--amber-soft);
-  padding: 5px 12px;
-  border-radius: 999px;
-}
-.lp-mock-streak .material-icons { font-size: 15px; }
-.lp-mock-date { font-size: 0.8rem; color: var(--ink-soft); font-weight: 700; }
-
-.lp-mock-tasks { display: flex; flex-direction: column; gap: 10px; }
-.lp-mock-task {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 13px 14px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-}
-.lp-mock-task.is-active {
-  border-color: var(--brand);
-  background: var(--surface);
-  box-shadow: 0 0 0 3px var(--brand-glow);
-}
-.lp-mock-check { color: var(--ink-faint); font-size: 21px; }
-.lp-mock-task.is-done .lp-mock-check { color: var(--ok); }
-.lp-mock-task.is-done .lp-mock-task-name { text-decoration: line-through; color: var(--ink-faint); }
-.lp-mock-task-name { flex: 1; font-size: 0.88rem; font-weight: 500; }
-.lp-mock-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.74rem;
-  font-weight: 800;
-  color: var(--ink-soft);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  padding: 4px 10px;
-  border-radius: 999px;
-}
-.lp-mock-badge .material-icons { font-size: 13px; }
-.lp-mock-badge.done { color: var(--ok); background: var(--ok-soft); border-color: transparent; }
-.lp-mock-badge.timer { color: var(--brand); background: var(--brand-soft); border-color: transparent; }
 
 .lp-mock-float {
   position: absolute;
@@ -607,144 +568,6 @@ h2, h3, h4 {
 }
 .lp-feature-visual .lp-mock-window { transform: none; }
 
-/* Mockup: بنك المهام */
-.lp-mock-bank-title { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 0.98rem; margin-bottom: 14px; }
-.lp-mock-bank-title .material-icons { color: var(--brand); font-size: 19px; }
-.lp-mock-chip-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-.lp-mock-chip {
-  font-size: 0.76rem;
-  font-weight: 800;
-  padding: 6px 13px;
-  border-radius: 999px;
-  background: var(--surface-2);
-  color: var(--ink-soft);
-  border: 1px solid var(--line);
-  transition: all 0.2s ease;
-}
-.lp-mock-chip.active {
-  background: var(--brand);
-  color: #fff;
-  border-color: var(--brand);
-  box-shadow: var(--shadow-brand);
-}
-.lp-mock-bank-list { display: flex; flex-direction: column; gap: 9px; }
-.lp-mock-bank-item {
-  padding: 13px 15px;
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  font-size: 0.88rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.lp-mock-bank-item::before {
-  content: "";
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--brand);
-  opacity: 0.5;
-  flex-shrink: 0;
-}
-.lp-mock-bank-item:nth-child(2)::before { background: var(--amber); }
-.lp-mock-bank-item:nth-child(3)::before { background: var(--ok); }
-.lp-mock-bank-item:nth-child(4)::before { background: #5b7cf0; }
-
-/* Mockup: الجدول الزمني */
-.lp-mock-timeline-track { position: relative; height: 260px; margin-inline-start: 50px; }
-.lp-mock-hour { position: relative; height: 65px; border-top: 1px dashed var(--line-strong); }
-.lp-mock-hour span {
-  position: absolute;
-  right: calc(100% + 9px);
-  top: -8px;
-  font-size: 0.7rem;
-  color: var(--ink-soft);
-  white-space: nowrap;
-}
-.lp-mock-block {
-  position: absolute;
-  right: 6px;
-  left: 6px;
-  background: var(--brand-soft);
-  border-right: 3px solid var(--brand);
-  border-radius: 10px;
-  padding: 8px 12px;
-  font-size: 0.8rem;
-  font-weight: 800;
-  color: var(--brand-deep);
-}
-.lp-mock-block.alt { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
-
-/* Mockup: الإحصائيات */
-.lp-mock-stats { display: flex; align-items: center; gap: 28px; padding: 24px 26px; flex-wrap: wrap; }
-.lp-mock-donut {
-  --pct: 70;
-  width: 136px;
-  height: 136px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  background: conic-gradient(var(--brand) calc(var(--pct) * 1%), var(--line-strong) 0);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-.lp-mock-donut::after { content: ""; position: absolute; inset: 0; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--line); }
-.lp-mock-donut span {
-  width: 98px;
-  height: 98px;
-  border-radius: 50%;
-  background: var(--surface);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 1.2rem;
-  color: var(--ink);
-}
-.lp-mock-stats-side { display: flex; flex-direction: column; gap: 12px; }
-.lp-mock-stat-pill {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.84rem;
-  font-weight: 800;
-  color: var(--ink-soft);
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  padding: 10px 14px;
-  border-radius: var(--r-sm);
-}
-.lp-mock-stat-pill .material-icons { font-size: 17px; color: var(--brand); }
-.lp-mock-stat-pill:nth-child(2) .material-icons { color: var(--amber); }
-.lp-mock-stat-pill:nth-child(3) .material-icons { color: var(--ok); }
-
-/* Mockup: عرض الأسبوع */
-.lp-mock-week-row { display: flex; gap: 8px; }
-.lp-mock-week-day {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 9px;
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: var(--ink-soft);
-}
-.lp-mock-week-day i {
-  display: block;
-  width: 100%;
-  height: 46px;
-  border-radius: 8px;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-}
-.lp-mock-week-day i.full { background: var(--ok-soft); border-color: var(--ok); }
-.lp-mock-week-day i.half { background: linear-gradient(var(--brand-soft) 50%, var(--surface-2) 50%); border-color: var(--brand); }
-.lp-mock-week-day.today { color: var(--brand); }
-
 /* ===== شبكة مميزات صغيرة ===== */
 .lp-mini-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .lp-mini-card {
@@ -816,16 +639,24 @@ h2, h3, h4 {
 }
 .lp-integration:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--line-strong); }
 .lp-integration span { font-weight: 800; font-size: 0.92rem; }
-.lp-placeholder {
+.lp-integration-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-sm);
+  padding: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px dashed var(--line-strong);
-  background: var(--surface-2);
-  color: var(--ink-faint);
 }
-.lp-placeholder-logo { width: 64px; height: 64px; border-radius: 14px; }
-.lp-placeholder-logo .material-icons { font-size: 26px; }
+.lp-integration-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
 
 /* ===== عرض الأجهزة — شريط داكن (لحظة مميزة) ===== */
 .lp-dark-band {
@@ -858,40 +689,6 @@ h2, h3, h4 {
   box-shadow: var(--shadow-lg);
   overflow: hidden;
 }
-.lp-phone-status {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px 4px;
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: var(--ink);
-}
-.lp-phone-status .material-icons { font-size: 14px; }
-.lp-phone-screen { padding: 12px 14px 18px; }
-.lp-phone-head { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
-.lp-phone-logo { font-size: 22px; color: var(--brand); background: var(--brand-soft); border-radius: 10px; padding: 5px; }
-.lp-phone-day { font-size: 0.78rem; font-weight: 800; }
-.lp-phone-progress {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 12px 14px;
-  margin-bottom: 14px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--ink-soft);
-}
-.lp-phone-progress strong { color: var(--brand); font-size: 0.82rem; }
-.lp-phone-progress i { display: block; flex: 1; height: 6px; border-radius: 999px; background: var(--line-strong); overflow: hidden; }
-.lp-phone-progress b { display: block; height: 100%; border-radius: 999px; background: var(--brand); }
-.lp-phone-tasks { display: flex; flex-direction: column; gap: 9px; }
-.lp-phone-nav { display: flex; justify-content: space-around; border-top: 1px solid var(--line); padding: 10px 0; }
-.lp-phone-nav .material-icons { font-size: 20px; color: var(--ink-faint); }
-.lp-phone-nav .material-icons:first-child { color: var(--brand); }
 
 .lp-desktop {
   border-radius: var(--r-lg);
@@ -911,40 +708,6 @@ h2, h3, h4 {
 .lp-desktop-dot:first-child { background: var(--brand); }
 .lp-desktop-dot:nth-child(2) { background: var(--amber); }
 .lp-desktop-dot:nth-child(3) { background: var(--ok); }
-.lp-desktop-body { display: grid; grid-template-columns: 190px 1fr; min-height: 380px; }
-.lp-desktop-side {
-  background: var(--surface-2);
-  border-inline-end: 1px solid var(--line);
-  padding: 18px 14px;
-}
-.lp-desktop-side-logo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: "Rakkas", serif;
-  font-weight: 400;
-  font-size: 1.2rem;
-  color: var(--ink);
-  padding: 2px 8px 16px;
-}
-.lp-desktop-side-logo .material-icons { color: var(--brand); }
-.lp-desktop-side nav { display: flex; flex-direction: column; gap: 4px; }
-.lp-desktop-side nav a {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--ink-soft);
-  padding: 9px 10px;
-  border-radius: 10px;
-}
-.lp-desktop-side nav a.on { background: var(--brand-soft); color: var(--brand); }
-.lp-desktop-side nav a .material-icons { font-size: 18px; }
-.lp-desktop-main { padding: 20px; }
-.lp-desktop-main-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.lp-desktop-main-head h3 { font-size: 1.2rem; }
-.lp-desktop-tasks { display: flex; flex-direction: column; gap: 10px; }
 
 /* ===== المقارنة / المزايا ===== */
 .lp-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 980px; margin: 0 auto; }
@@ -1234,8 +997,6 @@ h2, h3, h4 {
   .lp-carousel { padding-inline: 6px; }
   .lp-pricing-card { padding: 32px 24px; }
   .lp-phone { width: 270px; }
-  .lp-desktop-body { grid-template-columns: 1fr; }
-  .lp-desktop-side { display: none; }
   .lp-strip::before, .lp-strip::after { width: 40px; }
 }
 
