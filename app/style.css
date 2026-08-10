@@ -2676,7 +2676,7 @@ body.dark-mode .account-error {
   }
 }
 
-@media (max-width: 1015px) {
+@media (max-width: 1055px) {
   .add-row-group {
     grid-template-columns: 1fr;
   }
@@ -3396,8 +3396,9 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 }
 .notif-setting-status.denied{ color: var(--missed); }
 
-/* على الموبايل، قائمة الأولوية الفرعية تفتح في الاتجاه العكسي عن سطح المكتب */
-@media (max-width: 640px) {
+/* تحت 900px (اللي بيحصّل فيهم تخطيط عمود واحد والمهام بتاخد عرض كامل)،
+   قوائم الوقت والأولوية الفرعية بتفتح للداخل (يمين) بدل ما تطلع برّه الصفحة وتعمل scroll أفقي */
+@media (max-width: 900px) {
   .priority-popover,
   .clock-choice-popover {
     right: auto;
