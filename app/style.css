@@ -261,7 +261,7 @@ body.dark-mode .header-logo-dark {
   font-weight: 800;
   font-size: 1.1rem;
   color: var(--ink);
-  margin: 24px 0 12px;
+  margin: 20px 0 12px;
   display: flex;
   align-items: center;
   gap: 8px;
