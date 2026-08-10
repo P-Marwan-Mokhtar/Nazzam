@@ -499,11 +499,9 @@ body.dark-mode .header-logo-dark {
   background: var(--paper);
   color: var(--ink);
 }
-/* .bank-search input:focus {
-  outline: 2px solid var(--pen);
-  outline-offset: 1px;
+.bank-search input:focus {
   border-color: var(--pen);
-} */
+}
 .bank-search-clear {
   position: absolute;
   left: 8px;
@@ -1488,8 +1486,7 @@ body.dark-mode .priority-dot-medium {
   color: var(--ink);
 }
 .add-row input:focus {
-  outline: 2px solid var(--pen);
-  outline-offset: 1px;
+  border: 1.5px solid var(--pen);
 }
 .add-btn {
   background: var(--pen);
@@ -1613,6 +1610,22 @@ body.dark-mode .priority-dot-medium {
   outline-offset: 2px;
 }
 
+/* الـ inputs: على الفوكس نكتفي ببوردر واحدة ملونة — ممنوع أي outline/هالة خارجية */
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--pen);
+}
+
 /* ===== Two-column layout ===== */
 .main-layout {
   display: flex;
@@ -1688,8 +1701,7 @@ body.dark-mode .priority-dot-medium {
   color: var(--ink);
 }
 .timer-add-row input:focus {
-  outline: 2px solid var(--pen);
-  outline-offset: 1px;
+  border-color: var(--pen);
 }
 .timer-add-btn {
   flex: 0 0 auto;
@@ -2084,8 +2096,6 @@ body.dark-mode .priority-dot-medium {
   width: 100%;
 }
 .account-input:focus {
-  outline: 2px solid var(--pen);
-  outline-offset: 1px;
   border-color: var(--pen);
 }
 .account-primary-btn {
@@ -3106,8 +3116,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   background: var(--card);
 }
 .inline-edit-input:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--pen-soft);
+  border-color: var(--pen);
 }
 
 /* ===== Subtasks ===== */
@@ -3209,8 +3218,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   padding: 4px 8px;
 }
 .subtask-edit-input:focus {
-  outline: 2px solid var(--pen);
-  outline-offset: 1px;
+  border-color: var(--pen);
 }
 
 /* ===== البحث الشامل عبر كل الأيام ===== */
