@@ -235,7 +235,7 @@ export function render(){
   // Daily Tasks Section
   const dayFilterLabels = { all: 'الكل', pending: 'متبقية', done: 'منجزة' };
   html += `
-    <div class="section-title" style="margin-top: 0;">
+    <div class="section-title" >
       <span>مهام اليوم</span>
       <div class="section-title-actions">
         <button class="day-filter-btn ${state._sortPriority && state._sortPriority[ui.selectedDate] ? 'active' : ''}" data-action="sort-by-priority" title="رتّب حسب الأهمية">
