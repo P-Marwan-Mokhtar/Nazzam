@@ -132,24 +132,39 @@ export function render(){
     html += `<button class="filter-chip ${ui.activeFilter === 'all' ? 'active' : ''}" data-action="select-filter" data-filter-id="all">الكل</button>`;
     const sortedFilters = [...state.filters].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
     sortedFilters.forEach(f => {
-      html += `
-        <span class="filter-chip-outer" data-wrap-id="${f.id}">
-          <span class="filter-chip-wrap ${ui.activeFilter === f.id ? 'active' : ''}">
-            <button class="filter-chip-label" data-action="select-filter" data-filter-id="${f.id}">${f.pinned ? '<span class="material-icons filter-pin-icon">push_pin</span>' : ''}${escapeHtml(f.name)}</button>
-            <button class="filter-chip-more" data-action="toggle-filter-more" data-id="${f.id}" title="المزيد">
-              <span class="material-icons">more_vert</span>
-            </button>
+      if(ui.editingFilterId === f.id){
+        html += `
+          <span class="filter-chip-outer" data-wrap-id="${f.id}">
+            <span class="filter-chip-edit">
+              <input class="edit-input filter-edit-input" id="editFilterInput" value="${escapeAttr(f.name)}" maxlength="40" />
+              <button class="icon-btn" data-action="save-filter" data-id="${f.id}" title="حفظ"><span class="material-icons">check</span></button>
+              <button class="icon-btn" data-action="cancel-filter" title="إلغاء"><span class="material-icons">close</span></button>
+            </span>
           </span>
-          <div class="filter-more-dropdown ${ui.openFilterMoreId === f.id ? 'open' : ''}">
-            <button class="tmd-btn" data-action="toggle-pin-filter" data-id="${f.id}">
-              <span class="material-icons">push_pin</span><span>${f.pinned ? 'إلغاء التثبيت' : 'تثبيت'}</span>
-            </button>
-            <button class="tmd-btn delete" data-action="delete-filter" data-id="${f.id}">
-              <span class="material-icons">delete</span><span>حذف</span>
-            </button>
-          </div>
-        </span>
-      `;
+        `;
+      } else {
+        html += `
+          <span class="filter-chip-outer" data-wrap-id="${f.id}">
+            <span class="filter-chip-wrap ${ui.activeFilter === f.id ? 'active' : ''}">
+              <button class="filter-chip-label" data-action="select-filter" data-filter-id="${f.id}">${f.pinned ? '<span class="material-icons filter-pin-icon">push_pin</span>' : ''}${escapeHtml(f.name)}</button>
+              <button class="filter-chip-more" data-action="toggle-filter-more" data-id="${f.id}" title="المزيد">
+                <span class="material-icons">more_vert</span>
+              </button>
+            </span>
+            <div class="filter-more-dropdown ${ui.openFilterMoreId === f.id ? 'open' : ''}">
+              <button class="tmd-btn" data-action="toggle-pin-filter" data-id="${f.id}">
+                <span class="material-icons">push_pin</span><span>${f.pinned ? 'إلغاء التثبيت' : 'تثبيت'}</span>
+              </button>
+              <button class="tmd-btn" data-action="edit-filter" data-id="${f.id}">
+                <span class="material-icons">edit</span><span>إعادة تسمية</span>
+              </button>
+              <button class="tmd-btn delete" data-action="delete-filter" data-id="${f.id}">
+                <span class="material-icons">delete</span><span>حذف</span>
+              </button>
+            </div>
+          </span>
+        `;
+      }
     });
     html += `</div>`;
     html += `</div>`;

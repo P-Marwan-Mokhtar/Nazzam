@@ -1229,6 +1229,26 @@ body.dark-mode .priority-dot-medium {
   transform: translateY(0);
   pointer-events: auto;
 }
+.filter-chip-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--paper);
+  border: 1px solid var(--paper-line);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+.filter-chip-edit .edit-input {
+  width: 130px;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+}
+.filter-chip-edit .icon-btn {
+  padding: 2px;
+}
+.filter-chip-edit .icon-btn .material-icons {
+  font-size: 17px;
+}
 
 .add-row-group {
   display: grid;

@@ -42,6 +42,7 @@ export const ui = {
   selectedDate: toISO(new Date()),
   calendarViewDate: null,  // الشهر المعروض حاليًا في نافذة التقويم (مستقل عن selectedDate)
   editingKeywordId: null,
+  editingFilterId: null,
   activeFilter: 'all',
   bankOpen: true,
   justOpenedBank: true,

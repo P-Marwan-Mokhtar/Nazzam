@@ -349,6 +349,35 @@ export function attachEvents(){
       render();
       await saveData();
     }
+    else if(action === 'edit-filter'){
+      ui.editingFilterId = id;
+      ui.openFilterMoreId = null;
+      render();
+      const input = document.getElementById('editFilterInput');
+      if(input){ input.focus(); input.select(); }
+    }
+    else if(action === 'save-filter'){
+      const input = document.getElementById('editFilterInput');
+      const filter = state.filters.find(f => f.id === id);
+      if(filter && input){
+        const val = input.value.trim();
+        if(val && val !== filter.name){
+          const exists = state.filters.some(f => f.name === val && f.id !== id);
+          if(exists){
+            showToast('هذا الفلتر موجود بالفعل');
+            return;
+          }
+          filter.name = val;
+          await saveData();
+        }
+      }
+      ui.editingFilterId = null;
+      render();
+    }
+    else if(action === 'cancel-filter'){
+      ui.editingFilterId = null;
+      render();
+    }
     else if(action === 'delete-filter'){
       const idx = state.filters.findIndex(f => f.id === id);
       if(idx === -1) return;
@@ -488,6 +517,14 @@ export function attachEvents(){
     editInput.onkeydown = (e) => {
       if(e.key === 'Enter') document.querySelector('button[data-action="save-keyword"]').click();
       if(e.key === 'Escape') document.querySelector('button[data-action="cancel-keyword"]').click();
+    };
+  }
+
+  const editFilterInput = document.getElementById('editFilterInput');
+  if(editFilterInput){
+    editFilterInput.onkeydown = (e) => {
+      if(e.key === 'Enter') document.querySelector('button[data-action="save-filter"]').click();
+      if(e.key === 'Escape') document.querySelector('button[data-action="cancel-filter"]').click();
     };
   }
 
