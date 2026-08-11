@@ -802,6 +802,8 @@ body.dark-mode .task-row.priority-medium {
   font-size: 26px;
 }
 .td-title {
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 1.15rem;
   margin: 0;
   line-height: 1.4;
@@ -1037,9 +1039,6 @@ body.dark-mode .task-row.priority-medium {
   gap: 6px;
   opacity: 0;
   transform: translateY(6px);
-  transition:
-    opacity 0.15s ease,
-    transform 0.15s ease;
   pointer-events: none;
 }
 .duration-popover.open {
@@ -1047,6 +1046,20 @@ body.dark-mode .task-row.priority-medium {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
+  animation: popupIn 0.18s ease;
+}
+
+/* دخول موحّد للـ popup اللي بيفتح بـ display:none → flex
+   (لأن الـ transition مش بيشتغل لما العنصر يكون مخفي بالـ display) */
+@keyframes popupIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .duration-popover-row {
   display: flex;
@@ -1079,6 +1092,15 @@ body.dark-mode .task-row.priority-medium {
 .time-choice-submenu-wrap {
   position: relative;
 }
+
+/* جوه مودال تفاصيل المهمة، بوب أبات الأهمية والوقت بتفتح للداخل (يمين)
+   لأن زرار المزيد واقع على طرف الكارت والفتح للبرّه كان هيقطع برّه المودال */
+.td-head .priority-popover,
+.td-head .clock-choice-popover {
+  right: auto;
+  left: calc(100% + 8px);
+}
+
 .clock-choice-popover {
   position: absolute;
   top: -6px;
@@ -1820,11 +1842,9 @@ body.dark-mode .priority-dot-medium {
 @keyframes emptyStateIn {
   from {
     opacity: 0;
-    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 .bank-content .empty-state,
@@ -2657,6 +2677,28 @@ body.dark-mode .account-error {
 }
 .modal-overlay.open {
   display: flex;
+  animation: overlayFadeIn 0.2s ease;
+}
+.modal-overlay.open .modal-card {
+  animation: modalPopIn 0.24s cubic-bezier(0.25, 0.8, 0.4, 1);
+}
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes modalPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 .modal-overlay.is-gate #closeAccountBtn {
   display: none;

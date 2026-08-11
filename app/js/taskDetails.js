@@ -4,7 +4,7 @@
 // ============================================================
 
 import { escapeHtml, formatHM, parseDurationToMinutes } from './utils.js';
-import { state, ui } from './state.js';
+import { PRIORITY_LABELS, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
 import { openActualDurationPicker, openDurationPicker } from './wheelPicker.js';
@@ -13,6 +13,9 @@ import { openSubtasksModal } from './subtasks.js';
 import { openTaskNoteModal } from './taskNote.js';
 
 let activeDetailsTaskId = null;
+let detailsMoreOpen = false;
+let detailsPriorityOpen = false;
+let detailsClockOpen = false;
 
 function getTask(){
   if(!activeDetailsTaskId) return null;
@@ -23,6 +26,9 @@ export function openTaskDetails(taskId){
   const task = (state.days[ui.selectedDate] || []).find(x => x.id === taskId);
   if(!task) return;
   activeDetailsTaskId = taskId;
+  detailsMoreOpen = false;
+  detailsPriorityOpen = false;
+  detailsClockOpen = false;
   ui.openTaskMoreId = null;
   ui.openKeywordMoreId = null;
   render();
@@ -55,18 +61,55 @@ function renderDetails(){
         <span class="material-icons">${done ? 'check_circle' : 'radio_button_unchecked'}</span>
       </button>
       <h3 class="td-title ${done ? 'done' : ''}">${escapeHtml(task.name)}</h3>
+      <div class="task-more-menu-wrap td-more-menu-wrap">
+        <button type="button" class="icon-btn task-more-btn" data-td="toggle-details-more" title="المزيد">
+          <span class="material-icons">more_vert</span>
+        </button>
+        <div class="task-more-dropdown ${detailsMoreOpen ? 'open' : ''}">
+          <div class="priority-submenu-wrap">
+            <button type="button" class="tmd-btn priority-btn ${task.priority ? 'priority-' + task.priority : ''}" data-td="toggle-details-priority" title="${task.priority ? 'الأهمية: ' + PRIORITY_LABELS[task.priority] : 'حدد مستوى الأهمية'}">
+              <span class="material-icons">flag</span><span>الأهمية</span>
+            </button>
+            <div class="priority-popover ${detailsPriorityOpen ? 'open' : ''}">
+              <button type="button" class="priority-choice-btn priority-choice-high ${task.priority === 'high' ? 'selected' : ''}" data-td="priority" data-value="high">
+                <span class="material-icons">flag</span>عالية
+              </button>
+              <button type="button" class="priority-choice-btn priority-choice-medium ${task.priority === 'medium' ? 'selected' : ''}" data-td="priority" data-value="medium">
+                <span class="material-icons">flag</span>متوسطة
+              </button>
+              <button type="button" class="priority-choice-btn priority-choice-low ${task.priority === 'low' ? 'selected' : ''}" data-td="priority" data-value="low">
+                <span class="material-icons">flag</span>منخفضة
+              </button>
+              <button type="button" class="priority-choice-btn priority-choice-none ${!task.priority ? 'selected' : ''}" data-td="priority" data-value="">
+                <span class="material-icons">outlined_flag</span>بدون
+              </button>
+            </div>
+          </div>
+          <div class="time-choice-submenu-wrap">
+            <button type="button" class="tmd-btn" data-td="toggle-details-clock" title="ضبط الهدف أو الوقت الفعلي أو بدء تايمر">
+              <span class="material-icons">schedule</span><span>الوقت</span>
+            </button>
+            <div class="clock-choice-popover ${detailsClockOpen ? 'open' : ''}">
+              <button type="button" class="clock-choice-btn" data-td="target">
+                <span class="material-icons">flag</span>الهدف
+              </button>
+              <button type="button" class="clock-choice-btn" data-td="actual">
+                <span class="material-icons">timelapse</span>الوقت الفعلي
+              </button>
+              <button type="button" class="clock-choice-btn" data-td="timer">
+                <span class="material-icons">play_circle_outline</span>بدء تايمر
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="td-section">
       <div class="td-row">
         <span class="td-icon material-icons">flag</span>
         <span class="td-label">الأهمية</span>
-        <div class="td-priority-options">
-          <button type="button" class="td-chip ${task.priority === 'high' ? 'selected' : ''}" data-td="priority" data-value="high">عالية</button>
-          <button type="button" class="td-chip ${task.priority === 'medium' ? 'selected' : ''}" data-td="priority" data-value="medium">متوسطة</button>
-          <button type="button" class="td-chip ${task.priority === 'low' ? 'selected' : ''}" data-td="priority" data-value="low">منخفضة</button>
-          <button type="button" class="td-chip ${!task.priority ? 'selected' : ''}" data-td="priority" data-value="">بدون</button>
-        </div>
+        <span class="td-value ${task.priority ? '' : 'muted'}">${task.priority ? PRIORITY_LABELS[task.priority] : 'بدون'}</span>
       </div>
 
       <div class="td-row">
@@ -84,11 +127,6 @@ function renderDetails(){
           ` : `
             <span class="td-time-values muted">لم يُحدد وقت</span>
           `}
-          <div class="td-actions">
-            <button type="button" class="td-btn" data-td="target">الهدف</button>
-            <button type="button" class="td-btn" data-td="actual">الوقت الفعلي</button>
-            <button type="button" class="td-btn" data-td="timer">بدء تايمر</button>
-          </div>
         </div>
       </div>
 
@@ -138,10 +176,27 @@ function handleAction(el){
     render();
     renderDetails();
   }
+  else if(action === 'toggle-details-more'){
+    detailsMoreOpen = !detailsMoreOpen;
+    detailsPriorityOpen = false;
+    detailsClockOpen = false;
+    renderDetails();
+  }
+  else if(action === 'toggle-details-priority'){
+    detailsPriorityOpen = !detailsPriorityOpen;
+    detailsClockOpen = false;
+    renderDetails();
+  }
+  else if(action === 'toggle-details-clock'){
+    detailsClockOpen = !detailsClockOpen;
+    detailsPriorityOpen = false;
+    renderDetails();
+  }
   else if(action === 'priority'){
     const value = el.dataset.value;
     if(value) task.priority = value;
     else delete task.priority;
+    detailsPriorityOpen = false;
     saveData();
     render();
     renderDetails();
@@ -181,4 +236,10 @@ document.getElementById('closeTaskDetailsBtn').onclick = closeTaskDetails;
 
 document.getElementById('taskDetailsOverlay').onclick = (e) => {
   if(e.target.id === 'taskDetailsOverlay') closeTaskDetails();
+  else if(detailsMoreOpen && !e.target.closest('.td-more-menu-wrap')){
+    detailsMoreOpen = false;
+    detailsPriorityOpen = false;
+    detailsClockOpen = false;
+    renderDetails();
+  }
 };
