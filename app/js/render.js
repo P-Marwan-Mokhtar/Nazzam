@@ -2,7 +2,7 @@
 // render.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { emptyStateHtml, escapeAttr, escapeHtml, fmtDay, formatHM, formatMinutes, fromISO, highlightMatch, normalizeArabic, parseDurationToMinutes, todayStr, uid } from './utils.js';
+import { emptyStateHtml, escapeAttr, escapeHtml, fmtDay, formatHM, fromISO, highlightMatch, normalizeArabic, parseDurationToMinutes, todayStr, uid } from './utils.js';
 import { PRIORITY_LABELS, contentEl, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { attachEvents } from './events.js';
@@ -214,11 +214,11 @@ export function render(){
                       <span class="material-icons">more_vert</span>
                     </button>
                     <div class="task-more-dropdown ${ui.openKeywordMoreId === k.id ? 'open' : ''}">
-                      <button class="tmd-btn" data-action="edit-keyword" data-id="${k.id}">
-                        <span class="material-icons">edit</span><span>تعديل في البنك</span>
-                      </button>
                       <button class="tmd-btn" data-action="delete-keyword" data-id="${k.id}">
-                        <span class="material-icons">archive</span><span>نقل إلى المسودات</span>
+                        <span class="material-icons">archive</span><span>مسودات</span>
+                      </button>
+                      <button class="tmd-btn" data-action="edit-keyword" data-id="${k.id}">
+                        <span class="material-icons">edit</span><span>تعديل</span>
                       </button>
                     </div>
                   </div>
@@ -299,46 +299,28 @@ export function render(){
   } else {
     html += `<div class="task-list">`;
     visibleDayTasks.forEach(t => {
-      const targetMin = parseDurationToMinutes(t.duration);
-      const actualMin = parseDurationToMinutes(t.actualDuration);
-      const pct = targetMin > 0 ? Math.round((actualMin / targetMin) * 100) : 0;
-      const barPct = Math.min(100, Math.max(0, pct));
-
       html += `
-        <div class="task-row ${t.done?'done':''} ${(!t.done && isPastDay)?'missed':''}" draggable="true" data-drag-id="${t.id}">
-          <div class="task-main" data-action="toggle-task" data-id="${t.id}">
-            ${ui.editingTaskId === t.id ? `
-              <div class="inline-edit-wrap">
-                <input type="text" id="inlineEditInput_${t.id}" class="inline-edit-input" value="${escapeAttr(t.name)}" />
-                <button class="icon-btn" data-action="save-task-edit" data-id="${t.id}" title="حفظ"><span class="material-icons">check</span></button>
-                <button class="icon-btn" data-action="cancel-task-edit" data-id="${t.id}" title="إلغاء"><span class="material-icons">close</span></button>
-              </div>
-            ` : `
-              <span class="task-name" title="${escapeAttr(t.name)}">${t.priority ? `<span class="priority-dot priority-dot-${t.priority}"></span>` : ''}${escapeHtml(t.name)}</span>
-            `}
-            <div class="task-icons">
-            ${(t.subtasks && t.subtasks.length > 0) ? `<button type="button" class="subtasks-badge" data-action="open-subtasks" data-id="${t.id}" title="عرض المهام الفرعية">${t.subtasks.filter(s=>s.done).length}/${t.subtasks.length}</button>` : ''}
-            ${(t.duration || t.actualDuration) ? `
-              <button class="duration-badge ${targetMin > 0 && pct >= 100 ? 'over' : ''}" id="durationBadge_${t.id}" data-action="toggle-duration-view" data-id="${t.id}" title="اضغط لعرض الهدف والوقت الفعلي">
-                ${targetMin > 0 ? `
-                  <span class="duration-badge-bar"><span class="duration-badge-fill" id="taskBarFill_${t.id}" style="width:${barPct}%"></span></span>
-                  <span class="duration-badge-pct" id="taskBarPct_${t.id}">${pct}%</span>
-                ` : `
-                  <span class="duration-badge-actual-only"><span class="material-icons">timelapse</span>${formatHM(actualMin*60000)}</span>
-                `}
-              </button>
-            ` : ``}
-            ${t.remindAt ? `
-              <button class="clock-btn reminder-row-btn" data-action="open-reminder" data-id="${t.id}" title="تذكير: ${formatTimeArabic(t.remindAt)} — اضغط للتعديل أو الإزالة">
-                <span class="material-icons">notifications_active</span>
-              </button>
-            ` : ``}
-            ${t.note ? `
-              <button class="note-btn" data-action="open-task-note" data-id="${t.id}" title="ملاحظة المهمة — اضغط لعرضها أو تعديلها">
-                <span class="material-icons">sticky_note_2</span>
-              </button>
-            ` : ``}
-            <div class="task-more-menu-wrap" data-wrap-id="${t.id}">
+        <div class="task-row ${t.done?'done':''} ${(!t.done && isPastDay)?'missed':''} ${t.priority ? 'priority-' + t.priority : ''}" draggable="true" data-drag-id="${t.id}">
+          ${ui.editingTaskId === t.id ? `
+            <div class="inline-edit-wrap">
+              <input type="text" id="inlineEditInput_${t.id}" class="inline-edit-input" value="${escapeAttr(t.name)}" />
+              <button class="icon-btn" data-action="save-task-edit" data-id="${t.id}" title="حفظ"><span class="material-icons">check</span></button>
+              <button class="icon-btn" data-action="cancel-task-edit" data-id="${t.id}" title="إلغاء"><span class="material-icons">close</span></button>
+            </div>
+          ` : `
+            <button type="button" class="task-check" data-action="toggle-task" data-id="${t.id}" title="${t.done ? 'إلغاء إنجاز المهمة' : 'إنجاز المهمة'}">
+              <span class="material-icons">${t.done ? 'check_circle' : 'radio_button_unchecked'}</span>
+            </button>
+            <button type="button" class="task-name-btn" data-action="open-task-details" data-id="${t.id}" title="عرض تفاصيل المهمة">
+              <span class="task-name">${escapeHtml(t.name)}</span>
+            </button>
+          `}
+          ${t.remindAt ? `
+            <button class="clock-btn reminder-row-btn" data-action="open-reminder" data-id="${t.id}" title="تذكير: ${formatTimeArabic(t.remindAt)} — اضغط للتعديل أو الإزالة">
+              <span class="material-icons">notifications_active</span>
+            </button>
+          ` : ``}
+          <div class="task-more-menu-wrap" data-wrap-id="${t.id}">
               <button class="icon-btn task-more-btn" data-action="toggle-task-more" data-id="${t.id}" title="المزيد">
                 <span class="material-icons">more_vert</span>
               </button>
@@ -399,10 +381,8 @@ export function render(){
                 </button>
               </div>
             </div>
-            </div>
           </div>
-        </div>
-      `;
+        `;
     });
     html += `</div>`;
   }

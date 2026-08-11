@@ -9,6 +9,7 @@ import { hideDurationPopover, showDurationPopover, wireCustomSelects, wireDragAn
 import { openRecurrenceModal } from './recurrence.js';
 import { render } from './render.js';
 import { openSubtasksModal } from './subtasks.js';
+import { openTaskDetails } from './taskDetails.js';
 import { openTaskNoteModal } from './taskNote.js';
 import { closeDurationPicker, openActualDurationPicker, openDurationPicker } from './wheelPicker.js';
 import { ensureNotificationPermission, currentHHMM } from './notifications.js';
@@ -19,7 +20,7 @@ import { requestNewTimer } from './timers.js';
 // في وضع تذكير — أول ما يتأكد، بينادي callback الضبط (مع طلب إذن التنبيهات لو مش ممنوح)
 // و callback الإزالة لو المستخدم ضغط "إزالة التذكير". التذكير بيتخزن على نسخة المهمة نفسها
 // (remindAt) وبيتشيك عليه المجدول كل دقيقة في notifications.js.
-function openReminderPicker(taskId){
+export function openReminderPicker(taskId){
   const task = state.days[ui.selectedDate].find(x => x.id === taskId);
   if(!task) return;
   openTimePicker({
@@ -47,6 +48,36 @@ function openReminderPicker(taskId){
   });
 }
 
+// حذف مهمة من جدول اليوم مع النسخ المكررة المرتبطة بيها، ومع توست تراجع يقدر يرجعها.
+// مستخدمة من زرار الحذف في قائمة المزيد وفي تفاصيل المهمة.
+export async function deleteTaskById(id){
+  const list = state.days[ui.selectedDate];
+  const idx = list.findIndex(t => t.id === id);
+  if(idx === -1) return;
+  const [removedTask] = list.splice(idx, 1);
+  // النسخ المكررة تبع المهمة دي بتتشال معاها عشان متفضلش معلقة في الجدول الزمني
+  const removedDupIndices = [];
+  const removedDups = [];
+  for(let i = list.length - 1; i >= 0; i--){
+    if(list[i]._dupOf === id){
+      removedDupIndices.push(i);
+      removedDups.push(list[i]);
+      list.splice(i, 1);
+    }
+  }
+  if(ui.pickerTaskId === id) closeDurationPicker();
+  render();
+  await saveData();
+  showUndoToast(`تم حذف "${removedTask.name}"`, async () => {
+    list.splice(idx, 0, removedTask);
+    removedDupIndices.forEach((pos, k) => {
+      list.splice(pos, 0, removedDups[k]);
+    });
+    render();
+    await saveData();
+  });
+}
+
 export function attachEvents(){
   document.getElementById('prevBtn').onclick = () => { ui.selectedDate = addDays(ui.selectedDate, -1); ui.justChangedDay = true; render(); };
   const nextBtn = document.getElementById('nextBtn');
@@ -63,17 +94,6 @@ export function attachEvents(){
       if(nameEl){
         nameEl.classList.toggle('expanded');
         return;
-      }
-      const mainEl = e.target.closest('.task-main[data-action="toggle-task"]');
-      if(mainEl){
-        const taskId = mainEl.dataset.id;
-        const task = state.days[ui.selectedDate].find(t => t.id === taskId);
-        if(task){
-          task.done = !task.done;
-          if(task.done){ delete task.remindAt; delete task.reminded; } // المهمة اتنجزت — التذكير/الجرس مالوش لزمة
-          render();
-          await saveData();
-        }
       }
       return;
     }
@@ -99,6 +119,18 @@ export function attachEvents(){
         ui.justOpenedBank = true;
         render();
       }
+    }
+    else if(action === 'toggle-task'){
+      const task = (state.days[ui.selectedDate] || []).find(t => t.id === id);
+      if(task){
+        task.done = !task.done;
+        if(task.done){ delete task.remindAt; delete task.reminded; } // المهمة اتنجزت — التذكير/الجرس مالوش لزمة
+        render();
+        await saveData();
+      }
+    }
+    else if(action === 'open-task-details'){
+      openTaskDetails(id);
     }
     else if(action === 'toggle-mobile-filters'){
       if(ui.mobileFiltersCloseTimeoutId){ clearTimeout(ui.mobileFiltersCloseTimeoutId); ui.mobileFiltersCloseTimeoutId = null; }
@@ -158,31 +190,7 @@ export function attachEvents(){
       }
     }
     else if(action === 'delete-task'){
-      const list = state.days[ui.selectedDate];
-      const idx = list.findIndex(t => t.id === id);
-      if(idx === -1) return;
-      const [removedTask] = list.splice(idx, 1);
-      // النسخ المكررة تبع المهمة دي بتتشال معاها عشان متفضلش معلقة في الجدول الزمني
-      const removedDupIndices = [];
-      const removedDups = [];
-      for(let i = list.length - 1; i >= 0; i--){
-        if(list[i]._dupOf === id){
-          removedDupIndices.push(i);
-          removedDups.push(list[i]);
-          list.splice(i, 1);
-        }
-      }
-      if(ui.pickerTaskId === id) closeDurationPicker();
-      render();
-      await saveData();
-      showUndoToast(`تم حذف "${removedTask.name}"`, async () => {
-        list.splice(idx, 0, removedTask);
-        removedDupIndices.forEach((pos, k) => {
-          list.splice(pos, 0, removedDups[k]);
-        });
-        render();
-        await saveData();
-      });
+      await deleteTaskById(id);
     }
     else if(action === 'toggle-day-status-filter'){
       ui.dayStatusFilterOpen = !ui.dayStatusFilterOpen;
