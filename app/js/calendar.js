@@ -6,18 +6,12 @@ import { MONTH_NAMES, fromISO, toISO, todayStr } from './utils.js';
 import { state, ui } from './state.js';
 import { render } from './render.js';
 
-function renderCalendarModal(){
-  // بنعرض شهر "المعاينة" المستقل (calendarViewDate) مش اليوم المختار نفسه —
-  // عشان التنقل بالأسهم في النافذة ميتغيرش اليوم المختار فعليًا
-  const d = fromISO(ui.calendarViewDate || ui.selectedDate);
+// بيبني HTML شبكة التقويم الكاملة (رؤوس أيام الأسبوع + أيام الشهر) لشهر معيّن.
+// مستخدم في نافذة التقويم وفي تقويم العمود الجانبي — بدون تغيير المنطق.
+export function buildCalendarGridHTML(viewDateStr){
+  const d = fromISO(viewDateStr);
   const year = d.getFullYear();
   const month = d.getMonth();
-
-  const titleEl = document.getElementById('calMonthTitle');
-  if(titleEl) titleEl.textContent = `${MONTH_NAMES[month]} ${year}`;
-
-  const gridEl = document.getElementById('calGrid');
-  if(!gridEl) return;
 
   const firstDayOfMonth = new Date(year, month, 1);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -73,7 +67,30 @@ function renderCalendarModal(){
     `;
   }
 
-  gridEl.innerHTML = gridHtml;
+  return gridHtml;
+}
+
+// بيربط الكليكات على أيام شبكة التقويم باستدعاء onSelect(dateStr) — نفس منطق نافذة التقويم
+export function wireCalendarDayClicks(gridEl, onSelect){
+  gridEl.querySelectorAll('.cal-day').forEach(btn => {
+    btn.onclick = () => onSelect(btn.dataset.date);
+  });
+}
+
+function renderCalendarModal(){
+  // بنعرض شهر "المعاينة" المستقل (calendarViewDate) مش اليوم المختار نفسه —
+  // عشان التنقل بالأسهم في النافذة ميتغيرش اليوم المختار فعليًا
+  const d = fromISO(ui.calendarViewDate || ui.selectedDate);
+  const year = d.getFullYear();
+  const month = d.getMonth();
+
+  const titleEl = document.getElementById('calMonthTitle');
+  if(titleEl) titleEl.textContent = `${MONTH_NAMES[month]} ${year}`;
+
+  const gridEl = document.getElementById('calGrid');
+  if(!gridEl) return;
+
+  gridEl.innerHTML = buildCalendarGridHTML(ui.calendarViewDate || ui.selectedDate);
 
   const prevBtn = document.getElementById('calPrevMonth');
   const nextBtn = document.getElementById('calNextMonth');
@@ -92,13 +109,11 @@ function renderCalendarModal(){
     };
   }
 
-  gridEl.querySelectorAll('.cal-day').forEach(btn => {
-    btn.onclick = () => {
-      ui.selectedDate = btn.dataset.date;
-      ui.calendarViewDate = btn.dataset.date;
-      closeCalendarModal();
-      render();
-    };
+  wireCalendarDayClicks(gridEl, (dateStr) => {
+    ui.selectedDate = dateStr;
+    ui.calendarViewDate = dateStr;
+    closeCalendarModal();
+    render();
   });
 }
 

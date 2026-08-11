@@ -1642,6 +1642,70 @@ select:focus {
   position: sticky;
   top: 20px;
 }
+.side-col {
+  flex: 0 0 280px;
+  position: sticky;
+  top: 20px;
+}
+
+/* ===== اللوحة الجانبية (تقويم مصغر + ملاحظات اليوم) ===== */
+.side-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+.side-calendar {
+  margin-bottom: 16px;
+}
+.side-cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.side-cal-header .nav-btn {
+  width: 32px;
+  height: 32px;
+  font-size: 1.15rem;
+}
+.side-cal-title {
+  font-family: "Rakkas", serif;
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+.side-notes-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "Tajawal";
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+.side-notes-title .material-icons {
+  font-size: 19px;
+  color: var(--pen);
+}
+.side-notes textarea {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  border: 1.5px solid var(--paper-line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Tajawal";
+  font-size: 0.9rem;
+  line-height: 1.6;
+  padding: 10px 12px;
+  box-sizing: border-box;
+}
+.side-notes textarea:focus {
+  outline: none;
+  border-color: var(--pen);
+}
 
 /* ===== حالة التحميل الأولية (بيتمسح تلقائيًا مع أول render) ===== */
 .content-loading {
@@ -2697,6 +2761,13 @@ body.dark-mode .account-error {
   }
 }
 
+/* اللوحة الجانبية للشاشات الواسعة بس — تحت 1100px عمود المحتوى يرجع ياخد عرض كامل */
+@media (max-width: 1100px) {
+  .side-col {
+    display: none;
+  }
+}
+
 /* ===== Responsive (Mobile) ===== */
 @media (max-width: 640px) {
   body {
@@ -3527,7 +3598,8 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 }
 
 /* عرض الأسبوع ياخد المساحة كاملة وعمود التايمر بيختفي وقتها */
-.main-layout.week-view-active .timer-col {
+.main-layout.week-view-active .timer-col,
+.main-layout.week-view-active .side-col {
   display: none;
 }
 .week-task-name {

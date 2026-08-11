@@ -71,6 +71,7 @@ function applyLoadedState(parsed){
   if(!parsed) return;
   if(parsed.keywords) state.keywords = parsed.keywords;
   if(parsed.drafts) state.drafts = parsed.drafts;
+  if(parsed.notes) state.notes = parsed.notes;
   if(parsed.days) state.days = parsed.days;
   if(parsed.filters) state.filters = parsed.filters;
   if(parsed.timers) state.timers = parsed.timers;

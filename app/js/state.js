@@ -19,6 +19,7 @@ const toastEl = document.getElementById('toast');
 export let state = {
   keywords: [], 
   drafts: [], // قائمة المسودات المحفوظة بدلاً من الحذف
+  notes: {}, // ملاحظات اليوم: مفتاح = تاريخ اليوم (YYYY-MM-DD) وقيمة = نص الملاحظة
   days: {},
   filters: [],
   timers: {},
@@ -35,7 +36,7 @@ export let state = {
 };
 
 export function resetState(){
-  state = { keywords: [], drafts: [], days: {}, filters: [], timers: {}, darkMode: false, recurringTasks: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null } };
+  state = { keywords: [], drafts: [], notes: {}, days: {}, filters: [], timers: {}, darkMode: false, recurringTasks: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null } };
 }
 
 export const ui = {
@@ -80,6 +81,9 @@ export const ui = {
   activeRecurrenceTaskId: null,  // المهمة المفتوح لها نافذة تحديد أيام التكرار دلوقتي
   pendingRecurrenceDays: [],  // نسخة عمل من أيام التكرار (0-6) قبل الحفظ
   pickerTaskId: null,
+  sideCalendarViewDate: null,  // الشهر المعروض في تقويم العمود الجانبي (مستقل عن selectedDate)
+  sideNotesDraft: null,  // مسودة نص الملاحظة أثناء الكتابة (عشان إعادة الرسم متمسّحهاش)
+  sideNotesDraftDate: null,  // تاريخ اليوم اللي لسه مسودة الملاحظة بتاعته (لما يتغير اليوم بنمسح المسودة)
 };
 
 export const timerPanelEl = document.getElementById('timerPanel');
