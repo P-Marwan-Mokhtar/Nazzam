@@ -175,3 +175,14 @@ export function escapeHtml(s){
 }
 
 export function escapeAttr(s){ return escapeHtml(s); }
+
+// Empty state موحّد: أيقونة + عنوان + سطر تلميح (اختياري) — بيكسر الصفحة الفاضية بحاجة لطيفة
+export function emptyStateHtml(icon, title, hint){
+  return `
+    <div class="empty-state">
+      <span class="material-icons empty-state-icon">${icon}</span>
+      <div class="empty-state-title">${escapeHtml(title)}</div>
+      ${hint ? `<div class="empty-state-hint">${escapeHtml(hint)}</div>` : ''}
+    </div>
+  `;
+}

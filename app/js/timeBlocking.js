@@ -207,9 +207,9 @@ function attachTimeBlockEvents(){
   const prevBtn = document.getElementById('tbPrevBtn');
   const nextBtn = document.getElementById('tbNextBtn');
   const todayBtn = document.getElementById('tbTodayBtn');
-  if(prevBtn) prevBtn.onclick = () => { ui.selectedDate = addDays(ui.selectedDate, -1); render(); };
-  if(nextBtn) nextBtn.onclick = () => { ui.selectedDate = addDays(ui.selectedDate, 1); render(); };
-  if(todayBtn) todayBtn.onclick = () => { ui.selectedDate = todayStr(); render(); };
+  if(prevBtn) prevBtn.onclick = () => { ui.selectedDate = addDays(ui.selectedDate, -1); ui.justChangedDay = true; render(); };
+  if(nextBtn) nextBtn.onclick = () => { ui.selectedDate = addDays(ui.selectedDate, 1); ui.justChangedDay = true; render(); };
+  if(todayBtn) todayBtn.onclick = () => { ui.selectedDate = todayStr(); ui.justChangedDay = true; render(); };
 
   contentEl.querySelectorAll('.timeline-block').forEach(blockEl => {
     const taskId = blockEl.dataset.id;

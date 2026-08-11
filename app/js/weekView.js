@@ -113,6 +113,7 @@ function attachWeekViewEvents(){
   contentEl.querySelectorAll('button[data-action="week-open-day"]').forEach(btn => {
     btn.onclick = () => {
       ui.selectedDate = btn.dataset.date;
+      ui.justChangedDay = true;
       ui.weekViewOpen = false;
       render();
     };

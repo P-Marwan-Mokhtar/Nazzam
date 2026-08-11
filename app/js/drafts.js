@@ -2,7 +2,7 @@
 // drafts.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { highlightMatch, normalizeArabic } from './utils.js';
+import { emptyStateHtml, highlightMatch, normalizeArabic } from './utils.js';
 import { showToast, showUndoToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
@@ -16,7 +16,11 @@ export function renderDraftsModal(){
     : state.drafts;
 
   if(filteredDrafts.length === 0){
-    listEl.innerHTML = `<div class="empty-state">لا توجد مسودات محفوظة حاليًا.</div>`;
+    listEl.innerHTML = emptyStateHtml(
+      state.drafts.length === 0 ? 'archive' : 'search_off',
+      state.drafts.length === 0 ? 'مفيش مسودات محفوظة' : 'مفيش نتائج للبحث',
+      state.drafts.length === 0 ? 'لما تحذف مهمة هتتحفظ هنا فترة عشان تقدر ترجعها.' : 'جرّب اسم تاني.'
+    );
     return;
   }
 

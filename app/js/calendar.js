@@ -112,6 +112,7 @@ function renderCalendarModal(){
   wireCalendarDayClicks(gridEl, (dateStr) => {
     ui.selectedDate = dateStr;
     ui.calendarViewDate = dateStr;
+    ui.justChangedDay = true;
     closeCalendarModal();
     render();
   });

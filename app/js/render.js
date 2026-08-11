@@ -2,7 +2,7 @@
 // render.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { escapeAttr, escapeHtml, fmtDay, formatHM, formatMinutes, fromISO, highlightMatch, normalizeArabic, parseDurationToMinutes, todayStr, uid } from './utils.js';
+import { emptyStateHtml, escapeAttr, escapeHtml, fmtDay, formatHM, formatMinutes, fromISO, highlightMatch, normalizeArabic, parseDurationToMinutes, todayStr, uid } from './utils.js';
 import { PRIORITY_LABELS, contentEl, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { attachEvents } from './events.js';
@@ -72,7 +72,7 @@ export function render(){
 
   let html = '';
 
-  html += `<div class="day-view ${ui.justReturnedFromStats ? 'animate-in' : ''}">`;
+  html += `<div class="day-view ${(ui.justChangedDay || ui.justReturnedFromStats) ? 'animate-in' : ''}">`;
 
   html += `
     <div class="date-nav">
@@ -179,10 +179,13 @@ export function render(){
       : filterMatched;
 
     if(visibleKeywords.length === 0){
-      let emptyMsg = 'بنك المهام فارغ. أضف مهامك الأساسية أعلاه.';
-      if(state.keywords.length > 0 && searchNormalized) emptyMsg = 'لا توجد نتائج مطابقة للبحث.';
-      else if(state.keywords.length > 0) emptyMsg = 'لا توجد مهام في هذا الفلتر.';
-      html += `<div class="empty-state">${emptyMsg}</div>`;
+      if(state.keywords.length === 0){
+        html += emptyStateHtml('inbox', 'بنك المهام لسه فاضي', 'اكتب مهمتك في الخانة فوق وتدوس (+) — البنك هو مخزونك الدائم.');
+      } else if(searchNormalized){
+        html += emptyStateHtml('search_off', 'مفيش نتائج للبحث', `مفيش مهمة جوه فيها "${escapeHtml(ui.bankSearchQuery.trim())}"`);
+      } else {
+        html += emptyStateHtml('filter_alt_off', 'مفيش مهام في الفلتر ده', 'غيّر الفلتر أو أضف مهمة جديدة للبنك.');
+      }
     } else {
       const slicedKeywords = visibleKeywords.slice(0, ui.bankDisplayLimit);
       html += `<div class="keyword-list ${ui.justChangedFilter ? 'animate-in' : ''}">`;
@@ -270,18 +273,18 @@ export function render(){
       : dayTasks.filter(t => !t.done);
 
   if(dayTasks.length === 0){
-    html += `
-      <div class="empty-state">
-        لا توجد مهام مُضافة لهذا اليوم.<br>
-        اضغط (+) من بنك المهام أعلاه لإضافة مهمة.
-      </div>
-    `;
+    html += emptyStateHtml(
+      'wb_sunny',
+      isToday ? 'يومك لسه فاضي — ابدأ صح ☀️' : 'مفيش مهام مسجلة لليوم ده',
+      isToday ? 'اكتب مهمة في الخانة فوق، أو افتح بنك المهام وسحب منها.' : 'مفيش مهام للحظة — تقدر تختار يوم تاني من التقويم.'
+    );
   } else if(visibleDayTasks.length === 0){
-    html += `
-      <div class="empty-state">
-        لا توجد مهام ${dayFilterLabels[ui.dayStatusFilter]} في هذا اليوم.
-      </div>
-    `;
+    const fLabel = dayFilterLabels[ui.dayStatusFilter];
+    html += emptyStateHtml(
+      fLabel === 'done' ? 'celebration' : 'check_circle',
+      fLabel === 'done' ? 'لسه مفيش مهام منجزة النهارده' : 'كل المهام اتعملت 🎉',
+      fLabel === 'done' ? 'لما تنجز أول مهمة هتظهر هنا.' : 'استمتع بوقتك — اليوم خلص بنجاح.'
+    );
   } else {
     html += `<div class="task-list">`;
     visibleDayTasks.forEach(t => {
@@ -400,6 +403,7 @@ export function render(){
   ui.justOpenedBank = false;
   ui.justReturnedFromStats = false;
   ui.justChangedFilter = false;
+  ui.justChangedDay = false;
 
   attachEvents();
   if(ui.timerPanelRenderedForDate !== ui.selectedDate){

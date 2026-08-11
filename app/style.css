@@ -1491,16 +1491,59 @@ body.dark-mode .priority-dot-medium {
 }
 
 .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
   text-align: center;
   color: var(--ink-soft);
-  padding: 24px 16px;
+  padding: 28px 16px;
   background: var(--card);
   border-radius: var(--radius);
   border: 1px dashed var(--paper-line);
   font-size: 0.92rem;
+  animation: emptyStateIn 0.3s ease;
 }
-.bank-content .empty-state {
+.empty-state-icon {
+  font-size: 36px;
+  color: var(--pen);
+  opacity: 0.65;
+  margin-bottom: 4px;
+}
+.empty-state-title {
+  font-family: "Tajawal";
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--ink);
+}
+.empty-state-hint {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+@keyframes emptyStateIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.bank-content .empty-state,
+.modal-body .empty-state {
   background: var(--paper);
+}
+.timer-panel .empty-state {
+  padding: 18px 10px;
+  box-shadow: none;
+}
+.timer-panel .empty-state-icon {
+  font-size: 26px;
+}
+.timer-panel .empty-state-title {
+  font-size: 0.9rem;
 }
 
 /* Add Keyword */

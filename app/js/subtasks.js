@@ -2,7 +2,7 @@
 // subtasks.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { escapeHtml, uid } from './utils.js';
+import { emptyStateHtml, escapeHtml, uid } from './utils.js';
 import { state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
@@ -29,7 +29,7 @@ function renderSubtasksList() {
   if (!task.subtasks) task.subtasks = [];
 
   if (task.subtasks.length === 0) {
-    listEl.innerHTML = '<div class="stat-empty">لا توجد مهام فرعية بعد.</div>';
+    listEl.innerHTML = emptyStateHtml('playlist_add', 'مفيش مهام فرعية', 'قسّم المهمة الكبيرة لخطوات صغيرة يسهل إنجازها.');
     return;
   }
 

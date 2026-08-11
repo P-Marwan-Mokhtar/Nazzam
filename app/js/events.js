@@ -48,11 +48,11 @@ function openReminderPicker(taskId){
 }
 
 export function attachEvents(){
-  document.getElementById('prevBtn').onclick = () => { ui.selectedDate = addDays(ui.selectedDate, -1); render(); };
+  document.getElementById('prevBtn').onclick = () => { ui.selectedDate = addDays(ui.selectedDate, -1); ui.justChangedDay = true; render(); };
   const nextBtn = document.getElementById('nextBtn');
-  if(nextBtn) nextBtn.onclick = () => { ui.selectedDate = addDays(ui.selectedDate, 1); render(); };
+  if(nextBtn) nextBtn.onclick = () => { ui.selectedDate = addDays(ui.selectedDate, 1); ui.justChangedDay = true; render(); };
   const todayBtn = document.getElementById('todayBtn');
-  if(todayBtn) todayBtn.onclick = () => { ui.selectedDate = todayStr(); render(); };
+  if(todayBtn) todayBtn.onclick = () => { ui.selectedDate = todayStr(); ui.justChangedDay = true; render(); };
 
   contentEl.onclick = async (e) => {
     const btn = e.target.closest('button[data-action]');

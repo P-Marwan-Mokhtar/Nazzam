@@ -2,7 +2,7 @@
 // timers.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { addDays, escapeHtml, formatElapsed, formatHM, getElapsedMs, todayStr } from './utils.js';
+import { addDays, emptyStateHtml, escapeHtml, formatElapsed, formatHM, getElapsedMs, todayStr } from './utils.js';
 import { MISSED_POPUP_SHOWN_KEY, showToast, showUndoToast, state, timerPanelEl, ui } from './state.js';
 import { saveData } from './dataStore.js';
 
@@ -50,7 +50,7 @@ export function renderTimerPanel(){
   `;
 
   if(timers.length === 0){
-    html += `<div class="timer-empty">لا توجد مؤقتات حتى الآن اليوم.<br>اكتب اسم المهمة وابدأ.</div>`;
+    html += emptyStateHtml('timer_off', 'مفيش مؤقتات النهارده', 'اكتب اسم المهمة فوق وابدأ توقيت.');
   } else {
     html += `<div class="timer-list">`;
     timers.forEach(t => {

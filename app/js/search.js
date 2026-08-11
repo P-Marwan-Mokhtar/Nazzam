@@ -2,7 +2,7 @@
 // search.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { escapeHtml, fmtDay, highlightMatch, normalizeArabic } from './utils.js';
+import { emptyStateHtml, escapeHtml, fmtDay, highlightMatch, normalizeArabic } from './utils.js';
 import { state, ui } from './state.js';
 import { render } from './render.js';
 
@@ -12,7 +12,7 @@ export function renderGlobalSearchResults(){
   const q = normalizeArabic(ui.globalSearchQuery.trim());
 
   if(!q){
-    listEl.innerHTML = `<div class="empty-state">اكتب اسم المهمة للبحث عنها في جميع الأيام السابقة.</div>`;
+    listEl.innerHTML = emptyStateHtml('manage_search', 'دوّر على أي مهمة', 'اكتب اسم المهمة للبحث عنها في كل الأيام السابقة.');
     return;
   }
 
@@ -30,7 +30,7 @@ export function renderGlobalSearchResults(){
   matches.sort((a, b) => b.date.localeCompare(a.date));
 
   if(matches.length === 0){
-    listEl.innerHTML = `<div class="empty-state">لا توجد نتائج مطابقة لـ "${escapeHtml(ui.globalSearchQuery.trim())}".</div>`;
+    listEl.innerHTML = emptyStateHtml('search_off', 'مفيش نتائج', `مفيش مهمة جوه فيها "${escapeHtml(ui.globalSearchQuery.trim())}"`);
     return;
   }
 
@@ -55,6 +55,7 @@ export function renderGlobalSearchResults(){
   listEl.querySelectorAll('.global-search-result').forEach(btn => {
     btn.onclick = () => {
       ui.selectedDate = btn.dataset.date;
+      ui.justChangedDay = true;
       ui.dayStatusFilter = 'all';
       // لازم نقفل أي شاشة تانية مفتوحة (إحصائيات/أسبوعي/جدول زمني) عشان render() يعرض
       // فعلاً مهام اليوم اللي المهمة موجودة فيه، مش يفضل واقف على نفس الشاشة القديمة

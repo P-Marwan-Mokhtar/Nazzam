@@ -61,6 +61,7 @@ export const ui = {
   statsViewOpen: false,  // لما تبقى true، #content بيعرض شاشة الإحصائيات بدل مهام اليوم
   statsRangeMode: 'week',  // 'day' أو 'week' — أي مدى زمني معروض حاليًا في شاشة الإحصائيات
   justReturnedFromStats: false,  // true لمرة واحدة بس لما نرجع من شاشة الإحصائيات، عشان نشغّل أنيميشن الدخول مرة واحدة فقط
+  justChangedDay: false,  // true لمرة واحدة بس لما ننقل بين الأيام (السابق/التالي/اليوم/التقويم)، عشان الأنيميشن يشتغل مرة واحدة
   weekViewOpen: false,  // لما تبقى true، #content بيعرض عرض الأسبوع بدل مهام اليوم
   weekViewDate: null,  // تاريخ داخل الأسبوع المعروض حاليًا في عرض الأسبوع (بيتحدد أول ما يتفتح)
   statsChartInstances: [],  // مراجع لكل الـ Chart.js instances عشان نقدر نمسحها قبل كل رسم جديد
