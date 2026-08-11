@@ -29,7 +29,7 @@ function renderSubtasksList() {
   if (!task.subtasks) task.subtasks = [];
 
   if (task.subtasks.length === 0) {
-    listEl.innerHTML = emptyStateHtml('playlist_add', 'مفيش مهام فرعية', 'قسّم المهمة الكبيرة لخطوات صغيرة يسهل إنجازها.');
+    listEl.innerHTML = emptyStateHtml('playlist_add', 'لا توجد مهام فرعية', 'قسم المهمة الكبيرة إلى خطوات صغيرة يسهل إنجازها.');
     return;
   }
 

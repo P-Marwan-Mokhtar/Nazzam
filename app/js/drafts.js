@@ -18,8 +18,8 @@ export function renderDraftsModal(){
   if(filteredDrafts.length === 0){
     listEl.innerHTML = emptyStateHtml(
       state.drafts.length === 0 ? 'archive' : 'search_off',
-      state.drafts.length === 0 ? 'مفيش مسودات محفوظة' : 'مفيش نتائج للبحث',
-      state.drafts.length === 0 ? 'لما تحذف مهمة هتتحفظ هنا فترة عشان تقدر ترجعها.' : 'جرّب اسم تاني.'
+      state.drafts.length === 0 ? 'لا توجد مسودات محفوظة' : 'لا توجد نتائج للبحث',
+      state.drafts.length === 0 ? 'عند حذف مهمة ستُحفظ هنا مؤقتًا حتى تتمكن من استرجاعها.' : 'جرّب اسمًا آخر.'
     );
     return;
   }

@@ -12,7 +12,7 @@ export function renderGlobalSearchResults(){
   const q = normalizeArabic(ui.globalSearchQuery.trim());
 
   if(!q){
-    listEl.innerHTML = emptyStateHtml('manage_search', 'دوّر على أي مهمة', 'اكتب اسم المهمة للبحث عنها في كل الأيام السابقة.');
+    listEl.innerHTML = emptyStateHtml('manage_search', 'ابحث عن أي مهمة', 'اكتب اسم المهمة للبحث عنها في جميع الأيام السابقة.');
     return;
   }
 
@@ -30,7 +30,7 @@ export function renderGlobalSearchResults(){
   matches.sort((a, b) => b.date.localeCompare(a.date));
 
   if(matches.length === 0){
-    listEl.innerHTML = emptyStateHtml('search_off', 'مفيش نتائج', `مفيش مهمة جوه فيها "${escapeHtml(ui.globalSearchQuery.trim())}"`);
+    listEl.innerHTML = emptyStateHtml('search_off', 'لا توجد نتائج', `لا توجد مهمة تحتوي على "${escapeHtml(ui.globalSearchQuery.trim())}"`);
     return;
   }
 

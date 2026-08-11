@@ -180,11 +180,11 @@ export function render(){
 
     if(visibleKeywords.length === 0){
       if(state.keywords.length === 0){
-        html += emptyStateHtml('inbox', 'بنك المهام لسه فاضي', 'اكتب مهمتك في الخانة فوق وتدوس (+) — البنك هو مخزونك الدائم.');
+        html += emptyStateHtml('inbox', 'بنك المهام لا يزال فارغًا', 'اكتب مهمتك في الحقل أعلاه واضغط (+). البنك هو مخزونك الدائم.');
       } else if(searchNormalized){
-        html += emptyStateHtml('search_off', 'مفيش نتائج للبحث', `مفيش مهمة جوه فيها "${escapeHtml(ui.bankSearchQuery.trim())}"`);
+        html += emptyStateHtml('search_off', 'لا توجد نتائج للبحث', `لا توجد مهمة تحتوي على "${escapeHtml(ui.bankSearchQuery.trim())}"`);
       } else {
-        html += emptyStateHtml('filter_alt_off', 'مفيش مهام في الفلتر ده', 'غيّر الفلتر أو أضف مهمة جديدة للبنك.');
+        html += emptyStateHtml('filter_alt_off', 'لا توجد مهام في هذا الفلتر', 'غيّر الفلتر أو أضف مهمة جديدة إلى البنك.');
       }
     } else {
       const slicedKeywords = visibleKeywords.slice(0, ui.bankDisplayLimit);
@@ -209,8 +209,19 @@ export function render(){
                 <span class="keyword-name" title="${escapeAttr(k.name)}">${highlightMatch(k.name, ui.bankSearchQuery)}</span>
                 ${kStreak >= 2 ? `<span class="keyword-streak" title="${kStreak} ${kStreak === 1 ? 'يوم متتالي' : 'أيام متتالية'} من الإنجاز"><span class="material-icons">local_fire_department</span>${kStreak}</span>` : ``}
                 <div class="keyword-icons">
-                  <button class="icon-btn" data-action="edit-keyword" data-id="${k.id}" title="تعديل في البنك"><span class="material-icons">edit</span></button>
-                  <button class="icon-btn" data-action="delete-keyword" data-id="${k.id}" title="نقل إلى المسودات"><span class="material-icons">archive</span></button>
+                  <div class="task-more-menu-wrap">
+                    <button class="icon-btn task-more-btn" data-action="toggle-keyword-more" data-id="${k.id}" title="المزيد">
+                      <span class="material-icons">more_vert</span>
+                    </button>
+                    <div class="task-more-dropdown ${ui.openKeywordMoreId === k.id ? 'open' : ''}">
+                      <button class="tmd-btn" data-action="edit-keyword" data-id="${k.id}">
+                        <span class="material-icons">edit</span><span>تعديل في البنك</span>
+                      </button>
+                      <button class="tmd-btn" data-action="delete-keyword" data-id="${k.id}">
+                        <span class="material-icons">archive</span><span>نقل إلى المسودات</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -221,7 +232,7 @@ export function render(){
       if(visibleKeywords.length > 10){
         const showAll = ui.bankDisplayLimit >= visibleKeywords.length;
         html += `
-          <button class="keyword-row" data-action="${showAll ? 'bank-show-less' : 'bank-show-more'}" style="background: var(--paper); border: 1.5px dashed var(--pen); color: var(--pen); cursor: pointer; font-weight: 700; align-items: center; gap: 4px;">
+          <button class="keyword-row" data-action="${showAll ? 'bank-show-less' : 'bank-show-more'}" style="background: var(--paper); border: 1.5px solid var(--pen); color: var(--pen); cursor: pointer; font-weight: 700; align-items: center; gap: 4px;">
             <span class="material-icons" style="font-size: 18px;">${showAll ? 'expand_less' : 'expand_more'}</span>
             <span class="keyword-name">${showAll ? 'اعرض أقل' : 'اعرض المزيد'}</span>
           </button>
@@ -275,15 +286,15 @@ export function render(){
   if(dayTasks.length === 0){
     html += emptyStateHtml(
       'wb_sunny',
-      isToday ? 'يومك لسه فاضي — ابدأ صح ☀️' : 'مفيش مهام مسجلة لليوم ده',
-      isToday ? 'اكتب مهمة في الخانة فوق، أو افتح بنك المهام وسحب منها.' : 'مفيش مهام للحظة — تقدر تختار يوم تاني من التقويم.'
+      isToday ? 'يومك لا يزال فارغًا — ابدأ بشكل إيجابي ☀️' : 'لا توجد مهام مسجلة لهذا اليوم',
+      isToday ? 'اكتب مهمة في الحقل أعلاه، أو افتح بنك المهام واختر منها.' : 'لا توجد مهام حاليًا — يمكنك اختيار يوم آخر من التقويم.'
     );
   } else if(visibleDayTasks.length === 0){
     const fLabel = dayFilterLabels[ui.dayStatusFilter];
     html += emptyStateHtml(
       fLabel === 'done' ? 'celebration' : 'check_circle',
-      fLabel === 'done' ? 'لسه مفيش مهام منجزة النهارده' : 'كل المهام اتعملت 🎉',
-      fLabel === 'done' ? 'لما تنجز أول مهمة هتظهر هنا.' : 'استمتع بوقتك — اليوم خلص بنجاح.'
+      fLabel === 'done' ? 'لم تُنجز أي مهام اليوم بعد' : 'اكتملت جميع المهام 🎉',
+      fLabel === 'done' ? 'عند إنجازك أول مهمة ستظهر هنا.' : 'استمتع بوقتك — تم إنجاز يومك بنجاح.'
     );
   } else {
     html += `<div class="task-list">`;

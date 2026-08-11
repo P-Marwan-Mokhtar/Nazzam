@@ -50,7 +50,7 @@ export function renderTimerPanel(){
   `;
 
   if(timers.length === 0){
-    html += emptyStateHtml('timer_off', 'مفيش مؤقتات النهارده', 'اكتب اسم المهمة فوق وابدأ توقيت.');
+    html += emptyStateHtml('timer_off', 'لا توجد مؤقتات اليوم', 'اكتب اسم المهمة أعلاه وابدأ التوقيت.');
   } else {
     html += `<div class="timer-list">`;
     timers.forEach(t => {

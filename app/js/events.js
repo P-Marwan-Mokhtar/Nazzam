@@ -223,8 +223,14 @@ export function attachEvents(){
     }
     else if(action === 'toggle-task-more'){
       ui.openTaskMoreId = ui.openTaskMoreId === id ? null : id;
+      ui.openKeywordMoreId = null;
       ui.openPriorityPopoverTaskId = null;
       ui.openClockChoiceTaskId = null;
+      render();
+    }
+    else if(action === 'toggle-keyword-more'){
+      ui.openKeywordMoreId = ui.openKeywordMoreId === id ? null : id;
+      ui.openTaskMoreId = null;
       render();
     }
     else if(action === 'clock-choice-target'){
@@ -412,6 +418,7 @@ export function attachEvents(){
         const removedIndex = state.keywords.indexOf(kw);
         state.keywords = state.keywords.filter(k => k.id !== id);
         state.drafts.push(kw);
+        ui.openKeywordMoreId = null;
         render();
         await saveData();
         showUndoToast(`تم نقل "${kw.name}" إلى المسودات`, async () => {
@@ -426,6 +433,7 @@ export function attachEvents(){
     }
     else if(action === 'edit-keyword'){
       ui.editingKeywordId = id;
+      ui.openKeywordMoreId = null;
       render();
       const input = document.getElementById('editKeywordInput');
       if(input){ input.focus(); input.select(); }
