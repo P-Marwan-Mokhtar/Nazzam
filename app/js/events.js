@@ -9,6 +9,7 @@ import { hideDurationPopover, showDurationPopover, wireCustomSelects, wireDragAn
 import { openRecurrenceModal } from './recurrence.js';
 import { render } from './render.js';
 import { openSubtasksModal } from './subtasks.js';
+import { openTaskNoteModal } from './taskNote.js';
 import { closeDurationPicker, openActualDurationPicker, openDurationPicker } from './wheelPicker.js';
 import { ensureNotificationPermission, currentHHMM } from './notifications.js';
 import { formatTimeArabic, openTimePicker } from './timePicker.js';
@@ -305,30 +306,9 @@ export function attachEvents(){
       ui.editingTaskId = null;
       render();
     }
-    else if(action === 'toggle-task-note'){
+    else if(action === 'open-task-note'){
       ui.openTaskMoreId = null;
-      ui.openTaskNoteId = (ui.openTaskNoteId === id) ? null : id;
-      render();
-      if(ui.openTaskNoteId === id){
-        const ta = document.getElementById('inlineNoteInput_' + id);
-        if(ta){ ta.focus(); }
-      }
-    }
-    else if(action === 'save-task-note'){
-      ui.openTaskMoreId = null;
-      const task = state.days[ui.selectedDate].find(x => x.id === id);
-      const ta = document.getElementById('inlineNoteInput_' + id);
-      if(task && ta){
-        const note = ta.value.trim();
-        if(note) task.note = note;
-        else delete task.note;
-      }
-      ui.openTaskNoteId = null;
-      render();
-      saveData();
-    }
-    else if(action === 'cancel-task-note'){
-      ui.openTaskNoteId = null;
+      openTaskNoteModal(id);
       render();
     }
     else if(action === 'open-recurrence'){
@@ -566,22 +546,6 @@ export function attachEvents(){
         }
         if (e.key === 'Escape') {
           const btn = document.querySelector(`button[data-action="cancel-task-edit"][data-id="${ui.editingTaskId}"]`);
-          if (btn) btn.click();
-        }
-      };
-    }
-  }
-
-  if (ui.openTaskNoteId) {
-    const ta = document.getElementById('inlineNoteInput_' + ui.openTaskNoteId);
-    if (ta) {
-      ta.onkeydown = (e) => {
-        if (e.key === 'Escape') {
-          const btn = document.querySelector(`button[data-action="cancel-task-note"][data-id="${ui.openTaskNoteId}"]`);
-          if (btn) btn.click();
-        }
-        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-          const btn = document.querySelector(`button[data-action="save-task-note"][data-id="${ui.openTaskNoteId}"]`);
           if (btn) btn.click();
         }
       };

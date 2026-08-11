@@ -5,7 +5,7 @@
 // رقم الإصدار (CACHE_VERSION) بيتغيّر تلقائيًا مع أي تغيير في المحتوى.
 // ============================================================
 
-const CACHE_VERSION = 'v5305b51b42';
+const CACHE_VERSION = 've38bc26c4e';
 const CACHE_NAME = 'daily-tasks-shell-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -39,6 +39,7 @@ const PRECACHE_URLS = [
   "./js/search.js",
   "./js/stats.js",
   "./js/subtasks.js",
+  "./js/taskNote.js",
   "./js/timeBlocking.js",
   "./js/timePicker.js",
   "./js/timers.js",

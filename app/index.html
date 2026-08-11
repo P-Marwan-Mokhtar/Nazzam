@@ -684,6 +684,49 @@
       </div>
     </div>
 
+    <!-- Modal ملاحظة المهمة -->
+    <div class="modal-overlay" id="taskNoteOverlay">
+      <div class="modal-card" style="max-width: 460px">
+        <div class="modal-header">
+          <h2>ملاحظة المهمة</h2>
+          <button class="icon-btn" id="closeTaskNoteBtn" title="إغلاق">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p
+            style="
+              color: var(--ink-soft);
+              font-size: 0.95rem;
+              margin-top: 0;
+              margin-bottom: 12px;
+              line-height: 1.5;
+            "
+          >
+            ملاحظة لـ
+            <strong
+              id="taskNoteTaskNameDisplay"
+              style="color: var(--pen)"
+            ></strong>
+          </p>
+          <textarea
+            id="taskNoteInput"
+            class="task-note-input"
+            placeholder="اكتب ملاحظة للمهمة (وصف، تفاصيل، رابط...)..."
+            rows="5"
+          ></textarea>
+          <button
+            type="button"
+            class="add-btn"
+            id="saveTaskNoteBtn"
+            style="width: 100%; margin-top: 16px; padding: 12px"
+          >
+            حفظ الملاحظة
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal المهام الفرعية -->
     <div class="modal-overlay" id="subtasksOverlay">
       <div class="modal-card" style="max-width: 420px">

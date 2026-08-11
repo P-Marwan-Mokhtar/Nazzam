@@ -17,6 +17,7 @@ import { render } from './render.js';
 import { closeGlobalSearchModal, openGlobalSearchModal, renderGlobalSearchResults } from './search.js';
 import { renderStatsView } from './stats.js';
 import { closeSubtasksModal } from './subtasks.js';
+import { closeTaskNoteModal } from './taskNote.js';
 import { checkMissedTasksPopup, closeMissedTasksModal, closeTimerTypeModal, ensureAudioContext, getDayTimers, renderTimerPanel, tickTimers } from './timers.js';
 import { closeDurationPicker, commitDurationPicker, openTimerDurationPicker } from './wheelPicker.js';
 import { toggleWeekView } from './weekView.js';
@@ -333,6 +334,7 @@ async function startApp(){
       if(timerTypeOverlay.classList.contains('open')) closeTimerTypeModal();
       if(document.getElementById('subtasksOverlay').classList.contains('open')) closeSubtasksModal();
       if(document.getElementById('recurrenceOverlay').classList.contains('open')) closeRecurrenceModal();
+      if(document.getElementById('taskNoteOverlay').classList.contains('open')) closeTaskNoteModal();
       if(document.getElementById('globalSearchOverlay').classList.contains('open')) closeGlobalSearchModal();
       if(document.getElementById('notificationSettingsOverlay').classList.contains('open')) closeNotificationSettingsModal();
       if(document.getElementById('timelineTaskOverlay').classList.contains('open')) closeTimelineTaskPopup();

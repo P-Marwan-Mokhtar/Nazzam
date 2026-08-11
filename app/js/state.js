@@ -66,7 +66,7 @@ export const ui = {
   statsChartInstances: [],  // مراجع لكل الـ Chart.js instances عشان نقدر نمسحها قبل كل رسم جديد
   openTaskMoreId: null,  // المهمة اللي فاتح لها قائمة (المزيد) دلوقتي
   editingTaskId: null,
-  openTaskNoteId: null,  // المهمة اللي مفتوحة لها نافذة النوتة (المفكوكة تحت المهمة) دلوقتي
+  activeTaskNoteId: null,  // المهمة اللي مفتوح لها popup الملاحظة دلوقتي
   pendingTaskName: '',
   pendingTaskFilterId: null,
   pendingNewTimerName: '',  // اسم التايمر المنتظر اختيار نوعه (مفتوح / محدد)

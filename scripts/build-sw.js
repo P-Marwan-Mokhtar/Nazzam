@@ -49,6 +49,7 @@ const PRECACHE_URLS = [
   './js/search.js',
   './js/stats.js',
   './js/subtasks.js',
+  './js/taskNote.js',
   './js/timeBlocking.js',
   './js/timePicker.js',
   './js/timers.js',
