@@ -1,20 +1,16 @@
 // ============================================================
 // taskDetails.js — Modal تفاصيل المهمة (عرض منظم لكل تفاصيل المهمة
-// مع إجراءات سريعة بتفتح نفس المحرّرات الموجودة: الوقت، التذكير،
-// المهام الفرعية، الملاحظة، التكرار...)
+// مع إجراءات سريعة بتفتح نفس المحرّرات الموجودة: الوقت، المهام الفرعية، الملاحظة)
 // ============================================================
 
-import { SHORT_DAY_NAMES, escapeHtml, formatHM, parseDurationToMinutes } from './utils.js';
+import { escapeHtml, formatHM, parseDurationToMinutes } from './utils.js';
 import { state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
 import { openActualDurationPicker, openDurationPicker } from './wheelPicker.js';
 import { requestNewTimer } from './timers.js';
 import { openSubtasksModal } from './subtasks.js';
-import { openRecurrenceModal } from './recurrence.js';
 import { openTaskNoteModal } from './taskNote.js';
-import { formatTimeArabic } from './timePicker.js';
-import { deleteTaskById, openReminderPicker } from './events.js';
 
 let activeDetailsTaskId = null;
 
@@ -49,9 +45,6 @@ function renderDetails(){
   const actualMin = parseDurationToMinutes(task.actualDuration);
   const pct = targetMin > 0 ? Math.round((actualMin / targetMin) * 100) : 0;
   const barPct = Math.min(100, Math.max(0, pct));
-
-  const recurDays = (state.recurringTasks && state.recurringTasks[task.name]) || [];
-  const recurLabel = recurDays.length ? recurDays.map(d => SHORT_DAY_NAMES[d]).join('، ') : 'غير متكررة';
 
   const subs = task.subtasks || [];
   const doneSubs = subs.filter(s => s.done).length;
@@ -100,16 +93,6 @@ function renderDetails(){
       </div>
 
       <div class="td-row">
-        <span class="td-icon material-icons">notifications</span>
-        <span class="td-label">التذكير</span>
-        <div class="td-value-row">
-          <span class="td-value ${task.remindAt ? '' : 'muted'}">${task.remindAt ? formatTimeArabic(task.remindAt) : 'غير محدد'}</span>
-          ${task.remindAt ? `<button type="button" class="td-btn danger" data-td="remove-reminder">إزالة</button>` : ''}
-          <button type="button" class="td-btn" data-td="reminder">${task.remindAt ? 'تغيير' : 'ضبط'}</button>
-        </div>
-      </div>
-
-      <div class="td-row">
         <span class="td-icon material-icons">account_tree</span>
         <span class="td-label">المهام الفرعية</span>
         <div class="td-value-row">
@@ -123,7 +106,7 @@ function renderDetails(){
           <button type="button" class="td-sub-check" data-td="subtoggle" data-index="${i}" title="${s.done ? 'إلغاء إنجاز المهمة الفرعية' : 'إنجاز المهمة الفرعية'}">
             <span class="material-icons">${s.done ? 'check_circle' : 'radio_button_unchecked'}</span>
           </button>
-          <span class="td-sub-name">${escapeHtml(s.name)}</span>
+          <span class="td-sub-name">${escapeHtml(s.title)}</span>
         </li>`).join('')}
       </ul>` : ''}
 
@@ -135,20 +118,6 @@ function renderDetails(){
           <button type="button" class="td-btn" data-td="note">${task.note ? 'تعديل' : 'إضافة'}</button>
         </div>
       </div>
-
-      <div class="td-row">
-        <span class="td-icon material-icons">event_repeat</span>
-        <span class="td-label">التكرار</span>
-        <div class="td-value-row">
-          <span class="td-value ${recurDays.length ? '' : 'muted'}">${recurLabel}</span>
-          <button type="button" class="td-btn" data-td="recurrence">${recurDays.length ? 'إدارة' : 'ضبط'}</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="td-footer">
-      <button type="button" class="td-btn" data-td="edit-name"><span class="material-icons">edit</span>تعديل الاسم</button>
-      <button type="button" class="td-btn danger" data-td="delete"><span class="material-icons">delete</span>حذف</button>
     </div>
   `;
 
@@ -177,13 +146,6 @@ function handleAction(el){
     render();
     renderDetails();
   }
-  else if(action === 'remove-reminder'){
-    delete task.remindAt;
-    delete task.reminded;
-    saveData();
-    render();
-    renderDetails();
-  }
   else if(action === 'subtoggle'){
     const idx = Number(el.dataset.index);
     const sub = task.subtasks && task.subtasks[idx];
@@ -205,10 +167,6 @@ function handleAction(el){
     closeTaskDetails();
     requestNewTimer(task.name);
   }
-  else if(action === 'reminder'){
-    closeTaskDetails();
-    openReminderPicker(task.id);
-  }
   else if(action === 'note'){
     closeTaskDetails();
     openTaskNoteModal(task.id);
@@ -216,24 +174,6 @@ function handleAction(el){
   else if(action === 'subtasks'){
     closeTaskDetails();
     openSubtasksModal(task.id);
-  }
-  else if(action === 'recurrence'){
-    closeTaskDetails();
-    openRecurrenceModal(task.id);
-  }
-  else if(action === 'edit-name'){
-    closeTaskDetails();
-    ui.editingTaskId = task.id;
-    render();
-    const inp = document.getElementById('inlineEditInput_' + task.id);
-    if(inp){
-      inp.focus();
-      inp.setSelectionRange(inp.value.length, inp.value.length);
-    }
-  }
-  else if(action === 'delete'){
-    closeTaskDetails();
-    deleteTaskById(task.id);
   }
 }
 

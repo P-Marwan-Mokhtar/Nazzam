@@ -615,6 +615,7 @@ body.dark-mode .header-logo-dark {
   border-radius: 6px;
   font-family: inherit;
   text-align: right;
+  color: var(--ink);
   transition: background 0.15s ease;
 }
 .task-name-btn:hover {
