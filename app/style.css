@@ -1648,33 +1648,14 @@ select:focus {
   top: 20px;
 }
 
-/* ===== اللوحة الجانبية (تقويم مصغر + ملاحظات اليوم) ===== */
+/* ===== اللوحة الجانبية (ملخص اليوم + عادات النهارده + ملاحظات اليوم) ===== */
 .side-card {
   background: var(--card);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 16px;
 }
-.side-calendar {
-  margin-bottom: 16px;
-}
-.side-cal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-.side-cal-header .nav-btn {
-  width: 32px;
-  height: 32px;
-  font-size: 1.15rem;
-}
-.side-cal-title {
-  font-family: "Rakkas", serif;
-  font-size: 1.05rem;
-  color: var(--ink);
-}
-.side-notes-title {
+.side-section-title {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1684,9 +1665,70 @@ select:focus {
   color: var(--ink);
   margin-bottom: 10px;
 }
-.side-notes-title .material-icons {
+.side-section-title .material-icons {
   font-size: 19px;
   color: var(--pen);
+}
+.side-summary {
+  margin-bottom: 18px;
+}
+.side-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+.side-summary-row strong {
+  color: var(--ink);
+  font-weight: 800;
+}
+.side-summary-bar {
+  height: 8px;
+  border-radius: 6px;
+  background: var(--paper-line);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.side-summary-fill {
+  height: 100%;
+  border-radius: 6px;
+  background: var(--done);
+  transition: width 0.25s ease;
+}
+.side-habits {
+  margin-bottom: 18px;
+}
+.side-habit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: var(--ink);
+  padding: 4px 0;
+}
+.side-habit .material-icons {
+  font-size: 20px;
+  color: var(--ink-soft);
+}
+.side-habit.done {
+  color: var(--ink-soft);
+}
+.side-habit.done .material-icons {
+  color: var(--done);
+}
+.side-habit.done .side-habit-name {
+  text-decoration: line-through;
+}
+.side-habit-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.side-empty {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
 }
 .side-notes textarea {
   width: 100%;

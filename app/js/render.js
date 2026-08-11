@@ -399,9 +399,5 @@ export function render(){
     renderTimerPanel();
     ui.timerPanelRenderedForDate = ui.selectedDate;
   }
-  renderSidePanel((dateStr) => {
-    ui.selectedDate = dateStr;
-    ui.sideCalendarViewDate = dateStr;
-    render();
-  });
+  renderSidePanel();
 }
