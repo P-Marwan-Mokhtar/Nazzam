@@ -12,7 +12,6 @@ import { renderTimeBlockView } from './timeBlocking.js';
 import { renderTimerPanel } from './timers.js';
 import { formatTimeArabic } from './timePicker.js';
 import { renderWeekView } from './weekView.js';
-import { renderSidePanel } from './sidePanel.js';
 import { syncHashWithState } from './routing.js';
 
 // Auto-Recurrence logic: نضيف المهام المتكررة لليوم/الأيام الجاية لو يوم الأسبوع ده من ضمن أيامها، مرة واحدة بس لكل (تاريخ + مهمة).
@@ -399,5 +398,4 @@ export function render(){
     renderTimerPanel();
     ui.timerPanelRenderedForDate = ui.selectedDate;
   }
-  renderSidePanel();
 }

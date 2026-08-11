@@ -81,8 +81,6 @@ export const ui = {
   activeRecurrenceTaskId: null,  // المهمة المفتوح لها نافذة تحديد أيام التكرار دلوقتي
   pendingRecurrenceDays: [],  // نسخة عمل من أيام التكرار (0-6) قبل الحفظ
   pickerTaskId: null,
-  sideNotesDraft: null,  // مسودة نص الملاحظة أثناء الكتابة (عشان إعادة الرسم متمسّحهاش)
-  sideNotesDraftDate: null,  // تاريخ اليوم اللي لسه مسودة الملاحظة بتاعته (لما يتغير اليوم بنمسح المسودة)
 };
 
 export const timerPanelEl = document.getElementById('timerPanel');

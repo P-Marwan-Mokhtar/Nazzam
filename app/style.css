@@ -1642,112 +1642,6 @@ select:focus {
   position: sticky;
   top: 20px;
 }
-.side-col {
-  flex: 0 0 280px;
-  position: sticky;
-  top: 20px;
-}
-
-/* ===== اللوحة الجانبية (ملخص اليوم + عادات النهارده + ملاحظات اليوم) ===== */
-.side-card {
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 16px;
-}
-.side-section-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: "Tajawal";
-  font-weight: 800;
-  font-size: 0.95rem;
-  color: var(--ink);
-  margin-bottom: 10px;
-}
-.side-section-title .material-icons {
-  font-size: 19px;
-  color: var(--pen);
-}
-.side-summary {
-  margin-bottom: 18px;
-}
-.side-summary-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  color: var(--ink-soft);
-  margin-bottom: 6px;
-}
-.side-summary-row strong {
-  color: var(--ink);
-  font-weight: 800;
-}
-.side-summary-bar {
-  height: 8px;
-  border-radius: 6px;
-  background: var(--paper-line);
-  overflow: hidden;
-  margin-bottom: 10px;
-}
-.side-summary-fill {
-  height: 100%;
-  border-radius: 6px;
-  background: var(--done);
-  transition: width 0.25s ease;
-}
-.side-habits {
-  margin-bottom: 18px;
-}
-.side-habit {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.88rem;
-  color: var(--ink);
-  padding: 4px 0;
-}
-.side-habit .material-icons {
-  font-size: 20px;
-  color: var(--ink-soft);
-}
-.side-habit.done {
-  color: var(--ink-soft);
-}
-.side-habit.done .material-icons {
-  color: var(--done);
-}
-.side-habit.done .side-habit-name {
-  text-decoration: line-through;
-}
-.side-habit-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.side-empty {
-  font-size: 0.85rem;
-  color: var(--ink-soft);
-}
-.side-notes textarea {
-  width: 100%;
-  min-height: 96px;
-  resize: vertical;
-  border: 1.5px solid var(--paper-line);
-  border-radius: 10px;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: "Tajawal";
-  font-size: 0.9rem;
-  line-height: 1.6;
-  padding: 10px 12px;
-  box-sizing: border-box;
-}
-.side-notes textarea:focus {
-  outline: none;
-  border-color: var(--pen);
-}
 
 /* ===== حالة التحميل الأولية (بيتمسح تلقائيًا مع أول render) ===== */
 .content-loading {
@@ -2803,20 +2697,10 @@ body.dark-mode .account-error {
   }
 }
 
-/* اللوحة الجانبية للشاشات الواسعة بس — تحت 1100px عمود المحتوى يرجع ياخد عرض كامل */
-@media (max-width: 1100px) {
-  .side-col {
-    display: none;
-  }
-}
-
 /* ===== Responsive (Mobile) ===== */
 @media (max-width: 640px) {
   body {
     padding: 18px 10px 50px;
-  }
-  .wrap {
-    max-width: 100%;
   }
 
   .header-card {
@@ -3640,8 +3524,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 }
 
 /* عرض الأسبوع ياخد المساحة كاملة وعمود التايمر بيختفي وقتها */
-.main-layout.week-view-active .timer-col,
-.main-layout.week-view-active .side-col {
+.main-layout.week-view-active .timer-col {
   display: none;
 }
 .week-task-name {
