@@ -1093,13 +1093,15 @@ body.dark-mode .task-row.priority-medium {
   position: relative;
 }
 
-/* جوه مودال تفاصيل المهمة، بوب أبات الأهمية والوقت بتفتح تحت زرار المزيد
-   الموجود في نفس سطر الأهمية/الوقت */
+/* جوه مودال تفاصيل المهمة: بوب أبات الأهمية/الوقت بيفتح fixed فوق الكل
+   (بحسبة JS تحت الزرار) عشان ميعملش سكرول في المودال وميتقطعش بره الكارت */
 .td-more-menu-wrap .priority-popover,
 .td-more-menu-wrap .clock-choice-popover {
-  top: calc(100% + 6px);
-  right: 0;
+  position: fixed;
+  top: auto;
+  right: auto;
   left: auto;
+  z-index: 150;
 }
 
 .clock-choice-popover {

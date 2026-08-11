@@ -155,6 +155,21 @@ function renderDetails(){
   });
 }
 
+function positionDetailsPopover(btnRect, popover){
+  const gap = 6;
+  const w = popover.offsetWidth;
+  const h = popover.offsetHeight;
+  let top = btnRect.bottom + gap;
+  let left = Math.min(btnRect.right - w, window.innerWidth - w - 8);
+  left = Math.max(8, left);
+  if(top + h > window.innerHeight - 8){
+    top = btnRect.top - h - gap;
+  }
+  if(top < 8) top = 8;
+  popover.style.top = top + 'px';
+  popover.style.left = left + 'px';
+}
+
 function handleAction(el){
   const task = getTask();
   if(!task) return;
@@ -168,14 +183,24 @@ function handleAction(el){
     renderDetails();
   }
   else if(action === 'toggle-details-priority'){
+    const btnRect = el.getBoundingClientRect();
     detailsPriorityOpen = !detailsPriorityOpen;
     detailsClockOpen = false;
     renderDetails();
+    if(detailsPriorityOpen){
+      const popover = document.querySelector('#taskDetailsBody .priority-popover.open');
+      if(popover) positionDetailsPopover(btnRect, popover);
+    }
   }
   else if(action === 'toggle-details-clock'){
+    const btnRect = el.getBoundingClientRect();
     detailsClockOpen = !detailsClockOpen;
     detailsPriorityOpen = false;
     renderDetails();
+    if(detailsClockOpen){
+      const popover = document.querySelector('#taskDetailsBody .clock-choice-popover.open');
+      if(popover) positionDetailsPopover(btnRect, popover);
+    }
   }
   else if(action === 'priority'){
     const value = el.dataset.value;
