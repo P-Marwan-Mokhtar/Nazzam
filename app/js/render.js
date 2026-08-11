@@ -320,7 +320,7 @@ export function render(){
               <span class="material-icons">notifications_active</span>
             </button>
           ` : ``}
-          <div class="task-more-menu-wrap" data-wrap-id="${t.id}">
+          <div class="task-more-menu-wrap open-up" data-wrap-id="${t.id}">
               <button class="icon-btn task-more-btn" data-action="toggle-task-more" data-id="${t.id}" title="المزيد">
                 <span class="material-icons">more_vert</span>
               </button>
