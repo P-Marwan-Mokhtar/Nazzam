@@ -291,7 +291,7 @@ export function render(){
       const barPct = Math.min(100, Math.max(0, pct));
 
       html += `
-        <div class="task-row ${t.done?'done':''} ${(!t.done && isPastDay)?'missed':''}" draggable="true" data-drag-id="${t.id}">
+        <div class="task-row ${t.done?'done':''} ${(!t.done && isPastDay)?'missed':''} ${ui.openTaskNoteId === t.id ? 'note-open' : ''}" draggable="true" data-drag-id="${t.id}">
           <div class="task-main" data-action="toggle-task" data-id="${t.id}">
             ${ui.editingTaskId === t.id ? `
               <div class="inline-edit-wrap">
@@ -319,6 +319,11 @@ export function render(){
                 <span class="material-icons">notifications_active</span>
               </button>
             ` : ``}
+            ${t.note ? `
+              <button class="note-btn ${ui.openTaskNoteId === t.id ? 'active' : ''}" data-action="toggle-task-note" data-id="${t.id}" title="ملاحظة المهمة — اضغط لعرضها أو تعديلها">
+                <span class="material-icons">sticky_note_2</span>
+              </button>
+            ` : ``}
             <div class="task-more-menu-wrap" data-wrap-id="${t.id}">
               <button class="icon-btn task-more-btn" data-action="toggle-task-more" data-id="${t.id}" title="المزيد">
                 <span class="material-icons">more_vert</span>
@@ -326,6 +331,9 @@ export function render(){
               <div class="task-more-dropdown ${ui.openTaskMoreId === t.id ? 'open' : ''}">
                 <button class="tmd-btn" data-action="edit-task-today" data-id="${t.id}">
                   <span class="material-icons">edit</span><span>تعديل</span>
+                </button>
+                <button class="tmd-btn ${t.note ? 'active' : ''}" data-action="toggle-task-note" data-id="${t.id}" title="${t.note ? 'عرض أو تعديل ملاحظة المهمة' : 'إضافة ملاحظة للمهمة'}">
+                  <span class="material-icons">${t.note ? 'sticky_note_2' : 'note_add'}</span><span>${t.note ? 'النوتة' : 'إضافة نوتة'}</span>
                 </button>
                 <div class="time-choice-submenu-wrap">
                   <button class="tmd-btn" data-action="toggle-duration" data-id="${t.id}" title="ضبط الهدف أو الوقت الفعلي أو بدء تايمر">
@@ -379,6 +387,15 @@ export function render(){
             </div>
             </div>
           </div>
+          ${ui.openTaskNoteId === t.id ? `
+            <div class="task-note-wrap">
+              <textarea id="inlineNoteInput_${t.id}" class="task-note-input" placeholder="اكتب ملاحظة للمهمة (وصف، تفاصيل، رابط...)..." rows="2">${escapeHtml(t.note || '')}</textarea>
+              <div class="task-note-actions">
+                <button class="icon-btn" data-action="save-task-note" data-id="${t.id}" title="حفظ"><span class="material-icons">check</span></button>
+                <button class="icon-btn" data-action="cancel-task-note" data-id="${t.id}" title="إلغاء"><span class="material-icons">close</span></button>
+              </div>
+            </div>
+          ` : ``}
         </div>
       `;
     });

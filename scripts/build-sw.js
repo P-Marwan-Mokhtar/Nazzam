@@ -47,7 +47,6 @@ const PRECACHE_URLS = [
   './js/popovers.js',
   './js/recurrence.js',
   './js/search.js',
-  './js/sidePanel.js',
   './js/stats.js',
   './js/subtasks.js',
   './js/timeBlocking.js',

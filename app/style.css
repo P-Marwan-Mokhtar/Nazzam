@@ -688,6 +688,60 @@ body.dark-mode .header-logo-dark {
 .duration-badge-actual-only .material-icons {
   font-size: 15px;
 }
+.note-btn {
+  flex: 0 0 auto;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  line-height: 1;
+  opacity: 0.7;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  color: var(--pen);
+}
+.note-btn .material-icons {
+  font-size: 18px;
+}
+.note-btn:hover,
+.note-btn.active {
+  opacity: 1;
+  background: var(--done-soft);
+}
+.task-row.note-open {
+  flex-direction: column;
+  align-items: stretch;
+}
+.task-note-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 360px;
+  max-width: 100%;
+}
+.task-note-input {
+  width: 100%;
+  resize: vertical;
+  border: 1.5px solid var(--paper-line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Tajawal";
+  font-size: 0.88rem;
+  line-height: 1.6;
+  padding: 8px 10px;
+  box-sizing: border-box;
+}
+.task-note-input:focus {
+  outline: none;
+  border-color: var(--pen);
+}
+.task-note-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 6px;
+}
 
 /* ===== بوب أب الهدف / الوقت الفعلي ===== */
 .duration-popover {
