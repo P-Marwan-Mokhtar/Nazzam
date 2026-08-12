@@ -162,6 +162,7 @@ body.dark-mode .header-logo-dark {
   font-family: "Rubik", sans-serif;
   font-size: 1.25rem;
   color: var(--pen);
+  margin-bottom: 6px;
 }
 .date-display .day-sub {
   font-size: 0.78rem;
