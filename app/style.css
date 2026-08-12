@@ -3406,6 +3406,20 @@ body.dark-mode .account-error {
 .task-more-menu-wrap.open-up .task-more-dropdown.open {
   transform: translateY(0);
 }
+/* القايمة والبوب أبات وهم مقفولين: display:none عشان ميسيبوش مساحة ولا
+   scrollable overflow في الصفحة (الـ opacity بس كان بيسيب لayout ممدود) */
+.task-more-dropdown:not(.open),
+.priority-popover:not(.open),
+.clock-choice-popover:not(.open) {
+  display: none;
+}
+/* لما القايمة بتفتح لفوق، بوب أبات الأهمية/الوقت جواها بيفتحوا لفوق كمان
+   عشان ميعدوش الزرار وميعملوش سكرول لتحت */
+.task-more-menu-wrap.open-up .priority-popover,
+.task-more-menu-wrap.open-up .clock-choice-popover {
+  top: auto;
+  bottom: -6px;
+}
 .tmd-btn {
   display: flex;
   align-items: center;
