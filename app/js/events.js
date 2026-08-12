@@ -16,6 +16,23 @@ import { ensureNotificationPermission, currentHHMM } from './notifications.js';
 import { formatTimeArabic, openTimePicker } from './timePicker.js';
 import { requestNewTimer } from './timers.js';
 
+// قايمة المزيد بتاع مهمة اليوم: بتفتح لتحت لو فيه مساحة كفاية تحت الزرار،
+// وبتفتح لفوق لو مفيش (عشان ميزيدش سكرول الصفحة)
+function flipTaskMoreDropdown(id){
+  const wrap = document.querySelector(`.task-more-menu-wrap[data-wrap-id="${id}"]`);
+  if(!wrap) return;
+  const btn = wrap.querySelector('.task-more-btn');
+  const dropdown = wrap.querySelector('.task-more-dropdown');
+  if(!btn || !dropdown) return;
+  const btnBottom = btn.getBoundingClientRect().bottom;
+  const spaceBelow = window.innerHeight - btnBottom;
+  if(spaceBelow < dropdown.offsetHeight + 8){
+    wrap.classList.add('open-up');
+  } else {
+    wrap.classList.remove('open-up');
+  }
+}
+
 // تذكير المهمة: بيفتح الـ time picker بتاع التطبيق (الموجود أصلًا لتنبيه الصباح/المساء)
 // في وضع تذكير — أول ما يتأكد، بينادي callback الضبط (مع طلب إذن التنبيهات لو مش ممنوح)
 // و callback الإزالة لو المستخدم ضغط "إزالة التذكير". التذكير بيتخزن على نسخة المهمة نفسها
@@ -235,6 +252,7 @@ export function attachEvents(){
       ui.openPriorityPopoverTaskId = null;
       ui.openClockChoiceTaskId = null;
       render();
+      if(ui.openTaskMoreId === id) flipTaskMoreDropdown(id);
     }
     else if(action === 'toggle-keyword-more'){
       ui.openKeywordMoreId = ui.openKeywordMoreId === id ? null : id;
