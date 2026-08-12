@@ -251,10 +251,10 @@ function exportWeeklyPDF(){
 <head>
 <meta charset="UTF-8">
 <title>التقرير الأسبوعي</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Tajawal', sans-serif; background: #faf7f2; color: #2c2416; padding: 32px; direction: rtl; }
+body { font-family: 'Almarai', sans-serif; background: #faf7f2; color: #2c2416; padding: 32px; direction: rtl; }
 h1 { font-size: 1.9rem; font-weight: 800; color: #3e5c2e; margin-bottom: 4px; }
 .sub-header { font-size: 0.85rem; color: #888; margin-bottom: 28px; }
 .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 20px; }
@@ -329,12 +329,12 @@ ${estBlock}
 <div style="margin-top:24px; text-align:center; no-print">
 <button onclick="window.print()" style="
   background:#3e5c2e;color:#fff;border:none;border-radius:10px;
-  padding:12px 36px;font-family:'Tajawal';font-weight:700;font-size:1rem;
+  padding:12px 36px;font-family:'Almarai';font-weight:700;font-size:1rem;
   cursor:pointer;margin-left:10px;
 ">طباعة / حفظ PDF</button>
 <button onclick="window.close()" style="
   background:#f0ebe3;color:#666;border:none;border-radius:10px;
-  padding:12px 24px;font-family:'Tajawal';font-weight:700;font-size:1rem;cursor:pointer;
+  padding:12px 24px;font-family:'Almarai';font-weight:700;font-size:1rem;cursor:pointer;
 ">إغلاق</button>
 </div>
 </body>
@@ -510,7 +510,7 @@ function renderDayStatsView(dateStr){
 
   if(typeof Chart === 'undefined') return;
 
-  Chart.defaults.font.family = "'Tajawal', sans-serif";
+  Chart.defaults.font.family = "'Almarai', sans-serif";
   Chart.defaults.color = inkColor;
 
   const ctxCompletion = document.getElementById('chartCompletion');
@@ -803,7 +803,7 @@ function renderWeekStatsView(){
 
   if(typeof Chart === 'undefined') return; // لو مكتبة Chart.js متحملتش لأي سبب
 
-  Chart.defaults.font.family = "'Tajawal', sans-serif";
+  Chart.defaults.font.family = "'Almarai', sans-serif";
   Chart.defaults.color = inkColor;
 
   // 1) دونات: نسبة الإنجاز

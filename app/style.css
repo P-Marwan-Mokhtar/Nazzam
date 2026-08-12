@@ -3,7 +3,7 @@
   --paper-line: #dcd8c8;
   --ink: #22303d;
   --ink-soft: #5b6b78;
-  --pen: #ed4b2b;
+  --pen: #c74025;
   --pen-soft: #e8dcd6;
   --done: #3e7a5c;
   --done-soft: #dce9e0;
@@ -20,7 +20,7 @@ body.dark-mode {
   --paper-line: #242b33;
   --ink: #e6edf3;
   --ink-soft: #8b98a5;
-  --pen: #ed4b2b;
+  --pen: #c74025;
   --pen-soft: #38221e;
   --done: #489970;
   --done-soft: #1a3024;
@@ -64,7 +64,7 @@ body {
   background: radial-gradient(var(--paper-line) 1px, transparent 1px);
   background-size: 22px 22px;
   background-color: var(--paper);
-  font-family: "Tajawal", sans-serif;
+  font-family: "Almarai", sans-serif;
   color: var(--ink);
   min-height: 100vh;
   padding: 28px 16px 60px;
@@ -159,7 +159,7 @@ body.dark-mode .header-logo-dark {
   flex: 1;
 }
 .date-display .day-name {
-  font-family: "Rakkas", serif;
+  font-family: "Readex Pro", sans-serif;
   font-size: 1.25rem;
   color: var(--pen);
 }
@@ -173,7 +173,7 @@ body.dark-mode .header-logo-dark {
   background: var(--card);
   border: 1.5px dashed var(--pen);
   color: var(--pen);
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-weight: 700;
   font-size: 0.82rem;
   padding: 6px 16px;
@@ -197,7 +197,7 @@ body.dark-mode .header-logo-dark {
   margin-bottom: 12px;
 }
 .calendar-month-title {
-  font-family: "Rakkas", serif;
+  font-family: "Readex Pro", sans-serif;
   font-size: 1.15rem;
   color: var(--ink);
 }
@@ -253,7 +253,7 @@ body.dark-mode .header-logo-dark {
 
 /* Section Titles */
 .section-title {
-  font-family: "Tajawal";
+  font-family: "Almarai";
   padding: 14px 16px;
   background-color: var(--card);
   border-radius: var(--radius);
@@ -293,7 +293,7 @@ body.dark-mode .header-logo-dark {
   color: var(--ink-soft);
   border-radius: 20px;
   padding: 6px 12px;
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-weight: 700;
   font-size: 0.82rem;
   cursor: pointer;
@@ -358,7 +358,7 @@ body.dark-mode .header-logo-dark {
   cursor: pointer;
   text-align: right;
   padding: 14px 16px;
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-weight: 800;
   font-size: 1.1rem;
   color: var(--ink);
@@ -776,7 +776,7 @@ body.dark-mode .task-row.priority-medium {
   border-radius: 10px;
   background: var(--paper);
   color: var(--ink);
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-size: 0.9rem;
   line-height: 1.6;
   padding: 10px 12px;
@@ -1138,7 +1138,7 @@ body.dark-mode .task-row.priority-medium {
   border: none;
   border-radius: 8px;
   padding: 9px 10px;
-  font-family: "Tajawal", sans-serif;
+  font-family: "Almarai", sans-serif;
   font-size: 0.88rem;
   font-weight: 700;
   color: var(--ink);
@@ -1228,7 +1228,7 @@ body.dark-mode .priority-btn.priority-medium {
   border: none;
   border-radius: 8px;
   padding: 9px 10px;
-  font-family: "Tajawal", sans-serif;
+  font-family: "Almarai", sans-serif;
   font-size: 0.88rem;
   font-weight: 700;
   color: var(--ink);
@@ -1293,7 +1293,7 @@ body.dark-mode .priority-choice-medium .material-icons {
   border-bottom: 1px solid var(--paper-line);
 }
 .picker-header h3 {
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-weight: 800;
   font-size: 1rem;
   margin: 0;
@@ -1303,7 +1303,7 @@ body.dark-mode .priority-choice-medium .material-icons {
 .picker-done {
   background: none;
   border: none;
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-weight: 700;
   font-size: 0.92rem;
   cursor: pointer;
@@ -1320,7 +1320,7 @@ body.dark-mode .priority-choice-medium .material-icons {
   margin: 14px auto 0;
   background: none;
   border: none;
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-weight: 700;
   font-size: 0.92rem;
   color: #d93025;
@@ -1398,7 +1398,7 @@ body.dark-mode .priority-choice-medium .material-icons {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-weight: 700;
   font-size: 1.2rem;
   color: var(--ink);
@@ -1802,7 +1802,7 @@ body.dark-mode .priority-dot-medium {
 
 .edit-input {
   /* flex:1; */
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-size: 0.95rem;
   border: 1.5px solid var(--pen);
   border-radius: 6px;
@@ -1832,7 +1832,7 @@ body.dark-mode .priority-dot-medium {
   margin-bottom: 4px;
 }
 .empty-state-title {
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-weight: 700;
   font-size: 1rem;
   color: var(--ink);
@@ -1880,7 +1880,7 @@ body.dark-mode .priority-dot-medium {
   background: transparent;
   border-radius: 8px;
   padding: 10px 12px;
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-size: 0.95rem;
   color: var(--ink);
 }
@@ -1893,7 +1893,7 @@ body.dark-mode .priority-dot-medium {
   border: none;
   border-radius: 8px;
   padding: 0 18px;
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-weight: 700;
   font-size: 0.92rem;
   cursor: pointer;
@@ -1926,7 +1926,7 @@ body.dark-mode .priority-dot-medium {
   cursor: pointer;
   text-align: right;
   color: var(--ink);
-  font-family: "Tajawal", sans-serif;
+  font-family: "Almarai", sans-serif;
   transition: all 0.15s ease;
   width: 100%;
 }
@@ -2070,7 +2070,7 @@ select:focus {
   padding: 18px;
 }
 .timer-panel-title {
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-weight: 800;
   font-size: 1.05rem;
   color: var(--ink);
@@ -2227,7 +2227,7 @@ select:focus {
   gap: 8px;
 }
 .timer-clock {
-  font-family: "Tajawal", monospace;
+  font-family: "Almarai", monospace;
   font-variant-numeric: tabular-nums;
   font-size: 1.3rem;
   font-weight: 800;
@@ -2489,7 +2489,7 @@ select:focus {
   background: var(--paper);
   border-radius: 8px;
   padding: 11px 12px;
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-size: 0.92rem;
   color: var(--ink);
   width: 100%;
@@ -2503,7 +2503,7 @@ select:focus {
   border: none;
   border-radius: 8px;
   padding: 11px;
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-weight: 700;
   font-size: 0.92rem;
   cursor: pointer;
@@ -2517,7 +2517,7 @@ select:focus {
   border: 1.5px solid var(--paper-line);
   border-radius: 8px;
   padding: 11px;
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-weight: 700;
   font-size: 0.88rem;
   cursor: pointer;
@@ -2536,7 +2536,7 @@ select:focus {
   background: none;
   border: none;
   color: var(--pen);
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-weight: 700;
   font-size: 0.82rem;
   cursor: pointer;
@@ -2651,7 +2651,7 @@ body.dark-mode .account-error {
   border: 1.5px solid var(--paper-line);
   border-radius: 8px;
   padding: 10px;
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-weight: 700;
   font-size: 0.88rem;
   cursor: pointer;
@@ -2726,7 +2726,7 @@ body.dark-mode .account-error {
   flex: 0 0 auto;
 }
 .modal-header h2 {
-  font-family: "Rakkas", serif;
+  font-family: "Readex Pro", sans-serif;
   font-size: 1.3rem;
   margin: 0;
   color: var(--ink);
@@ -2892,7 +2892,7 @@ body.dark-mode .account-error {
   margin-bottom: 14px;
 }
 .stats-view-header h2 {
-  font-family: "Rakkas", serif;
+  font-family: "Readex Pro", sans-serif;
   font-size: 1.25rem;
   margin: 0;
   color: var(--ink);
@@ -3482,7 +3482,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   color: var(--ink);
   border-radius: 10px;
   padding: 10px 2px;
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-weight: 700;
   font-size: 0.78rem;
   cursor: pointer;
@@ -3509,7 +3509,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   background: transparent;
   border: none;
   color: var(--ink-soft);
-  font-family: "Tajawal";
+  font-family: "Almarai";
   font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
@@ -3555,7 +3555,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   border: 1px solid var(--paper-line);
   font-weight: 700;
   cursor: pointer;
-  font-family: "Tajawal", sans-serif;
+  font-family: "Almarai", sans-serif;
   transition:
     background 0.15s,
     color 0.15s;
@@ -3634,7 +3634,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 .subtask-edit-input {
   flex: 1;
   min-width: 0;
-  font-family: "Tajawal", sans-serif;
+  font-family: "Almarai", sans-serif;
   font-size: 0.9rem;
   color: var(--ink);
   background: var(--bg, #fff);
@@ -3658,7 +3658,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   padding: 10px 12px;
   cursor: pointer;
   text-align: right;
-  font-family: "Tajawal";
+  font-family: "Almarai";
   transition:
     background 0.15s ease,
     border-color 0.15s ease;
@@ -3795,7 +3795,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   color: var(--ink);
   border-radius: 8px;
   padding: 5px 8px;
-  font-family: 'Tajawal';
+  font-family: 'Almarai';
   font-weight: 700;
   font-size: 0.85rem;
 }
@@ -3805,7 +3805,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   color: var(--pen);
   border-radius: 8px;
   padding: 6px 14px;
-  font-family: 'Tajawal';
+  font-family: 'Almarai';
   font-weight: 800;
   font-size: 0.88rem;
   cursor: pointer;
