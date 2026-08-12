@@ -3,7 +3,7 @@
   --paper-line: #dcd8c8;
   --ink: #22303d;
   --ink-soft: #5b6b78;
-  --pen: #c74025;
+  --pen: #c5482e;
   --pen-soft: #e8dcd6;
   --done: #3e7a5c;
   --done-soft: #dce9e0;
@@ -20,7 +20,7 @@ body.dark-mode {
   --paper-line: #242b33;
   --ink: #e6edf3;
   --ink-soft: #8b98a5;
-  --pen: #c74025;
+  --pen: #c5482e;
   --pen-soft: #38221e;
   --done: #489970;
   --done-soft: #1a3024;
@@ -159,7 +159,7 @@ body.dark-mode .header-logo-dark {
   flex: 1;
 }
 .date-display .day-name {
-  font-family: "Readex Pro", sans-serif;
+  font-family: "Rubik", sans-serif;
   font-size: 1.25rem;
   color: var(--pen);
 }
@@ -197,7 +197,7 @@ body.dark-mode .header-logo-dark {
   margin-bottom: 12px;
 }
 .calendar-month-title {
-  font-family: "Readex Pro", sans-serif;
+  font-family: "Rubik", sans-serif;
   font-size: 1.15rem;
   color: var(--ink);
 }
@@ -2726,7 +2726,7 @@ body.dark-mode .account-error {
   flex: 0 0 auto;
 }
 .modal-header h2 {
-  font-family: "Readex Pro", sans-serif;
+  font-family: "Rubik", sans-serif;
   font-size: 1.3rem;
   margin: 0;
   color: var(--ink);
@@ -2892,7 +2892,7 @@ body.dark-mode .account-error {
   margin-bottom: 14px;
 }
 .stats-view-header h2 {
-  font-family: "Readex Pro", sans-serif;
+  font-family: "Rubik", sans-serif;
   font-size: 1.25rem;
   margin: 0;
   color: var(--ink);
