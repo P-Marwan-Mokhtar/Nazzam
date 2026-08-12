@@ -87,6 +87,7 @@ async function startApp(){
     }
     if(ui.openTaskMoreId && !e.target.closest('.task-more-dropdown') && !e.target.closest('.task-more-btn')){
       ui.openTaskMoreId = null;
+      ui.openTaskMoreUp = false;
       ui.openPriorityPopoverTaskId = null;
       render();
     }

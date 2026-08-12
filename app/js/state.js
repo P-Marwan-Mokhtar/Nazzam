@@ -66,6 +66,7 @@ export const ui = {
   weekViewDate: null,  // تاريخ داخل الأسبوع المعروض حاليًا في عرض الأسبوع (بيتحدد أول ما يتفتح)
   statsChartInstances: [],  // مراجع لكل الـ Chart.js instances عشان نقدر نمسحها قبل كل رسم جديد
   openTaskMoreId: null,  // المهمة اللي فاتح لها قائمة (المزيد) دلوقتي
+  openTaskMoreUp: false,  // قايمة المزيد بتاعت المهمة الحالية بتفتح لفوق (مفيش مساحة تحت) — بتتحسب في events.js
   openKeywordMoreId: null,  // المهمة اللي في البنك فاتح لها قائمة (المزيد) دلوقتي
   editingTaskId: null,
   activeTaskNoteId: null,  // المهمة اللي مفتوح لها popup الملاحظة دلوقتي

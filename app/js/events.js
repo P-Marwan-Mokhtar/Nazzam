@@ -26,11 +26,8 @@ function flipTaskMoreDropdown(id){
   if(!btn || !dropdown) return;
   const btnBottom = btn.getBoundingClientRect().bottom;
   const spaceBelow = window.innerHeight - btnBottom;
-  if(spaceBelow < dropdown.offsetHeight + 8){
-    wrap.classList.add('open-up');
-  } else {
-    wrap.classList.remove('open-up');
-  }
+  ui.openTaskMoreUp = spaceBelow < dropdown.offsetHeight + 8;
+  wrap.classList.toggle('open-up', ui.openTaskMoreUp);
 }
 
 // تذكير المهمة: بيفتح الـ time picker بتاع التطبيق (الموجود أصلًا لتنبيه الصباح/المساء)
@@ -247,12 +244,14 @@ export function attachEvents(){
       await saveData();
     }
     else if(action === 'toggle-task-more'){
-      ui.openTaskMoreId = ui.openTaskMoreId === id ? null : id;
+      const willOpen = ui.openTaskMoreId !== id;
+      ui.openTaskMoreId = willOpen ? id : null;
       ui.openKeywordMoreId = null;
       ui.openPriorityPopoverTaskId = null;
       ui.openClockChoiceTaskId = null;
+      if(!willOpen) ui.openTaskMoreUp = false;
       render();
-      if(ui.openTaskMoreId === id) flipTaskMoreDropdown(id);
+      if(willOpen) flipTaskMoreDropdown(id);
     }
     else if(action === 'toggle-keyword-more'){
       ui.openKeywordMoreId = ui.openKeywordMoreId === id ? null : id;
