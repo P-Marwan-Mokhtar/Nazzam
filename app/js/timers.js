@@ -34,12 +34,90 @@ export function closeMissedTasksModal(){
   if(el) el.classList.remove('open');
 }
 
+function buildTimerItemHtml(t){
+  const isCountdown = t.mode === 'countdown';
+  const remainingMs = isCountdown ? Math.max(0, t.targetMs - getElapsedMs(t)) : getElapsedMs(t);
+  const ended = isCountdown && remainingMs <= 0;
+  return `
+    <div class="timer-item ${t.running ? 'running' : ''} ${ended ? 'countdown-ended' : ''}" data-timer-id="${t.id}">
+      <div class="timer-item-top">
+        <span class="timer-name">${escapeHtml(t.name)}</span>
+        ${isCountdown ? `<span class="timer-target-label"><span class="material-icons">hourglass_bottom</span>${formatHM(t.targetMs)}</span>` : ``}
+        <span class="timer-status-dot"></span>
+      </div>
+      <div class="timer-item-bottom">
+        <span class="timer-clock" id="timerClock_${t.id}">${formatElapsed(remainingMs)}</span>
+        <div class="timer-controls">
+          <button class="timer-btn timer-toggle-btn ${t.running ? 'is-running' : ''}" data-action="toggle-timer" data-id="${t.id}" title="${t.running ? 'إيقاف مؤقت' : 'تشغيل'}">
+            <span class="material-icons">${t.running ? 'pause' : 'play_arrow'}</span>
+          </button>
+          <button class="timer-btn timer-delete-btn" data-action="delete-timer" data-id="${t.id}" title="حذف">
+            <span class="material-icons">delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function createTimerItemEl(t){
+  const wrap = document.createElement('div');
+  wrap.innerHTML = buildTimerItemHtml(t);
+  return wrap.firstChild;
+}
+
+// بنحدّث محتوى الـ item الموجود في مكانه من غير ما نعيد إنشاء العنصر نفسه —
+// فبالتالي الـ entrance animation والنبض بتاع الـ running ميتشغلوش تاني مع كل render
+function updateTimerItemEl(el, t){
+  const isCountdown = t.mode === 'countdown';
+  const remainingMs = isCountdown ? Math.max(0, t.targetMs - getElapsedMs(t)) : getElapsedMs(t);
+  const ended = isCountdown && remainingMs <= 0;
+
+  el.classList.toggle('running', !!t.running);
+  el.classList.toggle('countdown-ended', ended);
+
+  const nameEl = el.querySelector('.timer-name');
+  if(nameEl && nameEl.textContent !== t.name) nameEl.textContent = t.name;
+
+  const topEl = el.querySelector('.timer-item-top');
+  let labelEl = el.querySelector('.timer-target-label');
+  if(isCountdown){
+    if(!labelEl){
+      labelEl = document.createElement('span');
+      labelEl.className = 'timer-target-label';
+      topEl.insertBefore(labelEl, el.querySelector('.timer-status-dot'));
+    }
+    const targetText = formatHM(t.targetMs);
+    if(labelEl.dataset.target !== targetText){
+      labelEl.dataset.target = targetText;
+      labelEl.innerHTML = `<span class="material-icons">hourglass_bottom</span>${targetText}`;
+    }
+  } else if(labelEl){
+    labelEl.remove();
+  }
+
+  const clockEl = el.querySelector('.timer-clock');
+  const clockText = formatElapsed(remainingMs);
+  if(clockEl && clockEl.textContent !== clockText) clockEl.textContent = clockText;
+
+  const toggleBtn = el.querySelector('.timer-toggle-btn');
+  if(toggleBtn){
+    toggleBtn.classList.toggle('is-running', !!t.running);
+    toggleBtn.title = t.running ? 'إيقاف مؤقت' : 'تشغيل';
+    toggleBtn.innerHTML = `<span class="material-icons">${t.running ? 'pause' : 'play_arrow'}</span>`;
+  }
+}
+
 export function renderTimerPanel(){
   // بنحفظ نص الـ input الحالي قبل إعادة بناء اللوحة، عشان الـ render ميمسحش اللي المستخدم كاتبه
   const prevInput = document.getElementById('newTimerInput');
   const prevValue = prevInput ? prevInput.value : '';
   const restoreFocus = prevInput && document.activeElement === prevInput;
   const timers = getDayTimers(ui.selectedDate);
+  // بنخزن الـ items الحالية بالـ id عشان نحدّث الموجود في مكانه بدل ما نعيد بناءه
+  const oldItems = new Map();
+  timerPanelEl.querySelectorAll('.timer-item').forEach(el => oldItems.set(el.dataset.timerId, el));
+
   let html = `<div class="timer-panel-card">`;
   html += `
     <div class="timer-panel-title">
@@ -65,40 +143,22 @@ export function renderTimerPanel(){
       </div>
     </div>
   `;
-
-  if(timers.length === 0){
-    html += emptyStateHtml('timer_off', 'لا توجد مؤقتات اليوم', 'اكتب اسم المهمة أعلاه وابدأ التوقيت.');
-  } else {
-    html += `<div class="timer-list">`;
-    timers.forEach(t => {
-      const isCountdown = t.mode === 'countdown';
-      const remainingMs = isCountdown ? Math.max(0, t.targetMs - getElapsedMs(t)) : getElapsedMs(t);
-      const ended = isCountdown && remainingMs <= 0;
-      html += `
-        <div class="timer-item ${t.running ? 'running' : ''} ${ended ? 'countdown-ended' : ''}">
-          <div class="timer-item-top">
-            <span class="timer-name">${escapeHtml(t.name)}</span>
-            ${isCountdown ? `<span class="timer-target-label"><span class="material-icons">hourglass_bottom</span>${formatHM(t.targetMs)}</span>` : ``}
-            <span class="timer-status-dot"></span>
-          </div>
-          <div class="timer-item-bottom">
-            <span class="timer-clock" id="timerClock_${t.id}">${formatElapsed(remainingMs)}</span>
-            <div class="timer-controls">
-              <button class="timer-btn timer-toggle-btn ${t.running ? 'is-running' : ''}" data-action="toggle-timer" data-id="${t.id}" title="${t.running ? 'إيقاف مؤقت' : 'تشغيل'}">
-                <span class="material-icons">${t.running ? 'pause' : 'play_arrow'}</span>
-              </button>
-              <button class="timer-btn timer-delete-btn" data-action="delete-timer" data-id="${t.id}" title="حذف">
-                <span class="material-icons">delete</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      `;
-    });
-    html += `</div>`;
-  }
   html += `</div>`;
   timerPanelEl.innerHTML = html;
+
+  const cardEl = timerPanelEl.querySelector('.timer-panel-card');
+  if(timers.length === 0){
+    cardEl.insertAdjacentHTML('beforeend', emptyStateHtml('timer_off', 'لا توجد مؤقتات اليوم', 'اكتب اسم المهمة أعلاه وابدأ التوقيت.'));
+  } else {
+    const listEl = document.createElement('div');
+    listEl.className = 'timer-list';
+    timers.forEach(t => {
+      const existing = oldItems.get(t.id);
+      if(existing) updateTimerItemEl(existing, t);
+      listEl.appendChild(existing || createTimerItemEl(t));
+    });
+    cardEl.appendChild(listEl);
+  }
 
   const addBtn = document.getElementById('addTimerBtn');
   const newInput = document.getElementById('newTimerInput');
