@@ -110,17 +110,28 @@ function updateTimerItemEl(el, t){
 }
 
 export function renderTimerPanel(){
-  // بنحفظ نص الـ input الحالي قبل إعادة بناء اللوحة، عشان الـ render ميمسحش اللي المستخدم كاتبه
+  // بنحفظ نص الـ input الحالي قبل إعادة بناء الـ header، عشان الـ render ميمسحش اللي المستخدم كاتبه
   const prevInput = document.getElementById('newTimerInput');
   const prevValue = prevInput ? prevInput.value : '';
   const restoreFocus = prevInput && document.activeElement === prevInput;
   const timers = getDayTimers(ui.selectedDate);
-  // بنخزن الـ items الحالية بالـ id عشان نحدّث الموجود في مكانه بدل ما نعيد بناءه
-  const oldItems = new Map();
-  timerPanelEl.querySelectorAll('.timer-item').forEach(el => oldItems.set(el.dataset.timerId, el));
 
-  let html = `<div class="timer-panel-card">`;
-  html += `
+  // بنية الكارت بتتولّد مرة واحدة بس. بنعيد بناء الـ header (مفيش عليه أنيميشن) في مكانه،
+  // والـ timer items بنحدّثهم في أماكنهم من غير ما نفصلهم عن الـ DOM — فأنيميشن الدخول
+  // ونبض النقطة ميتشغلوش تاني مع كل render غير مع المؤقتات الجديدة فعلًا
+  let cardEl = timerPanelEl.querySelector('.timer-panel-card');
+  if(!cardEl){
+    timerPanelEl.innerHTML = '<div class="timer-panel-card"></div>';
+    cardEl = timerPanelEl.querySelector('.timer-panel-card');
+  }
+
+  let headerEl = cardEl.querySelector('.timer-panel-header');
+  if(!headerEl){
+    headerEl = document.createElement('div');
+    headerEl.className = 'timer-panel-header';
+    cardEl.insertBefore(headerEl, cardEl.firstChild);
+  }
+  headerEl.innerHTML = `
     <div class="timer-panel-title">
       <span class="material-icons">timer</span>
       مؤقتات اليوم
@@ -144,21 +155,41 @@ export function renderTimerPanel(){
       </div>
     </div>
   `;
-  html += `</div>`;
-  timerPanelEl.innerHTML = html;
 
-  const cardEl = timerPanelEl.querySelector('.timer-panel-card');
   if(timers.length === 0){
-    cardEl.insertAdjacentHTML('beforeend', emptyStateHtml('timer_off', 'لا توجد مؤقتات اليوم', 'اكتب اسم المهمة أعلاه وابدأ التوقيت.'));
+    const listEl = cardEl.querySelector('.timer-list');
+    if(listEl) listEl.remove();
+    if(!cardEl.querySelector('.empty-state')){
+      cardEl.insertAdjacentHTML('beforeend', emptyStateHtml('timer_off', 'لا توجد مؤقتات اليوم', 'اكتب اسم المهمة أعلاه وابدأ التوقيت.'));
+    }
   } else {
-    const listEl = document.createElement('div');
-    listEl.className = 'timer-list';
-    timers.forEach(t => {
-      const existing = oldItems.get(t.id);
-      if(existing) updateTimerItemEl(existing, t);
-      listEl.appendChild(existing || createTimerItemEl(t));
+    const emptyEl = cardEl.querySelector('.empty-state');
+    if(emptyEl) emptyEl.remove();
+    let listEl = cardEl.querySelector('.timer-list');
+    if(!listEl){
+      listEl = document.createElement('div');
+      listEl.className = 'timer-list';
+      cardEl.appendChild(listEl);
+    }
+    // بنرص الـ items الموجودة بالـ id عشان نحدّث الموجود في مكانه بدل ما نعيد بناءه
+    const oldItems = new Map();
+    Array.from(listEl.children).forEach(el => {
+      if(el.classList.contains('timer-item')) oldItems.set(el.dataset.timerId, el);
     });
-    cardEl.appendChild(listEl);
+    const newIds = new Set();
+    timers.forEach(t => {
+      newIds.add(t.id);
+      const existing = oldItems.get(t.id);
+      if(existing){
+        updateTimerItemEl(existing, t);
+      } else {
+        listEl.appendChild(createTimerItemEl(t));
+      }
+    });
+    // بنشيل الـ items اللي اختفت من البيانات (مؤقت محذوف)
+    Array.from(listEl.children).forEach(el => {
+      if(el.classList.contains('timer-item') && !newIds.has(el.dataset.timerId)) el.remove();
+    });
   }
 
   const addBtn = document.getElementById('addTimerBtn');
