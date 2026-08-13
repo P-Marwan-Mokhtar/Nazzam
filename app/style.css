@@ -12,6 +12,9 @@
   --card: #ffffff;
   --radius: 10px;
   --shadow: 0 1px 2px rgba(34, 48, 61, 0.06), 0 4px 14px rgba(34, 48, 61, 0.05);
+  /* لون اللوجو — بيستخدم في الـ streak والعناصر المميزة الصغيرة بس عشان فاقع */
+  --brand: #FC4B1B;
+  --brand-soft: #fdece5;
 }
 
 /* ===== Dark Mode Variables & Overrides ===== */
@@ -28,6 +31,8 @@ body.dark-mode {
   --missed-soft: #3a1c1c;
   --card: #1c2128;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.25);
+  --brand: #FC4B1B;
+  --brand-soft: #3a211a;
 }
 body.dark-mode .timer-item {
   background: #181c20;
@@ -1790,8 +1795,8 @@ body.dark-mode .priority-dot-medium {
   gap: 1px;
   font-size: 0.72rem;
   font-weight: 800;
-  color: var(--pen);
-  background: var(--pen-soft);
+  color: var(--brand);
+  background: var(--brand-soft);
   border-radius: 20px;
   padding: 1px 6px 1px 7px;
   flex: 0 0 auto;
@@ -2973,6 +2978,10 @@ body.dark-mode .account-error {
 .stats-summary-pill small {
   font-size: 0.72rem;
   color: var(--ink-soft);
+}
+.stats-summary-pill.streak-pill .material-icons,
+.stats-summary-pill.streak-pill strong {
+  color: var(--brand);
 }
 
 /* ===== شريط التبديل بين إحصائيات اليوم والأسبوع (جوه الـheader نفسه) ===== */
