@@ -8,7 +8,7 @@ import { PRIORITY_LABELS, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
 import { openActualDurationPicker, openDurationPicker } from './wheelPicker.js';
-import { requestNewTimer } from './timers.js';
+import { startOpenTimer } from './timers.js';
 import { openSubtasksModal } from './subtasks.js';
 import { openTaskNoteModal } from './taskNote.js';
 
@@ -230,7 +230,7 @@ function handleAction(el){
   }
   else if(action === 'timer'){
     closeTaskDetails();
-    requestNewTimer(task.name);
+    startOpenTimer(task.name);
   }
   else if(action === 'note'){
     closeTaskDetails();

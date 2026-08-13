@@ -2126,6 +2126,51 @@ select:focus {
 .timer-add-btn .material-icons {
   font-size: 22px;
 }
+.timer-add-wrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+.timer-type-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline-end: 0;
+  min-width: 180px;
+  background: var(--card);
+  border: 1px solid var(--paper-line);
+  box-shadow: var(--shadow);
+  border-radius: 12px;
+  padding: 6px;
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+}
+.timer-type-popover.open {
+  display: flex;
+}
+.timer-type-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: right;
+}
+.timer-type-option .material-icons {
+  font-size: 20px;
+  color: var(--pen);
+}
+.timer-type-option:hover {
+  background: var(--paper);
+}
 
 .timer-empty {
   font-size: 0.85rem;

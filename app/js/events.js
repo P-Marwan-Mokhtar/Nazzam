@@ -14,7 +14,7 @@ import { openTaskNoteModal } from './taskNote.js';
 import { closeDurationPicker, openActualDurationPicker, openDurationPicker } from './wheelPicker.js';
 import { ensureNotificationPermission, currentHHMM } from './notifications.js';
 import { formatTimeArabic, openTimePicker } from './timePicker.js';
-import { requestNewTimer } from './timers.js';
+import { startOpenTimer } from './timers.js';
 
 // قايمة المزيد بتاع مهمة اليوم: بتفتح لتحت لو فيه مساحة كفاية تحت الزرار،
 // وبتفتح لفوق لو مفيش (عشان ميزيدش سكرول الصفحة)
@@ -276,7 +276,7 @@ export function attachEvents(){
       render();
       const task = (state.days[ui.selectedDate] || []).find(x => x.id === id);
       if(!task) return;
-      await requestNewTimer(task.name);
+      await startOpenTimer(task.name);
     }
     else if(action === 'open-subtasks'){
       ui.openTaskMoreId = null;

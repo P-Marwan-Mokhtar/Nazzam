@@ -19,8 +19,8 @@ import { renderStatsView } from './stats.js';
 import { closeSubtasksModal } from './subtasks.js';
 import { closeTaskDetails } from './taskDetails.js';
 import { closeTaskNoteModal } from './taskNote.js';
-import { checkMissedTasksPopup, closeMissedTasksModal, closeTimerTypeModal, ensureAudioContext, getDayTimers, renderTimerPanel, tickTimers } from './timers.js';
-import { closeDurationPicker, commitDurationPicker, openTimerDurationPicker } from './wheelPicker.js';
+import { checkMissedTasksPopup, closeMissedTasksModal, renderTimerPanel, tickTimers } from './timers.js';
+import { closeDurationPicker, commitDurationPicker } from './wheelPicker.js';
 import { toggleWeekView } from './weekView.js';
 import { closeTimelineTaskPopup, toggleTimeBlockView } from './timeBlocking.js';
 import { applyHashToState } from './routing.js';
@@ -102,6 +102,10 @@ async function startApp(){
     if(ui.dayStatusFilterOpen && !e.target.closest('.day-filter-wrap')){
       ui.dayStatusFilterOpen = false;
       render();
+    }
+    if(ui.timerTypePopoverOpen && !e.target.closest('.timer-type-popover') && !e.target.closest('#addTimerBtn')){
+      ui.timerTypePopoverOpen = false;
+      renderTimerPanel();
     }
   });
 
@@ -289,36 +293,6 @@ async function startApp(){
     if(e.target === addChoiceOverlay) closeAddChoiceModal();
   });
 
-  // أحداث Modal اختيار نوع المؤقت (مفتوح / محدد)
-  document.getElementById('timerTypeOpenBtn').onclick = async () => {
-    if(!ui.pendingNewTimerName) return;
-    ensureAudioContext();
-    getDayTimers(ui.selectedDate).push({
-      id: uid(),
-      name: ui.pendingNewTimerName,
-      elapsedMs: 0,
-      running: true,
-      startedAt: Date.now(),
-      mode: 'open'
-    });
-    showToast(`بدأ مؤقت مفتوح لـ "${ui.pendingNewTimerName}"`);
-    closeTimerTypeModal();
-    renderTimerPanel();
-    ui.timerPanelRenderedForDate = ui.selectedDate;
-    await saveData();
-  };
-  document.getElementById('timerTypeFixedBtn').onclick = () => {
-    const name = ui.pendingNewTimerName;
-    document.getElementById('timerTypeOverlay').classList.remove('open');
-    openTimerDurationPicker(name);
-    ui.pendingNewTimerName = name; // يفضل محفوظ لحد ما يتم اختيار المدة
-  };
-  document.getElementById('closeTimerTypeBtn').onclick = closeTimerTypeModal;
-  const timerTypeOverlay = document.getElementById('timerTypeOverlay');
-  timerTypeOverlay.addEventListener('click', (e) => {
-    if(e.target === timerTypeOverlay) closeTimerTypeModal();
-  });
-
   const pickerOverlay = document.getElementById('durationPickerOverlay');
   document.getElementById('pickerCancelBtn').onclick = closeDurationPicker;
   document.getElementById('pickerDoneBtn').onclick = commitDurationPicker;
@@ -337,7 +311,7 @@ async function startApp(){
       if(accountOverlay.classList.contains('open')) closeAccountModal();
       if(pickerOverlay.classList.contains('open')) closeDurationPicker();
       if(addChoiceOverlay.classList.contains('open')) closeAddChoiceModal();
-      if(timerTypeOverlay.classList.contains('open')) closeTimerTypeModal();
+      if(ui.timerTypePopoverOpen){ ui.timerTypePopoverOpen = false; renderTimerPanel(); }
       if(document.getElementById('subtasksOverlay').classList.contains('open')) closeSubtasksModal();
       if(document.getElementById('recurrenceOverlay').classList.contains('open')) closeRecurrenceModal();
       if(document.getElementById('taskNoteOverlay').classList.contains('open')) closeTaskNoteModal();

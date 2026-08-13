@@ -73,6 +73,7 @@ export const ui = {
   pendingTaskName: '',
   pendingTaskFilterId: null,
   pendingNewTimerName: '',  // اسم التايمر المنتظر اختيار نوعه (مفتوح / محدد)
+  timerTypePopoverOpen: false,  // هل بوب أوفر اختيار نوع المؤقت (مفتوح/محدد) مفتوح من زرار +
   pickerMode: 'task',  // 'task'/'actual' لتحديد هدف المهمة, 'timer' للمؤقت
   alertAudioCtx: null,
   openDurationPopoverTaskId: null,  // المهمة اللي فاتح لها بوب أب (الهدف/الوقت الفعلي) دلوقتي
