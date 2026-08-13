@@ -1472,7 +1472,6 @@ body.dark-mode .priority-dot-medium {
 }
 .icon-btn .material-icons {
   font-size: 18px;
-  color: var(--brand);
 }
 .icon-btn:hover {
   background: var(--paper);
@@ -2362,7 +2361,7 @@ select:focus {
   border-radius: 9px;
   border: none;
   background: transparent;
-  color: var(--pen);
+  color: var(--brand);
   cursor: pointer;
   display: flex;
   align-items: center;
