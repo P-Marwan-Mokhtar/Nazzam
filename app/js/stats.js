@@ -261,7 +261,6 @@ h1 { font-size: 1.9rem; font-weight: 800; color: #3e5c2e; margin-bottom: 4px; }
 .card { background: #fff; border: 1px solid #e0d8cc; border-radius: 12px; padding: 16px 18px; }
 .card-title { font-size: 0.8rem; font-weight: 700; color: #888; margin-bottom: 6px; }
 .big { font-size: 1.7rem; font-weight: 800; color: #3e5c2e; }
-.streak-big { color: #FC4B1B; }
 .sub { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
 .full { grid-column: 1 / -1; }
 table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
@@ -294,7 +293,7 @@ tr:last-child td { border-bottom: none; }
 </div>
 <div class="card">
   <div class="card-title">🔥 سلسلة الأيام</div>
-  <div class="big streak-big">${s.streak}</div>
+  <div class="big">${s.streak}</div>
   <div class="sub">يوم متتالي</div>
 </div>
 ${s.bestDay ? `<div class="card">
@@ -435,7 +434,7 @@ function renderDayStatsView(dateStr){
           <strong>${completionPct}%</strong>
           <small>نسبة الإنجاز</small>
         </div>
-        <div class="stats-summary-pill streak-pill">
+        <div class="stats-summary-pill">
           <span class="material-icons">bolt</span>
           <strong>${s.streak}</strong>
           <small>${s.streak === 1 ? 'يوم متتالي' : 'أيام متتالية'}</small>
@@ -701,7 +700,7 @@ function renderWeekStatsView(){
           <strong>${completionPct}%</strong>
           <small>نسبة الإنجاز</small>
         </div>
-        <div class="stats-summary-pill streak-pill">
+        <div class="stats-summary-pill">
           <span class="material-icons">bolt</span>
           <strong>${s.streak}</strong>
           <small>${s.streak === 1 ? 'يوم متتالي' : 'أيام متتالية'}</small>

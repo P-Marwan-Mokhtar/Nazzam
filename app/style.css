@@ -12,9 +12,6 @@
   --card: #ffffff;
   --radius: 10px;
   --shadow: 0 1px 2px rgba(34, 48, 61, 0.06), 0 4px 14px rgba(34, 48, 61, 0.05);
-  /* لون اللوجو — بيستخدم في الـ streak والعناصر المميزة الصغيرة بس عشان فاقع */
-  --brand: #FC4B1B;
-  --brand-soft: #f9d3c4;
 }
 
 /* ===== Dark Mode Variables & Overrides ===== */
@@ -31,8 +28,6 @@ body.dark-mode {
   --missed-soft: #3a1c1c;
   --card: #1c2128;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.25);
-  --brand: #FC4B1B;
-  --brand-soft: #3a211a;
 }
 body.dark-mode .timer-item {
   background: #181c20;
@@ -459,7 +454,6 @@ body.dark-mode .header-logo-dark {
 }
 .bank-filters-toggle .material-icons {
   font-size: 20px;
-  color: var(--brand);
 }
 .bank-filters-toggle:hover {
   background: var(--paper);
@@ -529,7 +523,6 @@ body.dark-mode .header-logo-dark {
 }
 .bank-search-clear .material-icons {
   font-size: 16px;
-  color: var(--brand);
 }
 .search-highlight {
   background: var(--pen-soft);
@@ -694,7 +687,6 @@ body.dark-mode .task-row.priority-medium {
 }
 .clock-btn .material-icons {
   font-size: 18px;
-  color: var(--brand);
 }
 .clock-btn:hover {
   opacity: 1;
@@ -769,7 +761,7 @@ body.dark-mode .task-row.priority-medium {
   border-radius: 6px;
   display: flex;
   align-items: center;
-  color: var(--brand);
+  color: var(--pen);
 }
 .note-btn .material-icons {
   font-size: 18px;
@@ -1160,7 +1152,7 @@ body.dark-mode .task-row.priority-medium {
 }
 .clock-choice-btn .material-icons {
   font-size: 17px;
-  color: var(--brand);
+  color: var(--pen);
 }
 
 /* ===== مستوى الأهمية (Priority) ===== */
@@ -1798,8 +1790,8 @@ body.dark-mode .priority-dot-medium {
   gap: 1px;
   font-size: 0.72rem;
   font-weight: 800;
-  color: var(--brand);
-  background: var(--brand-soft);
+  color: var(--pen);
+  background: var(--pen-soft);
   border-radius: 20px;
   padding: 1px 6px 1px 7px;
   flex: 0 0 auto;
@@ -1947,7 +1939,7 @@ body.dark-mode .priority-dot-medium {
 }
 .choice-btn .material-icons {
   font-size: 26px;
-  color: var(--brand);
+  color: var(--pen);
   flex: 0 0 auto;
 }
 .choice-btn.choice-today:hover {
@@ -2090,7 +2082,7 @@ select:focus {
 }
 .timer-panel-title .material-icons {
   font-size: 20px;
-  color: var(--brand);
+  color: var(--pen);
 }
 .timer-add-row {
   display: flex;
@@ -2174,7 +2166,7 @@ select:focus {
 }
 .timer-type-option .material-icons {
   font-size: 20px;
-  color: var(--brand);
+  color: var(--pen);
 }
 .timer-type-option:hover {
   background: var(--paper);
@@ -2361,7 +2353,7 @@ select:focus {
   border-radius: 9px;
   border: none;
   background: transparent;
-  color: var(--brand);
+  color: var(--pen);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -2463,14 +2455,14 @@ select:focus {
 }
 .header-menu-item .material-icons {
   font-size: 20px;
-  color: var(--brand);
+  color: var(--ink-soft);
   flex-shrink: 0;
 }
 .header-menu-item:hover {
   background: var(--paper);
 }
 .header-menu-item:hover .material-icons {
-  color: var(--brand);
+  color: var(--pen);
 }
 .header-menu-item:active {
   transform: scale(0.98);
@@ -2518,7 +2510,7 @@ select:focus {
   margin-bottom: 16px;
 }
 .account-status .material-icons {
-  color: var(--brand);
+  color: var(--pen);
   font-size: 22px;
 }
 .account-status.is-linked .material-icons {
@@ -2645,7 +2637,6 @@ body.dark-mode .account-error {
 }
 .account-pass-toggle .material-icons {
   font-size: 19px;
-  color: var(--brand);
 }
 
 /* زرار "تسجيل الدخول" في حالة انتظار الرد */
@@ -2800,7 +2791,7 @@ body.dark-mode .account-error {
 }
 .tl-task-meta .material-icons {
   font-size: 20px;
-  color: var(--brand);
+  color: var(--pen);
 }
 .tl-task-actions {
   display: flex;
@@ -2829,7 +2820,7 @@ body.dark-mode .account-error {
 }
 .tl-task-btn .material-icons {
   font-size: 20px;
-  color: var(--brand);
+  color: var(--pen);
 }
 .tl-task-btn.is-done .material-icons {
   color: var(--done);
@@ -2858,7 +2849,7 @@ body.dark-mode .account-error {
 }
 .stat-block-title .material-icons {
   font-size: 18px;
-  color: var(--brand);
+  color: var(--done);
 }
 .stat-highlight {
   font-size: 1.15rem;
@@ -2971,7 +2962,7 @@ body.dark-mode .account-error {
 }
 .stats-summary-pill .material-icons {
   font-size: 18px;
-  color: var(--brand);
+  color: var(--pen);
   margin-bottom: 2px;
 }
 .stats-summary-pill strong {
@@ -2982,10 +2973,6 @@ body.dark-mode .account-error {
 .stats-summary-pill small {
   font-size: 0.72rem;
   color: var(--ink-soft);
-}
-.stats-summary-pill.streak-pill .material-icons,
-.stats-summary-pill.streak-pill strong {
-  color: var(--brand);
 }
 
 /* ===== شريط التبديل بين إحصائيات اليوم والأسبوع (جوه الـheader نفسه) ===== */
@@ -3037,7 +3024,7 @@ body.dark-mode .account-error {
 }
 .week-compare-title .material-icons {
   font-size: 18px;
-  color: var(--brand);
+  color: var(--pen);
 }
 .week-compare-rows {
   display: flex;
@@ -3128,7 +3115,7 @@ body.dark-mode .account-error {
 }
 .chart-card-title .material-icons {
   font-size: 16px;
-  color: var(--brand);
+  color: var(--pen);
 }
 .chart-card-body {
   position: relative;
@@ -3500,7 +3487,7 @@ body.dark-mode .account-error {
 }
 .tmd-btn .material-icons {
   font-size: 18px;
-  color: var(--brand);
+  color: var(--pen);
 }
 .tmd-btn.active {
   color: var(--done);
@@ -3838,7 +3825,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   font-size: 0.92rem;
   color: var(--ink);
 }
-.notif-setting-title .material-icons{ font-size: 18px; color: var(--brand); }
+.notif-setting-title .material-icons{ font-size: 18px; color: var(--pen); }
 .notif-setting-desc{
   font-size: 0.78rem;
   color: var(--ink-soft);
