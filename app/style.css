@@ -14,7 +14,7 @@
   --shadow: 0 1px 2px rgba(34, 48, 61, 0.06), 0 4px 14px rgba(34, 48, 61, 0.05);
   /* لون اللوجو — بيستخدم في الـ streak والعناصر المميزة الصغيرة بس عشان فاقع */
   --brand: #FC4B1B;
-  --brand-soft: #fdece5;
+  --brand-soft: #f9d3c4;
 }
 
 /* ===== Dark Mode Variables & Overrides ===== */
@@ -459,6 +459,7 @@ body.dark-mode .header-logo-dark {
 }
 .bank-filters-toggle .material-icons {
   font-size: 20px;
+  color: var(--brand);
 }
 .bank-filters-toggle:hover {
   background: var(--paper);
@@ -528,6 +529,7 @@ body.dark-mode .header-logo-dark {
 }
 .bank-search-clear .material-icons {
   font-size: 16px;
+  color: var(--brand);
 }
 .search-highlight {
   background: var(--pen-soft);
@@ -692,6 +694,7 @@ body.dark-mode .task-row.priority-medium {
 }
 .clock-btn .material-icons {
   font-size: 18px;
+  color: var(--brand);
 }
 .clock-btn:hover {
   opacity: 1;
@@ -766,7 +769,7 @@ body.dark-mode .task-row.priority-medium {
   border-radius: 6px;
   display: flex;
   align-items: center;
-  color: var(--pen);
+  color: var(--brand);
 }
 .note-btn .material-icons {
   font-size: 18px;
@@ -1157,7 +1160,7 @@ body.dark-mode .task-row.priority-medium {
 }
 .clock-choice-btn .material-icons {
   font-size: 17px;
-  color: var(--pen);
+  color: var(--brand);
 }
 
 /* ===== مستوى الأهمية (Priority) ===== */
@@ -1469,6 +1472,7 @@ body.dark-mode .priority-dot-medium {
 }
 .icon-btn .material-icons {
   font-size: 18px;
+  color: var(--brand);
 }
 .icon-btn:hover {
   background: var(--paper);
@@ -1944,7 +1948,7 @@ body.dark-mode .priority-dot-medium {
 }
 .choice-btn .material-icons {
   font-size: 26px;
-  color: var(--pen);
+  color: var(--brand);
   flex: 0 0 auto;
 }
 .choice-btn.choice-today:hover {
@@ -2087,7 +2091,7 @@ select:focus {
 }
 .timer-panel-title .material-icons {
   font-size: 20px;
-  color: var(--pen);
+  color: var(--brand);
 }
 .timer-add-row {
   display: flex;
@@ -2171,7 +2175,7 @@ select:focus {
 }
 .timer-type-option .material-icons {
   font-size: 20px;
-  color: var(--pen);
+  color: var(--brand);
 }
 .timer-type-option:hover {
   background: var(--paper);
@@ -2460,14 +2464,14 @@ select:focus {
 }
 .header-menu-item .material-icons {
   font-size: 20px;
-  color: var(--ink-soft);
+  color: var(--brand);
   flex-shrink: 0;
 }
 .header-menu-item:hover {
   background: var(--paper);
 }
 .header-menu-item:hover .material-icons {
-  color: var(--pen);
+  color: var(--brand);
 }
 .header-menu-item:active {
   transform: scale(0.98);
@@ -2515,7 +2519,7 @@ select:focus {
   margin-bottom: 16px;
 }
 .account-status .material-icons {
-  color: var(--pen);
+  color: var(--brand);
   font-size: 22px;
 }
 .account-status.is-linked .material-icons {
@@ -2642,6 +2646,7 @@ body.dark-mode .account-error {
 }
 .account-pass-toggle .material-icons {
   font-size: 19px;
+  color: var(--brand);
 }
 
 /* زرار "تسجيل الدخول" في حالة انتظار الرد */
@@ -2796,7 +2801,7 @@ body.dark-mode .account-error {
 }
 .tl-task-meta .material-icons {
   font-size: 20px;
-  color: var(--pen);
+  color: var(--brand);
 }
 .tl-task-actions {
   display: flex;
@@ -2825,7 +2830,7 @@ body.dark-mode .account-error {
 }
 .tl-task-btn .material-icons {
   font-size: 20px;
-  color: var(--pen);
+  color: var(--brand);
 }
 .tl-task-btn.is-done .material-icons {
   color: var(--done);
@@ -2854,7 +2859,7 @@ body.dark-mode .account-error {
 }
 .stat-block-title .material-icons {
   font-size: 18px;
-  color: var(--done);
+  color: var(--brand);
 }
 .stat-highlight {
   font-size: 1.15rem;
@@ -2967,7 +2972,7 @@ body.dark-mode .account-error {
 }
 .stats-summary-pill .material-icons {
   font-size: 18px;
-  color: var(--pen);
+  color: var(--brand);
   margin-bottom: 2px;
 }
 .stats-summary-pill strong {
@@ -3033,7 +3038,7 @@ body.dark-mode .account-error {
 }
 .week-compare-title .material-icons {
   font-size: 18px;
-  color: var(--pen);
+  color: var(--brand);
 }
 .week-compare-rows {
   display: flex;
@@ -3124,7 +3129,7 @@ body.dark-mode .account-error {
 }
 .chart-card-title .material-icons {
   font-size: 16px;
-  color: var(--pen);
+  color: var(--brand);
 }
 .chart-card-body {
   position: relative;
@@ -3496,7 +3501,7 @@ body.dark-mode .account-error {
 }
 .tmd-btn .material-icons {
   font-size: 18px;
-  color: var(--pen);
+  color: var(--brand);
 }
 .tmd-btn.active {
   color: var(--done);
@@ -3834,7 +3839,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   font-size: 0.92rem;
   color: var(--ink);
 }
-.notif-setting-title .material-icons{ font-size: 18px; color: var(--pen); }
+.notif-setting-title .material-icons{ font-size: 18px; color: var(--brand); }
 .notif-setting-desc{
   font-size: 0.78rem;
   color: var(--ink-soft);
