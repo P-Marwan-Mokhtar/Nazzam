@@ -6,7 +6,7 @@ import { parseDurationToMinutes, uid } from './utils.js';
 import { WHEEL_ITEM_H, showToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
-import { ensureAudioContext, getDayTimers, renderTimerPanel } from './timers.js';
+import { ensureAudioContext, getDayTimers, renderTimerPanel, resumeExistingTimer } from './timers.js';
 
 function buildWheelList(listEl, count, labels, loop){
   let html = '';
@@ -200,6 +200,7 @@ export async function commitDurationPicker(){
     }
     const name = ui.pendingNewTimerName;
     if(!name){ closeDurationPicker(); return; }
+    if(await resumeExistingTimer(name)){ closeDurationPicker(); return; }
     ensureAudioContext();
     getDayTimers(ui.selectedDate).push({
       id: uid(),

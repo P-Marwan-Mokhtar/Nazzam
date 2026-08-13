@@ -35,6 +35,10 @@ export function closeMissedTasksModal(){
 }
 
 export function renderTimerPanel(){
+  // بنحفظ نص الـ input الحالي قبل إعادة بناء اللوحة، عشان الـ render ميمسحش اللي المستخدم كاتبه
+  const prevInput = document.getElementById('newTimerInput');
+  const prevValue = prevInput ? prevInput.value : '';
+  const restoreFocus = prevInput && document.activeElement === prevInput;
   const timers = getDayTimers(ui.selectedDate);
   let html = `<div class="timer-panel-card">`;
   html += `
@@ -98,6 +102,10 @@ export function renderTimerPanel(){
 
   const addBtn = document.getElementById('addTimerBtn');
   const newInput = document.getElementById('newTimerInput');
+  if(newInput && prevValue){
+    newInput.value = prevValue;
+    if(restoreFocus) newInput.focus();
+  }
   const handleAddTimer = async () => {
     if(ui.timerTypePopoverOpen){
       ui.timerTypePopoverOpen = false;
@@ -106,7 +114,6 @@ export function renderTimerPanel(){
     }
     const val = newInput.value.trim();
     if(!val){ newInput.focus(); showToast('اكتب اسم المؤقت أولًا'); return; }
-    newInput.value = '';
     ui.pendingNewTimerName = val;
     ui.timerTypePopoverOpen = true;
     renderTimerPanel();
@@ -115,11 +122,15 @@ export function renderTimerPanel(){
   newInput.onkeydown = (e) => { if(e.key === 'Enter') handleAddTimer(); };
 
   const chooseTimerType = async (kind) => {
-    const name = ui.pendingNewTimerName;
+    let name = ui.pendingNewTimerName;
+    const typed = newInput.value.trim();
+    if(typed) name = typed;
     if(!name) return;
     ui.timerTypePopoverOpen = false;
     ui.pendingNewTimerName = '';
+    newInput.value = '';
     if(kind === 'open'){
+      if(await resumeExistingTimer(name)) return;
       ensureAudioContext();
       getDayTimers(ui.selectedDate).push({
         id: uid(),
@@ -134,6 +145,7 @@ export function renderTimerPanel(){
       ui.timerPanelRenderedForDate = ui.selectedDate;
       await saveData();
     } else {
+      if(await resumeExistingTimer(name)) return;
       renderTimerPanel();
       openTimerDurationPicker(name);
       ui.pendingNewTimerName = name; // يفضل محفوظ لحد ما يتم اختيار المدة
@@ -219,26 +231,7 @@ function playAlertSound(){
 
 export async function startOpenTimer(name){
   // "بدء تايمر" من المهمة: لو في مؤقت بنفس الاسم يتستأنف، غير كده بيبدأ مؤقت مفتوح فورًا من غير اختيارات
-  const timers = getDayTimers(ui.selectedDate);
-  let t = timers.find(x => x.name === name);
-  if(t){
-    ensureAudioContext();
-    if(t.running){
-      showToast(`مؤقت "${name}" يعمل بالفعل`);
-    } else {
-      if(t.mode === 'countdown' && t.elapsedMs >= t.targetMs){
-        t.elapsedMs = 0;
-        t.alerted = false;
-      }
-      t.running = true;
-      t.startedAt = Date.now();
-      showToast(`تم استئناف المؤقت "${name}"`);
-    }
-    renderTimerPanel();
-    ui.timerPanelRenderedForDate = ui.selectedDate;
-    await saveData();
-    return;
-  }
+  if(await resumeExistingTimer(name)) return;
   ensureAudioContext();
   getDayTimers(ui.selectedDate).push({
     id: uid(),
@@ -252,6 +245,29 @@ export async function startOpenTimer(name){
   renderTimerPanel();
   ui.timerPanelRenderedForDate = ui.selectedDate;
   await saveData();
+}
+
+export async function resumeExistingTimer(name){
+  // بيرجّع true لو فيه مؤقت بنفس الاسم وتم استئنافه (أو شغال أصلًا) — مانعًا تكرار مؤقت بنفس الاسم
+  const timers = getDayTimers(ui.selectedDate);
+  const existing = timers.find(x => x.name === name);
+  if(!existing) return false;
+  ensureAudioContext();
+  if(existing.running){
+    showToast(`مؤقت "${name}" يعمل بالفعل`);
+  } else {
+    if(existing.mode === 'countdown' && existing.elapsedMs >= existing.targetMs){
+      existing.elapsedMs = 0;
+      existing.alerted = false;
+    }
+    existing.running = true;
+    existing.startedAt = Date.now();
+    showToast(`تم استئناف المؤقت "${name}"`);
+  }
+  renderTimerPanel();
+  ui.timerPanelRenderedForDate = ui.selectedDate;
+  await saveData();
+  return true;
 }
 
 export function tickTimers(){
