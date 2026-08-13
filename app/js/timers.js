@@ -62,8 +62,9 @@ function buildTimerItemHtml(t){
 
 function createTimerItemEl(t){
   const wrap = document.createElement('div');
-  wrap.innerHTML = buildTimerItemHtml(t);
-  return wrap.firstChild;
+  // trim مهم: لو سابنا الـ leading whitespace، firstChild هيبقى text node مش عنصر الـ timer-item
+  wrap.innerHTML = buildTimerItemHtml(t).trim();
+  return wrap.firstElementChild;
 }
 
 // بنحدّث محتوى الـ item الموجود في مكانه من غير ما نعيد إنشاء العنصر نفسه —
