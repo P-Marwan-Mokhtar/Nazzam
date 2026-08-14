@@ -203,10 +203,6 @@ function renderAccountModal(){
         <span>حسابك متزامن ومتاح من أي جهاز</span>
       </div>
     </div>
-    <div class="account-section">
-      <div class="account-section-title"><span class="material-icons">palette</span> تخصيص الشكل</div>
-      <div class="theme-picker" id="themePicker"></div>
-    </div>
     <button class="account-secondary-btn" id="signOutBtn" style="width:100%;">تسجيل الخروج</button>
   `;
   const signOutBtn = document.getElementById('signOutBtn');

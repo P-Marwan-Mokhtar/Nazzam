@@ -7,7 +7,7 @@ import { detectTimezone, todayStr, uid } from './utils.js';
 import { LOCAL_BACKUP_KEY, PENDING_SYNC_KEY, showToast, state } from './state.js';
 import { currentUserId, ensureAuth } from './auth.js';
 import { render } from './render.js';
-import { THEMES, applyTheme } from './theme.js';
+import { applyTheme, isValidAccent, resolveLegacyTheme } from './theme.js';
 
 const MAX_IMPORT_SIZE = 10 * 1024 * 1024; // حد أقصى لحجم ملف الاستيراد (10 ميجابايت)
 const EXPORT_MARKER = 'nazzam-backup-v1'; // بصمة النسخة الاحتياطية المصدّرة من التطبيق
@@ -47,7 +47,7 @@ export function exportDataAsJSON(){
 
 function isPlausibleBackupShape(obj){
   if(!obj || typeof obj !== 'object') return false;
-  const knownKeys = ['keywords', 'drafts', 'days', 'filters', 'timers', 'darkMode', 'themeName', 'recurringTasks', 'pinnedTaskNames'];
+  const knownKeys = ['keywords', 'drafts', 'days', 'filters', 'timers', 'darkMode', 'accentLight', 'accentDark', 'recurringTasks', 'pinnedTaskNames'];
   return knownKeys.some(k => Object.prototype.hasOwnProperty.call(obj, k));
 }
 
@@ -207,7 +207,8 @@ function sanitizeLoadedState(obj){
   out.filters = sanitizeList(obj.filters, sanitizeFilterItem) || [];
   out.timers = sanitizeDateMap(obj.timers, sanitizeTimer) || {};
   out.darkMode = obj.darkMode === true;
-  out.themeName = (typeof obj.themeName === 'string' && THEMES[obj.themeName]) ? obj.themeName : 'classic';
+  out.accentLight = isValidAccent(obj.accentLight) ? obj.accentLight : 'classic';
+  out.accentDark = isValidAccent(obj.accentDark) ? obj.accentDark : 'classic';
   out.recurringTasks = sanitizeRecurringTasks(obj.recurringTasks) || {};
   out.notificationSettings = sanitizeNotificationSettings(obj.notificationSettings);
   if(isPlainObject(obj.pinnedInjected)) out.pinnedInjected = obj.pinnedInjected;
@@ -316,13 +317,17 @@ function applyLoadedState(parsed){
   if(parsed.darkMode !== undefined){
     state.darkMode = parsed.darkMode;
     document.body.classList.toggle('dark-mode', state.darkMode);
-    const icon = document.getElementById('themeIcon');
-    const iconMobile = document.getElementById('themeIconMobile');
-    const text = state.darkMode ? 'light_mode' : 'dark_mode';
-    if(icon) icon.textContent = text;
-    if(iconMobile) iconMobile.textContent = text;
   }
-  if(typeof parsed.themeName === 'string' && THEMES[parsed.themeName]) state.themeName = parsed.themeName;
+  // الألوان المميزة لكل وضع (مستقلة)، مع ترقية تلقائية من الثيمات القديمة لو موجودة
+  if(isValidAccent(parsed.accentLight)) state.accentLight = parsed.accentLight;
+  if(isValidAccent(parsed.accentDark)) state.accentDark = parsed.accentDark;
+  if(!isValidAccent(parsed.accentLight) || !isValidAccent(parsed.accentDark)){
+    const legacy = resolveLegacyTheme(parsed.themeName);
+    if(legacy){
+      if(!isValidAccent(parsed.accentLight)) state.accentLight = legacy;
+      if(!isValidAccent(parsed.accentDark)) state.accentDark = legacy;
+    }
+  }
   applyTheme();
 }
 

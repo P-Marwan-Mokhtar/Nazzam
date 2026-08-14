@@ -102,8 +102,8 @@
             >
               <span class="material-icons">insights</span>
             </button>
-            <button class="header-icon-btn" id="themeBtn" title="الوضع الليلي">
-              <span class="material-icons" id="themeIcon">dark_mode</span>
+            <button class="header-icon-btn" id="themeBtn" title="المظهر">
+              <span class="material-icons" id="themeIcon">palette</span>
             </button>
           </div>
 
@@ -443,6 +443,19 @@
         </div>
         <div class="modal-body" id="accountBody"></div>
         <div id="turnstileContainer"></div>
+      </div>
+    </div>
+
+    <!-- Modal المظهر: وضع العرض (فاتح/داكن) + اللون المميز لكل وضع -->
+    <div class="modal-overlay" id="appearanceOverlay">
+      <div class="modal-card" style="max-width: 420px">
+        <div class="modal-header">
+          <h2 id="appearanceModalTitle">المظهر</h2>
+          <button class="icon-btn" id="closeAppearanceBtn" title="إغلاق">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+        <div class="modal-body" id="appearanceBody"></div>
       </div>
     </div>
 

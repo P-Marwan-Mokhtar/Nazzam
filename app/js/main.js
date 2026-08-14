@@ -24,7 +24,7 @@ import { closeDurationPicker, commitDurationPicker } from './wheelPicker.js';
 import { toggleWeekView } from './weekView.js';
 import { closeTimelineTaskPopup, toggleTimeBlockView } from './timeBlocking.js';
 import { applyHashToState, consumeShortcutViewParam } from './routing.js';
-import { applyTheme, renderThemePicker } from './theme.js';
+import { applyTheme, closeAppearanceModal, openAppearanceModal } from './theme.js';
 
 (async function init(){
   // أول حاجة: نتأكد إن فيه مستخدم حقيقي مسجّل دخوله فعليًا قبل ما نعرض أي حاجة من التطبيق.
@@ -113,19 +113,11 @@ async function startApp(){
     }
   });
 
-  const toggleDarkMode = async () => {
-    state.darkMode = !state.darkMode;
-    document.body.classList.toggle('dark-mode', state.darkMode);
-    applyTheme(); // الثيم بيختار ألوانه حسب الوضع الجديد (فاتح/داكن)
-    const icon = document.getElementById('themeIcon');
-    const iconMobile = document.getElementById('themeIconMobile');
-    const text = state.darkMode ? 'light_mode' : 'dark_mode';
-    if(icon) icon.textContent = text;
-    if(iconMobile) iconMobile.textContent = text;
-    if(ui.statsViewOpen) renderStatsView();
+  const onAppearanceChanged = async () => {
+    if(ui.statsViewOpen) renderStatsView(); // لو قافل على الإحصائيات نعيد رسمها بألوان المظهر الجديد
     await saveData();
   };
-  document.getElementById('themeBtn').onclick = toggleDarkMode;
+  document.getElementById('themeBtn').onclick = () => openAppearanceModal(onAppearanceChanged);
 
   // لوجو التطبيق في الهيدر: بدل ما يودّي للصفحة التسويقية، بيرجّع للتطبيق نفسه —
   // يفضي أي شاشة (إحصائيات/أسبوعي/جدول زمني) عبر مسح الـ hash، ويرجع لواجهة
@@ -220,17 +212,17 @@ async function startApp(){
     if(e.target === draftsOverlay) closeDraftsModal();
   });
 
-  document.getElementById('accountBtn').onclick = () => {
-    openAccountModal();
-    renderThemePicker(async () => {
-      if(ui.statsViewOpen) renderStatsView(); // لو كان قافل على الإحصائيات نعيد رسمها بألوان الثيم الجديد
-      await saveData();
-    });
-  };
+  document.getElementById('accountBtn').onclick = openAccountModal;
   document.getElementById('closeAccountBtn').onclick = closeAccountModal;
   const accountOverlay = document.getElementById('accountOverlay');
   accountOverlay.addEventListener('click', (e) => {
     if(e.target === accountOverlay) closeAccountModal();
+  });
+
+  const appearanceOverlay = document.getElementById('appearanceOverlay');
+  document.getElementById('closeAppearanceBtn').onclick = closeAppearanceModal;
+  appearanceOverlay.addEventListener('click', (e) => {
+    if(e.target === appearanceOverlay) closeAppearanceModal();
   });
 
   const draftsSearchInput = document.getElementById('draftsSearchInput');
@@ -320,6 +312,7 @@ async function startApp(){
       if(missedTasksOverlay && missedTasksOverlay.classList.contains('open')) closeMissedTasksModal();
       if(draftsOverlay.classList.contains('open')) closeDraftsModal();
       if(accountOverlay.classList.contains('open')) closeAccountModal();
+      if(appearanceOverlay.classList.contains('open')) closeAppearanceModal();
       if(pickerOverlay.classList.contains('open')) closeDurationPicker();
       if(addChoiceOverlay.classList.contains('open')) closeAddChoiceModal();
       if(ui.timerTypePopoverOpen){ ui.timerTypePopoverOpen = false; renderTimerPanel(); }
