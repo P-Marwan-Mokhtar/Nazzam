@@ -83,6 +83,10 @@ export const ui = {
   openClockChoiceTaskId: null,  // المهمة اللي فاتح لها اختيار (هدف / وقت فعلي) من أيقونة الساعة
   openPriorityPopoverTaskId: null,  // المهمة اللي فاتح لها اختيار مستوى الأهمية دلوقتي
   timeBlockViewOpen: false,  // لما تبقى true، #content بيعرض صفحة الجدول الزمني (Time blocking) بدل مهام اليوم
+  tbSideOpen: false,  // هل لوحة "مهام غير مجدولة" المنبثقة في الجدول الزمني مفتوحة دلوقتي
+  tbSideJustOpened: false,  // true لمرة واحدة بس لحظة فتح اللوحة — عشان أنيميشن الدخول يشتغل عند الفتح مش مع كل render
+  tbSideClosing: false,  // هل لوحة الجدول الزمني في مرحلة أنيميشن الإغلاق دلوقتي
+  tbSideCloseTimeoutId: null,  // مؤقّت إنهاء أنيميشن الإغلاق
   activeSubtasksTaskId: null,  // المهمة المفتوح لها نافذة المهام الفرعية
   dayStatusFilter: 'all',  // فلتر حالة مهام اليوم: all | pending | done
   dayStatusFilterOpen: false,  // هل قائمة فلتر الحالة مفتوحة دلوقتي

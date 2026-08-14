@@ -22,7 +22,7 @@ import { closeTaskNoteModal } from './taskNote.js';
 import { checkMissedTasksPopup, closeMissedTasksModal, renderTimerPanel, tickTimers } from './timers.js';
 import { closeDurationPicker, commitDurationPicker } from './wheelPicker.js';
 import { toggleWeekView } from './weekView.js';
-import { closeTimelineTaskPopup, toggleTimeBlockView } from './timeBlocking.js';
+import { closeTimelineTaskPopup, closeTbSide, toggleTimeBlockView } from './timeBlocking.js';
 import { applyHashToState, consumeShortcutViewParam } from './routing.js';
 import { applyTheme, closeAppearanceModal, openAppearanceModal } from './theme.js';
 
@@ -110,6 +110,9 @@ async function startApp(){
     if(ui.timerTypePopoverOpen && !e.target.closest('.timer-type-popover') && !e.target.closest('#addTimerBtn')){
       ui.timerTypePopoverOpen = false;
       renderTimerPanel();
+    }
+    if(ui.tbSideOpen && !e.target.closest('.timeblock-side') && !e.target.closest('#tbToggleSideBtn')){
+      closeTbSide();
     }
   });
 

@@ -31,6 +31,34 @@ export function toggleTimeBlockView(){
   render();
 }
 
+// فتح/غلق لوحة "مهام غير مجدولة" المنبثقة — بنفس نمط أنيميشن فلاتر الموبايل:
+// أنيميشن الدخول بيشتغل لمرة واحدة بس لحظة الفتح، وأنيميشن الخروج بيتنفذ وبعدها
+// بيتشال العنصر نهائيًا بالمؤقّت.
+export function toggleTbSide(){
+  if(ui.tbSideOpen){
+    closeTbSide();
+  } else {
+    if(ui.tbSideCloseTimeoutId){ clearTimeout(ui.tbSideCloseTimeoutId); ui.tbSideCloseTimeoutId = null; }
+    ui.tbSideClosing = false;
+    ui.tbSideJustOpened = true;
+    ui.tbSideOpen = true;
+    render();
+  }
+}
+
+export function closeTbSide(){
+  if(!ui.tbSideOpen && !ui.tbSideClosing) return;
+  if(ui.tbSideCloseTimeoutId){ clearTimeout(ui.tbSideCloseTimeoutId); ui.tbSideCloseTimeoutId = null; }
+  ui.tbSideOpen = false;
+  ui.tbSideClosing = true;
+  render();
+  ui.tbSideCloseTimeoutId = setTimeout(() => {
+    ui.tbSideClosing = false;
+    ui.tbSideCloseTimeoutId = null;
+    render();
+  }, 220);
+}
+
 function snapMinutes(min){
   return Math.round(min / SNAP_MIN) * SNAP_MIN;
 }
@@ -174,16 +202,16 @@ export function renderTimeBlockView(){
         </div>
         <button class="nav-btn" id="tbNextBtn" aria-label="اليوم التالي"><span class="material-icons">chevron_left</span></button>
       </div>
-      ${ui.selectedDate !== today ? `<button class="today-btn" id="tbTodayBtn">اليوم</button>` : ''}
+      <div class="tb-toolbar">
+        ${ui.selectedDate !== today ? `<button class="today-btn" id="tbTodayBtn">اليوم</button>` : ''}
+        <button class="tb-unscheduled-btn" id="tbToggleSideBtn" type="button" aria-expanded="${ui.tbSideOpen}">
+          <span class="material-icons">playlist_add</span>
+          <span>مهام غير مجدولة</span>
+          <span class="tb-unscheduled-badge" id="tbUnscheduledBadge">${unscheduled.length}</span>
+        </button>
+      </div>
 
       <div class="timeblock-layout">
-        <div class="timeblock-side">
-          <div class="timeblock-side-card">
-            <div class="timeblock-side-title">مهام غير مجدولة</div>
-            <div class="timeblock-unscheduled-list" id="tbUnscheduledList">${sideHtml}</div>
-            <div class="timeblock-side-hint">اسحب المهمة إلى الجدول لتحديد وقتها، واسحب حافة المهمة السفلية لتمديدها.</div>
-          </div>
-        </div>
         <div class="timeblock-calendar-col">
           <div class="timeline-container">
             <div class="timeline-track" id="tbTrack" data-start-hour="${startHour}" data-end-hour="${endHour}" style="height:${trackHeight}px">
@@ -193,12 +221,23 @@ export function renderTimeBlockView(){
             </div>
           </div>
         </div>
+        <div class="timeblock-side ${ui.tbSideOpen ? 'open' : ''} ${ui.tbSideJustOpened ? 'tb-open-anim' : ''} ${ui.tbSideClosing ? 'tb-closing' : ''}">
+          <div class="timeblock-side-card">
+            <div class="timeblock-side-head">
+              <div class="timeblock-side-title">مهام غير مجدولة</div>
+              <button class="tb-side-close-btn" id="tbSideCloseBtn" type="button" aria-label="إغلاق"><span class="material-icons">close</span></button>
+            </div>
+            <div class="timeblock-unscheduled-list" id="tbUnscheduledList">${sideHtml}</div>
+            <div class="timeblock-side-hint">اسحب المهمة إلى الجدول لتحديد وقتها، واسحب حافة المهمة السفلية لتمديدها.</div>
+          </div>
+        </div>
       </div>
     </div>
   `;
 
   contentEl.innerHTML = html;
   ui.justReturnedFromStats = false;
+  ui.tbSideJustOpened = false;
 
   attachTimeBlockEvents();
 }
@@ -207,9 +246,13 @@ function attachTimeBlockEvents(){
   const prevBtn = document.getElementById('tbPrevBtn');
   const nextBtn = document.getElementById('tbNextBtn');
   const todayBtn = document.getElementById('tbTodayBtn');
+  const toggleSideBtn = document.getElementById('tbToggleSideBtn');
+  const sideCloseBtn = document.getElementById('tbSideCloseBtn');
   if(prevBtn) prevBtn.onclick = () => { ui.selectedDate = addDays(ui.selectedDate, -1); ui.justChangedDay = true; render(); };
   if(nextBtn) nextBtn.onclick = () => { ui.selectedDate = addDays(ui.selectedDate, 1); ui.justChangedDay = true; render(); };
   if(todayBtn) todayBtn.onclick = () => { ui.selectedDate = todayStr(); ui.justChangedDay = true; render(); };
+  if(toggleSideBtn) toggleSideBtn.onclick = toggleTbSide;
+  if(sideCloseBtn) sideCloseBtn.onclick = () => closeTbSide();
 
   contentEl.querySelectorAll('.timeline-block').forEach(blockEl => {
     const taskId = blockEl.dataset.id;
@@ -256,6 +299,9 @@ function startBlockMove(e, blockEl){
 
   function pointOverSide(clientX, clientY){
     if(!sideCard) return false;
+    // على الديسكتوب اللوحة بتتقفل بالـ visibility — ولو مقفولة مبيبقاش في إرجاع لغير مجدولة.
+    // على الموبايل اللوحة ظاهرة دايمًا (الميديا كويري بتبطّل الإخفاء).
+    if(getComputedStyle(sideCard).visibility === 'hidden') return false;
     const r = sideCard.getBoundingClientRect();
     return clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
   }
@@ -375,7 +421,14 @@ function startSideItemDrag(e, itemEl){
 
   function pointOverTrack(clientX, clientY){
     const r = track.getBoundingClientRect();
-    return clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
+    if(clientX < r.left || clientX > r.right || clientY < r.top || clientY > r.bottom) return false;
+    // منطقة اللوحة المنبثقة فوق الجدول مبيتعاملش معاها كجدول أثناء السحب
+    const sideCard = document.querySelector('.timeblock-side.open');
+    if(sideCard){
+      const sr = sideCard.getBoundingClientRect();
+      if(clientX >= sr.left && clientX <= sr.right && clientY >= sr.top && clientY <= sr.bottom) return false;
+    }
+    return true;
   }
 
   function minutesFromClientY(clientY){
