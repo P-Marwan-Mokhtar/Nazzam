@@ -183,6 +183,44 @@ async function startApp(){
     };
   }
 
+  // الشريط الجانبي (Sidebar) على الشاشات الكبيرة: أزراره بتشغّل نفس أزرار الهيدر المخفي
+  const sideNavDataBtn = document.getElementById('sideNavDataBtn');
+  const sideNavDataPopover = document.getElementById('sideNavDataPopover');
+  const sideNavTasksBtn = document.getElementById('sideNavTasksBtn');
+  if(sideNavTasksBtn){
+    sideNavTasksBtn.addEventListener('click', () => {
+      ui.statsViewOpen = false;
+      ui.weekViewOpen = false;
+      ui.timeBlockViewOpen = false;
+      ui.justReturnedFromStats = true;
+      render();
+    });
+  }
+  document.querySelectorAll('.side-nav [data-side-target]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.sideTarget);
+      if(target) target.click();
+      if(btn.closest('.side-nav-popover')){
+        sideNavDataPopover.classList.remove('open');
+        sideNavDataBtn.classList.remove('is-open');
+      }
+    });
+  });
+  if(sideNavDataBtn && sideNavDataPopover){
+    sideNavDataBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const willOpen = !sideNavDataPopover.classList.contains('open');
+      sideNavDataPopover.classList.toggle('open', willOpen);
+      sideNavDataBtn.classList.toggle('is-open', willOpen);
+    });
+    document.addEventListener('click', (e) => {
+      if(!e.target.closest('.side-nav-data-wrap')){
+        sideNavDataPopover.classList.remove('open');
+        sideNavDataBtn.classList.remove('is-open');
+      }
+    });
+  }
+
   document.getElementById('closeGlobalSearchBtn').onclick = closeGlobalSearchModal;
   document.getElementById('globalSearchBtnMobile').onclick = openGlobalSearchModal;
   document.getElementById('globalSearchOverlay').onclick = (e) => {
@@ -322,6 +360,10 @@ async function startApp(){
   document.addEventListener('keydown', (e) => {
     if(e.key === 'Escape'){
       if(onboardingOverlay.classList.contains('open')){ closeOnboarding(); return; }
+      if(sideNavDataPopover && sideNavDataPopover.classList.contains('open')){
+        sideNavDataPopover.classList.remove('open');
+        sideNavDataBtn.classList.remove('is-open');
+      }
       if(ui.statsViewOpen){ ui.statsViewOpen = false; ui.justReturnedFromStats = true; render(); }
       if(ui.weekViewOpen){ ui.weekViewOpen = false; ui.justReturnedFromStats = true; render(); }
       if(ui.timeBlockViewOpen){ ui.timeBlockViewOpen = false; ui.justReturnedFromStats = true; render(); }

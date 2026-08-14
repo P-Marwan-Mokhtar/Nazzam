@@ -229,17 +229,75 @@
         </div>
       </div>
 
-      <div class="main-layout">
-        <div class="main-col">
-          <div id="content">
-            <div class="content-loading">
-              <div class="content-loading-spinner"></div>
-              <p>جارٍ تحميل بياناتك...</p>
+      <div class="app-shell">
+        <aside class="side-nav" aria-label="القائمة الرئيسية">
+          <button class="side-nav-btn" data-side-target="accountBtn" title="الحساب">
+            <span class="material-icons">person_outline</span>
+          </button>
+          <button class="side-nav-btn" id="sideNavTasksBtn" title="مهام اليوم">
+            <span class="material-icons">checklist</span>
+          </button>
+          <button class="side-nav-btn" id="sideNavStatsBtn" data-side-target="statsBtnTop" title="الإحصائيات">
+            <span class="material-icons">insights</span>
+          </button>
+          <button class="side-nav-btn" data-side-target="themeBtn" title="المظهر">
+            <span class="material-icons">palette</span>
+          </button>
+          <div class="side-nav-divider"></div>
+          <button class="side-nav-btn" data-side-target="globalSearchBtnMobile" title="البحث في كل المهام">
+            <span class="material-icons">manage_search</span>
+          </button>
+          <button class="side-nav-btn" data-side-target="draftsBtn" title="المهام المؤرشفة">
+            <span class="material-icons">drafts</span>
+          </button>
+          <button class="side-nav-btn" data-side-target="calendarBtn" title="التقويم">
+            <span class="material-icons">calendar_today</span>
+          </button>
+          <button class="side-nav-btn" id="sideNavWeekBtn" data-side-target="weekViewBtn" title="عرض الأسبوع">
+            <span class="material-icons">view_week</span>
+          </button>
+          <button class="side-nav-btn" id="sideNavTimeBlockBtn" data-side-target="timeBlockViewBtn" title="الجدول الزمني">
+            <span class="material-icons">event_note</span>
+          </button>
+          <button class="side-nav-btn" data-side-target="notificationSettingsBtn" title="إعدادات التنبيهات">
+            <span class="material-icons">notifications</span>
+          </button>
+          <div class="side-nav-divider"></div>
+          <div class="side-nav-data-wrap">
+            <button class="side-nav-btn" id="sideNavDataBtn" title="البيانات">
+              <span class="material-icons">import_export</span>
+            </button>
+            <div class="side-nav-popover" id="sideNavDataPopover">
+              <button class="header-menu-item" data-side-target="importDataBtn" title="استيراد نسخة احتياطية (JSON)">
+                <span class="material-icons">file_upload</span>
+                <span class="header-btn-label">استيراد البيانات</span>
+              </button>
+              <button class="header-menu-item" data-side-target="exportDataBtn" title="تصدير نسخة احتياطية (JSON)">
+                <span class="material-icons">file_download</span>
+                <span class="header-btn-label">تصدير البيانات</span>
+              </button>
+              <button class="header-menu-item" data-side-target="exportIcsBtn" title="تصدير المهام كملف تقويم">
+                <span class="material-icons">event</span>
+                <span class="header-btn-label">تصدير للتقويم</span>
+              </button>
             </div>
           </div>
-        </div>
-        <div class="timer-col">
-          <div id="timerPanel"></div>
+        </aside>
+
+        <div class="app-main">
+          <div class="main-layout">
+            <div class="main-col">
+              <div id="content">
+                <div class="content-loading">
+                  <div class="content-loading-spinner"></div>
+                  <p>جارٍ تحميل بياناتك...</p>
+                </div>
+              </div>
+            </div>
+            <div class="timer-col">
+              <div id="timerPanel"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

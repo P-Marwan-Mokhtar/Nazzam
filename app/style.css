@@ -70,13 +70,13 @@ body {
   font-family: "Almarai", sans-serif;
   color: var(--ink);
   min-height: 100vh;
-  padding: 28px 16px 60px;
+  padding: 12px 16px 48px;
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
 }
 .wrap {
-  max-width: 1350px;
+  max-width: 100%;
   margin: 0 auto;
 }
 
@@ -283,7 +283,7 @@ body.dark-mode .header-logo-dark {
   font-weight: 800;
   font-size: 1.1rem;
   color: var(--ink);
-  margin: 20px 0 12px;
+  margin: 12px 0 8px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2061,15 +2061,15 @@ select:focus {
 .main-layout {
   display: flex;
   align-items: flex-start;
-  gap: 28px;
-  margin-top: 8px;
+  gap: 12px;
+  margin-top: 0;
 }
 .main-col {
   flex: 1 1 0;
   min-width: 0;
 }
 .timer-col {
-  flex: 0 0 320px;
+  flex: 0 0 380px;
   position: sticky;
   top: 20px;
 }
@@ -2433,6 +2433,121 @@ select:focus {
 .header-more-btn.is-open:hover {
   background: var(--done);
   color: #fff;
+}
+
+/* ===== App shell: الشريط الجانبي (Sidebar) + المحتوى ===== */
+.app-shell {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  min-height: calc(100vh - 60px);
+}
+.side-nav {
+  flex: 0 0 64px;
+  position: sticky;
+  top: 20px;
+  z-index: 50;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.side-nav-btn {
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--pen);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.1s ease;
+}
+.side-nav-btn:hover {
+  background: var(--done-soft);
+  color: var(--done);
+}
+.side-nav-btn:active {
+  transform: scale(0.92);
+}
+.side-nav-btn.active {
+  background: var(--pen);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(197, 72, 46, 0.35);
+}
+.side-nav-btn.active:hover {
+  background: var(--pen);
+  color: #fff;
+}
+.side-nav-btn .material-icons {
+  font-size: 22px;
+}
+.side-nav-divider {
+  width: 30px;
+  height: 1px;
+  background: var(--paper-line);
+  margin: 6px 0;
+  flex: 0 0 auto;
+}
+.side-nav-data-wrap {
+  position: relative;
+}
+.side-nav-data-btn.is-open {
+  background: var(--done-soft);
+  color: var(--done);
+}
+.side-nav-popover {
+  position: absolute;
+  right: calc(100% + 10px);
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--card);
+  border: 1px solid var(--paper-line);
+  border-radius: 14px;
+  padding: 6px;
+  box-shadow: var(--shadow-hover);
+  min-width: 170px;
+  opacity: 0;
+  transform: translateX(8px);
+  pointer-events: none;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+  z-index: 80;
+}
+.side-nav-popover.open {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+.side-nav-popover .header-menu-item {
+  white-space: nowrap;
+}
+.app-main {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 16px 18px 20px;
+}
+
+/* الهيدر القديم بيظهر على الموبايل بس، والشريط الجانبي على الشاشات الكبيرة */
+@media (min-width: 641px) {
+  .header-card {
+    display: none;
+  }
+  .binding {
+    display: none;
+  }
 }
 
 /* Dropdown menu panel */
@@ -3263,7 +3378,7 @@ body.dark-mode .account-error {
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1236px) {
   .main-layout {
     flex-direction: column;
     align-items: stretch;
@@ -3284,6 +3399,16 @@ body.dark-mode .account-error {
     padding: 18px 10px 50px;
   }
 
+  .app-shell {
+    display: block;
+  }
+  .side-nav {
+    display: none;
+  }
+  .header-card {
+    display: block;
+  }
+
   .header-card {
     padding: 16px 12px 14px;
   }
@@ -3295,7 +3420,7 @@ body.dark-mode .account-error {
   .header-top-bar {
     display: flex;
     order: 1;
-    border-radius: 0 14px 14px 0;
+    border-radius: 14px;
   }
   .header-actions-wrap {
     order: 2;
@@ -3304,15 +3429,16 @@ body.dark-mode .account-error {
     align-items: center;
     background: var(--paper);
     padding: 4px;
-    border-radius: 14px 0 0 14px;
+    border-radius: 14px;
   }
   .header-more-btn {
     background: transparent;
   }
   .header-actions-panel {
-    right: 0;
-    left: auto;
+    left: 0;
+    right: auto;
     min-width: 190px;
+    max-width: calc(100vw - 24px);
   }
 
   .date-nav {
@@ -4388,16 +4514,12 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   .task-row:not(.dragging):not(.drag-over):hover,
   .keyword-row:not(.dragging):not(.drag-over):hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-hover);
+    background-color: var(--paper);
   }
-  .bank-wrap:hover,
-  .date-nav:hover,
-  .section-title:hover,
-  .header-card:hover,
   .stats-summary-pill:hover,
   .timeblock-side-item:hover,
   .week-day-card:hover {
-    box-shadow: var(--shadow-hover);
+    background-color: var(--paper);
   }
 }
 
@@ -4516,4 +4638,26 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 }
 .onboarding-next-btn:hover {
   filter: brightness(1.08);
+}
+
+/* ===== تخطيط موحّد: خلفية واحدة (نقاط) والـ components أقسام فوقها ===== */
+.header-card,
+.date-nav,
+.section-title,
+.bank-wrap,
+.timer-panel-card,
+.week-day-card {
+  box-shadow: var(--shadow);
+  border: 1px solid var(--paper-line);
+  background-color: var(--card);
+}
+.task-row {
+  box-shadow: none;
+  border: 1px solid var(--paper-line);
+  background-color: var(--card);
+}
+.keyword-row {
+  box-shadow: none;
+  border: 1px solid var(--paper-line);
+  background-color: var(--paper);
 }

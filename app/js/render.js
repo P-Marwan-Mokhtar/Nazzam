@@ -45,6 +45,7 @@ export function ensureDayMaterialized(dateStr){
 export function render(){
   hideDurationPopover();
   syncHashWithState();
+  updateSideNavActive();
   const mainLayoutEl = document.querySelector('.main-layout');
   if(mainLayoutEl) mainLayoutEl.classList.toggle('week-view-active', ui.weekViewOpen || ui.timeBlockViewOpen || ui.statsViewOpen);
   if(ui.statsViewOpen){
@@ -403,4 +404,18 @@ export function render(){
     renderTimerPanel();
     ui.timerPanelRenderedForDate = ui.selectedDate;
   }
+}
+
+// الشريط الجانبي: بنحط كلاس active على أيقونة الشاشة الحالية (مهام/إحصائيات/أسبوع/جدول زمني)
+function updateSideNavActive(){
+  document.querySelectorAll('.side-nav .side-nav-btn').forEach(btn => btn.classList.remove('active'));
+  const onMainView = !ui.statsViewOpen && !ui.weekViewOpen && !ui.timeBlockViewOpen;
+  const mark = (id, cond) => {
+    const el = document.getElementById(id);
+    if(el) el.classList.toggle('active', cond);
+  };
+  mark('sideNavTasksBtn', onMainView);
+  mark('sideNavStatsBtn', ui.statsViewOpen);
+  mark('sideNavWeekBtn', ui.weekViewOpen);
+  mark('sideNavTimeBlockBtn', ui.timeBlockViewOpen);
 }
