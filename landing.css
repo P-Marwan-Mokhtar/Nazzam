@@ -124,10 +124,10 @@ button { font-family: inherit; }
 ::selection { background: var(--brand); color: #fff; }
 :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
 
-/* عناوين: الهيرو بـ Rubik (لحظة الهوية)، والنصوص Almarai
+/* عناوين: الهيرو بـ Tajawal (لحظة الهوية)، والنصوص Almarai
    زي بقية أقسام منتجات الـ SaaS المحترفة */
 h1 {
-  font-family: "Rubik", sans-serif;
+  font-family: "Tajawal", sans-serif;
   font-weight: 400;
   color: var(--ink);
   margin: 0;
@@ -911,7 +911,7 @@ h2, h3, h4 {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: "Rubik", sans-serif;
+  font-family: "Tajawal", sans-serif;
   font-weight: 400;
   font-size: 1.2rem;
   color: var(--ink);
@@ -1125,7 +1125,7 @@ h2, h3, h4 {
   background: radial-gradient(50% 70% at 50% -10%, rgba(255, 255, 255, 0.28), transparent 70%);
 }
 .lp-final-cta-inner { position: relative; text-align: center; color: #fff; }
-.lp-final-cta h2 { font-family: "Rubik", sans-serif; font-weight: 400; color: #fff; font-size: clamp(2.1rem, 4.5vw, 3.4rem); margin-bottom: 14px; }
+.lp-final-cta h2 { font-family: "Tajawal", sans-serif; font-weight: 400; color: #fff; font-size: clamp(2.1rem, 4.5vw, 3.4rem); margin-bottom: 14px; }
 .lp-final-cta p { color: rgba(255, 255, 255, 0.92); font-size: 1.12rem; margin: 0 0 34px; }
 .lp-final-cta-badge {
   display: inline-flex;

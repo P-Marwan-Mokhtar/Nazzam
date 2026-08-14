@@ -225,6 +225,22 @@ async function startApp(){
     if(e.target === appearanceOverlay) closeAppearanceModal();
   });
 
+  // Modal الترحيبي: تنقّل بين الشاشات وإغلاق (بيظهر لأول زيارة فقط)
+  const onboardingOverlay = document.getElementById('onboardingOverlay');
+  document.getElementById('closeOnboardingBtn').onclick = closeOnboarding;
+  document.getElementById('onboardingNextBtn').onclick = () => {
+    if(onboardingStep >= 2){ closeOnboarding(); return; }
+    goOnboardingStep(onboardingStep + 1);
+  };
+  document.getElementById('onboardingSkipBtn').onclick = () => {
+    if(onboardingStep > 0){ goOnboardingStep(onboardingStep - 1); return; }
+    closeOnboarding();
+  };
+  onboardingOverlay.addEventListener('click', (e) => {
+    if(e.target === onboardingOverlay) closeOnboarding();
+  });
+  checkOnboarding();
+
   const draftsSearchInput = document.getElementById('draftsSearchInput');
   const draftsSearchClear = document.getElementById('draftsSearchClear');
   if(draftsSearchInput){
@@ -305,6 +321,7 @@ async function startApp(){
 
   document.addEventListener('keydown', (e) => {
     if(e.key === 'Escape'){
+      if(onboardingOverlay.classList.contains('open')){ closeOnboarding(); return; }
       if(ui.statsViewOpen){ ui.statsViewOpen = false; ui.justReturnedFromStats = true; render(); }
       if(ui.weekViewOpen){ ui.weekViewOpen = false; ui.justReturnedFromStats = true; render(); }
       if(ui.timeBlockViewOpen){ ui.timeBlockViewOpen = false; ui.justReturnedFromStats = true; render(); }
@@ -346,4 +363,41 @@ async function startApp(){
       window.location.reload();
     });
   }
+}
+
+// ============================================================
+// Modal الترحيبي (Onboarding) — شاشة تعارف قصيرة لأول زيارة فقط
+// ============================================================
+const ONBOARDING_SEEN_KEY = 'nazzam_onboarding_seen_v1';
+let onboardingStep = 0;
+
+function openOnboarding(){
+  onboardingStep = 0;
+  renderOnboardingStep(0);
+  document.getElementById('onboardingOverlay').classList.add('open');
+}
+
+function closeOnboarding(){
+  document.getElementById('onboardingOverlay').classList.remove('open');
+  localStorage.setItem(ONBOARDING_SEEN_KEY, '1');
+}
+
+function goOnboardingStep(step){
+  onboardingStep = step;
+  renderOnboardingStep(step);
+}
+
+function renderOnboardingStep(step){
+  document.querySelectorAll('.onboarding-step').forEach((el) => {
+    el.classList.toggle('active', Number(el.dataset.step) === step);
+  });
+  document.querySelectorAll('.onboarding-dot').forEach((el) => {
+    el.classList.toggle('active', Number(el.dataset.dot) === step);
+  });
+  document.getElementById('onboardingSkipBtn').textContent = step > 0 ? 'رجوع' : 'تخطي';
+  document.getElementById('onboardingNextLabel').textContent = step === 2 ? 'ابدأ الآن' : 'التالي';
+}
+
+function checkOnboarding(){
+  if(!localStorage.getItem(ONBOARDING_SEEN_KEY)) openOnboarding();
 }

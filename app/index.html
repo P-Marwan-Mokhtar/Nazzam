@@ -57,7 +57,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Rubik:wght@400;500;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Tajawal:wght@400;500;700;800&display=swap"
       rel="stylesheet"
     />
     <link
@@ -762,6 +762,52 @@
               <span>حذف من الجدول</span>
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal الترحيبي: شاشة تعارف قصيرة لأول زيارة فقط -->
+    <div class="modal-overlay onboarding-overlay" id="onboardingOverlay">
+      <div class="modal-card onboarding-card" style="max-width: 420px">
+        <div class="modal-header">
+          <h2>أهلاً بك في نظّم</h2>
+          <button class="icon-btn" id="closeOnboardingBtn" title="إغلاق">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+        <div class="modal-body onboarding-body">
+          <div class="onboarding-step active" data-step="0">
+            <div class="onboarding-illust">
+              <span class="material-icons">playlist_add_check</span>
+            </div>
+            <h3 class="onboarding-step-title">اكتب المهمة مرة واحدة</h3>
+            <p class="onboarding-step-text">ضع مهامك الثابتة في بنك المهام، وأضفها إلى مهام اليوم بضغطة واحدة دون الحاجة إلى إعادة كتابتها كل مرة.</p>
+          </div>
+          <div class="onboarding-step" data-step="1">
+            <div class="onboarding-illust">
+              <span class="material-icons">event_repeat</span>
+            </div>
+            <h3 class="onboarding-step-title">رتب يومك وكرّر مهامك</h3>
+            <p class="onboarding-step-text">اضبط المهام المتكررة باليوم أو بالأسبوع، وحدد لكل مهمة موعدها ومدتها وأهميتها، وستُرتب مهام اليوم تلقائيًا مع متابعة إنجازك.</p>
+          </div>
+          <div class="onboarding-step" data-step="2">
+            <div class="onboarding-illust">
+              <span class="material-icons">timer</span>
+            </div>
+            <h3 class="onboarding-step-title">ركّز باستخدام المؤقتات</h3>
+            <p class="onboarding-step-text">سجّل وقتك عبر مؤقت مفتوح أو مؤقت بمدة محددة من لوحة مؤقتات اليوم، أو ابدأ مؤقتًا باسم أي مهمة من قائمة الوقت الخاصة بها، وتابع إجمالي وقتك الفعلي في الإحصائيات.</p>
+          </div>
+          <div class="onboarding-dots">
+            <span class="onboarding-dot active" data-dot="0"></span>
+            <span class="onboarding-dot" data-dot="1"></span>
+            <span class="onboarding-dot" data-dot="2"></span>
+          </div>
+        </div>
+        <div class="onboarding-footer">
+          <button class="onboarding-skip-btn" id="onboardingSkipBtn" type="button">تخطي</button>
+          <button class="onboarding-next-btn" id="onboardingNextBtn" type="button">
+            <span id="onboardingNextLabel">التالي</span>
+          </button>
         </div>
       </div>
     </div>

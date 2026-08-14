@@ -11,7 +11,9 @@
   --missed-soft: #f4dedb;
   --card: #ffffff;
   --radius: 10px;
-  --shadow: 0 1px 2px rgba(34, 48, 61, 0.06), 0 4px 14px rgba(34, 48, 61, 0.05);
+  --shadow: 0 1px 2px rgba(34, 48, 61, 0.04), 0 4px 12px rgba(34, 48, 61, 0.03);
+  --shadow-hover: 0 2px 4px rgba(34, 48, 61, 0.05), 0 8px 20px rgba(34, 48, 61, 0.07);
+  --transition: 0.2s ease;
 }
 
 /* ===== Dark Mode Variables & Overrides ===== */
@@ -27,7 +29,8 @@ body.dark-mode {
   --missed: #ff6b5e;
   --missed-soft: #3a1c1c;
   --card: #1c2128;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.25);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.16), 0 3px 10px rgba(0, 0, 0, 0.12);
+  --shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.24), 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 body.dark-mode .timer-item {
   background: #181c20;
@@ -100,8 +103,9 @@ body {
   text-align: center;
   position: relative;
   transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease;
+    background-color var(--transition),
+    border-color var(--transition),
+    box-shadow var(--transition);
 }
 .header-logo {
   display: block;
@@ -132,6 +136,7 @@ body.dark-mode .header-logo-dark {
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 10px 10px;
+  transition: box-shadow var(--transition);
 }
 .nav-btn {
   background: transparent;
@@ -159,7 +164,7 @@ body.dark-mode .header-logo-dark {
   flex: 1;
 }
 .date-display .day-name {
-  font-family: "Rubik", sans-serif;
+  font-family: "Tajawal", sans-serif;
   font-size: 1.25rem;
   color: var(--pen);
   margin-bottom: 6px;
@@ -185,6 +190,22 @@ body.dark-mode .header-logo-dark {
   background: var(--pen-soft);
 }
 
+/* Ø£Ù†ÙŠÙ…ÙŠØ´Ù† Ø¯Ø®ÙˆÙ„ Ù…Ù‡Ø§Ù… Ø§Ù„ÙŠÙˆÙ… Ø¨Ø§Ù„ØªØ±ØªÙŠØ¨ (ÙˆØ§Ø­Ø¯Ø© ÙˆØ±Ø§ Ø§Ù„ØªØ§Ù†ÙŠØ©) */
+.task-list .task-row.task-in {
+  animation: taskIn 0.35s ease backwards;
+  animation-delay: calc(var(--task-order, 0) * 55ms);
+}
+@keyframes taskIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* ===== Modern Calendar Widget (Popup) ===== */
 .calendar-card {
   background: var(--card);
@@ -198,7 +219,7 @@ body.dark-mode .header-logo-dark {
   margin-bottom: 12px;
 }
 .calendar-month-title {
-  font-family: "Rubik", sans-serif;
+  font-family: "Tajawal", sans-serif;
   font-size: 1.15rem;
   color: var(--ink);
 }
@@ -266,6 +287,7 @@ body.dark-mode .header-logo-dark {
   display: flex;
   align-items: center;
   gap: 8px;
+  transition: box-shadow var(--transition);
 }
 .section-title::before {
   content: "";
@@ -345,7 +367,9 @@ body.dark-mode .header-logo-dark {
   background: var(--card);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  transition: background-color 0.2s ease;
+  transition:
+    box-shadow var(--transition),
+    background-color var(--transition);
 }
 .bank-toggle {
   width: 100%;
@@ -366,6 +390,10 @@ body.dark-mode .header-logo-dark {
 }
 .bank-toggle:hover {
   background: var(--paper);
+  border-radius: var(--radius);
+}
+.bank-wrap:has(.bank-content) .bank-toggle:hover {
+  border-radius: var(--radius) var(--radius) 0 0;
 }
 .bank-toggle::before {
   content: "";
@@ -439,7 +467,7 @@ body.dark-mode .header-logo-dark {
   flex: 1 1 auto;
 }
 .bank-filters-toggle {
-  display: none; /* يظهر فقط على الموبايل، انظر media query */
+  display: none; /* ÙŠØ¸Ù‡Ø± ÙÙ‚Ø· Ø¹Ù„Ù‰ Ø§Ù„Ù…ÙˆØ¨Ø§ÙŠÙ„ØŒ Ø§Ù†Ø¸Ø± media query */
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
@@ -552,8 +580,8 @@ body.dark-mode .header-logo-dark {
   gap: 8px;
   transition:
     opacity 0.15s ease,
-    box-shadow 0.15s ease,
-    transform 0.15s ease;
+    box-shadow var(--transition),
+    transform var(--transition);
 }
 .keyword-row[draggable="true"],
 .task-row[draggable="true"] {
@@ -788,7 +816,7 @@ body.dark-mode .task-row.priority-medium {
   border-color: var(--pen);
 }
 
-/* ===== Modal تفاصيل المهمة ===== */
+/* ===== Modal ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ù…Ù‡Ù…Ø© ===== */
 .td-head {
   display: flex;
   align-items: center;
@@ -1025,7 +1053,7 @@ body.dark-mode .task-row.priority-medium {
   padding: 9px;
 }
 
-/* ===== بوب أب الهدف / الوقت الفعلي ===== */
+/* ===== Ø¨ÙˆØ¨ Ø£Ø¨ Ø§Ù„Ù‡Ø¯Ù / Ø§Ù„ÙˆÙ‚Øª Ø§Ù„ÙØ¹Ù„ÙŠ ===== */
 .duration-popover {
   position: fixed;
   z-index: 40;
@@ -1050,8 +1078,8 @@ body.dark-mode .task-row.priority-medium {
   animation: popupIn 0.18s ease;
 }
 
-/* دخول موحّد للـ popup اللي بيفتح بـ display:none → flex
-   (لأن الـ transition مش بيشتغل لما العنصر يكون مخفي بالـ display) */
+/* Ø¯Ø®ÙˆÙ„ Ù…ÙˆØ­Ù‘Ø¯ Ù„Ù„Ù€ popup Ø§Ù„Ù„ÙŠ Ø¨ÙŠÙØªØ­ Ø¨Ù€ display:none â†’ flex
+   (Ù„Ø£Ù† Ø§Ù„Ù€ transition Ù…Ø´ Ø¨ÙŠØ´ØªØºÙ„ Ù„Ù…Ø§ Ø§Ù„Ø¹Ù†ØµØ± ÙŠÙƒÙˆÙ† Ù…Ø®ÙÙŠ Ø¨Ø§Ù„Ù€ display) */
 @keyframes popupIn {
   from {
     opacity: 0;
@@ -1089,13 +1117,13 @@ body.dark-mode .task-row.priority-medium {
   color: var(--pen);
 }
 
-/* ===== بوب أب اختيار الهدف / الوقت الفعلي (من أيقونة الساعة) ===== */
+/* ===== Ø¨ÙˆØ¨ Ø£Ø¨ Ø§Ø®ØªÙŠØ§Ø± Ø§Ù„Ù‡Ø¯Ù / Ø§Ù„ÙˆÙ‚Øª Ø§Ù„ÙØ¹Ù„ÙŠ (Ù…Ù† Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø§Ù„Ø³Ø§Ø¹Ø©) ===== */
 .time-choice-submenu-wrap {
   position: relative;
 }
 
-/* جوه مودال تفاصيل المهمة: بوب أبات الأهمية/الوقت بيفتح fixed فوق الكل
-   (بحسبة JS تحت الزرار) عشان ميعملش سكرول في المودال وميتقطعش بره الكارت */
+/* Ø¬ÙˆÙ‡ Ù…ÙˆØ¯Ø§Ù„ ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ù…Ù‡Ù…Ø©: Ø¨ÙˆØ¨ Ø£Ø¨Ø§Øª Ø§Ù„Ø£Ù‡Ù…ÙŠØ©/Ø§Ù„ÙˆÙ‚Øª Ø¨ÙŠÙØªØ­ fixed ÙÙˆÙ‚ Ø§Ù„ÙƒÙ„
+   (Ø¨Ø­Ø³Ø¨Ø© JS ØªØ­Øª Ø§Ù„Ø²Ø±Ø§Ø±) Ø¹Ø´Ø§Ù† Ù…ÙŠØ¹Ù…Ù„Ø´ Ø³ÙƒØ±ÙˆÙ„ ÙÙŠ Ø§Ù„Ù…ÙˆØ¯Ø§Ù„ ÙˆÙ…ÙŠØªÙ‚Ø·Ø¹Ø´ Ø¨Ø±Ù‡ Ø§Ù„ÙƒØ§Ø±Øª */
 .td-more-menu-wrap .priority-popover,
 .td-more-menu-wrap .clock-choice-popover {
   position: fixed;
@@ -1155,7 +1183,7 @@ body.dark-mode .task-row.priority-medium {
   color: var(--pen);
 }
 
-/* ===== مستوى الأهمية (Priority) ===== */
+/* ===== Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ø£Ù‡Ù…ÙŠØ© (Priority) ===== */
 .priority-btn {
   flex: 0 0 auto;
   background: transparent;
@@ -1720,6 +1748,9 @@ body.dark-mode .priority-dot-medium {
   width: auto;
   align-items: center;
   gap: 6px;
+  transition:
+    box-shadow var(--transition),
+    transform var(--transition);
 }
 .bank-content.animate-in .keyword-row,
 .keyword-list.animate-in .keyword-row {
@@ -2010,7 +2041,7 @@ body.dark-mode .priority-dot-medium {
   outline-offset: 2px;
 }
 
-/* الـ inputs: على الفوكس نكتفي ببوردر واحدة ملونة — ممنوع أي outline/هالة خارجية */
+/* Ø§Ù„Ù€ inputs: Ø¹Ù„Ù‰ Ø§Ù„ÙÙˆÙƒØ³ Ù†ÙƒØªÙÙŠ Ø¨Ø¨ÙˆØ±Ø¯Ø± ÙˆØ§Ø­Ø¯Ø© Ù…Ù„ÙˆÙ†Ø© â€” Ù…Ù…Ù†ÙˆØ¹ Ø£ÙŠ outline/Ù‡Ø§Ù„Ø© Ø®Ø§Ø±Ø¬ÙŠØ© */
 input:focus,
 input:focus-visible,
 textarea:focus,
@@ -2043,7 +2074,7 @@ select:focus {
   top: 20px;
 }
 
-/* ===== حالة التحميل الأولية (بيتمسح تلقائيًا مع أول render) ===== */
+/* ===== Ø­Ø§Ù„Ø© Ø§Ù„ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø£ÙˆÙ„ÙŠØ© (Ø¨ÙŠØªÙ…Ø³Ø­ ØªÙ„Ù‚Ø§Ø¦ÙŠÙ‹Ø§ Ù…Ø¹ Ø£ÙˆÙ„ render) ===== */
 .content-loading {
   display: flex;
   flex-direction: column;
@@ -2329,7 +2360,7 @@ select:focus {
   color: #c0392b;
 }
 
-/* ===== Header row: icon pill (right) — logo (center) — more button (left) =====
+/* ===== Header row: icon pill (right) â€” logo (center) â€” more button (left) =====
    In RTL, first DOM child sits at the row's start (right) and the last at its end (left). */
 .header-row {
   display: flex;
@@ -2388,7 +2419,7 @@ select:focus {
   min-width: 0;
 }
 
-/* "More" (•••) button — its own small pill, mirrors the icon pill on the other side */
+/* "More" (â€¢â€¢â€¢) button â€” its own small pill, mirrors the icon pill on the other side */
 .header-actions-wrap {
   position: relative;
   flex-shrink: 0;
@@ -2690,7 +2721,7 @@ body.dark-mode .account-error {
   margin: -4px 0 4px;
 }
 
-/* حقل الباسورد مع زرار الإظهار/الإخفاء */
+/* Ø­Ù‚Ù„ Ø§Ù„Ø¨Ø§Ø³ÙˆØ±Ø¯ Ù…Ø¹ Ø²Ø±Ø§Ø± Ø§Ù„Ø¥Ø¸Ù‡Ø§Ø±/Ø§Ù„Ø¥Ø®ÙØ§Ø¡ */
 .account-pass-wrap {
   position: relative;
   display: flex;
@@ -2722,7 +2753,7 @@ body.dark-mode .account-error {
   font-size: 19px;
 }
 
-/* زرار "تسجيل الدخول" في حالة انتظار الرد */
+/* Ø²Ø±Ø§Ø± "ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„" ÙÙŠ Ø­Ø§Ù„Ø© Ø§Ù†ØªØ¸Ø§Ø± Ø§Ù„Ø±Ø¯ */
 .account-primary-btn:disabled,
 .account-google-btn:disabled {
   opacity: 0.7;
@@ -2751,7 +2782,7 @@ body.dark-mode .account-error {
   }
 }
 
-/* فاصل "أو" بين تسجيل الدخول بالإيميل وGoogle */
+/* ÙØ§ØµÙ„ "Ø£Ùˆ" Ø¨ÙŠÙ† ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¨Ø§Ù„Ø¥ÙŠÙ…ÙŠÙ„ ÙˆGoogle */
 .account-divider {
   display: flex;
   align-items: center;
@@ -2768,7 +2799,7 @@ body.dark-mode .account-error {
   background: var(--paper-line);
 }
 
-/* زرار المتابعة عبر Google */
+/* Ø²Ø±Ø§Ø± Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø© Ø¹Ø¨Ø± Google */
 .account-google-btn {
   display: flex;
   align-items: center;
@@ -2789,7 +2820,7 @@ body.dark-mode .account-error {
   background: var(--done-soft);
 }
 
-/* حاوية Turnstile الغير مرئية - محتاجة تكون في الـ DOM بس مش هتاخد مساحة */
+/* Ø­Ø§ÙˆÙŠØ© Turnstile Ø§Ù„ØºÙŠØ± Ù…Ø±Ø¦ÙŠØ© - Ù…Ø­ØªØ§Ø¬Ø© ØªÙƒÙˆÙ† ÙÙŠ Ø§Ù„Ù€ DOM Ø¨Ø³ Ù…Ø´ Ù‡ØªØ§Ø®Ø¯ Ù…Ø³Ø§Ø­Ø© */
 #turnstileContainer {
   position: absolute;
   width: 0;
@@ -2855,7 +2886,7 @@ body.dark-mode .account-error {
   flex: 0 0 auto;
 }
 .modal-header h2 {
-  font-family: "Rubik", sans-serif;
+  font-family: "Tajawal", sans-serif;
   font-size: 1.3rem;
   margin: 0;
   color: var(--ink);
@@ -2995,7 +3026,7 @@ body.dark-mode .account-error {
   }
 }
 
-/* ===== شاشة الإحصائيات (تظهر مكان مهام اليوم داخل #content) ===== */
+/* ===== Ø´Ø§Ø´Ø© Ø§Ù„Ø¥Ø­ØµØ§Ø¦ÙŠØ§Øª (ØªØ¸Ù‡Ø± Ù…ÙƒØ§Ù† Ù…Ù‡Ø§Ù… Ø§Ù„ÙŠÙˆÙ… Ø¯Ø§Ø®Ù„ #content) ===== */
 .stats-view,
 .day-view.animate-in {
   animation: statsFadeIn 0.25s ease;
@@ -3021,7 +3052,7 @@ body.dark-mode .account-error {
   margin-bottom: 14px;
 }
 .stats-view-header h2 {
-  font-family: "Rubik", sans-serif;
+  font-family: "Tajawal", sans-serif;
   font-size: 1.25rem;
   margin: 0;
   color: var(--ink);
@@ -3058,7 +3089,7 @@ body.dark-mode .account-error {
   color: var(--ink-soft);
 }
 
-/* ===== شريط التبديل بين إحصائيات اليوم والأسبوع (جوه الـheader نفسه) ===== */
+/* ===== Ø´Ø±ÙŠØ· Ø§Ù„ØªØ¨Ø¯ÙŠÙ„ Ø¨ÙŠÙ† Ø¥Ø­ØµØ§Ø¦ÙŠØ§Øª Ø§Ù„ÙŠÙˆÙ… ÙˆØ§Ù„Ø£Ø³Ø¨ÙˆØ¹ (Ø¬ÙˆÙ‡ Ø§Ù„Ù€header Ù†ÙØ³Ù‡) ===== */
 .stats-range-toggle {
   display: flex;
   gap: 4px;
@@ -3087,7 +3118,7 @@ body.dark-mode .account-error {
   color: #fff;
 }
 
-/* ===== مقارنة الأسبوع بالأسبوع اللي فات ===== */
+/* ===== Ù…Ù‚Ø§Ø±Ù†Ø© Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹ Ø¨Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹ Ø§Ù„Ù„ÙŠ ÙØ§Øª ===== */
 .week-compare-card {
   background: var(--paper);
   border: 1px solid var(--paper-line);
@@ -3440,7 +3471,7 @@ body.dark-mode .account-error {
   }
 }
 
-/* زرار فلاتر البنك على الموبايل + إخفاء الفلاتر افتراضيًا حتى تُفتح بالزرار */
+/* Ø²Ø±Ø§Ø± ÙÙ„Ø§ØªØ± Ø§Ù„Ø¨Ù†Ùƒ Ø¹Ù„Ù‰ Ø§Ù„Ù…ÙˆØ¨Ø§ÙŠÙ„ + Ø¥Ø®ÙØ§Ø¡ Ø§Ù„ÙÙ„Ø§ØªØ± Ø§ÙØªØ±Ø§Ø¶ÙŠÙ‹Ø§ Ø­ØªÙ‰ ØªÙÙØªØ­ Ø¨Ø§Ù„Ø²Ø±Ø§Ø± */
 @media (max-width: 640px) {
   .bank-filters-toggle {
     display: flex;
@@ -3526,7 +3557,7 @@ body.dark-mode .account-error {
   transform: translateY(0);
   pointer-events: auto;
 }
-/* مهام اليوم: قايمة المزيد بتفتح لفوق عشان ميزيدش سكرول الصفحة */
+/* Ù…Ù‡Ø§Ù… Ø§Ù„ÙŠÙˆÙ…: Ù‚Ø§ÙŠÙ…Ø© Ø§Ù„Ù…Ø²ÙŠØ¯ Ø¨ØªÙØªØ­ Ù„ÙÙˆÙ‚ Ø¹Ø´Ø§Ù† Ù…ÙŠØ²ÙŠØ¯Ø´ Ø³ÙƒØ±ÙˆÙ„ Ø§Ù„ØµÙØ­Ø© */
 .task-more-menu-wrap.open-up .task-more-dropdown {
   top: auto;
   bottom: calc(100% + 4px);
@@ -3536,15 +3567,15 @@ body.dark-mode .account-error {
 .task-more-menu-wrap.open-up .task-more-dropdown.open {
   transform: translateY(0);
 }
-/* القايمة والبوب أبات وهم مقفولين: display:none عشان ميسيبوش مساحة ولا
-   scrollable overflow في الصفحة (الـ opacity بس كان بيسيب لayout ممدود) */
+/* Ø§Ù„Ù‚Ø§ÙŠÙ…Ø© ÙˆØ§Ù„Ø¨ÙˆØ¨ Ø£Ø¨Ø§Øª ÙˆÙ‡Ù… Ù…Ù‚ÙÙˆÙ„ÙŠÙ†: display:none Ø¹Ø´Ø§Ù† Ù…ÙŠØ³ÙŠØ¨ÙˆØ´ Ù…Ø³Ø§Ø­Ø© ÙˆÙ„Ø§
+   scrollable overflow ÙÙŠ Ø§Ù„ØµÙØ­Ø© (Ø§Ù„Ù€ opacity Ø¨Ø³ ÙƒØ§Ù† Ø¨ÙŠØ³ÙŠØ¨ Ù„ayout Ù…Ù…Ø¯ÙˆØ¯) */
 .task-more-dropdown:not(.open),
 .priority-popover:not(.open),
 .clock-choice-popover:not(.open) {
   display: none;
 }
-/* لما القايمة بتفتح لفوق، بوب أبات الأهمية/الوقت جواها بيفتحوا لفوق كمان
-   عشان ميعدوش الزرار وميعملوش سكرول لتحت */
+/* Ù„Ù…Ø§ Ø§Ù„Ù‚Ø§ÙŠÙ…Ø© Ø¨ØªÙØªØ­ Ù„ÙÙˆÙ‚ØŒ Ø¨ÙˆØ¨ Ø£Ø¨Ø§Øª Ø§Ù„Ø£Ù‡Ù…ÙŠØ©/Ø§Ù„ÙˆÙ‚Øª Ø¬ÙˆØ§Ù‡Ø§ Ø¨ÙŠÙØªØ­ÙˆØ§ Ù„ÙÙˆÙ‚ ÙƒÙ…Ø§Ù†
+   Ø¹Ø´Ø§Ù† Ù…ÙŠØ¹Ø¯ÙˆØ´ Ø§Ù„Ø²Ø±Ø§Ø± ÙˆÙ…ÙŠØ¹Ù…Ù„ÙˆØ´ Ø³ÙƒØ±ÙˆÙ„ Ù„ØªØ­Øª */
 .task-more-menu-wrap.open-up .priority-popover,
 .task-more-menu-wrap.open-up .clock-choice-popover {
   top: auto;
@@ -3791,7 +3822,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   border-color: var(--pen);
 }
 
-/* ===== البحث الشامل عبر كل الأيام ===== */
+/* ===== Ø§Ù„Ø¨Ø­Ø« Ø§Ù„Ø´Ø§Ù…Ù„ Ø¹Ø¨Ø± ÙƒÙ„ Ø§Ù„Ø£ÙŠØ§Ù… ===== */
 .global-search-result {
   display: flex;
   align-items: center;
@@ -3888,7 +3919,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   transform: translateX(-20px);
 }
 
-/* ===== إعدادات التنبيهات ===== */
+/* ===== Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„ØªÙ†Ø¨ÙŠÙ‡Ø§Øª ===== */
 .notif-setting-row{
   display: flex;
   align-items: center;
@@ -3966,8 +3997,8 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 }
 .notif-setting-status.denied{ color: var(--missed); }
 
-/* تحت 900px (اللي بيحصّل فيهم تخطيط عمود واحد والمهام بتاخد عرض كامل)،
-   قوائم الوقت والأولوية الفرعية بتفتح للداخل (يمين) بدل ما تطلع برّه الصفحة وتعمل scroll أفقي */
+/* ØªØ­Øª 900px (Ø§Ù„Ù„ÙŠ Ø¨ÙŠØ­ØµÙ‘Ù„ ÙÙŠÙ‡Ù… ØªØ®Ø·ÙŠØ· Ø¹Ù…ÙˆØ¯ ÙˆØ§Ø­Ø¯ ÙˆØ§Ù„Ù…Ù‡Ø§Ù… Ø¨ØªØ§Ø®Ø¯ Ø¹Ø±Ø¶ ÙƒØ§Ù…Ù„)ØŒ
+   Ù‚ÙˆØ§Ø¦Ù… Ø§Ù„ÙˆÙ‚Øª ÙˆØ§Ù„Ø£ÙˆÙ„ÙˆÙŠØ© Ø§Ù„ÙØ±Ø¹ÙŠØ© Ø¨ØªÙØªØ­ Ù„Ù„Ø¯Ø§Ø®Ù„ (ÙŠÙ…ÙŠÙ†) Ø¨Ø¯Ù„ Ù…Ø§ ØªØ·Ù„Ø¹ Ø¨Ø±Ù‘Ù‡ Ø§Ù„ØµÙØ­Ø© ÙˆØªØ¹Ù…Ù„ scroll Ø£ÙÙ‚ÙŠ */
 @media (max-width: 900px) {
   .priority-popover,
   .clock-choice-popover {
@@ -3976,7 +4007,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   }
 }
 
-/* ===== عرض الأسبوع ===== */
+/* ===== Ø¹Ø±Ø¶ Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹ ===== */
 .week-view {
   display: flex;
   flex-direction: column;
@@ -4096,7 +4127,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   transform: rotate(45deg);
 }
 
-/* عرض الأسبوع ياخد المساحة كاملة وعمود التايمر بيختفي وقتها */
+/* Ø¹Ø±Ø¶ Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹ ÙŠØ§Ø®Ø¯ Ø§Ù„Ù…Ø³Ø§Ø­Ø© ÙƒØ§Ù…Ù„Ø© ÙˆØ¹Ù…ÙˆØ¯ Ø§Ù„ØªØ§ÙŠÙ…Ø± Ø¨ÙŠØ®ØªÙÙŠ ÙˆÙ‚ØªÙ‡Ø§ */
 .main-layout.week-view-active .timer-col {
   display: none;
 }
@@ -4131,7 +4162,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 }
 
 
-/* ===== الجدول الزمني (Time blocking) — صفحة مستقلة ===== */
+/* ===== Ø§Ù„Ø¬Ø¯ÙˆÙ„ Ø§Ù„Ø²Ù…Ù†ÙŠ (Time blocking) â€” ØµÙØ­Ø© Ù…Ø³ØªÙ‚Ù„Ø© ===== */
 .timeblock-layout {
   display: flex;
   gap: 22px;
@@ -4201,8 +4232,8 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 .timeline-container {
   position: relative;
   width: 100%;
-  /* مساحة ثابتة بالبكسل (مش نسبة مئوية) عشان تفضل كافية لنص الساعة زي "14:00"
-     حتى لما الشاشة تصغر، بدل ما تنكمش النسبة وتخلي النص يعمل overflow */
+  /* Ù…Ø³Ø§Ø­Ø© Ø«Ø§Ø¨ØªØ© Ø¨Ø§Ù„Ø¨ÙƒØ³Ù„ (Ù…Ø´ Ù†Ø³Ø¨Ø© Ù…Ø¦ÙˆÙŠØ©) Ø¹Ø´Ø§Ù† ØªÙØ¶Ù„ ÙƒØ§ÙÙŠØ© Ù„Ù†Øµ Ø§Ù„Ø³Ø§Ø¹Ø© Ø²ÙŠ "14:00"
+     Ø­ØªÙ‰ Ù„Ù…Ø§ Ø§Ù„Ø´Ø§Ø´Ø© ØªØµØºØ±ØŒ Ø¨Ø¯Ù„ Ù…Ø§ ØªÙ†ÙƒÙ…Ø´ Ø§Ù„Ù†Ø³Ø¨Ø© ÙˆØªØ®Ù„ÙŠ Ø§Ù„Ù†Øµ ÙŠØ¹Ù…Ù„ overflow */
   padding-left: 44px;
   border-radius: var(--radius);
 }
@@ -4363,4 +4394,139 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   .timeblock-side-item {
     flex: 0 0 auto;
   }
+}
+
+/* ===== ØªØ£Ø«ÙŠØ±Ø§Øª hover Ù…ÙˆØ­Ù‘Ø¯Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø¨Ø·Ø§Ù‚Ø§Øª (Ù†Ø§Ø¹Ù…Ø©) ===== */
+@media (hover: hover) {
+  .task-row:not(.dragging):not(.drag-over):hover,
+  .keyword-row:not(.dragging):not(.drag-over):hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+  }
+  .bank-wrap:hover,
+  .date-nav:hover,
+  .section-title:hover,
+  .header-card:hover,
+  .stats-summary-pill:hover,
+  .timeblock-side-item:hover,
+  .week-day-card:hover {
+    box-shadow: var(--shadow-hover);
+  }
+}
+
+/* ===== Modal الترحيبي (Onboarding) ===== */
+.onboarding-overlay {
+  z-index: 300;
+}
+.onboarding-card {
+  max-height: 90vh;
+}
+.onboarding-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  padding: 22px 22px 14px;
+}
+.onboarding-step {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.onboarding-step.active {
+  display: flex;
+  animation: onboardingStepIn 0.3s ease;
+}
+@keyframes onboardingStepIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.onboarding-illust {
+  width: 84px;
+  height: 84px;
+  border-radius: 24px;
+  background: var(--pen-soft);
+  color: var(--pen);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+}
+.onboarding-illust .material-icons {
+  font-size: 42px;
+}
+.onboarding-step-title {
+  font-family: "Tajawal", sans-serif;
+  font-size: 1.25rem;
+  margin: 0;
+  color: var(--ink);
+}
+.onboarding-step-text {
+  margin: 0;
+  line-height: 1.9;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+.onboarding-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 0;
+}
+.onboarding-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--paper-line);
+  transition: var(--transition);
+}
+.onboarding-dot.active {
+  width: 22px;
+  background: var(--pen);
+}
+.onboarding-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 18px 18px;
+}
+.onboarding-skip-btn {
+  background: transparent;
+  border: none;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+.onboarding-skip-btn:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+.onboarding-next-btn {
+  background: var(--pen);
+  border: none;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 22px;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+.onboarding-next-btn:hover {
+  filter: brightness(1.08);
 }

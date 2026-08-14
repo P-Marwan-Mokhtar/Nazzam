@@ -71,8 +71,9 @@ export function render(){
   const totalHoursText = totalActualMinutes > 0 ? `الوقت الفعلي: ${formatHM(totalActualMinutes * 60000)}` : '';
 
   let html = '';
+  const entrance = ui.justChangedDay || ui.justReturnedFromStats;
 
-  html += `<div class="day-view ${(ui.justChangedDay || ui.justReturnedFromStats) ? 'animate-in' : ''}">`;
+  html += `<div class="day-view ${entrance ? 'animate-in' : ''}">`;
 
   html += `
     <div class="date-nav">
@@ -298,9 +299,9 @@ export function render(){
     );
   } else {
     html += `<div class="task-list">`;
-    visibleDayTasks.forEach(t => {
+    visibleDayTasks.forEach((t, idx) => {
       html += `
-        <div class="task-row ${t.done?'done':''} ${(!t.done && isPastDay)?'missed':''} ${t.priority ? 'priority-' + t.priority : ''}" draggable="true" data-drag-id="${t.id}">
+        <div class="task-row ${t.done?'done':''} ${(!t.done && isPastDay)?'missed':''} ${t.priority ? 'priority-' + t.priority : ''} ${entrance ? 'task-in' : ''}" ${entrance ? `style="--task-order:${idx}"` : ''} draggable="true" data-drag-id="${t.id}">
           ${ui.editingTaskId === t.id ? `
             <div class="inline-edit-wrap">
               <input type="text" id="inlineEditInput_${t.id}" class="inline-edit-input" value="${escapeAttr(t.name)}" />
