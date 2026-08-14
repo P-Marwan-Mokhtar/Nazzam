@@ -5,6 +5,7 @@
 import { DAY_NAMES, addDays, escapeHtml, fmtDay, formatHM, formatMinutes, fromISO, parseDurationToMinutes, todayStr } from './utils.js';
 import { contentEl, showToast, state, ui } from './state.js';
 import { render } from './render.js';
+import { currentTheme } from './theme.js';
 
 // محور الوقت بيظهر كأرقام ساعات صحيحة (1، 2، 3...) والتفاصيل بالدقايق في التلميح
 function fmtAxisHours(v){
@@ -397,12 +398,14 @@ function renderDayStatsView(dateStr){
   const hasCompareData = s.totalTaskCount > 0 || prevS.totalTaskCount > 0;
 
   const isDark = !!state.darkMode;
-  const penColor = isDark ? '#e06046' : '#C5482E';
-  const doneColor = isDark ? '#489970' : '#3E7A5C';
-  const inkColor = isDark ? '#e6edf3' : '#22303D';
-  const inkSoftColor = isDark ? '#8b98a5' : '#5B6B78';
-  const paperLineColor = isDark ? '#2c333c' : '#DCD8C8';
-  const penSoftColor = isDark ? '#38221e' : '#E8DCD6';
+  const theme = currentTheme();
+  const t = isDark ? theme.dark : theme.light;
+  const penColor = t['pen'];
+  const doneColor = t['done'];
+  const inkColor = t['ink'];
+  const inkSoftColor = t['ink-soft'];
+  const paperLineColor = t['paper-line'];
+  const penSoftColor = t['pen-soft'];
 
   const topTasksLabels = s.topTasks.map(([name]) => name);
   const topTasksMinutes = s.topTasks.map(([,ms]) => Math.round(ms / 60000));
@@ -649,15 +652,17 @@ function renderWeekStatsView(){
   const doneDelta = computeDelta(s.doneCount, prevS.doneCount);
   const hasCompareData = s.totalTaskCount > 0 || prevS.totalTaskCount > 0;
 
-  // بنجيب الألوان مباشرة بناءً على state.darkMode (بدل ما نعتمد على قراءة الـ CSS variables من المتصفح)
+  // بنجيب الألوان مباشرة من الثيم الحالي (بدل ما نعتمد على قراءة الـ CSS variables من المتصفح)
   // عشان نضمن ألوان صح ١٠٠٪ في كل وضع من غير أي مشاكل توقيت أو قراءة خاطئة
   const isDark = !!state.darkMode;
-  const penColor = isDark ? '#e06046' : '#C5482E';
-  const doneColor = isDark ? '#489970' : '#3E7A5C';
-  const inkColor = isDark ? '#e6edf3' : '#22303D';
-  const inkSoftColor = isDark ? '#8b98a5' : '#5B6B78';
-  const paperLineColor = isDark ? '#2c333c' : '#DCD8C8';
-  const penSoftColor = isDark ? '#38221e' : '#E8DCD6';
+  const theme = currentTheme();
+  const t = isDark ? theme.dark : theme.light;
+  const penColor = t['pen'];
+  const doneColor = t['done'];
+  const inkColor = t['ink'];
+  const inkSoftColor = t['ink-soft'];
+  const paperLineColor = t['paper-line'];
+  const penSoftColor = t['pen-soft'];
 
   const shortDayLabel = (dateStr) => DAY_NAMES[fromISO(dateStr).getDay()];
 

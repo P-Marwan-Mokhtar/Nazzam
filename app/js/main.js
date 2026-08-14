@@ -24,6 +24,7 @@ import { closeDurationPicker, commitDurationPicker } from './wheelPicker.js';
 import { toggleWeekView } from './weekView.js';
 import { closeTimelineTaskPopup, toggleTimeBlockView } from './timeBlocking.js';
 import { applyHashToState, consumeShortcutViewParam } from './routing.js';
+import { applyTheme, renderThemePicker } from './theme.js';
 
 (async function init(){
   // أول حاجة: نتأكد إن فيه مستخدم حقيقي مسجّل دخوله فعليًا قبل ما نعرض أي حاجة من التطبيق.
@@ -66,6 +67,7 @@ async function startApp(){
   // ويمسح بياناته الحقيقية بدل ما يضيف عليها.
   await loadData(true); // init عمل ensureAuth لتوّه — منعيدش فحص الجلسة تاني هنا
 
+  applyTheme(); // نطبّق الثيم المحفوظ (themeName + darkMode) قبل أول رسم
   render();
   if(shortcutView === 'calendar') openCalendarModal(); // shortcut التقويم بيشاور على modal مش view بالـ hash — بنفتحه بعد أول render
   setInterval(tickTimers, 1000);
@@ -114,6 +116,7 @@ async function startApp(){
   const toggleDarkMode = async () => {
     state.darkMode = !state.darkMode;
     document.body.classList.toggle('dark-mode', state.darkMode);
+    applyTheme(); // الثيم بيختار ألوانه حسب الوضع الجديد (فاتح/داكن)
     const icon = document.getElementById('themeIcon');
     const iconMobile = document.getElementById('themeIconMobile');
     const text = state.darkMode ? 'light_mode' : 'dark_mode';
@@ -217,7 +220,13 @@ async function startApp(){
     if(e.target === draftsOverlay) closeDraftsModal();
   });
 
-  document.getElementById('accountBtn').onclick = openAccountModal;
+  document.getElementById('accountBtn').onclick = () => {
+    openAccountModal();
+    renderThemePicker(async () => {
+      if(ui.statsViewOpen) renderStatsView(); // لو كان قافل على الإحصائيات نعيد رسمها بألوان الثيم الجديد
+      await saveData();
+    });
+  };
   document.getElementById('closeAccountBtn').onclick = closeAccountModal;
   const accountOverlay = document.getElementById('accountOverlay');
   accountOverlay.addEventListener('click', (e) => {

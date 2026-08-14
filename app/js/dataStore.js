@@ -7,6 +7,7 @@ import { detectTimezone, todayStr, uid } from './utils.js';
 import { LOCAL_BACKUP_KEY, PENDING_SYNC_KEY, showToast, state } from './state.js';
 import { currentUserId, ensureAuth } from './auth.js';
 import { render } from './render.js';
+import { THEMES, applyTheme } from './theme.js';
 
 const MAX_IMPORT_SIZE = 10 * 1024 * 1024; // حد أقصى لحجم ملف الاستيراد (10 ميجابايت)
 const EXPORT_MARKER = 'nazzam-backup-v1'; // بصمة النسخة الاحتياطية المصدّرة من التطبيق
@@ -46,7 +47,7 @@ export function exportDataAsJSON(){
 
 function isPlausibleBackupShape(obj){
   if(!obj || typeof obj !== 'object') return false;
-  const knownKeys = ['keywords', 'drafts', 'days', 'filters', 'timers', 'darkMode', 'recurringTasks', 'pinnedTaskNames'];
+  const knownKeys = ['keywords', 'drafts', 'days', 'filters', 'timers', 'darkMode', 'themeName', 'recurringTasks', 'pinnedTaskNames'];
   return knownKeys.some(k => Object.prototype.hasOwnProperty.call(obj, k));
 }
 
@@ -206,6 +207,7 @@ function sanitizeLoadedState(obj){
   out.filters = sanitizeList(obj.filters, sanitizeFilterItem) || [];
   out.timers = sanitizeDateMap(obj.timers, sanitizeTimer) || {};
   out.darkMode = obj.darkMode === true;
+  out.themeName = (typeof obj.themeName === 'string' && THEMES[obj.themeName]) ? obj.themeName : 'classic';
   out.recurringTasks = sanitizeRecurringTasks(obj.recurringTasks) || {};
   out.notificationSettings = sanitizeNotificationSettings(obj.notificationSettings);
   if(isPlainObject(obj.pinnedInjected)) out.pinnedInjected = obj.pinnedInjected;
@@ -320,6 +322,8 @@ function applyLoadedState(parsed){
     if(icon) icon.textContent = text;
     if(iconMobile) iconMobile.textContent = text;
   }
+  if(typeof parsed.themeName === 'string' && THEMES[parsed.themeName]) state.themeName = parsed.themeName;
+  applyTheme();
 }
 
 function saveLocalBackup(){

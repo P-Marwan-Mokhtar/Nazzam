@@ -2572,6 +2572,60 @@ select:focus {
   background: var(--paper);
   color: var(--ink);
 }
+.account-section {
+  margin-bottom: 16px;
+}
+.account-section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+.account-section-title .material-icons {
+  font-size: 18px;
+  color: var(--pen);
+}
+.theme-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.theme-swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--paper);
+  border: 2px solid var(--paper-line);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-family: "Almarai";
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.theme-swatch:hover {
+  border-color: var(--ink-soft);
+}
+.theme-swatch-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+.theme-swatch.active {
+  border-color: var(--pen);
+  background: var(--pen-soft);
+}
+.theme-swatch.active .material-icons {
+  font-size: 15px;
+  color: var(--pen);
+}
 .account-switch-line {
   text-align: center;
   font-size: 0.82rem;

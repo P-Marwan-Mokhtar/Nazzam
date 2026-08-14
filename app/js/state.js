@@ -24,6 +24,7 @@ export let state = {
   filters: [],
   timers: {},
   darkMode: false,
+  themeName: 'classic', // الثيم الجاهز الحالي (اسم في THEMES من theme.js)
   recurringTasks: {}, // اسم المهمة -> مصفوفة أرقام أيام الأسبوع (0=أحد..6=سبت) اللي تتكرر فيها تلقائيًا
   notificationSettings: {
     morningEnabled: false,
@@ -36,7 +37,7 @@ export let state = {
 };
 
 export function resetState(){
-  state = { keywords: [], drafts: [], notes: {}, days: {}, filters: [], timers: {}, darkMode: false, recurringTasks: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null } };
+  state = { keywords: [], drafts: [], notes: {}, days: {}, filters: [], timers: {}, darkMode: false, themeName: 'classic', recurringTasks: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null } };
 }
 
 export const ui = {
