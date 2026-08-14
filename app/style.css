@@ -3370,6 +3370,8 @@ body.dark-mode .account-error {
   .filter-chips-wrap.mobile-open {
     max-height: none;
     opacity: 1;
+  }
+  .filter-chips-wrap.mobile-open-anim {
     animation: filtersSlideDown 0.22s ease forwards;
   }
   .filter-chips-wrap.mobile-closing {

@@ -160,6 +160,7 @@ export function attachEvents(){
       } else {
         ui.closingMobileFilters = false;
         ui.mobileFiltersOpen = true;
+        ui.justOpenedMobileFilters = true;
         render();
       }
     }

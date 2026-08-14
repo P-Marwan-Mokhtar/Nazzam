@@ -53,6 +53,7 @@ export const ui = {
   bankSearchQuery: '',
   globalSearchQuery: '',  // نص البحث الحالي في نافذة "البحث في كل المهام" (عبر كل الأيام)
   mobileFiltersOpen: false,  // للموبايل: هل لوحة الفلاتر مفتوحة فوق البنك
+  justOpenedMobileFilters: false,  // true لمرة واحدة بس لحظة فتح لوحة الفلاتر على الموبايل — عشان الأنيميشن يشتغل عند الفتح مش مع كل render
   closingMobileFilters: false,
   mobileFiltersCloseTimeoutId: null,
   draftsSearchQuery: '',

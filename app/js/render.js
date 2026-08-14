@@ -127,7 +127,7 @@ export function render(){
       </div>
     `;
 
-    html += `<div class="filter-chips-wrap ${ui.mobileFiltersOpen ? 'mobile-open' : ''} ${ui.closingMobileFilters ? 'mobile-closing' : ''}" id="filterChipsWrap">`;
+    html += `<div class="filter-chips-wrap ${ui.mobileFiltersOpen ? 'mobile-open' : ''} ${ui.justOpenedMobileFilters ? 'mobile-open-anim' : ''} ${ui.closingMobileFilters ? 'mobile-closing' : ''}" id="filterChipsWrap">`;
     html += `<div class="filter-chips">`;
     html += `<button class="filter-chip ${ui.activeFilter === 'all' ? 'active' : ''}" data-action="select-filter" data-filter-id="all">الكل</button>`;
     const sortedFilters = [...state.filters].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
@@ -395,6 +395,7 @@ export function render(){
   ui.justReturnedFromStats = false;
   ui.justChangedFilter = false;
   ui.justChangedDay = false;
+  ui.justOpenedMobileFilters = false;
 
   attachEvents();
   if(ui.timerPanelRenderedForDate !== ui.selectedDate){
