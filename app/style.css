@@ -2419,11 +2419,7 @@ select:focus {
 /* "More" (â€¢â€¢â€¢) button â€” its own small pill, mirrors the icon pill on the other side */
 .header-actions-wrap {
   position: relative;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
+  flex-shrink: 0;
 }
 .header-more-btn {
   background: var(--paper);
@@ -2446,8 +2442,7 @@ select:focus {
   gap: 2px;
   position: absolute;
   top: calc(100% + 8px);
-  left: 50%;
-  translate: -50% 0;
+  left: 0;
   min-width: 210px;
   background: var(--card);
   border: 1px solid var(--paper-line);
@@ -3302,7 +3297,21 @@ body.dark-mode .account-error {
     order: 1;
     border-radius: 0 14px 14px 0;
   }
+  .header-actions-wrap {
+    order: 2;
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--paper);
+    padding: 4px;
+    border-radius: 14px 0 0 14px;
+  }
+  .header-more-btn {
+    background: transparent;
+  }
   .header-actions-panel {
+    right: 0;
+    left: auto;
     min-width: 190px;
   }
 
