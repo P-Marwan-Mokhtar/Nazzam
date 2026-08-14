@@ -166,6 +166,7 @@ body.dark-mode .header-logo-dark {
 .date-display .day-name {
   font-family: "Tajawal", sans-serif;
   font-size: 1.25rem;
+  font-weight: 600;
   color: var(--pen);
   margin-bottom: 6px;
 }
@@ -1658,10 +1659,7 @@ body.dark-mode .priority-dot-medium {
   background: var(--card);
   border: 1px solid var(--paper-line);
   border-radius: 10px;
-  padding-top: 10px;
-  padding-bottom: 8px;
-  padding-right: 10px;
-  padding-left: 10px;
+  padding: 11px 10px;
   font-family: inherit;
   font-size: 0.9rem;
   color: var(--ink);
@@ -2071,7 +2069,7 @@ select:focus {
 .timer-col {
   flex: 0 0 380px;
   position: sticky;
-  top: 20px;
+  top: 12px;
 }
 
 /* ===== Ø­Ø§Ù„Ø© Ø§Ù„ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø£ÙˆÙ„ÙŠØ© (Ø¨ÙŠØªÙ…Ø³Ø­ ØªÙ„Ù‚Ø§Ø¦ÙŠÙ‹Ø§ Ù…Ø¹ Ø£ÙˆÙ„ render) ===== */
@@ -2445,7 +2443,7 @@ select:focus {
 .side-nav {
   flex: 0 0 64px;
   position: sticky;
-  top: 20px;
+  top: 12px;
   z-index: 50;
   background: var(--card);
   border-radius: var(--radius);
@@ -2537,7 +2535,7 @@ select:focus {
 .app-main {
   flex: 1 1 0;
   min-width: 0;
-  padding: 16px 18px 20px;
+  padding: 0 0 20px;
 }
 
 /* الهيدر القديم بيظهر على الموبايل بس، والشريط الجانبي على الشاشات الكبيرة */
