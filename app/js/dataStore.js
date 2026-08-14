@@ -3,14 +3,30 @@
 // ============================================================
 
 import { supabaseClient } from './config.js';
-import { detectTimezone, todayStr } from './utils.js';
+import { detectTimezone, todayStr, uid } from './utils.js';
 import { LOCAL_BACKUP_KEY, PENDING_SYNC_KEY, showToast, state } from './state.js';
 import { currentUserId, ensureAuth } from './auth.js';
 import { render } from './render.js';
 
+const MAX_IMPORT_SIZE = 10 * 1024 * 1024; // حد أقصى لحجم ملف الاستيراد (10 ميجابايت)
+const EXPORT_MARKER = 'nazzam-backup-v1'; // بصمة النسخة الاحتياطية المصدّرة من التطبيق
+
+// بصمة تحقق بسيطة (FNV-1a) فوق محتوى البيانات. مش توقيع تشفيري (التطبيق بيشتغل في
+// المتصفح فالكود علني، ولا يوجد سر مخفي ممكن نبصّم بيه)، لكنها بتضمن إن محتوى الملف
+// مفيش فيه أي تعديل/تلف من لحظة التصدير — فأي ملف اتعبت بشغل أو اتعدل بيترفض.
+function checksumOf(str){
+  let h = 0x811c9dc5;
+  for(let i = 0; i < str.length; i++){
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(16);
+}
+
 export function exportDataAsJSON(){
   try{
-    const dataStr = JSON.stringify(state, null, 2);
+    const payload = { __nazzam: EXPORT_MARKER, checksum: checksumOf(JSON.stringify(state)), data: state };
+    const dataStr = JSON.stringify(payload, null, 2);
     const blob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const dateSuffix = todayStr();
@@ -34,10 +50,182 @@ function isPlausibleBackupShape(obj){
   return knownKeys.some(k => Object.prototype.hasOwnProperty.call(obj, k));
 }
 
+// ============================================================
+// التحقق من أنواع كل حقل قبل التطبيق (الحماية من ملفات الاستيراد الخبيثة)
+// ============================================================
+
+function isPlainObject(x){
+  return x && typeof x === 'object' && !Array.isArray(x);
+}
+
+function isDateStr(x){
+  return typeof x === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x);
+}
+
+function isHHMM(x){
+  return typeof x === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(x);
+}
+
+function isDayIndex(x){
+  return typeof x === 'number' && Number.isInteger(x) && x >= 0 && x <= 6;
+}
+
+// عنصر من بنك المهام/المسودات: { id, name, filterId? }
+function sanitizeNamedItem(x){
+  if(!isPlainObject(x)) return null;
+  const name = typeof x.name === 'string' ? x.name.trim() : '';
+  if(!name) return null;
+  const out = { id: (typeof x.id === 'string' && x.id) ? x.id : uid(), name };
+  if(typeof x.filterId === 'string' && x.filterId) out.filterId = x.filterId;
+  return out;
+}
+
+// مهمة: بنحتفظ بالحقول المعروفة بس (وأي نص جواه بيوصل للشاشة متشفّر بـ escapeHtml)
+function sanitizeTask(t){
+  if(!isPlainObject(t)) return null;
+  const name = typeof t.name === 'string' ? t.name.trim() : '';
+  if(!name) return null;
+  const out = { id: (typeof t.id === 'string' && t.id) ? t.id : uid(), name, done: t.done === true };
+  if(t.priority === 'high' || t.priority === 'medium' || t.priority === 'low') out.priority = t.priority;
+  if(isHHMM(t.remindAt)) out.remindAt = t.remindAt;
+  if(t.reminded === true) out.reminded = true;
+  if(typeof t.note === 'string') out.note = t.note;
+  if(typeof t.duration === 'string' && t.duration.trim()) out.duration = t.duration;
+  if(typeof t.actualDuration === 'string' && t.actualDuration.trim()) out.actualDuration = t.actualDuration;
+  if(isHHMM(t.startTime)) out.startTime = t.startTime;
+  if(t._dupOf === true) out._dupOf = true;
+  if(t._fromRecurrence === true) out._fromRecurrence = true;
+  if(Array.isArray(t.subtasks)){
+    const subs = t.subtasks
+      .filter(s => isPlainObject(s) && typeof s.title === 'string' && s.title.trim())
+      .map(s => ({ id: (typeof s.id === 'string' && s.id) ? s.id : uid(), title: s.title, done: s.done === true }));
+    if(subs.length) out.subtasks = subs;
+  }
+  return out;
+}
+
+// مؤقت: open أو countdown
+function sanitizeTimer(t){
+  if(!isPlainObject(t)) return null;
+  const name = typeof t.name === 'string' ? t.name.trim() : '';
+  if(!name) return null;
+  const out = {
+    id: (typeof t.id === 'string' && t.id) ? t.id : uid(),
+    name,
+    mode: t.mode === 'countdown' ? 'countdown' : 'open',
+    elapsedMs: (typeof t.elapsedMs === 'number' && isFinite(t.elapsedMs) && t.elapsedMs >= 0) ? t.elapsedMs : 0,
+    running: t.running === true,
+    startedAt: (typeof t.startedAt === 'number' && isFinite(t.startedAt)) ? t.startedAt : null
+  };
+  if(out.mode === 'countdown'){
+    out.targetMs = (typeof t.targetMs === 'number' && isFinite(t.targetMs) && t.targetMs > 0) ? t.targetMs : 0;
+    if(t.alerted === true) out.alerted = true;
+  }
+  return out;
+}
+
+function sanitizeFilterItem(x){
+  if(!isPlainObject(x)) return null;
+  const name = typeof x.name === 'string' ? x.name.trim() : '';
+  if(!name) return null;
+  return { id: (typeof x.id === 'string' && x.id) ? x.id : uid(), name, pinned: x.pinned === true };
+}
+
+// مصفوفة عناصر بنمرر كل عنصر على sanitize ونحذف اللي مش صالح
+function sanitizeList(arr, itemFn){
+  if(!Array.isArray(arr)) return null;
+  const out = arr.map(itemFn).filter(Boolean);
+  return out.length ? out : null;
+}
+
+// خريطة تاريخ (YYYY-MM-DD) -> مصفوفة عناصر (days / timers)
+function sanitizeDateMap(obj, itemFn){
+  if(!isPlainObject(obj)) return null;
+  const out = {};
+  let any = false;
+  for(const key of Object.keys(obj)){
+    if(!isDateStr(key) || !Array.isArray(obj[key])) continue;
+    out[key] = obj[key].map(itemFn).filter(Boolean);
+    any = true;
+  }
+  return any ? out : null;
+}
+
+function sanitizeNotes(obj){
+  if(!isPlainObject(obj)) return null;
+  const out = {};
+  let any = false;
+  for(const key of Object.keys(obj)){
+    if(isDateStr(key) && typeof obj[key] === 'string'){
+      out[key] = obj[key];
+      any = true;
+    }
+  }
+  return any ? out : null;
+}
+
+// التكرارات: اسم المهمة -> مصفوفة أيام (0-6)
+function sanitizeRecurringTasks(obj){
+  if(!isPlainObject(obj)) return null;
+  const out = {};
+  let any = false;
+  for(const name of Object.keys(obj)){
+    if(!Array.isArray(obj[name])) continue;
+    const days = [...new Set(obj[name].filter(isDayIndex))].sort();
+    if(days.length){
+      out[name] = days;
+      any = true;
+    }
+  }
+  return any ? out : null;
+}
+
+// إعدادات التنبيهات: بندمج فوق القيم الافتراضية ونرفض أي حقل من نوع غلط
+function sanitizeNotificationSettings(obj){
+  const out = { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null };
+  if(!isPlainObject(obj)) return out;
+  if(obj.morningEnabled === true) out.morningEnabled = true;
+  if(obj.eveningEnabled === true) out.eveningEnabled = true;
+  if(isHHMM(obj.morningTime)) out.morningTime = obj.morningTime;
+  if(isHHMM(obj.eveningTime)) out.eveningTime = obj.eveningTime;
+  if(typeof obj.lastMorningFiredDate === 'string') out.lastMorningFiredDate = obj.lastMorningFiredDate;
+  if(typeof obj.lastEveningFiredDate === 'string') out.lastEveningFiredDate = obj.lastEveningFiredDate;
+  if(typeof obj.timezone === 'string' && obj.timezone) out.timezone = obj.timezone;
+  return out;
+}
+
+// النسخة النهائية النظيفة من البيانات بعد فحص كل حقل — كل مفتاح بيتحقق من نوعه،
+// والمفاتيح غير المعروفة بتتشال، والعناصر اللي فيها قيم غير صالحة بتتشال برضو.
+function sanitizeLoadedState(obj){
+  if(!isPlainObject(obj)) return null;
+  const out = {};
+  out.keywords = sanitizeList(obj.keywords, sanitizeNamedItem) || [];
+  out.drafts = sanitizeList(obj.drafts, sanitizeNamedItem) || [];
+  out.notes = sanitizeNotes(obj.notes) || {};
+  out.days = sanitizeDateMap(obj.days, sanitizeTask) || {};
+  out.filters = sanitizeList(obj.filters, sanitizeFilterItem) || [];
+  out.timers = sanitizeDateMap(obj.timers, sanitizeTimer) || {};
+  out.darkMode = obj.darkMode === true;
+  out.recurringTasks = sanitizeRecurringTasks(obj.recurringTasks) || {};
+  out.notificationSettings = sanitizeNotificationSettings(obj.notificationSettings);
+  if(isPlainObject(obj.pinnedInjected)) out.pinnedInjected = obj.pinnedInjected;
+  if(Array.isArray(obj.pinnedTaskNames)){
+    const names = obj.pinnedTaskNames.filter(n => typeof n === 'string' && n.trim());
+    if(names.length) out.pinnedTaskNames = names;
+  }
+  if(isPlainObject(obj._sortPriority)) out._sortPriority = obj._sortPriority;
+  if(isPlainObject(obj._taskOrderCache)) out._taskOrderCache = obj._taskOrderCache;
+  return out;
+}
+
 export function importDataFromFile(file){
   if(!file) return;
   if(!file.name.toLowerCase().endsWith('.json')){
     showToast('من فضلك اختر ملف JSON صالح');
+    return;
+  }
+  if(file.size > MAX_IMPORT_SIZE){
+    showToast('حجم الملف كبير جدًا (الحد الأقصى 10 ميجابايت)');
     return;
   }
   const reader = new FileReader();
@@ -49,14 +237,40 @@ export function importDataFromFile(file){
       showToast('الملف تالف أو ليس ملف JSON صحيحًا');
       return;
     }
-    if(!isPlausibleBackupShape(parsed)){
+    if(!isPlainObject(parsed)){
       showToast('هذا الملف ليس نسخة احتياطية معروفة من التطبيق');
       return;
     }
+
+    let payload = parsed;
+    if(parsed.__nazzam === EXPORT_MARKER){
+      // نسخة مصدّرة من التطبيق الحديث: لازم البصمة والتحقق من المحتوى يعدّوا الأول
+      if(!isPlainObject(parsed.data)){
+        showToast('هذا الملف ليس نسخة احتياطية معروفة من التطبيق');
+        return;
+      }
+      if(parsed.checksum !== checksumOf(JSON.stringify(parsed.data))){
+        showToast('هذا الملف يبدو تالفًا أو معدّلًا بعد التصدير');
+        return;
+      }
+      payload = parsed.data;
+    } else if(!isPlausibleBackupShape(payload)){
+      // نسخة قديمة مالتصدّرتـش بالبصمة الجديدة: نقبلها بس لو شكلها معروف
+      showToast('هذا الملف ليس نسخة احتياطية معروفة من التطبيق');
+      return;
+    }
+
+    // التحقق من نوع كل حقل قبل التطبيق — أي حقل من نوع غلط بيتم رفضه
+    const sanitized = sanitizeLoadedState(payload);
+    if(!sanitized){
+      showToast('هذا الملف ليس نسخة احتياطية معروفة من التطبيق');
+      return;
+    }
+
     if(!confirm('سيستبدل استيراد هذا الملف جميع بياناتك الحالية (المهام، البنك، المسودات، إلخ) بالبيانات الموجودة في الملف. هل تريد المتابعة؟')){
       return;
     }
-    applyLoadedState(parsed);
+    applyLoadedState(sanitized);
     render();
     await saveData();
     showToast('تم استيراد البيانات بنجاح');

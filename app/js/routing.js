@@ -20,6 +20,21 @@ export function applyHashToState(){
   if(ui.weekViewOpen && !ui.weekViewDate) ui.weekViewDate = ui.selectedDate;
 }
 
+// Shortcuts الـ PWA (manifest.json) بتفتح التطبيق برابط فيه ?view=stats أو ?view=calendar.
+// بنقرا الـ param مرة واحدة عند بدء التطبيق، ونمسحه من الرابط (عشان أول refresh يرجع
+// يتصرف بشكل طبيعي حسب الشاشة الحالية بدل ما يفضل مربوط بالـ shortcut)، وبنرجّع اسم
+// العرض عشان main.js يكمل عليه — زي فتح التقويم اللي هو modal مش view بالـ hash.
+export function consumeShortcutViewParam(){
+  const params = new URLSearchParams(location.search);
+  const view = params.get('view');
+  if(!view) return null;
+  history.replaceState(history.state, '', location.pathname + location.hash);
+  if(view === 'stats' && !location.hash) ui.statsViewOpen = true;
+  else if(view === 'week' && !location.hash) ui.weekViewOpen = true;
+  else if(view === 'timeblock' && !location.hash) ui.timeBlockViewOpen = true;
+  return view;
+}
+
 // بتتنفذ تلقائيًا مع كل render() عشان الرابط يفضل عاكس للشاشة الحالية دايمًا مهما كان
 // المكان اللي غيّر فيه الكود قيم ui.statsViewOpen/weekViewOpen/timeBlockViewOpen.
 // بنستخدم history.replaceState (مش location.hash=) عشان منضيفش خطوة جديدة في تاريخ

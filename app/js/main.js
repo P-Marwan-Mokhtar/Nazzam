@@ -23,7 +23,7 @@ import { checkMissedTasksPopup, closeMissedTasksModal, renderTimerPanel, tickTim
 import { closeDurationPicker, commitDurationPicker } from './wheelPicker.js';
 import { toggleWeekView } from './weekView.js';
 import { closeTimelineTaskPopup, toggleTimeBlockView } from './timeBlocking.js';
-import { applyHashToState } from './routing.js';
+import { applyHashToState, consumeShortcutViewParam } from './routing.js';
 
 (async function init(){
   // أول حاجة: نتأكد إن فيه مستخدم حقيقي مسجّل دخوله فعليًا قبل ما نعرض أي حاجة من التطبيق.
@@ -58,6 +58,7 @@ import { applyHashToState } from './routing.js';
 
 async function startApp(){
   applyHashToState(); // نظبط الشاشة الحالية (إحصائيات/أسبوعي/جدول زمني) حسب الرابط قبل أول render، عشان منعملش وميض لمهام اليوم الأول ثم نتنقل
+  const shortcutView = consumeShortcutViewParam(); // Shortcuts الـ PWA (manifest.json): ?view=stats أو ?view=calendar — بنحولهم للشاشة الصح عند بدء التطبيق
 
   // مهم: نجيب بيانات المستخدم الحقيقية الأول قبل أي render، عشان مايبقاش
   // فيه أي لحظة (ولو صغيرة) الشاشة بترسم فيها بحالة فاضية افتراضية. لو المستخدم
@@ -66,6 +67,7 @@ async function startApp(){
   await loadData(true); // init عمل ensureAuth لتوّه — منعيدش فحص الجلسة تاني هنا
 
   render();
+  if(shortcutView === 'calendar') openCalendarModal(); // shortcut التقويم بيشاور على modal مش view بالـ hash — بنفتحه بعد أول render
   setInterval(tickTimers, 1000);
 
   window.addEventListener('hashchange', () => {

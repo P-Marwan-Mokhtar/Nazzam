@@ -49,9 +49,11 @@ export async function ensureAuth(){
   try{
     const { data: { session } } = await supabaseClient.auth.getSession();
     if(session && session.user){
-      if(session.user.is_anonymous){
-        // جلسة مجهولة قديمة من قبل التحديث ده - لازم نمسحها ونطلب تسجيل دخول حقيقي
-        try{ await supabaseClient.auth.signOut(); }catch(e){}
+    if(session.user.is_anonymous){
+      // جلسة مجهولة قديمة من قبل التحديث ده - لازم نمسحها ونطلب تسجيل دخول حقيقي.
+      // scope: 'local' عشان المسح يفضل على الجهاز ده بس وميأثرش على أي جلسات تانية
+      // للمستخدم نفسه على أجهزة تانية (الافتراضي global كان بيلغي كل الأجهزة).
+      try{ await supabaseClient.auth.signOut({ scope: 'local' }); }catch(e){}
         currentUserId = null;
         return false;
       }
@@ -434,7 +436,10 @@ async function signInWithGoogle(){
 async function signOutUser(){
   if(!confirm('هل أنت متأكد من تسجيل الخروج؟ ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى بياناتك.')) return;
   try{
-    await supabaseClient.auth.signOut();
+    // scope: 'local' = تسجيل الخروج من هذا الجهاز فقط، وبياناتك تفضل شغالة على الأجهزة التانية.
+    // (الافتراضي global كان بيرفض توكن التحديث على كل الأجهزة، فبمجرد ما جهاز تاني
+    // يفتح التطبيق كان بيقابل بشاشة تسجيل الدخول برضو.)
+    await supabaseClient.auth.signOut({ scope: 'local' });
     try{ localStorage.removeItem(LOCAL_BACKUP_KEY); }catch(e){}
     window.location.reload();
   }catch(e){
