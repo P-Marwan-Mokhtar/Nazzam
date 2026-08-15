@@ -28,7 +28,7 @@ body.dark-mode {
   --done-soft: #1a3024;
   --missed: #ff6b5e;
   --missed-soft: #3a1c1c;
-  --card: #1c2128;
+  --card: #1a2027;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.16), 0 3px 10px rgba(0, 0, 0, 0.12);
   --shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.24), 0 8px 20px rgba(0, 0, 0, 0.2);
 }
@@ -54,6 +54,10 @@ body.dark-mode .toast {
 body.dark-mode .modal-overlay {
   background: rgba(0, 0, 0, 0.65);
 }
+/* الخلفية الكبيرة (الـ wrap) في الوضع الداكن تكون غامقة، والعناصر فوقها فاتحة */
+body.dark-mode .wrap {
+  background: var(--paper);
+}
 
 * {
   box-sizing: border-box;
@@ -70,7 +74,7 @@ body {
   font-family: "Almarai", sans-serif;
   color: var(--ink);
   min-height: 100vh;
-  padding: 12px 16px 48px;
+  padding: 10px;
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
@@ -78,6 +82,12 @@ body {
 .wrap {
   max-width: 100%;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 20px);
+  background: var(--card);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
 }
 
 /* Header / notebook binding */
@@ -97,8 +107,9 @@ body {
 }
 .header-card {
   background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  border-radius: 14px 14px 0 0;
+  box-shadow: none;
+  border-bottom: 1px solid var(--paper-line);
   padding: 22px 20px 18px;
   text-align: center;
   position: relative;
@@ -2057,19 +2068,24 @@ select:focus {
 
 /* ===== Two-column layout ===== */
 .main-layout {
+  flex: 1 1 0;
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
+  align-items: stretch;
+  gap: 0;
   margin-top: 0;
 }
 .main-col {
   flex: 1 1 0;
   min-width: 0;
+  padding: 16px;
 }
 .timer-col {
   flex: 0 0 380px;
   position: sticky;
-  top: 12px;
+  top: 10px;
+  align-self: stretch;
+  border-inline-start: 1px solid var(--paper-line);
+  padding: 16px;
 }
 
 /* ===== Ø­Ø§Ù„Ø© Ø§Ù„ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø£ÙˆÙ„ÙŠØ© (Ø¨ÙŠØªÙ…Ø³Ø­ ØªÙ„Ù‚Ø§Ø¦ÙŠÙ‹Ø§ Ù…Ø¹ Ø£ÙˆÙ„ render) ===== */
@@ -2435,19 +2451,19 @@ select:focus {
 
 /* ===== App shell: الشريط الجانبي (Sidebar) + المحتوى ===== */
 .app-shell {
+  flex: 1 1 0;
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  min-height: calc(100vh - 60px);
+  align-items: stretch;
+  gap: 0;
 }
 .side-nav {
   flex: 0 0 64px;
   position: sticky;
-  top: 12px;
+  top: 10px;
+  align-self: stretch;
   z-index: 50;
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  background: transparent;
+  border-inline-end: 1px solid var(--paper-line);
   padding: 12px 8px;
   display: flex;
   flex-direction: column;
@@ -2480,7 +2496,7 @@ select:focus {
 .side-nav-btn.active {
   background: var(--pen);
   color: #fff;
-  box-shadow: 0 2px 6px rgba(197, 72, 46, 0.35);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--pen) 35%, transparent);
 }
 .side-nav-btn.active:hover {
   background: var(--pen);
@@ -2535,7 +2551,9 @@ select:focus {
 .app-main {
   flex: 1 1 0;
   min-width: 0;
-  padding: 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
 }
 
 /* الهيدر القديم بيظهر على الموبايل بس، والشريط الجانبي على الشاشات الكبيرة */
@@ -3388,13 +3406,15 @@ body.dark-mode .account-error {
     flex: 1 1 auto;
     width: 100%;
     position: static;
+    border-inline-start: none;
+    border-top: 1px solid var(--paper-line);
   }
 }
 
 /* ===== Responsive (Mobile) ===== */
 @media (max-width: 640px) {
   body {
-    padding: 18px 10px 50px;
+    padding: 10px;
   }
 
   .app-shell {
