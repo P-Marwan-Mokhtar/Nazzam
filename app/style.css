@@ -54,7 +54,11 @@ body.dark-mode .toast {
 body.dark-mode .modal-overlay {
   background: rgba(0, 0, 0, 0.65);
 }
-/* الخلفية الكبيرة (الـ wrap) في الوضع الداكن تكون غامقة، والعناصر فوقها فاتحة */
+/* خلفية الصفحة (الـ body) في الوضع الداكن تكون أغمق من الـ wrap عشان الكارت يبان */
+body.dark-mode {
+  background-color: #101419;
+}
+/* الـ wrap في الوضع الداكن يفضل بنفس لون خلفية الصفحة الأساسية */
 body.dark-mode .wrap {
   background: var(--paper);
 }
