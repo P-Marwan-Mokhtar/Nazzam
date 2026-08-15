@@ -222,7 +222,11 @@ export function computeTaskStats(name){
   let lastAddedDate = null;
   const occurrences = []; // { date, done, actualMs, targetMs } — آخر ما اتسجلت فيه المهمة
 
+  const today = todayStr();
+  // بنستبعد الأيام الجاية (بعد النهاردة) لأن مهام الـ recurring بتتحقن فيها تلقائيًا
+  // بحالة "لم تنجز" — لو اتعدت كانت هتطغى على الإحصائيات كأنها مهام فعلًا اتعملت
   Object.keys(state.days).forEach(date => {
+    if(date > today) return;
     const tasks = (state.days[date] || []).filter(t => !t._dupOf && t.name === name);
     if(tasks.length === 0) return;
     let dayDone = false;
@@ -303,7 +307,7 @@ export function renderTaskStatsView(name){
       </div>
 
       <div class="stat-block">
-        <div class="stat-block-title"><span class="material-icons">history</span>آخر ${recent.length} ظهورًا للمهمة</div>
+        <div class="stat-block-title"><span class="material-icons">history</span>آخر ${recent.length} ظهور للمهمة</div>
         ${recent.length ? `
           <ul class="stat-list">
             ${recent.map(o => `
