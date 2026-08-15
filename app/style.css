@@ -66,6 +66,25 @@ body.dark-mode .wrap {
 * {
   box-sizing: border-box;
 }
+/* ===== شريط التمرير (Scrollbar) ===== */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-soft) transparent;
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ink-soft) 45%, transparent);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--ink-soft) 75%, transparent);
+}
 html,
 body {
   margin: 0;
@@ -3130,6 +3149,34 @@ body.dark-mode .account-error {
   color: var(--done);
   font-weight: 700;
   white-space: nowrap;
+}
+.task-stats-filter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-bottom: 14px;
+}
+.task-stats-filter .material-icons {
+  font-size: 16px;
+  color: var(--pen);
+}
+.task-stats-status {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-inline-end: 6px;
+}
+.task-stats-status .material-icons {
+  font-size: 17px;
+}
+.task-stats-status.done .material-icons {
+  color: var(--done);
+}
+.task-stats-status:not(.done) .material-icons {
+  color: var(--missed);
 }
 .stat-cols {
   display: flex;

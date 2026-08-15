@@ -15,7 +15,7 @@ import { hideClockChoicePopover, hideDurationPopover } from './popovers.js';
 import { closeRecurrenceModal } from './recurrence.js';
 import { render } from './render.js';
 import { closeGlobalSearchModal, openGlobalSearchModal, renderGlobalSearchResults } from './search.js';
-import { renderStatsView } from './stats.js';
+import { renderStatsView, renderTaskStatsView } from './stats.js';
 import { closeSubtasksModal } from './subtasks.js';
 import { closeTaskDetails } from './taskDetails.js';
 import { closeTaskNoteModal } from './taskNote.js';
@@ -118,6 +118,7 @@ async function startApp(){
 
   const onAppearanceChanged = async () => {
     if(ui.statsViewOpen) renderStatsView(); // لو قافل على الإحصائيات نعيد رسمها بألوان المظهر الجديد
+    if(ui.taskStatsName) renderTaskStatsView(ui.taskStatsName); // نفس الشيء لشاشة إحصائيات المهمة الواحدة
     await saveData();
   };
   document.getElementById('themeBtn').onclick = () => openAppearanceModal(onAppearanceChanged);
@@ -144,6 +145,7 @@ async function startApp(){
       ui.statsViewOpen = true;
       ui.weekViewOpen = false;
       ui.timeBlockViewOpen = false;
+      ui.taskStatsName = null;
     }
     render();
   };
@@ -195,6 +197,7 @@ async function startApp(){
       ui.statsViewOpen = false;
       ui.weekViewOpen = false;
       ui.timeBlockViewOpen = false;
+      ui.taskStatsName = null;
       ui.justReturnedFromStats = true;
       render();
     });
@@ -367,6 +370,7 @@ async function startApp(){
         sideNavDataPopover.classList.remove('open');
         sideNavDataBtn.classList.remove('is-open');
       }
+      if(ui.taskStatsName){ ui.taskStatsName = null; ui.justReturnedFromStats = true; render(); }
       if(ui.statsViewOpen){ ui.statsViewOpen = false; ui.justReturnedFromStats = true; render(); }
       if(ui.weekViewOpen){ ui.weekViewOpen = false; ui.justReturnedFromStats = true; render(); }
       if(ui.timeBlockViewOpen){ ui.timeBlockViewOpen = false; ui.justReturnedFromStats = true; render(); }

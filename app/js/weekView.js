@@ -24,6 +24,7 @@ export function toggleWeekView(){
     ui.weekViewOpen = true;
     ui.statsViewOpen = false;
     ui.timeBlockViewOpen = false;
+    ui.taskStatsName = null;
     if(!ui.weekViewDate) ui.weekViewDate = ui.selectedDate;
   }
   render();

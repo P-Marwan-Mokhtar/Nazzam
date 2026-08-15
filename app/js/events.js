@@ -259,6 +259,13 @@ export function attachEvents(){
       ui.openTaskMoreId = null;
       render();
     }
+    else if(action === 'open-task-stats'){
+      const name = btn.dataset.name;
+      if(!name) return;
+      ui.openKeywordMoreId = null;
+      ui.taskStatsName = name;
+      render();
+    }
     else if(action === 'clock-choice-target'){
       ui.openClockChoiceTaskId = null;
       ui.openTaskMoreId = null;

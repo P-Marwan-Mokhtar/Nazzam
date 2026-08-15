@@ -7,7 +7,7 @@ import { PRIORITY_LABELS, contentEl, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { attachEvents } from './events.js';
 import { buildFilterDropdown, hideDurationPopover } from './popovers.js';
-import { computeTaskStreak, renderStatsView } from './stats.js';
+import { computeTaskStreak, renderStatsView, renderTaskStatsView } from './stats.js';
 import { renderTimeBlockView } from './timeBlocking.js';
 import { renderTimerPanel } from './timers.js';
 import { formatTimeArabic } from './timePicker.js';
@@ -48,6 +48,10 @@ export function render(){
   updateSideNavActive();
   const mainLayoutEl = document.querySelector('.main-layout');
   if(mainLayoutEl) mainLayoutEl.classList.toggle('week-view-active', ui.weekViewOpen || ui.timeBlockViewOpen || ui.statsViewOpen);
+  if(ui.taskStatsName){
+    renderTaskStatsView(ui.taskStatsName);
+    return;
+  }
   if(ui.statsViewOpen){
     renderStatsView();
     return;
@@ -221,6 +225,9 @@ export function render(){
                       </button>
                       <button class="tmd-btn" data-action="edit-keyword" data-id="${k.id}">
                         <span class="material-icons">edit</span><span>تعديل</span>
+                      </button>
+                      <button class="tmd-btn" data-action="open-task-stats" data-name="${escapeAttr(k.name)}">
+                        <span class="material-icons">insights</span><span>إحصائيات</span>
                       </button>
                     </div>
                   </div>

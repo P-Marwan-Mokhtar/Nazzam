@@ -27,6 +27,7 @@ export function toggleTimeBlockView(){
     ui.timeBlockViewOpen = true;
     ui.statsViewOpen = false;
     ui.weekViewOpen = false;
+    ui.taskStatsName = null;
   }
   render();
 }

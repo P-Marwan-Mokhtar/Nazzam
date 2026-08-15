@@ -211,6 +211,124 @@ export function computeTaskStreak(name){
   return streak;
 }
 
+// إحصائيات مهمة واحدة (من بنك المهام) عبر كل الأيام المسجلة: كم مرة اتضافت،
+// كم مرة اتنفذت، إجمالي الوقت الفعلي والهدف، وآخر ظهور ليها مع حالة كل يوم.
+export function computeTaskStats(name){
+  let totalCount = 0;
+  let doneCount = 0;
+  let totalActualMs = 0;
+  let totalTargetMs = 0;
+  let lastDoneDate = null;
+  let lastAddedDate = null;
+  const occurrences = []; // { date, done, actualMs, targetMs } — آخر ما اتسجلت فيه المهمة
+
+  Object.keys(state.days).forEach(date => {
+    const tasks = (state.days[date] || []).filter(t => !t._dupOf && t.name === name);
+    if(tasks.length === 0) return;
+    let dayDone = false;
+    let dayActualMs = 0;
+    let dayTargetMs = 0;
+    tasks.forEach(t => {
+      if(t.done) dayDone = true;
+      dayActualMs += parseDurationToMinutes(t.actualDuration) * 60000;
+      dayTargetMs += parseDurationToMinutes(t.duration) * 60000;
+    });
+    totalCount += tasks.length;
+    if(dayDone){ doneCount++; lastDoneDate = date; }
+    totalActualMs += dayActualMs;
+    totalTargetMs += dayTargetMs;
+    if(!lastAddedDate || date > lastAddedDate) lastAddedDate = date;
+    occurrences.push({ date, done: dayDone, actualMs: dayActualMs, targetMs: dayTargetMs });
+  });
+
+  occurrences.sort((a,b) => b.date.localeCompare(a.date)); // الأحدث أولًا
+
+  // اسم التصنيف (filter) المرتبط بالمهمة في البنك
+  const kw = state.keywords.find(k => k.name === name);
+  const filterId = kw ? kw.filterId : null;
+  const filterName = filterId ? (state.filters.find(f => f.id === filterId) || {}).name || null : null;
+
+  return {
+    totalCount, doneCount, totalActualMs, totalTargetMs,
+    completionPct: totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0,
+    streak: computeTaskStreak(name),
+    lastDoneDate, lastAddedDate, filterName, occurrences,
+  };
+}
+
+// شاشة إحصائيات مهمة واحدة — بتتفتح من قائمة (المزيد) في بنك المهام
+export function renderTaskStatsView(name){
+  const s = computeTaskStats(name);
+  const recent = s.occurrences.slice(0, 20);
+
+  const html = `
+    <div class="stats-view">
+      <div class="stats-view-header">
+        <button class="nav-btn" id="taskStatsBackBtn" aria-label="رجوع لمهام اليوم"><span class="material-icons">arrow_forward</span></button>
+        <h2>إحصائيات ${escapeHtml(name)}</h2>
+        <span class="nav-btn" style="visibility:hidden"><span class="material-icons">insights</span></span>
+      </div>
+
+      ${s.filterName ? `<div class="task-stats-filter"><span class="material-icons">label</span>${escapeHtml(s.filterName)}</div>` : ''}
+
+      <div class="stats-summary-row">
+        <div class="stats-summary-pill">
+          <span class="material-icons">add_circle_outline</span>
+          <strong>${s.totalCount}</strong>
+          <small>${s.totalCount === 1 ? 'مرة إضافة' : 'مرات إضافة'}</small>
+        </div>
+        <div class="stats-summary-pill">
+          <span class="material-icons">check_circle</span>
+          <strong>${s.doneCount}</strong>
+          <small>${s.doneCount === 1 ? 'مرة إنجاز' : 'مرات إنجاز'}</small>
+        </div>
+        <div class="stats-summary-pill">
+          <span class="material-icons">task_alt</span>
+          <strong>${s.completionPct}%</strong>
+          <small>نسبة الإنجاز</small>
+        </div>
+        <div class="stats-summary-pill">
+          <span class="material-icons">bolt</span>
+          <strong>${s.streak}</strong>
+          <small>${s.streak === 1 ? 'يوم متتالي' : 'أيام متتالية'}</small>
+        </div>
+        <div class="stats-summary-pill">
+          <span class="material-icons">schedule</span>
+          <strong>${formatHM(s.totalActualMs)}</strong>
+          <small>الوقت الفعلي</small>
+        </div>
+        <div class="stats-summary-pill">
+          <span class="material-icons">flag</span>
+          <strong>${formatHM(s.totalTargetMs)}</strong>
+          <small>الهدف</small>
+        </div>
+      </div>
+
+      <div class="stat-block">
+        <div class="stat-block-title"><span class="material-icons">history</span>آخر ${recent.length} ظهورًا للمهمة</div>
+        ${recent.length ? `
+          <ul class="stat-list">
+            ${recent.map(o => `
+              <li>
+                <span class="stat-list-name">
+                  <span class="task-stats-status ${o.done ? 'done' : ''}"><span class="material-icons">${o.done ? 'check_circle' : 'radio_button_unchecked'}</span></span>
+                  ${fmtDay(o.date)}
+                </span>
+                <span class="stat-list-value">${o.done ? 'منجزة' : 'لم تُنجز'}</span>
+              </li>
+            `).join('')}
+          </ul>
+        ` : `<div class="stat-empty">لم تُسجَّل هذه المهمة في أي يوم بعد</div>`}
+      </div>
+    </div>
+  `;
+
+  contentEl.innerHTML = html;
+
+  const backBtn = document.getElementById('taskStatsBackBtn');
+  if(backBtn) backBtn.onclick = () => { ui.taskStatsName = null; ui.justReturnedFromStats = true; render(); };
+}
+
 function exportWeeklyPDF(){
   const s = computeWeekStats();
   const isDark = state.darkMode;
