@@ -265,11 +265,9 @@ export function renderTaskStatsView(name){
     <div class="stats-view">
       <div class="stats-view-header">
         <button class="nav-btn" id="taskStatsBackBtn" aria-label="رجوع لمهام اليوم"><span class="material-icons">arrow_forward</span></button>
-        <h2>إحصائيات ${escapeHtml(name)}</h2>
+        <h2>إحصائيات ${escapeHtml(name)}${s.filterName ? ` <span class="task-stats-filter"><span class="material-icons">label</span>${escapeHtml(s.filterName)}</span>` : ''}</h2>
         <span class="nav-btn" style="visibility:hidden"><span class="material-icons">insights</span></span>
       </div>
-
-      ${s.filterName ? `<div class="task-stats-filter"><span class="material-icons">label</span>${escapeHtml(s.filterName)}</div>` : ''}
 
       <div class="stats-summary-row">
         <div class="stats-summary-pill">

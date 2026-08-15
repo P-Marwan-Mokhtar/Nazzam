@@ -3151,17 +3151,21 @@ body.dark-mode .account-error {
   white-space: nowrap;
 }
 .task-stats-filter {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 0.85rem;
+  gap: 4px;
+  font-size: 0.72rem;
   font-weight: 700;
   color: var(--ink-soft);
-  margin-bottom: 14px;
+  background: var(--card);
+  border: 1px solid var(--paper-line);
+  border-radius: 999px;
+  padding: 2px 10px;
+  margin-inline-start: 6px;
+  vertical-align: middle;
 }
 .task-stats-filter .material-icons {
-  font-size: 16px;
+  font-size: 13px;
   color: var(--pen);
 }
 .task-stats-status {
