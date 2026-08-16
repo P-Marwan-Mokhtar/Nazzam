@@ -17,6 +17,7 @@ const DEFAULT_DURATION_MIN = 30;
 const MIN_DURATION_MIN = 10;
 const DEFAULT_START_HOUR = 1;
 const DEFAULT_END_HOUR = 23;
+const BLOCK_GAP_PX = 3; // المسافة الرأسية بين البلوكات المتتالية (بتتنقص من ارتفاع كل بلوك)
 
 function getWeekStart(dateStr){
   const d = fromISO(dateStr);
@@ -35,6 +36,7 @@ export function toggleTimeBlockView(){
     ui.statsViewOpen = false;
     ui.weekViewOpen = false;
     ui.taskStatsName = null;
+    ui.justReturnedFromStats = true; // أنيميشن الدخول عند فتح الجدول الزمني (زي الإحصائيات)
   }
   render();
 }
@@ -187,7 +189,7 @@ export function renderTimeBlockView(){
     const rightPct = col * widthPct;
     blocksHtml += `
       <div class="timeline-block ${t.done ? 'done' : ''} ${t.priority ? 'priority-' + t.priority : ''} ${isShortBlock(durationMin) ? 'short' : ''}"
-           style="top:${top}px; height:${height}px; right:calc(${rightPct}% + 2px); width:calc(${widthPct}% - 6px);"
+           style="top:${top}px; height:${height - BLOCK_GAP_PX}px; right:calc(${rightPct}% + 2px); width:calc(${widthPct}% - 6px);"
            data-id="${t.id}" data-start-min="${startMin}" data-duration-min="${durationMin}" title="${escapeAttr(t.name)}">
         <span class="timeline-block-time">${blockTimeLabel(startMin, durationMin)}</span>
         <span class="timeline-block-name">${escapeHtml(t.name)}</span>
@@ -206,7 +208,7 @@ export function renderTimeBlockView(){
   }
 
   const html = `
-    <div class="timeblock-view">
+    <div class="timeblock-view ${(ui.justReturnedFromStats || ui.justChangedTbRange) ? 'animate-in' : ''}">
       <div class="date-nav">
         <button class="nav-btn" id="tbPrevBtn" aria-label="اليوم السابق"><span class="material-icons">chevron_right</span></button>
         <div class="date-display">
@@ -260,6 +262,7 @@ export function renderTimeBlockView(){
 
   contentEl.innerHTML = html;
   ui.justReturnedFromStats = false;
+  ui.justChangedTbRange = false;
   ui.tbSideJustOpened = false;
 
   attachTimeBlockEvents();
@@ -331,8 +334,8 @@ function renderTbRangeToggle(mode){
 function wireTbRangeToggle(){
   const dayBtn = document.getElementById('tbRangeDayBtn');
   const weekBtn = document.getElementById('tbRangeWeekBtn');
-  if(dayBtn) dayBtn.onclick = () => { ui.tbRangeMode = 'day'; render(); };
-  if(weekBtn) weekBtn.onclick = () => { ui.tbRangeMode = 'week'; render(); };
+  if(dayBtn) dayBtn.onclick = () => { ui.tbRangeMode = 'day'; ui.justChangedTbRange = true; render(); };
+  if(weekBtn) weekBtn.onclick = () => { ui.tbRangeMode = 'week'; ui.justChangedTbRange = true; render(); };
 }
 
 // عرض الجدول الزمني على مدى أسبوع: سبع أعمدة (يوم لكل عمود) فيها البلوكات
@@ -401,14 +404,19 @@ function renderTimeBlockWeekView(){
       scheduled.push({ task: t, startMin, endMin: startMin + durationMin });
     });
 
+    // المهمات اللي بتتداخل في نفس الوقت بتتباعد في أعمدة جمب بعض (نفس نظام عرض اليوم)
+    // مش فوق بعض، عشان كل مهمة واضحة من غير ما تختفي ورا التانية.
+    const positioned = layoutTimelineBlocks(scheduled);
     let blocksHtml = '';
-    scheduled.forEach(({ task: t, startMin, endMin }) => {
+    positioned.forEach(({ task: t, startMin, endMin, col, totalCols }) => {
       const durationMin = endMin - startMin;
       const top = (startMin - startHour * 60) * (HOUR_PX / 60);
       const height = Math.max(20, durationMin * (HOUR_PX / 60));
+      const widthPct = 100 / totalCols;
+      const rightPct = col * widthPct;
       blocksHtml += `
         <div class="timeline-block tbw-block ${t.done ? 'done' : ''} ${t.priority ? 'priority-' + t.priority : ''} ${isShortBlock(durationMin) ? 'short' : ''}"
-             style="top:${top}px; height:${height}px; right:3px; left:3px;"
+             style="top:${top}px; height:${height - BLOCK_GAP_PX}px; right:calc(${rightPct}% + 2px); width:calc(${widthPct}% - 6px);"
              data-id="${t.id}" data-date="${dateStr}" data-start-min="${startMin}" data-duration-min="${durationMin}" title="${escapeAttr(t.name)}">
           <span class="timeline-block-time">${blockTimeLabel(startMin, durationMin)}</span>
           <span class="timeline-block-name">${escapeHtml(t.name)}</span>
@@ -440,7 +448,7 @@ function renderTimeBlockWeekView(){
     : `${d0.getDate()} ${MONTH_NAMES[d0.getMonth()]} - ${d6.getDate()} ${MONTH_NAMES[d6.getMonth()]} ${d6.getFullYear()}`;
 
   const html = `
-    <div class="timeblock-view">
+    <div class="timeblock-view ${(ui.justReturnedFromStats || ui.justChangedTbRange) ? 'animate-in' : ''}">
       <div class="date-nav">
         <button class="nav-btn" id="tbwPrevBtn" aria-label="الأسبوع السابق"><span class="material-icons">chevron_right</span></button>
         <div class="date-display">
@@ -465,6 +473,7 @@ function renderTimeBlockWeekView(){
 
   contentEl.innerHTML = html;
   ui.justReturnedFromStats = false;
+  ui.justChangedTbRange = false;
 
   const prevBtn = document.getElementById('tbwPrevBtn');
   const nextBtn = document.getElementById('tbwNextBtn');
@@ -697,7 +706,8 @@ function startBlockResize(e, handleEl){
   const dateStr = blockEl.dataset.date || ui.selectedDate;
   const startMin = Number(blockEl.dataset.startMin);
   const startClientY = e.clientY;
-  const initialHeight = parseFloat(blockEl.style.height);
+  // الـ height المتخزّن في الـ style ناقص منه الـ gap، بنرجّعه لحجمه الحقيقي هنا
+  const initialHeight = parseFloat(blockEl.style.height) + BLOCK_GAP_PX;
   let moved = false;
 
   blockEl.classList.add('resizing');
@@ -712,7 +722,7 @@ function startBlockResize(e, handleEl){
     // أقصى ارتفاع للبلوك = لحد نهاية منطقة الساعات المعروضة — من غير ما يتعداها
     const maxHeightPx = Math.max(minHeightPx, (endHour * 60 - startMin) * (HOUR_PX / 60));
     let newHeight = Math.min(maxHeightPx, Math.max(minHeightPx, initialHeight + deltaY));
-    blockEl.style.height = newHeight + 'px';
+    blockEl.style.height = (newHeight - BLOCK_GAP_PX) + 'px';
     const durationMin = Math.max(MIN_DURATION_MIN, snapMinutes(newHeight * (60 / HOUR_PX)));
     const timeLabel = blockEl.querySelector('.timeline-block-time');
     if(timeLabel) timeLabel.textContent = blockTimeLabel(startMin, durationMin);
@@ -725,7 +735,7 @@ function startBlockResize(e, handleEl){
     document.removeEventListener('pointermove', onMove);
     document.removeEventListener('pointerup', onUp);
     if(moved) suppressBlockClick(taskId);
-    const finalHeight = parseFloat(blockEl.style.height);
+    const finalHeight = parseFloat(blockEl.style.height) + BLOCK_GAP_PX;
     const durationMin = Math.max(MIN_DURATION_MIN, snapMinutes(finalHeight * (60 / HOUR_PX)));
     commitTaskDuration(taskId, durationMin, dateStr);
   }

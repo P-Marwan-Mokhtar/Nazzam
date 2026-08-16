@@ -25,6 +25,7 @@ export function toggleWeekView(){
     ui.statsViewOpen = false;
     ui.timeBlockViewOpen = false;
     ui.taskStatsName = null;
+    ui.justReturnedFromStats = true; // أنيميشن الدخول عند فتح عرض الأسبوع (زي الإحصائيات)
     if(!ui.weekViewDate) ui.weekViewDate = ui.selectedDate;
   }
   render();

@@ -3213,7 +3213,9 @@ body.dark-mode .account-error {
 
 /* ===== Ø´Ø§Ø´Ø© Ø§Ù„Ø¥Ø­ØµØ§Ø¦ÙŠØ§Øª (ØªØ¸Ù‡Ø± Ù…ÙƒØ§Ù† Ù…Ù‡Ø§Ù… Ø§Ù„ÙŠÙˆÙ… Ø¯Ø§Ø®Ù„ #content) ===== */
 .stats-view,
-.day-view.animate-in {
+.day-view.animate-in,
+.week-view.animate-in,
+.timeblock-view.animate-in {
   animation: statsFadeIn 0.25s ease;
 }
 @keyframes statsFadeIn {
@@ -3471,7 +3473,14 @@ body.dark-mode .account-error {
 /* ===== Responsive (Mobile) ===== */
 @media (max-width: 640px) {
   body {
-    padding: 10px;
+    padding: 0;
+  }
+  .wrap {
+    min-height: 100vh;
+    border-radius: 0;
+  }
+  .header-card {
+    border-radius: 0;
   }
 
   .app-shell {
@@ -4314,10 +4323,43 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
+/* في الوضع الداكن حدود الـ checkbox بتختفي (الـ paper-line غامقة على الكارت) — بنرفع وضوحها */
+body.dark-mode .week-task-checkbox {
+  border-color: var(--ink-soft);
+}
 
 /* Ø¹Ø±Ø¶ Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹ ÙŠØ§Ø®Ø¯ Ø§Ù„Ù…Ø³Ø§Ø­Ø© ÙƒØ§Ù…Ù„Ø© ÙˆØ¹Ù…ÙˆØ¯ Ø§Ù„ØªØ§ÙŠÙ…Ø± Ø¨ÙŠØ®ØªÙÙŠ ÙˆÙ‚ØªÙ‡Ø§ */
 .main-layout.week-view-active .timer-col {
   display: none;
+}
+
+/* ===== السكرول الداخلي =====
+   لما الشاشة الكاملة (إحصائيات / الجدول الزمني / عرض الأسبوع / إحصائيات المهمة الواحدة)
+   تكون مفتوحة، السكرول بيبقى جوه المحتوى مش على مستوى الصفحة */
+body.locked-view .wrap {
+  height: calc(100vh - 20px);
+}
+body.locked-view .app-shell,
+body.locked-view .app-main,
+body.locked-view .main-layout,
+body.locked-view .main-col {
+  min-height: 0;
+}
+body.locked-view .main-layout {
+  overflow: hidden;
+}
+body.locked-view .main-col {
+  overflow-y: auto;
+}
+@media (max-width: 640px) {
+  body.locked-view .wrap {
+    height: 100vh;
+  }
+  body.locked-view .app-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
 }
 .week-task-name {
   overflow: hidden;
@@ -4475,9 +4517,6 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 .timeline-block.tbw-block {
   cursor: pointer;
   touch-action: auto;
-}
-.timeline-block.tbw-block:hover {
-  box-shadow: var(--shadow);
 }
 
 /* بوب إضافة مهمة مجدولة من عرض الأسبوع */
@@ -4933,19 +4972,24 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
     align-items: stretch;
   }
   .timeblock-side {
+    display: none;
     position: static;
     left: auto;
     transform: none;
     width: 100%;
     max-height: none;
-    visibility: visible;
-    opacity: 1;
+    visibility: hidden;
+    opacity: 0;
     animation: none;
     order: -1;
     margin-bottom: 18px;
   }
-  .tb-unscheduled-btn {
-    display: none;
+  .timeblock-side.open,
+  .timeblock-side.tb-closing {
+    display: block;
+    visibility: visible;
+    opacity: 1;
+    transform: none;
   }
   .timeblock-calendar-col {
     width: 100%;
@@ -4969,10 +5013,6 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   .timeblock-side-item:hover,
   .week-day-card:hover {
     background-color: var(--paper);
-  }
-  .timeline-block:not(.dragging):not(.resizing):hover {
-    z-index: 10;
-    box-shadow: var(--shadow-hover);
   }
 }
 

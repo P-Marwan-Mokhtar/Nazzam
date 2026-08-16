@@ -152,6 +152,20 @@ async function startApp(){
   const statsBtnTop = document.getElementById('statsBtnTop');
   if(statsBtnTop) statsBtnTop.onclick = toggleStatsView;
 
+  const headerTasksBtn = document.getElementById('headerTasksBtn');
+  if(headerTasksBtn){
+    headerTasksBtn.addEventListener('click', () => {
+      ui.statsViewOpen = false;
+      ui.weekViewOpen = false;
+      ui.timeBlockViewOpen = false;
+      ui.taskStatsName = null;
+      ui.justReturnedFromStats = true;
+      render();
+    });
+  }
+  const headerTimeBlockBtn = document.getElementById('headerTimeBlockBtn');
+  if(headerTimeBlockBtn) headerTimeBlockBtn.onclick = toggleTimeBlockView;
+
   document.getElementById('calendarBtn').onclick = openCalendarModal;
   document.getElementById('closeCalendarBtn').onclick = closeCalendarModal;
   document.getElementById('weekViewBtn').onclick = toggleWeekView;

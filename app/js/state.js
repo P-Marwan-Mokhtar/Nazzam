@@ -85,6 +85,7 @@ export const ui = {
   openPriorityPopoverTaskId: null,  // المهمة اللي فاتح لها اختيار مستوى الأهمية دلوقتي
   timeBlockViewOpen: false,  // لما تبقى true، #content بيعرض صفحة الجدول الزمني (Time blocking) بدل مهام اليوم
   tbRangeMode: 'day',  // 'day' أو 'week' أو 'month' — مدى عرض الجدول الزمني (مهام الأسبوع/الشهر في خارطة زمنية)
+  justChangedTbRange: false,  // true لمرة واحدة بس لما نبدّل بين يوم/أسبوع في الجدول الزمني — عشان الأنيميشن يشتغل مرة واحدة
   activeTimelineTaskDate: null,  // تاريخ المهمة النشطة في بوب تفاصيل الجدول الزمني (مهم لو التصفح على مدى أسبوع/شهر)
   tbSideOpen: false,  // هل لوحة "مهام غير مجدولة" المنبثقة في الجدول الزمني مفتوحة دلوقتي
   tbSideJustOpened: false,  // true لمرة واحدة بس لحظة فتح اللوحة — عشان أنيميشن الدخول يشتغل عند الفتح مش مع كل render

@@ -47,7 +47,8 @@ export function render(){
   syncHashWithState();
   updateSideNavActive();
   const mainLayoutEl = document.querySelector('.main-layout');
-  if(mainLayoutEl) mainLayoutEl.classList.toggle('week-view-active', ui.weekViewOpen || ui.timeBlockViewOpen || ui.statsViewOpen);
+  if(mainLayoutEl) mainLayoutEl.classList.toggle('week-view-active', !!ui.weekViewOpen || !!ui.timeBlockViewOpen || !!ui.statsViewOpen || !!ui.taskStatsName);
+  document.body.classList.toggle('locked-view', !!ui.weekViewOpen || !!ui.timeBlockViewOpen || !!ui.statsViewOpen || !!ui.taskStatsName);
   if(ui.taskStatsName){
     renderTaskStatsView(ui.taskStatsName);
     return;
@@ -421,8 +422,16 @@ function updateSideNavActive(){
     const el = document.getElementById(id);
     if(el) el.classList.toggle('active', cond);
   };
+  // نفس التمييز للأزرار الجديدة في هيدر الموبايل (مهام/جدول زمني) — بـ is-linked
+  const markHeader = (id, cond) => {
+    const el = document.getElementById(id);
+    if(el) el.classList.toggle('is-linked', cond);
+  };
   mark('sideNavTasksBtn', onMainView);
   mark('sideNavStatsBtn', ui.statsViewOpen);
   mark('sideNavWeekBtn', ui.weekViewOpen);
   mark('sideNavTimeBlockBtn', ui.timeBlockViewOpen);
+  markHeader('headerTasksBtn', onMainView);
+  markHeader('statsBtnTop', ui.statsViewOpen);
+  markHeader('headerTimeBlockBtn', ui.timeBlockViewOpen);
 }
