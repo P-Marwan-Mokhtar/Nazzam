@@ -169,7 +169,6 @@ async function startApp(){
   document.getElementById('calendarBtn').onclick = openCalendarModal;
   document.getElementById('closeCalendarBtn').onclick = closeCalendarModal;
   document.getElementById('weekViewBtn').onclick = toggleWeekView;
-  document.getElementById('timeBlockViewBtn').onclick = toggleTimeBlockView;
   const calendarOverlay = document.getElementById('calendarOverlay');
   calendarOverlay.addEventListener('click', (e) => {
     if(e.target === calendarOverlay) closeCalendarModal();

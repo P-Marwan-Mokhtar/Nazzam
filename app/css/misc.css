@@ -1,0 +1,151 @@
+/* ===== ØªØ£Ø«ÙŠØ±Ø§Øª hover Ù…ÙˆØ­Ù‘Ø¯Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø¨Ø·Ø§Ù‚Ø§Øª (Ù†Ø§Ø¹Ù…Ø©) ===== */
+@media (hover: hover) {
+  .task-row:not(.dragging):not(.drag-over):hover,
+  .keyword-row:not(.dragging):not(.drag-over):hover {
+    background-color: var(--paper);
+  }
+  .stats-summary-pill:hover,
+  .timeblock-side-item:hover,
+  .week-day-card:hover {
+    background-color: var(--paper);
+  }
+}
+
+/* ===== Modal الترحيبي (Onboarding) ===== */
+.onboarding-overlay {
+  z-index: 300;
+}
+.onboarding-card {
+  max-height: 90vh;
+}
+.onboarding-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  padding: 22px 22px 14px;
+}
+.onboarding-step {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.onboarding-step.active {
+  display: flex;
+  animation: onboardingStepIn 0.3s ease;
+}
+@keyframes onboardingStepIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.onboarding-illust {
+  width: 84px;
+  height: 84px;
+  border-radius: 24px;
+  background: var(--pen-soft);
+  color: var(--pen);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+}
+.onboarding-illust .material-icons {
+  font-size: 42px;
+}
+.onboarding-step-title {
+  font-family: "Tajawal", sans-serif;
+  font-size: 1.25rem;
+  margin: 0;
+  color: var(--ink);
+}
+.onboarding-step-text {
+  margin: 0;
+  line-height: 1.9;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+.onboarding-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 0;
+}
+.onboarding-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--paper-line);
+  transition: var(--transition);
+}
+.onboarding-dot.active {
+  width: 22px;
+  background: var(--pen);
+}
+.onboarding-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 18px 18px;
+}
+.onboarding-skip-btn {
+  background: transparent;
+  border: none;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+.onboarding-skip-btn:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+.onboarding-next-btn {
+  background: var(--pen);
+  border: none;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 22px;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+.onboarding-next-btn:hover {
+  filter: brightness(1.08);
+}
+
+/* ===== تخطيط موحّد: خلفية واحدة (نقاط) والـ components أقسام فوقها ===== */
+.header-card,
+.date-nav,
+.section-title,
+.bank-wrap,
+.timer-panel-card,
+.week-day-card {
+  box-shadow: var(--shadow);
+  border: 1px solid var(--paper-line);
+  background-color: var(--card);
+}
+.task-row {
+  box-shadow: none;
+  border: 1px solid var(--paper-line);
+  background-color: var(--card);
+}
+.keyword-row {
+  box-shadow: none;
+  border: 1px solid var(--paper-line);
+  background-color: var(--paper);
+}

@@ -64,7 +64,15 @@
       href="https://fonts.googleapis.com/icon?family=Material+Icons"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/calendar.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/layout.css" />
+    <link rel="stylesheet" href="css/modals.css" />
+    <link rel="stylesheet" href="css/stats.css" />
+    <link rel="stylesheet" href="css/menus.css" />
+    <link rel="stylesheet" href="css/views.css" />
+    <link rel="stylesheet" href="css/misc.css" />
   </head>
   <body>
     <script>
@@ -173,14 +181,6 @@
               </button>
               <button
                 class="header-menu-item"
-                id="timeBlockViewBtn"
-                title="الجدول الزمني"
-              >
-                <span class="material-icons">event_note</span>
-                <span class="header-btn-label">الجدول الزمني</span>
-              </button>
-              <button
-                class="header-menu-item"
                 id="notificationSettingsBtn"
                 title="إعدادات التنبيهات"
               >
@@ -243,7 +243,7 @@
           <button class="side-nav-btn" id="sideNavStatsBtn" data-side-target="statsBtnTop" title="الإحصائيات">
             <span class="material-icons">insights</span>
           </button>
-          <button class="side-nav-btn" id="sideNavTimeBlockBtn" data-side-target="timeBlockViewBtn" title="الجدول الزمني">
+          <button class="side-nav-btn" id="sideNavTimeBlockBtn" data-side-target="headerTimeBlockBtn" title="الجدول الزمني">
             <span class="material-icons">event_note</span>
           </button>
           <button class="side-nav-btn" data-side-target="themeBtn" title="المظهر">

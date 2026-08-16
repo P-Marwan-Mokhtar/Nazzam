@@ -5,13 +5,21 @@
 // رقم الإصدار (CACHE_VERSION) بيتغيّر تلقائيًا مع أي تغيير في المحتوى.
 // ============================================================
 
-const CACHE_VERSION = 'vb961ef23c3';
+const CACHE_VERSION = 'vbcc9ce718a';
 const CACHE_NAME = 'daily-tasks-shell-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
   "./",
   "./index.html",
-  "./style.css",
+  "./css/base.css",
+  "./css/calendar.css",
+  "./css/components.css",
+  "./css/layout.css",
+  "./css/modals.css",
+  "./css/stats.css",
+  "./css/menus.css",
+  "./css/views.css",
+  "./css/misc.css",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

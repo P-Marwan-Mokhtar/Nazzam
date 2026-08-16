@@ -1,0 +1,354 @@
+/* ===== Modern Calendar Widget (Popup) ===== */
+.calendar-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 4px;
+}
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.calendar-month-title {
+  font-family: "Tajawal", sans-serif;
+  font-size: 1.15rem;
+  color: var(--ink);
+}
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  position: relative;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.cal-day:hover {
+  background: var(--paper);
+  color: var(--pen);
+}
+.cal-day.other-month {
+  color: var(--ink-soft);
+  opacity: 0.4;
+}
+.cal-day.today {
+  border: 1.5px dashed var(--pen);
+}
+.cal-day.selected {
+  background: var(--pen) !important;
+  color: #fff !important;
+}
+.cal-day-dot {
+  width: 4px;
+  height: 4px;
+  background: var(--done);
+  border-radius: 50%;
+  position: absolute;
+  bottom: 4px;
+}
+.cal-day.selected .cal-day-dot {
+  background: #fff;
+}
+
+/* Section Titles */
+.section-title {
+  font-family: "Almarai";
+  padding: 14px 16px;
+  background-color: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--ink);
+  margin: 12px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: box-shadow var(--transition);
+}
+.section-title::before {
+  content: "";
+  display: block;
+  width: 6px;
+  height: 18px;
+  background: var(--pen);
+  border-radius: 4px;
+}
+.section-title-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-start: auto;
+}
+.day-filter-wrap {
+  position: relative;
+  display: flex;
+}
+.day-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--paper);
+  border: 1px solid var(--paper-line);
+  color: var(--ink-soft);
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-family: "Almarai";
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+.day-filter-btn .material-icons {
+  font-size: 17px;
+}
+.day-filter-btn:hover {
+  background: var(--card);
+  color: var(--ink);
+}
+.day-filter-btn.active {
+  background: var(--pen-soft);
+  border-color: var(--pen);
+  color: var(--pen);
+}
+.day-filter-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: var(--card);
+  border: 1px solid var(--paper-line);
+  box-shadow: var(--shadow);
+  border-radius: 10px;
+  padding: 6px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
+  opacity: 0;
+  transform: translateY(-5px);
+  pointer-events: none;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+.day-filter-dropdown.open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.bank-wrap {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition:
+    box-shadow var(--transition),
+    background-color var(--transition);
+}
+.bank-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  text-align: right;
+  padding: 14px 16px;
+  font-family: "Almarai";
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--ink);
+}
+.bank-toggle:hover {
+  background: var(--paper);
+  border-radius: var(--radius);
+}
+.bank-wrap:has(.bank-content) .bank-toggle:hover {
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.bank-toggle::before {
+  content: "";
+  display: block;
+  width: 6px;
+  height: 18px;
+  background: var(--pen);
+  border-radius: 4px;
+  margin-left: 8px;
+}
+.bank-toggle-label {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+.bank-toggle-arrow {
+  display: inline-flex;
+  transition: transform 0.2s ease;
+  flex: 0 0 auto;
+  margin-right: 8px;
+}
+.bank-toggle-arrow .material-icons {
+  font-size: 22px;
+}
+.bank-toggle-arrow.open {
+  transform: rotate(180deg);
+}
+.bank-content {
+  margin: 0;
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--paper-line);
+  padding-top: 14px;
+  transform-origin: top;
+}
+.bank-content.animate-in {
+  animation: bankSlideDown 0.28s ease;
+}
+@keyframes bankSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scaleY(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+.bank-content.animate-out {
+  animation: bankSlideUp 0.22s ease forwards;
+}
+@keyframes bankSlideUp {
+  from {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scaleY(0.96);
+  }
+}
+
+.bank-search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  margin-top: 12px;
+}
+.bank-search-row .bank-search {
+  margin: 0;
+  flex: 1 1 auto;
+}
+.bank-filters-toggle {
+  display: none; /* ÙŠØ¸Ù‡Ø± ÙÙ‚Ø· Ø¹Ù„Ù‰ Ø§Ù„Ù…ÙˆØ¨Ø§ÙŠÙ„ØŒ Ø§Ù†Ø¸Ø± media query */
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--paper-line);
+  background: var(--paper);
+  color: var(--ink-soft);
+  cursor: pointer;
+  position: relative;
+}
+.bank-filters-toggle .material-icons {
+  font-size: 20px;
+}
+.bank-filters-toggle:hover {
+  background: var(--paper);
+  color: var(--pen);
+}
+.bank-filters-toggle.open {
+  background: var(--pen-soft);
+  border-color: var(--pen);
+  color: var(--pen);
+}
+.bank-filters-toggle.has-active::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--done);
+  border: 2px solid var(--card);
+}
+
+.bank-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 14px;
+  margin-top: 12px;
+}
+.bank-search-icon {
+  position: absolute;
+  right: 12px;
+  font-size: 19px;
+  color: var(--ink-soft);
+  pointer-events: none;
+}
+.bank-search input {
+  width: 100%;
+  border: 1px solid var(--paper-line);
+  border-radius: 10px;
+  padding: 10px 40px 10px 36px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  background: var(--paper);
+  color: var(--ink);
+}
+.bank-search input:focus {
+  border-color: var(--pen);
+}
+.bank-search-clear {
+  position: absolute;
+  left: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--ink-soft);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bank-search-clear:hover {
+  background: var(--paper);
+  color: var(--pen);
+}
+.bank-search-clear .material-icons {
+  font-size: 16px;
+}
+.search-highlight {
+  background: var(--pen-soft);
+  color: var(--pen);
+  border-radius: 3px;
+  padding: 0 2px;
+  font-weight: 700;
+}
+
