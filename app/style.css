@@ -113,21 +113,7 @@ body {
   box-shadow: var(--shadow);
 }
 
-/* Header / notebook binding */
-.binding {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: -6px;
-}
-.binding span {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--card);
-  border: 2px solid var(--paper-line);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
-}
+/* Header */
 .header-card {
   background: var(--card);
   border-radius: 14px 14px 0 0;
@@ -1937,9 +1923,11 @@ body.dark-mode .priority-dot-medium {
   border: 1px solid var(--paper-line);
   border-radius: var(--radius);
   padding: 10px;
+  min-width: 0; /* في عنصر الـ grid، عشان يقدر يضيق مش يخرج من الكرت */
 }
 .add-row input {
   flex: 1;
+  min-width: 0;
   border: none;
   background: transparent;
   border-radius: 8px;
@@ -2584,9 +2572,6 @@ select:focus {
 /* الهيدر القديم بيظهر على الموبايل بس، والشريط الجانبي على الشاشات الكبيرة */
 @media (min-width: 641px) {
   .header-card {
-    display: none;
-  }
-  .binding {
     display: none;
   }
 }
@@ -3486,6 +3471,9 @@ body.dark-mode .account-error {
   .app-shell {
     display: block;
   }
+  .main-col {
+    padding: 16px 10px;
+  }
   .side-nav {
     display: none;
   }
@@ -3558,6 +3546,7 @@ body.dark-mode .account-error {
   .custom-select {
     flex: 1 1 auto;
     max-width: none;
+    min-width: 0; /* عشان الاسم الطويل في الفلتر ميوسّعش الصف بره الكرت */
   }
   .add-btn {
     flex: 1 1 auto;
@@ -3642,6 +3631,10 @@ body.dark-mode .account-error {
   }
   .keyword-row.editing {
     flex-wrap: wrap;
+  }
+  .keyword-row.editing .edit-input,
+  .keyword-row.editing .custom-select {
+    min-width: 0;
   }
   .edit-input {
     flex: 1 1 100%;
