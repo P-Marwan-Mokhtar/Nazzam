@@ -2,7 +2,7 @@
 // search.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { emptyStateHtml, escapeHtml, fmtDay, highlightMatch, normalizeArabic } from './utils.js';
+import { emptyStateHtml, escapeHtml, fmtDay, highlightMatch, normalizeArabic, todayStr } from './utils.js';
 import { state, ui } from './state.js';
 import { render } from './render.js';
 
@@ -17,7 +17,9 @@ export function renderGlobalSearchResults(){
   }
 
   const matches = [];
+  const today = todayStr();
   Object.keys(state.days).forEach(date => {
+    if(date > today) return; // البحث في الأيام الماضية والنهارده بس، مش الأيام الجاية
     (state.days[date] || []).forEach(t => {
       if(t._dupOf) return;
       if(normalizeArabic(t.name).includes(q)){

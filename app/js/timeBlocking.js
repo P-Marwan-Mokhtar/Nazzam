@@ -5,10 +5,10 @@
 // زي Google Calendar.
 // ============================================================
 
-import { addDays, escapeAttr, escapeHtml, fmtDay, formatMinutes, fromISO, parseDurationToMinutes, timeStrToMinutes, todayStr, uid } from './utils.js';
+import { MONTH_NAMES, SHORT_DAY_NAMES, addDays, escapeAttr, escapeHtml, fmtDay, formatMinutes, fromISO, parseDurationToMinutes, timeStrToMinutes, todayStr, toISO, uid } from './utils.js';
 import { contentEl, showToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
-import { formatTimeArabic } from './timePicker.js';
+import { formatTimeArabic, openTimePicker } from './timePicker.js';
 import { ensureDayMaterialized, render } from './render.js';
 
 const HOUR_PX = 64;
@@ -17,6 +17,13 @@ const DEFAULT_DURATION_MIN = 30;
 const MIN_DURATION_MIN = 10;
 const DEFAULT_START_HOUR = 1;
 const DEFAULT_END_HOUR = 23;
+
+function getWeekStart(dateStr){
+  const d = fromISO(dateStr);
+  const dow = d.getDay(); // 0 = الأحد
+  d.setDate(d.getDate() - dow);
+  return toISO(d);
+}
 
 export function toggleTimeBlockView(){
   const wasOpen = ui.timeBlockViewOpen;
@@ -123,6 +130,7 @@ function layoutTimelineBlocks(items){
 }
 
 export function renderTimeBlockView(){
+  if(ui.tbRangeMode === 'week'){ renderTimeBlockWeekView(); return; }
   ensureDayMaterialized(ui.selectedDate);
   const dayTasks = state.days[ui.selectedDate] || [];
   const today = todayStr();
@@ -149,10 +157,14 @@ export function renderTimeBlockView(){
   endHour = Math.min(24, endHour);
   const trackHeight = (endHour - startHour) * HOUR_PX;
 
+  // نفس تصميم عرض الأسبوع بالظبط: خطوط الساعات في عمود اليوم، وتسميات الساعات
+  // في عمود جانبي ثابت على الشمال، ورقم آخر ساعة بيتقفل جوه الـ track.
   let hoursHtml = '';
+  let hourLabelsHtml = '';
   for(let h = startHour; h <= endHour; h++){
     const top = (h - startHour) * HOUR_PX;
-    hoursHtml += `<div class="timeline-hour-line" style="top:${top}px"><span class="timeline-hour-label">${formatTimeArabic(String(h).padStart(2, '0') + ':00')}</span></div>`;
+    hoursHtml += `<div class="tbw-hour-line" style="top:${Math.min(top, trackHeight - 1)}px"></div>`;
+    hourLabelsHtml += `<span class="tbw-hour-label" style="top:${Math.min(top - 7, trackHeight - 18)}px">${formatTimeArabic(String(h).padStart(2, '0') + ':00')}</span>`;
   }
 
   let nowLineHtml = '';
@@ -204,6 +216,7 @@ export function renderTimeBlockView(){
         <button class="nav-btn" id="tbNextBtn" aria-label="اليوم التالي"><span class="material-icons">chevron_left</span></button>
       </div>
       <div class="tb-toolbar">
+        ${renderTbRangeToggle('day')}
         ${ui.selectedDate !== today ? `<button class="today-btn" id="tbTodayBtn">اليوم</button>` : ''}
         <button class="tb-unscheduled-btn" id="tbToggleSideBtn" type="button" aria-expanded="${ui.tbSideOpen}">
           <span class="material-icons">playlist_add</span>
@@ -214,11 +227,20 @@ export function renderTimeBlockView(){
 
       <div class="timeblock-layout">
         <div class="timeblock-calendar-col">
-          <div class="timeline-container">
-            <div class="timeline-track" id="tbTrack" data-start-hour="${startHour}" data-end-hour="${endHour}" style="height:${trackHeight}px">
-              ${hoursHtml}
-              ${nowLineHtml}
-              ${blocksHtml}
+          <div class="tbw-grid tbw-single">
+            <div class="tbw-col ${ui.selectedDate === today ? 'today' : ''}">
+              <div class="tbw-col-head ${ui.selectedDate === today ? 'today' : ''}">
+                <span class="tbw-col-num">${fromISO(ui.selectedDate).getDate()}</span>
+              </div>
+              <div class="tbw-col-track" data-date="${ui.selectedDate}" data-start-hour="${startHour}" data-end-hour="${endHour}" style="height:${trackHeight}px">
+                ${hoursHtml}
+                ${nowLineHtml}
+                ${blocksHtml}
+              </div>
+            </div>
+            <div class="tbw-hours">
+              <div class="tbw-hours-head"></div>
+              <div class="tbw-hours-track" style="height:${trackHeight}px">${hourLabelsHtml}</div>
             </div>
           </div>
         </div>
@@ -254,6 +276,7 @@ function attachTimeBlockEvents(){
   if(todayBtn) todayBtn.onclick = () => { ui.selectedDate = todayStr(); ui.justChangedDay = true; render(); };
   if(toggleSideBtn) toggleSideBtn.onclick = toggleTbSide;
   if(sideCloseBtn) sideCloseBtn.onclick = () => closeTbSide();
+  wireTbRangeToggle();
 
   contentEl.querySelectorAll('.timeline-block').forEach(blockEl => {
     const taskId = blockEl.dataset.id;
@@ -279,13 +302,328 @@ function attachTimeBlockEvents(){
       startSideItemDrag(e, itemEl);
     });
   });
+
+  // الضغط على مكان فاضي في الجدول بيفتح بوب إضافة مهمة في الوقت ده بالظبط (نفس عرض الأسبوع)
+  contentEl.querySelectorAll('.timeblock-calendar-col .tbw-col-track').forEach(trackEl => {
+    trackEl.addEventListener('click', (e) => {
+      if(e.target.closest('.timeline-block')) return;
+      const rect = trackEl.getBoundingClientRect();
+      const startHour = Number(trackEl.dataset.startHour);
+      const endHour = Number(trackEl.dataset.endHour);
+      const relY = e.clientY - rect.top;
+      let startMin = startHour * 60 + Math.round((relY / HOUR_PX) * 60 / SNAP_MIN) * SNAP_MIN;
+      startMin = Math.max(startHour * 60, Math.min(startMin, endHour * 60 - MIN_DURATION_MIN));
+      openAddTimelineTaskPopup(trackEl.dataset.date, startMin);
+    });
+  });
+}
+
+// شريط التبديل بين مدى عرض الجدول الزمني (يوم/أسبوع/شهر)
+function renderTbRangeToggle(mode){
+  return `
+    <div class="tb-range-toggle" role="tablist">
+      <button class="tb-range-btn ${mode === 'day' ? 'active' : ''}" id="tbRangeDayBtn" data-range="day">يوم</button>
+      <button class="tb-range-btn ${mode === 'week' ? 'active' : ''}" id="tbRangeWeekBtn" data-range="week">أسبوع</button>
+    </div>
+  `;
+}
+
+function wireTbRangeToggle(){
+  const dayBtn = document.getElementById('tbRangeDayBtn');
+  const weekBtn = document.getElementById('tbRangeWeekBtn');
+  if(dayBtn) dayBtn.onclick = () => { ui.tbRangeMode = 'day'; render(); };
+  if(weekBtn) weekBtn.onclick = () => { ui.tbRangeMode = 'week'; render(); };
+}
+
+// عرض الجدول الزمني على مدى أسبوع: سبع أعمدة (يوم لكل عمود) فيها البلوكات
+// مرتبة حسب وقتها (وفيها النسخ المكررة الم مجدولة في الجدول، زي عرض اليوم).
+// حدود الساعات بتبقى موحدة عبر الأسبوع من أول مهمة لأخرها عشان المقارنة واضحة.
+function renderTimeBlockWeekView(){
+  const weekStart = getWeekStart(ui.selectedDate);
+  const today = todayStr();
+  const isCurrentWeek = weekStart === getWeekStart(today);
+
+  const days = [];
+  for(let i = 0; i < 7; i++){
+    const dateStr = addDays(weekStart, i);
+    ensureDayMaterialized(dateStr);
+    days.push({ dateStr, tasks: state.days[dateStr] || [] });
+  }
+
+  // حدود الساعات المشتركة: من أول مهمة مجدولة في الأسبوع لأخرها (مع افتراضات يوم كامل)
+  let startHour = DEFAULT_START_HOUR;
+  let endHour = DEFAULT_END_HOUR;
+  days.forEach(({ tasks }) => {
+    tasks.forEach(t => {
+      const startMin = timeStrToMinutes(t.startTime);
+      if(startMin === null) return;
+      const durationMin = Math.max(MIN_DURATION_MIN, parseDurationToMinutes(t.duration) || DEFAULT_DURATION_MIN);
+      startHour = Math.min(startHour, Math.floor(startMin / 60));
+      endHour = Math.max(endHour, Math.ceil((startMin + durationMin) / 60));
+    });
+  });
+  startHour = Math.max(0, startHour);
+  endHour = Math.min(24, endHour);
+  const trackHeight = (endHour - startHour) * HOUR_PX;
+
+  // خطوط الساعات بتتتكرر في كل عمود (شبكة متصلة زي Google Calendar)، وتسميات
+  // الساعات بتروح في عمود جانبي ثابت على الشمال (نفس مكانها في عرض اليوم).
+  // آخر ساعة (endHour) بنرسم خطها وتسميتها بس بنرفع التسمية جوه الـ track عشان
+  // ميعملوش overflow (وجوه scroll مالوش لازمة لأن الـ grid scroll container).
+  let hoursHtml = '';
+  let hourLabelsHtml = '';
+  for(let h = startHour; h <= endHour; h++){
+    const top = (h - startHour) * HOUR_PX;
+    hoursHtml += `<div class="tbw-hour-line" style="top:${Math.min(top, trackHeight - 1)}px"></div>`;
+    hourLabelsHtml += `<span class="tbw-hour-label" style="top:${Math.min(top - 7, trackHeight - 18)}px">${formatTimeArabic(String(h).padStart(2, '0') + ':00')}</span>`;
+  }
+
+  let colsHtml = '';
+  days.forEach(({ dateStr, tasks }) => {
+    const isToday = dateStr === today;
+
+    // خط "الآن" بيترسم في عمود النهارده بس (نفس منطق عرض اليوم)
+    let nowLineHtml = '';
+    if(isToday){
+      const now = new Date();
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+      if(nowMin >= startHour * 60 && nowMin <= endHour * 60){
+        const top = (nowMin - startHour * 60) * (HOUR_PX / 60);
+        nowLineHtml = `<div class="timeline-now-line tbw-now-line" style="top:${top}px"><span class="timeline-now-dot"></span></div>`;
+      }
+    }
+
+    const scheduled = [];
+    tasks.forEach(t => {
+      const startMin = timeStrToMinutes(t.startTime);
+      if(startMin === null) return;
+      const durationMin = Math.max(MIN_DURATION_MIN, parseDurationToMinutes(t.duration) || DEFAULT_DURATION_MIN);
+      scheduled.push({ task: t, startMin, endMin: startMin + durationMin });
+    });
+
+    let blocksHtml = '';
+    scheduled.forEach(({ task: t, startMin, endMin }) => {
+      const durationMin = endMin - startMin;
+      const top = (startMin - startHour * 60) * (HOUR_PX / 60);
+      const height = Math.max(20, durationMin * (HOUR_PX / 60));
+      blocksHtml += `
+        <div class="timeline-block tbw-block ${t.done ? 'done' : ''} ${t.priority ? 'priority-' + t.priority : ''} ${isShortBlock(durationMin) ? 'short' : ''}"
+             style="top:${top}px; height:${height}px; right:3px; left:3px;"
+             data-id="${t.id}" data-date="${dateStr}" data-start-min="${startMin}" data-duration-min="${durationMin}" title="${escapeAttr(t.name)}">
+          <span class="timeline-block-time">${blockTimeLabel(startMin, durationMin)}</span>
+          <span class="timeline-block-name">${escapeHtml(t.name)}</span>
+          <div class="timeline-block-resize-handle" data-id="${t.id}"></div>
+        </div>
+      `;
+    });
+
+    const d = fromISO(dateStr);
+    colsHtml += `
+      <div class="tbw-col ${isToday ? 'today' : ''}">
+        <button class="tbw-col-head ${isToday ? 'today' : ''}" data-action="tb-open-day" data-date="${dateStr}" title="فتح يوم ${d.getDate()}">
+          <span class="tbw-col-day">${SHORT_DAY_NAMES[d.getDay()]}</span>
+          <span class="tbw-col-num">${d.getDate()}</span>
+        </button>
+        <div class="tbw-col-track" style="height:${trackHeight}px" data-date="${dateStr}" data-start-hour="${startHour}" data-end-hour="${endHour}">
+          ${hoursHtml}
+          ${nowLineHtml}
+          ${blocksHtml}
+        </div>
+      </div>
+    `;
+  });
+
+  const d0 = fromISO(weekStart);
+  const d6 = fromISO(addDays(weekStart, 6));
+  const rangeLabel = d0.getMonth() === d6.getMonth()
+    ? `${d0.getDate()} - ${d6.getDate()} ${MONTH_NAMES[d0.getMonth()]} ${d0.getFullYear()}`
+    : `${d0.getDate()} ${MONTH_NAMES[d0.getMonth()]} - ${d6.getDate()} ${MONTH_NAMES[d6.getMonth()]} ${d6.getFullYear()}`;
+
+  const html = `
+    <div class="timeblock-view">
+      <div class="date-nav">
+        <button class="nav-btn" id="tbwPrevBtn" aria-label="الأسبوع السابق"><span class="material-icons">chevron_right</span></button>
+        <div class="date-display">
+          <div class="day-name">الجدول الزمني</div>
+          <div class="day-sub">${rangeLabel}</div>
+        </div>
+        <button class="nav-btn" id="tbwNextBtn" aria-label="الأسبوع التالي"><span class="material-icons">chevron_left</span></button>
+      </div>
+      <div class="tb-toolbar">
+        ${renderTbRangeToggle('week')}
+        ${!isCurrentWeek ? `<button class="today-btn" id="tbwTodayBtn">هذا الأسبوع</button>` : ''}
+      </div>
+      <div class="tbw-grid">
+        ${colsHtml}
+        <div class="tbw-hours">
+          <div class="tbw-hours-head"></div>
+          <div class="tbw-hours-track" style="height:${trackHeight}px">${hourLabelsHtml}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  contentEl.innerHTML = html;
+  ui.justReturnedFromStats = false;
+
+  const prevBtn = document.getElementById('tbwPrevBtn');
+  const nextBtn = document.getElementById('tbwNextBtn');
+  const todayBtn = document.getElementById('tbwTodayBtn');
+  if(prevBtn) prevBtn.onclick = () => { ui.selectedDate = addDays(getWeekStart(ui.selectedDate), -7); ui.justChangedDay = true; render(); };
+  if(nextBtn) nextBtn.onclick = () => { ui.selectedDate = addDays(getWeekStart(ui.selectedDate), 7); ui.justChangedDay = true; render(); };
+  if(todayBtn) todayBtn.onclick = () => { ui.selectedDate = today; ui.justChangedDay = true; render(); };
+  wireTbRangeToggle();
+
+  contentEl.querySelectorAll('[data-action="tb-open-day"]').forEach(btn => {
+    btn.onclick = () => {
+      ui.selectedDate = btn.dataset.date;
+      ui.justChangedDay = true;
+      ui.tbRangeMode = 'day';
+      render();
+    };
+  });
+
+  contentEl.querySelectorAll('.tbw-block').forEach(blockEl => {
+    const taskId = blockEl.dataset.id;
+    blockEl.addEventListener('pointerdown', (e) => {
+      if(e.target.closest('.timeline-block-resize-handle')) return;
+      startBlockMove(e, blockEl);
+    });
+    blockEl.addEventListener('click', (e) => {
+      if(e.target.closest('.timeline-block-resize-handle')) return;
+      if(lastSuppressedBlockClickId === taskId && Date.now() - lastSuppressedBlockClickAt < 400) return;
+      openTimelineTaskPopup(blockEl.dataset.id, blockEl.dataset.date);
+    });
+  });
+
+  contentEl.querySelectorAll('.tbw-block .timeline-block-resize-handle').forEach(handleEl => {
+    handleEl.addEventListener('pointerdown', (e) => {
+      startBlockResize(e, handleEl);
+    });
+  });
+
+  // الضغط على مكان فاضي في عمود اليوم يفتح بوب إضافة مهمة في الوقت ده بالظبط
+  contentEl.querySelectorAll('.tbw-col-track').forEach(trackEl => {
+    trackEl.addEventListener('click', (e) => {
+      if(e.target.closest('.timeline-block')) return;
+      const rect = trackEl.getBoundingClientRect();
+      const relY = e.clientY - rect.top;
+      let startMin = startHour * 60 + Math.round((relY / HOUR_PX) * 60 / SNAP_MIN) * SNAP_MIN;
+      startMin = Math.max(startHour * 60, Math.min(startMin, endHour * 60 - MIN_DURATION_MIN));
+      openAddTimelineTaskPopup(trackEl.dataset.date, startMin);
+    });
+  });
+}
+
+// ============================================================
+// بوب إضافة مهمة مجدولة من عرض الأسبوع: الضغط على مكان فاضي في يوم
+// بيفتح نافذة فيها اسم المهمة ووقت البدء والمدة والأهمية، وبعد الحفظ
+// بتتحط في جدول اليوم ده بالوقت المحدد.
+// ============================================================
+
+let addTaskDate = null;
+let addTaskStartMin = 8 * 60;
+let addTaskDurationMin = DEFAULT_DURATION_MIN;
+let addTaskPriority = null;
+
+function openAddTimelineTaskPopup(dateStr, startMin){
+  addTaskDate = dateStr;
+  addTaskStartMin = startMin;
+  addTaskDurationMin = DEFAULT_DURATION_MIN;
+  addTaskPriority = null;
+  renderAddTimelineTaskPopup();
+  document.getElementById('addTimelineTaskOverlay').classList.add('open');
+  const nameInput = document.getElementById('addTimelineTaskName');
+  if(nameInput) setTimeout(() => nameInput.focus(), 80);
+}
+
+function renderAddTimelineTaskPopup(){
+  const overlay = document.getElementById('addTimelineTaskOverlay');
+  if(!overlay) return;
+  const dateEl = document.getElementById('addTimelineTaskDate');
+  if(dateEl) dateEl.textContent = fmtDay(addTaskDate);
+  const startLabel = document.getElementById('addTimelineTaskStartLabel');
+  if(startLabel) startLabel.textContent = formatTimeArabic(minutesToHHMM(addTaskStartMin));
+  overlay.querySelectorAll('.addtl-duration-chip').forEach(chip => {
+    chip.classList.toggle('active', Number(chip.dataset.min) === addTaskDurationMin);
+  });
+  overlay.querySelectorAll('.addtl-priority .priority-choice-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.choice === (addTaskPriority || ''));
+  });
+}
+
+function closeAddTimelineTaskPopup(){
+  document.getElementById('addTimelineTaskOverlay').classList.remove('open');
+  const nameInput = document.getElementById('addTimelineTaskName');
+  if(nameInput) nameInput.value = '';
+}
+
+function wireAddTimelineTaskPopup(){
+  const overlay = document.getElementById('addTimelineTaskOverlay');
+  if(!overlay) return;
+
+  document.getElementById('closeAddTimelineTaskBtn').onclick = closeAddTimelineTaskPopup;
+  document.getElementById('cancelAddTimelineTaskBtn').onclick = closeAddTimelineTaskPopup;
+  overlay.addEventListener('click', (e) => {
+    if(e.target.id === 'addTimelineTaskOverlay') closeAddTimelineTaskPopup();
+  });
+
+  document.getElementById('addTimelineTaskStartBtn').onclick = () => {
+    openTimePicker({
+      title: 'وقت بدء المهمة',
+      initialTime: minutesToHHMM(addTaskStartMin),
+      onConfirm: async (hhmm) => {
+        addTaskStartMin = timeStrToMinutes(hhmm);
+        renderAddTimelineTaskPopup();
+      }
+    });
+  };
+
+  overlay.querySelectorAll('.addtl-duration-chip').forEach(chip => {
+    chip.onclick = () => {
+      addTaskDurationMin = Number(chip.dataset.min);
+      renderAddTimelineTaskPopup();
+    };
+  });
+
+  overlay.querySelectorAll('.addtl-priority .priority-choice-btn').forEach(btn => {
+    btn.onclick = () => {
+      addTaskPriority = btn.dataset.choice || null;
+      renderAddTimelineTaskPopup();
+    };
+  });
+
+  document.getElementById('confirmAddTimelineTaskBtn').onclick = async () => {
+    const nameInput = document.getElementById('addTimelineTaskName');
+    const name = nameInput.value.trim();
+    if(!name){
+      showToast('اكتب اسم المهمة الأول');
+      nameInput.focus();
+      return;
+    }
+    if(!state.days[addTaskDate]) state.days[addTaskDate] = [];
+    const task = {
+      id: uid(),
+      name: name,
+      done: false,
+      startTime: minutesToHHMM(addTaskStartMin),
+      duration: formatMinutes(addTaskDurationMin),
+    };
+    if(addTaskPriority) task.priority = addTaskPriority;
+    state.days[addTaskDate].push(task);
+    closeAddTimelineTaskPopup();
+    render();
+    await saveData();
+    showToast(`تمت إضافة "${name}" إلى الجدول الزمني`);
+  };
 }
 
 function startBlockMove(e, blockEl){
   e.preventDefault();
   const taskId = blockEl.dataset.id;
   const durationMin = Number(blockEl.dataset.durationMin);
-  const track = document.getElementById('tbTrack');
+  const dateStr = blockEl.dataset.date || ui.selectedDate;
+  const track = blockEl.closest('.tbw-col-track');
   const startHour = Number(track.dataset.startHour);
   const startClientY = e.clientY;
   const startClientX = e.clientX;
@@ -335,7 +673,7 @@ function startBlockMove(e, blockEl){
 
     if(pointOverSide(ev.clientX, ev.clientY)){
       if(moved) suppressBlockClick(taskId);
-      commitTaskTime(taskId, null);
+      commitTaskTime(taskId, null, dateStr);
       return;
     }
     // لمسة بسيطة من غير سحب — نسيبها للـ click يفتح الـ popup
@@ -344,7 +682,7 @@ function startBlockMove(e, blockEl){
     const minutesPerPx = 60 / HOUR_PX;
     const finalTop = parseFloat(blockEl.style.top);
     const newStartMin = snapMinutes(startHour * 60 + finalTop * minutesPerPx);
-    commitTaskTime(taskId, newStartMin);
+    commitTaskTime(taskId, newStartMin, dateStr);
   }
 
   document.addEventListener('pointermove', onMove);
@@ -356,6 +694,7 @@ function startBlockResize(e, handleEl){
   e.stopPropagation();
   const blockEl = handleEl.closest('.timeline-block');
   const taskId = handleEl.dataset.id;
+  const dateStr = blockEl.dataset.date || ui.selectedDate;
   const startMin = Number(blockEl.dataset.startMin);
   const startClientY = e.clientY;
   const initialHeight = parseFloat(blockEl.style.height);
@@ -367,7 +706,7 @@ function startBlockResize(e, handleEl){
   function onMove(ev){
     const deltaY = ev.clientY - startClientY;
     if(Math.abs(deltaY) > 4) moved = true;
-    const track = blockEl.closest('.timeline-track');
+    const track = blockEl.closest('.tbw-col-track');
     const endHour = Number(track.dataset.endHour);
     const minHeightPx = MIN_DURATION_MIN * (HOUR_PX / 60);
     // أقصى ارتفاع للبلوك = لحد نهاية منطقة الساعات المعروضة — من غير ما يتعداها
@@ -388,7 +727,7 @@ function startBlockResize(e, handleEl){
     if(moved) suppressBlockClick(taskId);
     const finalHeight = parseFloat(blockEl.style.height);
     const durationMin = Math.max(MIN_DURATION_MIN, snapMinutes(finalHeight * (60 / HOUR_PX)));
-    commitTaskDuration(taskId, durationMin);
+    commitTaskDuration(taskId, durationMin, dateStr);
   }
 
   document.addEventListener('pointermove', onMove);
@@ -399,7 +738,7 @@ function startSideItemDrag(e, itemEl){
   e.preventDefault();
   const taskId = itemEl.dataset.id;
   const taskName = itemEl.dataset.name;
-  const track = document.getElementById('tbTrack');
+  const track = document.querySelector('.timeblock-calendar-col .tbw-col-track');
 
   itemEl.classList.add('dragging');
   try { itemEl.setPointerCapture(e.pointerId); } catch(err) {}
@@ -485,8 +824,9 @@ function startSideItemDrag(e, itemEl){
   document.addEventListener('pointerup', onUp);
 }
 
-async function commitTaskTime(taskId, minutesOrNull){
-  const tasks = state.days[ui.selectedDate] || [];
+async function commitTaskTime(taskId, minutesOrNull, dateStr){
+  dateStr = dateStr || ui.selectedDate;
+  const tasks = state.days[dateStr] || [];
   const idx = tasks.findIndex(t => t.id === taskId);
   if(idx === -1) return;
   const task = tasks[idx];
@@ -506,16 +846,18 @@ async function commitTaskTime(taskId, minutesOrNull){
   await saveData();
 }
 
-async function commitTaskDuration(taskId, minutes){
-  const task = (state.days[ui.selectedDate] || []).find(t => t.id === taskId);
+async function commitTaskDuration(taskId, minutes, dateStr){
+  dateStr = dateStr || ui.selectedDate;
+  const task = (state.days[dateStr] || []).find(t => t.id === taskId);
   if(!task) return;
   task.duration = formatMinutes(minutes);
   render();
   await saveData();
 }
 
-async function duplicateTimelineTask(taskId){
-  const tasks = state.days[ui.selectedDate] || [];
+async function duplicateTimelineTask(taskId, dateStr){
+  dateStr = dateStr || ui.selectedDate;
+  const tasks = state.days[dateStr] || [];
   const task = tasks.find(t => t.id === taskId);
   if(!task) return;
   const startMin = timeStrToMinutes(task.startTime);
@@ -551,8 +893,9 @@ function suppressBlockClick(taskId){
   lastSuppressedBlockClickAt = Date.now();
 }
 
-export function openTimelineTaskPopup(taskId){
+export function openTimelineTaskPopup(taskId, dateStr){
   ui.activeTimelineTaskId = taskId;
+  ui.activeTimelineTaskDate = dateStr || ui.selectedDate;
   renderTimelineTaskPopup();
   document.getElementById('timelineTaskOverlay').classList.add('open');
 }
@@ -565,7 +908,8 @@ export function closeTimelineTaskPopup(){
 function renderTimelineTaskPopup(){
   const overlay = document.getElementById('timelineTaskOverlay');
   if(!overlay) return;
-  const task = (state.days[ui.selectedDate] || []).find(t => t.id === ui.activeTimelineTaskId);
+  const dateStr = ui.activeTimelineTaskDate || ui.selectedDate;
+  const task = (state.days[dateStr] || []).find(t => t.id === ui.activeTimelineTaskId);
   if(!task){
     closeTimelineTaskPopup();
     return;
@@ -587,7 +931,8 @@ if(timelineTaskOverlay){
   });
   document.getElementById('closeTimelineTaskBtn').onclick = closeTimelineTaskPopup;
   document.getElementById('timelineTaskDoneBtn').onclick = async () => {
-    const task = (state.days[ui.selectedDate] || []).find(t => t.id === ui.activeTimelineTaskId);
+    const dateStr = ui.activeTimelineTaskDate || ui.selectedDate;
+    const task = (state.days[dateStr] || []).find(t => t.id === ui.activeTimelineTaskId);
     if(!task) return;
     task.done = !task.done;
     if(task.done){ delete task.remindAt; delete task.reminded; } // المهمة اتنجزت — التذكير/الجرس مالوش لزمة
@@ -598,15 +943,19 @@ if(timelineTaskOverlay){
   document.getElementById('timelineTaskDupBtn').onclick = () => {
     if(!ui.activeTimelineTaskId) return;
     const id = ui.activeTimelineTaskId;
+    const dateStr = ui.activeTimelineTaskDate || ui.selectedDate;
     closeTimelineTaskPopup();
-    duplicateTimelineTask(id);
+    duplicateTimelineTask(id, dateStr);
   };
   document.getElementById('timelineTaskDelBtn').onclick = async () => {
     const id = ui.activeTimelineTaskId;
-    const task = (state.days[ui.selectedDate] || []).find(t => t.id === id);
+    const dateStr = ui.activeTimelineTaskDate || ui.selectedDate;
+    const task = (state.days[dateStr] || []).find(t => t.id === id);
     const isDup = !!(task && task._dupOf);
     closeTimelineTaskPopup();
-    await commitTaskTime(id, null);
+    await commitTaskTime(id, null, dateStr);
     showToast(isDup ? 'تم حذف النسخة من الجدول الزمني' : 'تم إرجاع المهمة لقائمة المهام');
   };
 }
+
+wireAddTimelineTaskPopup();

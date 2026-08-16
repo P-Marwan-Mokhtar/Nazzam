@@ -824,6 +824,56 @@
       </div>
     </div>
 
+    <!-- بوب إضافة مهمة مجدولة من عرض الأسبوع -->
+    <div class="modal-overlay" id="addTimelineTaskOverlay">
+      <div class="modal-card" style="max-width: 420px">
+        <div class="modal-header">
+          <h2>إضافة مهمة مجدولة</h2>
+          <button class="icon-btn" id="closeAddTimelineTaskBtn" title="إغلاق">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="tl-task-meta">
+            <span class="material-icons">calendar_today</span>
+            <span id="addTimelineTaskDate"></span>
+          </div>
+          <input type="text" id="addTimelineTaskName" class="addtl-input" placeholder="اسم المهمة..." maxlength="80" />
+          <div class="addtl-field">
+            <span class="addtl-field-label">وقت البدء</span>
+            <button class="addtl-time-btn" id="addTimelineTaskStartBtn" type="button">
+              <span class="material-icons">schedule</span>
+              <span id="addTimelineTaskStartLabel"></span>
+            </button>
+          </div>
+          <div class="addtl-field">
+            <span class="addtl-field-label">المدة</span>
+            <div class="addtl-chips" id="addTimelineTaskDurationChips">
+              <button class="addtl-duration-chip" data-min="15" type="button">15 دقيقة</button>
+              <button class="addtl-duration-chip" data-min="30" type="button">30 دقيقة</button>
+              <button class="addtl-duration-chip" data-min="45" type="button">45 دقيقة</button>
+              <button class="addtl-duration-chip" data-min="60" type="button">ساعة</button>
+              <button class="addtl-duration-chip" data-min="90" type="button">ساعة ونصف</button>
+              <button class="addtl-duration-chip" data-min="120" type="button">ساعتين</button>
+            </div>
+          </div>
+          <div class="addtl-field">
+            <span class="addtl-field-label">الأهمية</span>
+            <div class="addtl-priority">
+              <button class="priority-choice-btn priority-choice-none" data-choice="" type="button">بدون</button>
+              <button class="priority-choice-btn priority-choice-high" data-choice="high" type="button">عالية</button>
+              <button class="priority-choice-btn priority-choice-medium" data-choice="medium" type="button">متوسطة</button>
+              <button class="priority-choice-btn priority-choice-low" data-choice="low" type="button">منخفضة</button>
+            </div>
+          </div>
+          <div class="modal-actions addtl-actions">
+            <button class="tl-task-btn danger" id="cancelAddTimelineTaskBtn" type="button">إلغاء</button>
+            <button class="tl-task-btn primary" id="confirmAddTimelineTaskBtn" type="button">إضافة</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal الترحيبي: شاشة تعارف قصيرة لأول زيارة فقط -->
     <div class="modal-overlay onboarding-overlay" id="onboardingOverlay">
       <div class="modal-card onboarding-card" style="max-width: 420px">

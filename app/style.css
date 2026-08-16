@@ -2109,6 +2109,8 @@ select:focus {
   align-self: stretch;
   border-inline-start: 1px solid var(--paper-line);
   padding: 16px;
+  max-height: calc(100vh - 20px);
+  overflow-y: auto;
 }
 
 /* ===== Ø­Ø§Ù„Ø© Ø§Ù„ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø£ÙˆÙ„ÙŠØ© (Ø¨ÙŠØªÙ…Ø³Ø­ ØªÙ„Ù‚Ø§Ø¦ÙŠÙ‹Ø§ Ù…Ø¹ Ø£ÙˆÙ„ render) ===== */
@@ -3999,7 +4001,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   font-family: "Almarai", sans-serif;
   font-size: 0.9rem;
   color: var(--ink);
-  background: var(--bg, #fff);
+  background: var(--card);
   border: 1px solid var(--pen);
   border-radius: 6px;
   padding: 4px 8px;
@@ -4349,6 +4351,240 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 
 
 /* ===== Ø§Ù„Ø¬Ø¯ÙˆÙ„ Ø§Ù„Ø²Ù…Ù†ÙŠ (Time blocking) â€” ØµÙØ­Ø© Ù…Ø³ØªÙ‚Ù„Ø© ===== */
+.tb-range-toggle {
+  display: flex;
+  gap: 4px;
+  background: var(--card);
+  border: 1px solid var(--paper-line);
+  border-radius: 12px;
+  padding: 4px;
+}
+.tb-range-btn {
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 7px 20px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.tb-range-btn:hover {
+  color: var(--ink);
+}
+.tb-range-btn.active {
+  background: var(--pen);
+  color: #fff;
+}
+
+.tbw-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(110px, 1fr)) 56px;
+  margin-top: 16px;
+  border: 1px solid var(--paper-line);
+  border-radius: 12px;
+  overflow-x: auto;
+}
+/* نسخة عمود واحد (عرض اليوم): نفس تصميم الأسبوع بالظبط بس من غير أسماء الأيام */
+.tbw-grid.tbw-single {
+  grid-template-columns: minmax(0, 1fr) 56px;
+  margin-top: 0;
+}
+.tbw-grid.tbw-single .tbw-col {
+  border-inline-end: none;
+}
+.tbw-grid.tbw-single .tbw-col-head {
+  cursor: default;
+}
+.tbw-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--paper);
+  border-inline-end: 1px solid var(--paper-line);
+}
+.tbw-col:nth-child(7) {
+  border-inline-end: none;
+}
+.tbw-col.today {
+  background: transparent;
+}
+.tbw-col-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  height: 54px;
+  padding: 0 4px;
+  border: none;
+  border-bottom: 1px solid var(--paper-line);
+  background: var(--card);
+  color: var(--ink);
+  font-family: inherit;
+  cursor: pointer;
+}
+.tbw-col-head.today {
+  color: var(--pen);
+}
+.tbw-col-day {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+.tbw-col-head.today .tbw-col-day {
+  color: var(--pen);
+}
+.tbw-col-num {
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+.tbw-col-track {
+  position: relative;
+  cursor: pointer;
+}
+.tbw-hours {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border-inline-start: 1px solid var(--paper-line);
+}
+.tbw-hours-head {
+  height: 54px;
+  border-bottom: 1px solid var(--paper-line);
+}
+.tbw-hours-track {
+  position: relative;
+}
+.tbw-hour-label {
+  position: absolute;
+  right: 6px;
+  font-size: 0.68rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  user-select: none;
+}
+.tbw-hour-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--paper-line);
+  pointer-events: none;
+}
+.timeline-block.tbw-block {
+  cursor: pointer;
+  touch-action: auto;
+}
+.timeline-block.tbw-block:hover {
+  box-shadow: var(--shadow);
+}
+
+/* بوب إضافة مهمة مجدولة من عرض الأسبوع */
+.addtl-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 12px 0 4px;
+  padding: 11px 12px;
+  border: 1px solid var(--paper-line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.95rem;
+  outline: none;
+}
+.addtl-input:focus {
+  border-color: var(--pen);
+}
+.addtl-field {
+  margin-top: 14px;
+}
+.addtl-field-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+.addtl-time-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--paper-line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.addtl-time-btn .material-icons {
+  color: var(--pen);
+  font-size: 18px;
+}
+.addtl-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.addtl-duration-chip {
+  padding: 7px 12px;
+  border: 1px solid var(--paper-line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.addtl-duration-chip:hover {
+  border-color: var(--pen);
+}
+.addtl-duration-chip.active {
+  background: var(--pen);
+  border-color: var(--pen);
+  color: #fff;
+}
+.addtl-priority {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.addtl-priority .priority-choice-btn {
+  width: auto;
+  padding: 7px 14px;
+  border: 1px solid var(--paper-line);
+  border-radius: 10px;
+}
+.addtl-priority .priority-choice-btn.selected {
+  background: var(--pen-soft);
+  border-color: var(--pen);
+}
+.addtl-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+.addtl-actions .tl-task-btn {
+  flex: 1;
+  justify-content: center;
+  width: auto;
+}
+.addtl-actions .tl-task-btn.primary {
+  background: var(--pen);
+  border-color: var(--pen);
+  color: #fff;
+}
+.addtl-actions .tl-task-btn.primary .material-icons {
+  color: #fff;
+}
+
+
 .timeblock-layout {
   position: relative;
   display: flex;
@@ -4539,12 +4775,24 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   /* Ù…Ø³Ø§Ø­Ø© Ø«Ø§Ø¨ØªØ© Ø¨Ø§Ù„Ø¨ÙƒØ³Ù„ (Ù…Ø´ Ù†Ø³Ø¨Ø© Ù…Ø¦ÙˆÙŠØ©) Ø¹Ø´Ø§Ù† ØªÙØ¶Ù„ ÙƒØ§ÙÙŠØ© Ù„Ù†Øµ Ø§Ù„Ø³Ø§Ø¹Ø© Ø²ÙŠ "14:00"
      Ø­ØªÙ‰ Ù„Ù…Ø§ Ø§Ù„Ø´Ø§Ø´Ø© ØªØµØºØ±ØŒ Ø¨Ø¯Ù„ Ù…Ø§ ØªÙ†ÙƒÙ…Ø´ Ø§Ù„Ù†Ø³Ø¨Ø© ÙˆØªØ®Ù„ÙŠ Ø§Ù„Ù†Øµ ÙŠØ¹Ù…Ù„ overflow */
   padding-left: 44px;
-  border-radius: var(--radius);
+  /* ÙƒØ§Ø±Øª Ø²ÙŠ Ø¹Ø±Ø¶ Ø§Ù„Ø£Ø³Ø¨ÙˆØ¹: Ø­Ø¯ÙˆØ¯ + Ø§Ø³ØªØ¯Ø§Ø±Ø© + Ø®Ù„ÙÙŠØ© Ù…ÙˆØ­Ø¯Ø© (Ù…Ø´ Ù…Ø­ØªØ§Ø¬ padding Ø¹Ù…ÙˆØ¯ÙŠ) */
+  background: var(--paper);
+  border: 1px solid var(--paper-line);
+  border-radius: 12px;
+}
+/* ÙØ§ØµÙ„ Ø¹Ù…ÙˆØ¯ Ø§Ù„Ø³Ø§Ø¹Ø§Øª (Ø¨ÙŠÙ† Ø§Ù„ØªØ³Ù…ÙŠØ§Øª ÙˆØ§Ù„Ø¬Ø¯ÙˆÙ„) Ù…Ù…ØªØ¯ Ø¹Ù„Ù‰ Ø·ÙˆÙ„ Ø§Ù„ÙƒØ§Ø±Øª */
+.timeline-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 44px;
+  border-left: 1px solid var(--paper-line);
+  pointer-events: none;
 }
 .timeline-track {
   position: relative;
   width: 100%;
-  border-inline-start: 1px solid var(--paper-line);
   user-select: none;
 }
 .timeline-hour-line {
@@ -4560,6 +4808,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   font-size: 0.72rem;
   color: var(--ink-soft);
   white-space: nowrap;
+  padding-left: 4px;
 }
 .timeline-now-line {
   position: absolute;
@@ -4714,13 +4963,16 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 @media (hover: hover) {
   .task-row:not(.dragging):not(.drag-over):hover,
   .keyword-row:not(.dragging):not(.drag-over):hover {
-    transform: translateY(-2px);
     background-color: var(--paper);
   }
   .stats-summary-pill:hover,
   .timeblock-side-item:hover,
   .week-day-card:hover {
     background-color: var(--paper);
+  }
+  .timeline-block:not(.dragging):not(.resizing):hover {
+    z-index: 10;
+    box-shadow: var(--shadow-hover);
   }
 }
 
