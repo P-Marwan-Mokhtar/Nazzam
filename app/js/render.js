@@ -230,13 +230,10 @@ export function render(){
                       </button>
                       <div class="type-submenu-wrap">
                         <button class="tmd-btn type-btn" data-action="toggle-keyword-type-popover" data-id="${k.id}" title="نوع المهمة">
-                          <span class="material-icons">${k.type ? TASK_TYPES[k.type].icon : 'label_off'}</span><span>${k.type ? TASK_TYPES[k.type].label : 'النوع'}</span>
+                          <span class="material-icons">${TASK_TYPES[k.type || 'task'].icon}</span><span>${TASK_TYPES[k.type || 'task'].label}</span>
                         </button>
                         <div class="priority-popover type-popover ${ui.openKeywordTypePopoverTaskId === k.id ? 'open' : ''}">
-                          <button class="priority-choice-btn ${!k.type ? 'selected' : ''}" data-action="set-keyword-type" data-choice="" data-id="${k.id}" type="button">
-                            <span class="material-icons">label_off</span>بدون
-                          </button>
-                          <button class="priority-choice-btn ${k.type === 'task' ? 'selected' : ''}" data-action="set-keyword-type" data-choice="task" data-id="${k.id}" type="button">
+                          <button class="priority-choice-btn ${k.type === 'task' || !k.type ? 'selected' : ''}" data-action="set-keyword-type" data-choice="task" data-id="${k.id}" type="button">
                             <span class="material-icons">task</span>مهمة
                           </button>
                           <button class="priority-choice-btn ${k.type === 'habit' ? 'selected' : ''}" data-action="set-keyword-type" data-choice="habit" data-id="${k.id}" type="button">
