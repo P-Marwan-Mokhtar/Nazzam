@@ -187,13 +187,15 @@ export function render(){
 
     if(visibleKeywords.length === 0){
       if(state.keywords.length === 0){
-        html += emptyStateHtml('inbox', 'بنك المهام لا يزال فارغًا', 'اكتب مهمتك في الحقل أعلاه واضغط (+). البنك هو مخزونك الدائم.');
+        html += emptyStateHtml('inbox', 'بنك المهام لا يزال فارغًا', 'اكتب مهمتك في الحقل أعلاه واضغط (+). البنك هو مخزونك الدائم.', !ui.emptyAnimated);
       } else if(searchNormalized){
-        html += emptyStateHtml('search_off', 'لا توجد نتائج للبحث', `لا توجد مهمة تحتوي على "${escapeHtml(ui.bankSearchQuery.trim())}"`);
+        html += emptyStateHtml('search_off', 'لا توجد نتائج للبحث', `لا توجد مهمة تحتوي على "${escapeHtml(ui.bankSearchQuery.trim())}"`, !ui.emptyAnimated);
       } else {
-        html += emptyStateHtml('filter_alt_off', 'لا توجد مهام في هذا الفلتر', 'غيّر الفلتر أو أضف مهمة جديدة إلى البنك.');
+        html += emptyStateHtml('filter_alt_off', 'لا توجد مهام في هذا الفلتر', 'غيّر الفلتر أو أضف مهمة جديدة إلى البنك.', !ui.emptyAnimated);
       }
+      ui.emptyAnimated = true;
     } else {
+      ui.emptyAnimated = false;
       const slicedKeywords = visibleKeywords.slice(0, ui.bankDisplayLimit);
       html += `<div class="keyword-list ${ui.justChangedFilter ? 'animate-in' : ''}">`;
       slicedKeywords.forEach(k => {
@@ -297,16 +299,21 @@ export function render(){
     html += emptyStateHtml(
       'wb_sunny',
       isToday ? 'يومك لا يزال فارغًا — ابدأ بشكل إيجابي ☀️' : 'لا توجد مهام مسجلة لهذا اليوم',
-      isToday ? 'اكتب مهمة في الحقل أعلاه، أو افتح بنك المهام واختر منها.' : 'لا توجد مهام حاليًا — يمكنك اختيار يوم آخر من التقويم.'
+      isToday ? 'اكتب مهمة في الحقل أعلاه، أو افتح بنك المهام واختر منها.' : 'لا توجد مهام حاليًا — يمكنك اختيار يوم آخر من التقويم.',
+      !ui.emptyAnimated
     );
+    ui.emptyAnimated = true;
   } else if(visibleDayTasks.length === 0){
     const fLabel = dayFilterLabels[ui.dayStatusFilter];
     html += emptyStateHtml(
       fLabel === 'done' ? 'celebration' : 'check_circle',
       fLabel === 'done' ? 'لم تُنجز أي مهام اليوم بعد' : 'اكتملت جميع المهام 🎉',
-      fLabel === 'done' ? 'عند إنجازك أول مهمة ستظهر هنا.' : 'استمتع بوقتك — تم إنجاز يومك بنجاح.'
+      fLabel === 'done' ? 'عند إنجازك أول مهمة ستظهر هنا.' : 'استمتع بوقتك — تم إنجاز يومك بنجاح.',
+      !ui.emptyAnimated
     );
+    ui.emptyAnimated = true;
   } else {
+    ui.emptyAnimated = false;
     html += `<div class="task-list">`;
     visibleDayTasks.forEach((t, idx) => {
       html += `

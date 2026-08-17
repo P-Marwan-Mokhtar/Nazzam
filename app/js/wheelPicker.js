@@ -108,7 +108,7 @@ export function initWheel(colEl, listEl, count, initialValue, labels, loop = tru
 }
 
 export function openDurationPicker(taskId){
-  const task = state.days[ui.selectedDate].find(t => t.id === taskId);
+  const task = (state.days[ui.selectedDate] || []).find(t => t.id === taskId);
   if(!task) return;
   ui.pickerMode = 'task';
   ui.pickerTaskId = taskId;
@@ -134,7 +134,7 @@ export function openDurationPicker(taskId){
 }
 
 export function openActualDurationPicker(taskId){
-  const task = state.days[ui.selectedDate].find(t => t.id === taskId);
+  const task = (state.days[ui.selectedDate] || []).find(t => t.id === taskId);
   if(!task) return;
   ui.pickerMode = 'actual';
   ui.pickerTaskId = taskId;
@@ -223,7 +223,7 @@ export async function commitDurationPicker(){
   }
 
   if(!ui.pickerTaskId) return;
-  const task = state.days[ui.selectedDate].find(t => t.id === ui.pickerTaskId);
+  const task = (state.days[ui.selectedDate] || []).find(t => t.id === ui.pickerTaskId);
   if(task){
     const label = h > 0 && m > 0 ? `${h} ساعة و ${m} دقيقة` : (h > 0 ? `${h} ساعة` : (m > 0 ? `${m} دقيقة` : ''));
     if(ui.pickerMode === 'actual') task.actualDuration = label;

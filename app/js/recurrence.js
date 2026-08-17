@@ -8,7 +8,7 @@ import { saveData } from './dataStore.js';
 import { render } from './render.js';
 
 export function openRecurrenceModal(taskId){
-  const task = state.days[ui.selectedDate].find(x => x.id === taskId);
+  const task = (state.days[ui.selectedDate] || []).find(x => x.id === taskId);
   if(!task) return;
   ui.activeRecurrenceTaskId = taskId;
   ui.pendingRecurrenceDays = (state.recurringTasks && state.recurringTasks[task.name]) ? [...state.recurringTasks[task.name]] : [];
@@ -42,7 +42,7 @@ function renderRecurrenceDaysGrid(){
 
 async function saveRecurrence(){
   if(!ui.activeRecurrenceTaskId) return;
-  const task = state.days[ui.selectedDate].find(x => x.id === ui.activeRecurrenceTaskId);
+  const task = (state.days[ui.selectedDate] || []).find(x => x.id === ui.activeRecurrenceTaskId);
   if(!task){ closeRecurrenceModal(); return; }
   if(!state.recurringTasks) state.recurringTasks = {};
   const taskName = task.name;

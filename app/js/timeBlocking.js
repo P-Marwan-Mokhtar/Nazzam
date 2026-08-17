@@ -5,11 +5,12 @@
 // زي Google Calendar.
 // ============================================================
 
-import { MONTH_NAMES, SHORT_DAY_NAMES, addDays, escapeAttr, escapeHtml, fmtDay, formatMinutes, fromISO, parseDurationToMinutes, timeStrToMinutes, todayStr, toISO, uid } from './utils.js';
+import { DAY_NAMES, MONTH_NAMES, SHORT_DAY_NAMES, addDays, escapeAttr, escapeHtml, fmtDay, formatMinutes, fromISO, parseDurationToMinutes, timeStrToMinutes, todayStr, toISO, uid } from './utils.js';
 import { contentEl, showToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { formatTimeArabic, openTimePicker } from './timePicker.js';
 import { ensureDayMaterialized, render } from './render.js';
+import { openCalendarModal } from './calendar.js';
 
 const HOUR_PX = 64;
 const SNAP_MIN = 5;
@@ -18,6 +19,14 @@ const MIN_DURATION_MIN = 10;
 const DEFAULT_START_HOUR = 1;
 const DEFAULT_END_HOUR = 23;
 const BLOCK_GAP_PX = 3; // المسافة الرأسية بين البلوكات المتتالية (بتتنقص من ارتفاع كل بلوك)
+const TB_MOBILE_VISIBLE_COUNT = 4; // عدد المهام اللي بتظهر في لوحة "مهام غير مجدولة" على الموبايل قبل زرار "المزيد"
+
+// لما العرض بيعبر 900px (تدوير موبايل / تغيير حجم النافذة)، بنبقي محتاجين
+// نعيد رسم الجدول الزمني عشان الـ isMobile يتظبط والزرار/اللوحة يظهرخت صح.
+const _tbMq = window.matchMedia('(max-width: 900px)');
+_tbMq.addEventListener('change', () => {
+  if(ui.timeBlockViewOpen) render();
+});
 
 function getWeekStart(dateStr){
   const d = fromISO(dateStr);
@@ -133,6 +142,7 @@ function layoutTimelineBlocks(items){
 
 export function renderTimeBlockView(){
   if(ui.tbRangeMode === 'week'){ renderTimeBlockWeekView(); return; }
+  if(ui.justChangedDay) ui.tbSideExpanded = false; // نعيد توسيع اللوحة لما نغيّر اليوم
   ensureDayMaterialized(ui.selectedDate);
   const dayTasks = state.days[ui.selectedDate] || [];
   const today = todayStr();
@@ -199,32 +209,45 @@ export function renderTimeBlockView(){
   });
 
   let sideHtml = '';
-  if(unscheduled.length === 0){
+  const isMobile = window.innerWidth <= 900;
+  const collapsed = isMobile && !ui.tbSideExpanded && unscheduled.length > TB_MOBILE_VISIBLE_COUNT;
+  const needsMoreBtn = isMobile && unscheduled.length > TB_MOBILE_VISIBLE_COUNT;
+  const visibleTasks = collapsed ? unscheduled.slice(0, TB_MOBILE_VISIBLE_COUNT) : unscheduled;
+  if(visibleTasks.length === 0){
     sideHtml = `<div class="timeblock-side-empty">${dayTasks.length === 0 ? 'لا توجد مهام في هذا اليوم بعد' : 'كل المهام متجدولة 🎉'}</div>`;
   } else {
-    unscheduled.forEach(t => {
+    visibleTasks.forEach(t => {
       sideHtml += `<div class="timeblock-side-item" data-id="${t.id}" data-name="${escapeAttr(t.name)}">${escapeHtml(t.name)}</div>`;
     });
   }
 
+  const dayName = DAY_NAMES[fromISO(ui.selectedDate).getDay()];
+  const rangeLabel = ui.tbRangeMode === 'day' ? 'يوم' : 'أسبوع';
   const html = `
     <div class="timeblock-view ${(ui.justReturnedFromStats || ui.justChangedTbRange) ? 'animate-in' : ''}">
-      <div class="date-nav">
-        <button class="nav-btn" id="tbPrevBtn" aria-label="اليوم السابق"><span class="material-icons">chevron_right</span></button>
-        <div class="date-display">
-          <div class="day-name">الجدول الزمني</div>
-          <div class="day-sub">${fmtDay(ui.selectedDate)}</div>
+      <div class="date-nav tb-date-nav">
+        <div class="tb-range-dropdown" id="tbRangeDropdown">
+          <button class="tb-range-drop-btn" id="tbRangeDropBtn" type="button">
+            <span>${rangeLabel}</span>
+            <span class="material-icons tb-drop-arrow">expand_more</span>
+          </button>
+          <div class="tb-range-menu" id="tbRangeMenu">
+            <button class="tb-range-menu-item ${ui.tbRangeMode === 'day' ? 'active' : ''}" data-range="day">يوم</button>
+            <button class="tb-range-menu-item ${ui.tbRangeMode === 'week' ? 'active' : ''}" data-range="week">أسبوع</button>
+          </div>
         </div>
-        <button class="nav-btn" id="tbNextBtn" aria-label="اليوم التالي"><span class="material-icons">chevron_left</span></button>
-      </div>
-      <div class="tb-toolbar">
-        ${renderTbRangeToggle('day')}
-        ${ui.selectedDate !== today ? `<button class="today-btn" id="tbTodayBtn">اليوم</button>` : ''}
-        <button class="tb-unscheduled-btn" id="tbToggleSideBtn" type="button" aria-expanded="${ui.tbSideOpen}">
-          <span class="material-icons">playlist_add</span>
-          <span>مهام غير مجدولة</span>
-          <span class="tb-unscheduled-badge" id="tbUnscheduledBadge">${unscheduled.length}</span>
-        </button>
+        <div class="tb-nav-group">
+          <button class="nav-btn" id="tbPrevBtn" aria-label="اليوم السابق"><span class="material-icons">chevron_right</span></button>
+          <button class="tb-day-label" id="tbDayLabelBtn" type="button">${dayName}</button>
+          <button class="nav-btn" id="tbNextBtn" aria-label="اليوم التالي"><span class="material-icons">chevron_left</span></button>
+        </div>
+        <div class="tb-actions-group">
+          <button class="tb-today-btn ${ui.selectedDate === today ? 'current' : ''}" id="tbTodayBtn" type="button">اليوم</button>
+          <button class="tb-unscheduled-icon-btn" id="tbToggleSideBtn" type="button" aria-expanded="${ui.tbSideOpen}">
+            <span class="material-icons">playlist_add</span>
+            ${unscheduled.length > 0 ? `<span class="tb-unscheduled-badge">${unscheduled.length}</span>` : ''}
+          </button>
+        </div>
       </div>
 
       <div class="timeblock-layout">
@@ -232,7 +255,7 @@ export function renderTimeBlockView(){
           <div class="tbw-grid tbw-single">
             <div class="tbw-col ${ui.selectedDate === today ? 'today' : ''}">
               <div class="tbw-col-head ${ui.selectedDate === today ? 'today' : ''}">
-                <span class="tbw-col-num">${fromISO(ui.selectedDate).getDate()}</span>
+                <span class="tbw-col-num">${fromISO(ui.selectedDate).getDate()} ${dayName}</span>
               </div>
               <div class="tbw-col-track" data-date="${ui.selectedDate}" data-start-hour="${startHour}" data-end-hour="${endHour}" style="height:${trackHeight}px">
                 ${hoursHtml}
@@ -246,14 +269,16 @@ export function renderTimeBlockView(){
             </div>
           </div>
         </div>
+        <div class="timeblock-side-backdrop ${ui.tbSideOpen ? 'open' : ''}" id="tbSideBackdrop"></div>
         <div class="timeblock-side ${ui.tbSideOpen ? 'open' : ''} ${ui.tbSideJustOpened ? 'tb-open-anim' : ''} ${ui.tbSideClosing ? 'tb-closing' : ''}">
           <div class="timeblock-side-card">
             <div class="timeblock-side-head">
               <div class="timeblock-side-title">مهام غير مجدولة</div>
               <button class="tb-side-close-btn" id="tbSideCloseBtn" type="button" aria-label="إغلاق"><span class="material-icons">close</span></button>
             </div>
-            <div class="timeblock-unscheduled-list" id="tbUnscheduledList">${sideHtml}</div>
-            <div class="timeblock-side-hint">اسحب المهمة إلى الجدول لتحديد وقتها، واسحب حافة المهمة السفلية لتمديدها.</div>
+            <div class="timeblock-unscheduled-list ${needsMoreBtn && !ui.tbSideExpanded ? 'tb-side-collapsed' : ''}" id="tbUnscheduledList">${sideHtml}</div>
+            ${needsMoreBtn ? `<button class="tb-side-more-btn" id="tbSideMoreBtn" type="button">${ui.tbSideExpanded ? 'إخفاء' : 'المزيد (' + (unscheduled.length - TB_MOBILE_VISIBLE_COUNT) + ')'}</button>` : ''}
+
           </div>
         </div>
       </div>
@@ -271,15 +296,46 @@ export function renderTimeBlockView(){
 function attachTimeBlockEvents(){
   const prevBtn = document.getElementById('tbPrevBtn');
   const nextBtn = document.getElementById('tbNextBtn');
-  const todayBtn = document.getElementById('tbTodayBtn');
   const toggleSideBtn = document.getElementById('tbToggleSideBtn');
   const sideCloseBtn = document.getElementById('tbSideCloseBtn');
   if(prevBtn) prevBtn.onclick = () => { ui.selectedDate = addDays(ui.selectedDate, -1); ui.justChangedDay = true; render(); };
   if(nextBtn) nextBtn.onclick = () => { ui.selectedDate = addDays(ui.selectedDate, 1); ui.justChangedDay = true; render(); };
-  if(todayBtn) todayBtn.onclick = () => { ui.selectedDate = todayStr(); ui.justChangedDay = true; render(); };
   if(toggleSideBtn) toggleSideBtn.onclick = toggleTbSide;
   if(sideCloseBtn) sideCloseBtn.onclick = () => closeTbSide();
-  wireTbRangeToggle();
+  const todayBtn = document.getElementById('tbTodayBtn');
+  if(todayBtn) todayBtn.onclick = () => {
+    const today = todayStr();
+    if(ui.selectedDate === today){
+      const nowLine = contentEl.querySelector('.timeline-now-line');
+      if(nowLine) nowLine.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      ui.selectedDate = today;
+      ui.justChangedDay = true;
+      render();
+      requestAnimationFrame(() => {
+        const nowLine = contentEl.querySelector('.timeline-now-line');
+        if(nowLine) nowLine.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    }
+  };
+  const dayLabelBtn = document.getElementById('tbDayLabelBtn');
+  if(dayLabelBtn) dayLabelBtn.onclick = () => openCalendarModal();
+  const moreBtn = document.getElementById('tbSideMoreBtn');
+  if(moreBtn) moreBtn.onclick = () => { ui.tbSideExpanded = !ui.tbSideExpanded; render(); };
+
+  const dropBtn = document.getElementById('tbRangeDropBtn');
+  const dropMenu = document.getElementById('tbRangeMenu');
+  if(dropBtn && dropMenu){
+    dropBtn.onclick = (e) => { e.stopPropagation(); dropMenu.classList.toggle('open'); };
+    dropMenu.querySelectorAll('.tb-range-menu-item').forEach(item => {
+      item.onclick = () => {
+        ui.tbRangeMode = item.dataset.range;
+        ui.justChangedTbRange = true;
+        dropMenu.classList.remove('open');
+        render();
+      };
+    });
+  }
 
   contentEl.querySelectorAll('.timeline-block').forEach(blockEl => {
     const taskId = blockEl.dataset.id;
@@ -321,22 +377,6 @@ function attachTimeBlockEvents(){
   });
 }
 
-// شريط التبديل بين مدى عرض الجدول الزمني (يوم/أسبوع/شهر)
-function renderTbRangeToggle(mode){
-  return `
-    <div class="tb-range-toggle" role="tablist">
-      <button class="tb-range-btn ${mode === 'day' ? 'active' : ''}" id="tbRangeDayBtn" data-range="day">يوم</button>
-      <button class="tb-range-btn ${mode === 'week' ? 'active' : ''}" id="tbRangeWeekBtn" data-range="week">أسبوع</button>
-    </div>
-  `;
-}
-
-function wireTbRangeToggle(){
-  const dayBtn = document.getElementById('tbRangeDayBtn');
-  const weekBtn = document.getElementById('tbRangeWeekBtn');
-  if(dayBtn) dayBtn.onclick = () => { ui.tbRangeMode = 'day'; ui.justChangedTbRange = true; render(); };
-  if(weekBtn) weekBtn.onclick = () => { ui.tbRangeMode = 'week'; ui.justChangedTbRange = true; render(); };
-}
 
 // عرض الجدول الزمني على مدى أسبوع: سبع أعمدة (يوم لكل عمود) فيها البلوكات
 // مرتبة حسب وقتها (وفيها النسخ المكررة الم مجدولة في الجدول، زي عرض اليوم).
@@ -368,6 +408,31 @@ function renderTimeBlockWeekView(){
   startHour = Math.max(0, startHour);
   endHour = Math.min(24, endHour);
   const trackHeight = (endHour - startHour) * HOUR_PX;
+
+  // المهام المتكررة غير المجدولة خلال الأسبوع (تظهر في لوحة جانبية)
+  const isMobile = window.innerWidth <= 900;
+  const unscheduledRecurringMap = new Map();
+  days.forEach(({ tasks }) => {
+    tasks.forEach(t => {
+      if(!t.startTime && state.recurringTasks && state.recurringTasks[t.name]){
+        if(!unscheduledRecurringMap.has(t.name)){
+          unscheduledRecurringMap.set(t.name, t);
+        }
+      }
+    });
+  });
+  const unscheduledRecurring = [...unscheduledRecurringMap.values()];
+  const weekCollapsed = isMobile && !ui.tbSideExpanded && unscheduledRecurring.length > TB_MOBILE_VISIBLE_COUNT;
+  const weekNeedsMoreBtn = isMobile && unscheduledRecurring.length > TB_MOBILE_VISIBLE_COUNT;
+  const weekVisibleTasks = weekCollapsed ? unscheduledRecurring.slice(0, TB_MOBILE_VISIBLE_COUNT) : unscheduledRecurring;
+  let weekSideHtml = '';
+  if(weekVisibleTasks.length === 0){
+    weekSideHtml = `<div class="timeblock-side-empty">لا توجد مهام متكررة غير مجدولة</div>`;
+  } else {
+    weekVisibleTasks.forEach(t => {
+      weekSideHtml += `<div class="timeblock-side-item" data-id="${t.id}" data-name="${escapeAttr(t.name)}">${escapeHtml(t.name)}</div>`;
+    });
+  }
 
   // خطوط الساعات بتتتكرر في كل عمود (شبكة متصلة زي Google Calendar)، وتسميات
   // الساعات بتروح في عمود جانبي ثابت على الشمال (نفس مكانها في عرض اليوم).
@@ -443,29 +508,58 @@ function renderTimeBlockWeekView(){
 
   const d0 = fromISO(weekStart);
   const d6 = fromISO(addDays(weekStart, 6));
-  const rangeLabel = d0.getMonth() === d6.getMonth()
-    ? `${d0.getDate()} - ${d6.getDate()} ${MONTH_NAMES[d0.getMonth()]} ${d0.getFullYear()}`
-    : `${d0.getDate()} ${MONTH_NAMES[d0.getMonth()]} - ${d6.getDate()} ${MONTH_NAMES[d6.getMonth()]} ${d6.getFullYear()}`;
+
+  const rangeLabel = ui.tbRangeMode === 'day' ? 'يوم' : 'أسبوع';
+  const weekMonthLabel = d0.getMonth() === d6.getMonth()
+    ? MONTH_NAMES[d0.getMonth()]
+    : `${MONTH_NAMES[d0.getMonth()]} - ${MONTH_NAMES[d6.getMonth()]}`;
 
   const html = `
     <div class="timeblock-view ${(ui.justReturnedFromStats || ui.justChangedTbRange) ? 'animate-in' : ''}">
-      <div class="date-nav">
-        <button class="nav-btn" id="tbwPrevBtn" aria-label="الأسبوع السابق"><span class="material-icons">chevron_right</span></button>
-        <div class="date-display">
-          <div class="day-name">الجدول الزمني</div>
-          <div class="day-sub">${rangeLabel}</div>
+      <div class="date-nav tb-date-nav">
+        <div class="tb-range-dropdown" id="tbRangeDropdown">
+          <button class="tb-range-drop-btn" id="tbRangeDropBtn" type="button">
+            <span>${rangeLabel}</span>
+            <span class="material-icons tb-drop-arrow">expand_more</span>
+          </button>
+          <div class="tb-range-menu" id="tbRangeMenu">
+            <button class="tb-range-menu-item ${ui.tbRangeMode === 'day' ? 'active' : ''}" data-range="day">يوم</button>
+            <button class="tb-range-menu-item ${ui.tbRangeMode === 'week' ? 'active' : ''}" data-range="week">أسبوع</button>
+          </div>
         </div>
-        <button class="nav-btn" id="tbwNextBtn" aria-label="الأسبوع التالي"><span class="material-icons">chevron_left</span></button>
+        <div class="tb-nav-group">
+          <button class="nav-btn" id="tbwPrevBtn" aria-label="الأسبوع السابق"><span class="material-icons">chevron_right</span></button>
+          <button class="tb-day-label" id="tbDayLabelBtn" type="button">${weekMonthLabel}</button>
+          <button class="nav-btn" id="tbwNextBtn" aria-label="الأسبوع التالي"><span class="material-icons">chevron_left</span></button>
+        </div>
+        <div class="tb-actions-group">
+          <button class="tb-unscheduled-icon-btn" id="tbToggleSideBtn" type="button" aria-expanded="${ui.tbSideOpen}">
+            <span class="material-icons">playlist_add</span>
+            ${unscheduledRecurring.length > 0 ? `<span class="tb-unscheduled-badge">${unscheduledRecurring.length}</span>` : ''}
+          </button>
+        </div>
       </div>
-      <div class="tb-toolbar">
-        ${renderTbRangeToggle('week')}
-        ${!isCurrentWeek ? `<button class="today-btn" id="tbwTodayBtn">هذا الأسبوع</button>` : ''}
-      </div>
-      <div class="tbw-grid">
-        ${colsHtml}
-        <div class="tbw-hours">
-          <div class="tbw-hours-head"></div>
-          <div class="tbw-hours-track" style="height:${trackHeight}px">${hourLabelsHtml}</div>
+      <div class="timeblock-layout">
+        <div class="timeblock-calendar-col">
+          <div class="tbw-grid">
+            ${colsHtml}
+            <div class="tbw-hours">
+              <div class="tbw-hours-head"></div>
+              <div class="tbw-hours-track" style="height:${trackHeight}px">${hourLabelsHtml}</div>
+            </div>
+          </div>
+        </div>
+        <div class="timeblock-side-backdrop ${ui.tbSideOpen ? 'open' : ''}" id="tbSideBackdrop"></div>
+        <div class="timeblock-side ${ui.tbSideOpen ? 'open' : ''} ${ui.tbSideJustOpened ? 'tb-open-anim' : ''} ${ui.tbSideClosing ? 'tb-closing' : ''}">
+          <div class="timeblock-side-card">
+            <div class="timeblock-side-head">
+              <div class="timeblock-side-title">مهام متكررة غير مجدولة</div>
+              <button class="tb-side-close-btn" id="tbSideCloseBtn" type="button" aria-label="إغلاق"><span class="material-icons">close</span></button>
+            </div>
+            <div class="timeblock-unscheduled-list ${weekNeedsMoreBtn && !ui.tbSideExpanded ? 'tb-side-collapsed' : ''}" id="tbUnscheduledList">${weekSideHtml}</div>
+            ${weekNeedsMoreBtn ? `<button class="tb-side-more-btn" id="tbSideMoreBtn" type="button">${ui.tbSideExpanded ? 'إخفاء' : 'المزيد (' + (unscheduledRecurring.length - TB_MOBILE_VISIBLE_COUNT) + ')'}</button>` : ''}
+
+          </div>
         </div>
       </div>
     </div>
@@ -477,11 +571,34 @@ function renderTimeBlockWeekView(){
 
   const prevBtn = document.getElementById('tbwPrevBtn');
   const nextBtn = document.getElementById('tbwNextBtn');
-  const todayBtn = document.getElementById('tbwTodayBtn');
   if(prevBtn) prevBtn.onclick = () => { ui.selectedDate = addDays(getWeekStart(ui.selectedDate), -7); ui.justChangedDay = true; render(); };
   if(nextBtn) nextBtn.onclick = () => { ui.selectedDate = addDays(getWeekStart(ui.selectedDate), 7); ui.justChangedDay = true; render(); };
-  if(todayBtn) todayBtn.onclick = () => { ui.selectedDate = today; ui.justChangedDay = true; render(); };
-  wireTbRangeToggle();
+
+  const dayLabelBtn = document.getElementById('tbDayLabelBtn');
+  if(dayLabelBtn) dayLabelBtn.onclick = () => openCalendarModal();
+
+  const toggleSideBtn = document.getElementById('tbToggleSideBtn');
+  const sideCloseBtn = document.getElementById('tbSideCloseBtn');
+  const sideBackdrop = document.getElementById('tbSideBackdrop');
+  if(toggleSideBtn) toggleSideBtn.onclick = toggleTbSide;
+  if(sideCloseBtn) sideCloseBtn.onclick = () => closeTbSide();
+  if(sideBackdrop) sideBackdrop.onclick = () => closeTbSide();
+  const weekMoreBtn = document.getElementById('tbSideMoreBtn');
+  if(weekMoreBtn) weekMoreBtn.onclick = () => { ui.tbSideExpanded = !ui.tbSideExpanded; render(); };
+
+  const dropBtn = document.getElementById('tbRangeDropBtn');
+  const dropMenu = document.getElementById('tbRangeMenu');
+  if(dropBtn && dropMenu){
+    dropBtn.onclick = (e) => { e.stopPropagation(); dropMenu.classList.toggle('open'); };
+    dropMenu.querySelectorAll('.tb-range-menu-item').forEach(item => {
+      item.onclick = () => {
+        ui.tbRangeMode = item.dataset.range;
+        ui.justChangedTbRange = true;
+        dropMenu.classList.remove('open');
+        render();
+      };
+    });
+  }
 
   contentEl.querySelectorAll('[data-action="tb-open-day"]').forEach(btn => {
     btn.onclick = () => {

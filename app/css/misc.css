@@ -1,4 +1,4 @@
-/* ===== ØªØ£Ø«ÙŠØ±Ø§Øª hover Ù…ÙˆØ­Ù‘Ø¯Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø¨Ø·Ø§Ù‚Ø§Øª (Ù†Ø§Ø¹Ù…Ø©) ===== */
+/* ===== تأثيرات hover موحّدة على البطاقات (ناعمة) ===== */
 @media (hover: hover) {
   .task-row:not(.dragging):not(.drag-over):hover,
   .keyword-row:not(.dragging):not(.drag-over):hover {

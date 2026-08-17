@@ -7,7 +7,7 @@ import { saveData } from './dataStore.js';
 import { render } from './render.js';
 
 export function openTaskNoteModal(taskId){
-  const task = state.days[ui.selectedDate].find(x => x.id === taskId);
+  const task = (state.days[ui.selectedDate] || []).find(x => x.id === taskId);
   if(!task) return;
   ui.activeTaskNoteId = taskId;
   const nameDisplay = document.getElementById('taskNoteTaskNameDisplay');
@@ -27,7 +27,7 @@ export function closeTaskNoteModal(){
 
 async function saveTaskNote(){
   if(!ui.activeTaskNoteId) return;
-  const task = state.days[ui.selectedDate].find(x => x.id === ui.activeTaskNoteId);
+  const task = (state.days[ui.selectedDate] || []).find(x => x.id === ui.activeTaskNoteId);
   const input = document.getElementById('taskNoteInput');
   if(task && input){
     const note = input.value.trim();

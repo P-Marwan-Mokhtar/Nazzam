@@ -254,7 +254,7 @@ body.dark-mode .task-row.priority-medium {
   border-color: var(--pen);
 }
 
-/* ===== Modal ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ù…Ù‡Ù…Ø© ===== */
+/* ===== Modal تفاصيل المهمة ===== */
 .td-head {
   display: flex;
   align-items: center;
@@ -491,7 +491,7 @@ body.dark-mode .task-row.priority-medium {
   padding: 9px;
 }
 
-/* ===== Ø¨ÙˆØ¨ Ø£Ø¨ Ø§Ù„Ù‡Ø¯Ù / Ø§Ù„ÙˆÙ‚Øª Ø§Ù„ÙØ¹Ù„ÙŠ ===== */
+/* ===== بوب أب الهـف / الوقت الفعلي ===== */
 .duration-popover {
   position: fixed;
   z-index: 40;
@@ -516,8 +516,8 @@ body.dark-mode .task-row.priority-medium {
   animation: popupIn 0.18s ease;
 }
 
-/* Ø¯Ø®ÙˆÙ„ Ù…ÙˆØ­Ù‘Ø¯ Ù„Ù„Ù€ popup Ø§Ù„Ù„ÙŠ Ø¨ÙŠÙØªØ­ Ø¨Ù€ display:none â†’ flex
-   (Ù„Ø£Ù† Ø§Ù„Ù€ transition Ù…Ø´ Ø¨ÙŠØ´ØªØºÙ„ Ù„Ù…Ø§ Ø§Ù„Ø¹Ù†ØµØ± ÙŠÙƒÙˆÙ† Ù…Ø®ÙÙŠ Ø¨Ø§Ù„Ù€ display) */
+/* دخول موحّد للـ popup اللي بيفتح بـ display:none → flex
+   (لأن الـ transition مش بيشتغل ما العنصر يكون مخفي بالـ display) */
 @keyframes popupIn {
   from {
     opacity: 0;
@@ -555,13 +555,13 @@ body.dark-mode .task-row.priority-medium {
   color: var(--pen);
 }
 
-/* ===== Ø¨ÙˆØ¨ Ø£Ø¨ Ø§Ø®ØªÙŠØ§Ø± Ø§Ù„Ù‡Ø¯Ù / Ø§Ù„ÙˆÙ‚Øª Ø§Ù„ÙØ¹Ù„ÙŠ (Ù…Ù† Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø§Ù„Ø³Ø§Ø¹Ø©) ===== */
+/* ===== بوب أب اختيارات الهـف / الوقت الفعلي (من قائمة الساعه) ===== */
 .time-choice-submenu-wrap {
   position: relative;
 }
 
-/* Ø¬ÙˆÙ‡ Ù…ÙˆØ¯Ø§Ù„ ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ù…Ù‡Ù…Ø©: Ø¨ÙˆØ¨ Ø£Ø¨Ø§Øª Ø§Ù„Ø£Ù‡Ù…ÙŠØ©/Ø§Ù„ÙˆÙ‚Øª Ø¨ÙŠÙØªØ­ fixed ÙÙˆÙ‚ Ø§Ù„ÙƒÙ„
-   (Ø¨Ø­Ø³Ø¨Ø© JS ØªØ­Øª Ø§Ù„Ø²Ø±Ø§Ø±) Ø¹Ø´Ø§Ù† Ù…ÙŠØ¹Ù…Ù„Ø´ Ø³ÙƒØ±ÙˆÙ„ ÙÙŠ Ø§Ù„Ù…ÙˆØ¯Ø§Ù„ ÙˆÙ…ÙŠØªÙ‚Ø·Ø¹Ø´ Ø¨Ø±Ù‡ Ø§Ù„ÙƒØ§Ø±Øª */
+/* جوه مودال تفاصيل المهمة: بوب أبات الأهمية/الوقت بيفتح fixed فوق الكل
+   (بسبب JS بتحت الزرار) عشان ما يعلمش سكرول المودال ويتموضع برجه الكرت */
 .td-more-menu-wrap .priority-popover,
 .td-more-menu-wrap .clock-choice-popover {
   position: fixed;
@@ -621,7 +621,7 @@ body.dark-mode .task-row.priority-medium {
   color: var(--pen);
 }
 
-/* ===== Ù…Ø³ØªÙˆÙ‰ Ø§Ù„Ø£Ù‡Ù…ÙŠØ© (Priority) ===== */
+/* ===== مستوى الأهمية (Priority) ===== */
 .priority-btn {
   flex: 0 0 auto;
   background: transparent;
@@ -1290,6 +1290,8 @@ body.dark-mode .priority-dot-medium {
   border-radius: var(--radius);
   border: 1px dashed var(--paper-line);
   font-size: 0.92rem;
+}
+.empty-state.animate-in {
   animation: emptyStateIn 0.3s ease;
 }
 .empty-state-icon {
@@ -1478,7 +1480,7 @@ body.dark-mode .priority-dot-medium {
   outline-offset: 2px;
 }
 
-/* Ø§Ù„Ù€ inputs: Ø¹Ù„Ù‰ Ø§Ù„ÙÙˆÙƒØ³ Ù†ÙƒØªÙÙŠ Ø¨Ø¨ÙˆØ±Ø¯Ø± ÙˆØ§Ø­Ø¯Ø© Ù…Ù„ÙˆÙ†Ø© â€” Ù…Ù…Ù†ÙˆØ¹ Ø£ÙŠ outline/Ù‡Ø§Ù„Ø© Ø®Ø§Ø±Ø¬ÙŠØ© */
+/* الـ inputs: على الفوكس نكتفي ببوردر واحد ملون — ممنوع أي outline/هالة خارجية */
 input:focus,
 input:focus-visible,
 textarea:focus,

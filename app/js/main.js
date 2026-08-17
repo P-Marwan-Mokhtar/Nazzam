@@ -114,6 +114,10 @@ async function startApp(){
     if(ui.tbSideOpen && !e.target.closest('.timeblock-side') && !e.target.closest('#tbToggleSideBtn')){
       closeTbSide();
     }
+    const rangeMenu = document.getElementById('tbRangeMenu');
+    if(rangeMenu && rangeMenu.classList.contains('open') && !e.target.closest('.tb-range-dropdown')){
+      rangeMenu.classList.remove('open');
+    }
   });
 
   const onAppearanceChanged = async () => {
@@ -402,6 +406,8 @@ async function startApp(){
       if(document.getElementById('globalSearchOverlay').classList.contains('open')) closeGlobalSearchModal();
       if(document.getElementById('notificationSettingsOverlay').classList.contains('open')) closeNotificationSettingsModal();
       if(document.getElementById('timelineTaskOverlay').classList.contains('open')) closeTimelineTaskPopup();
+      const rm = document.getElementById('tbRangeMenu');
+      if(rm && rm.classList.contains('open')) rm.classList.remove('open');
       if(ui.openDurationPopoverTaskId) hideDurationPopover();
       if(ui.openClockChoiceTaskId) hideClockChoicePopover();
       if(ui.openPriorityPopoverTaskId){ ui.openPriorityPopoverTaskId = null; render(); }

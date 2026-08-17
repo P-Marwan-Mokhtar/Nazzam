@@ -38,7 +38,7 @@
   transform: translateY(0);
   pointer-events: auto;
 }
-/* Ù…Ù‡Ø§Ù… Ø§Ù„ÙŠÙˆÙ…: Ù‚Ø§ÙŠÙ…Ø© Ø§Ù„Ù…Ø²ÙŠØ¯ Ø¨ØªÙØªØ­ Ù„ÙÙˆÙ‚ Ø¹Ø´Ø§Ù† Ù…ÙŠØ²ÙŠØ¯Ø´ Ø³ÙƒØ±ÙˆÙ„ Ø§Ù„ØµÙØ­Ø© */
+/* مهمان اليوم: قائمة المزيد بتفتح لفوق عشان ما يزيدش سكرول الصفحة */
 .task-more-menu-wrap.open-up .task-more-dropdown {
   top: auto;
   bottom: calc(100% + 4px);
@@ -48,15 +48,13 @@
 .task-more-menu-wrap.open-up .task-more-dropdown.open {
   transform: translateY(0);
 }
-/* Ø§Ù„Ù‚Ø§ÙŠÙ…Ø© ÙˆØ§Ù„Ø¨ÙˆØ¨ Ø£Ø¨Ø§Øª ÙˆÙ‡Ù… Ù…Ù‚ÙÙˆÙ„ÙŠÙ†: display:none Ø¹Ø´Ø§Ù† Ù…ÙŠØ³ÙŠØ¨ÙˆØ´ Ù…Ø³Ø§Ø­Ø© ÙˆÙ„Ø§
-   scrollable overflow ÙÙŠ Ø§Ù„ØµÙØ­Ø© (Ø§Ù„Ù€ opacity Ø¨Ø³ ÙƒØ§Ù† Ø¨ÙŠØ³ÙŠØ¨ Ù„ayout Ù…Ù…Ø¯ÙˆØ¯) */
+/* القايمة والبوب أبات وهم مقفولين: display:none عشان ما يسيبش scrollable overflow في الصفحة (الـ opacity بس كان بيسيب layout ممتد) */
 .task-more-dropdown:not(.open),
 .priority-popover:not(.open),
 .clock-choice-popover:not(.open) {
   display: none;
 }
-/* Ù„Ù…Ø§ Ø§Ù„Ù‚Ø§ÙŠÙ…Ø© Ø¨ØªÙØªØ­ Ù„ÙÙˆÙ‚ØŒ Ø¨ÙˆØ¨ Ø£Ø¨Ø§Øª Ø§Ù„Ø£Ù‡Ù…ÙŠØ©/Ø§Ù„ÙˆÙ‚Øª Ø¬ÙˆØ§Ù‡Ø§ Ø¨ÙŠÙØªØ­ÙˆØ§ Ù„ÙÙˆÙ‚ ÙƒÙ…Ø§Ù†
-   Ø¹Ø´Ø§Ù† Ù…ÙŠØ¹Ø¯ÙˆØ´ Ø§Ù„Ø²Ø±Ø§Ø± ÙˆÙ…ÙŠØ¹Ù…Ù„ÙˆØ´ Ø³ÙƒØ±ÙˆÙ„ Ù„ØªØ­Øª */
+/* لما القايمة بتفتح لفوق، بوب أبات الأهمية/الوقت جواها بيفتحوا لفوق كمان عشان ما يزيدوش سكرول عشان تتحت */
 .task-more-menu-wrap.open-up .priority-popover,
 .task-more-menu-wrap.open-up .clock-choice-popover {
   top: auto;
@@ -303,7 +301,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   border-color: var(--pen);
 }
 
-/* ===== Ø§Ù„Ø¨Ø­Ø« Ø§Ù„Ø´Ø§Ù…Ù„ Ø¹Ø¨Ø± ÙƒÙ„ Ø§Ù„Ø£ÙŠØ§Ù… ===== */
+/* ===== البحث الشامل على كل الأيام ===== */
 .global-search-result {
   display: flex;
   align-items: center;
@@ -400,7 +398,7 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
   transform: translateX(-20px);
 }
 
-/* ===== Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„ØªÙ†Ø¨ÙŠÙ‡Ø§Øª ===== */
+/* ===== إعدادات التنبيهات ===== */
 .notif-setting-row{
   display: flex;
   align-items: center;
@@ -478,5 +476,4 @@ body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons
 }
 .notif-setting-status.denied{ color: var(--missed); }
 
-/* ØªØ­Øª 900px (Ø§Ù„Ù„ÙŠ Ø¨ÙŠØ­ØµÙ‘Ù„ ÙÙŠÙ‡Ù… ØªØ®Ø·ÙŠØ· Ø¹Ù…ÙˆØ¯ ÙˆØ§Ø­Ø¯ ÙˆØ§Ù„Ù…Ù‡Ø§Ù… Ø¨ØªØ§Ø®Ø¯ Ø¹Ø±Ø¶ ÙƒØ§Ù…Ù„)ØŒ
-   Ù‚ÙˆØ§Ø¦Ù… Ø§Ù„ÙˆÙ‚Øª ÙˆØ§Ù„Ø£ÙˆÙ„ÙˆÙŠØ© Ø§Ù„ÙØ±Ø¹ÙŠØ© Ø¨ØªÙØªØ­ Ù„Ù„Ø¯Ø§Ø®Ù„ (ÙŠÙ…ÙŠÙ†) Ø¨Ø¯Ù„ Ù…Ø§ ØªØ·Ù„Ø¹ Ø¨Ø±Ù‘Ù‡ Ø§Ù„ØµÙØ­Ø© ÙˆØªØ¹Ù…Ù„ scroll Ø£ÙÙ‚ÙŠ */
+/* تحت 900px (اللي بيحصل فيه تختيـط عرض واحد والأهمان بتاخد عرض كامل)، قوائم الوقت والأولوية الفرعية بتفتح للداخل (يمين) بدل ما تطلع برجه الصفحة وتعمل scroll أفقي */

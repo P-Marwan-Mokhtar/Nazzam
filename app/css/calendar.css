@@ -259,7 +259,7 @@
   flex: 1 1 auto;
 }
 .bank-filters-toggle {
-  display: none; /* ÙŠØ¸Ù‡Ø± ÙÙ‚Ø· Ø¹Ù„Ù‰ Ø§Ù„Ù…ÙˆØ¨Ø§ÙŠÙ„ØŒ Ø§Ù†Ø¸Ø± media query */
+  display: none; /* يظهر فقط على الموبايل، انظر media query */
   flex-shrink: 0;
   align-items: center;
   justify-content: center;

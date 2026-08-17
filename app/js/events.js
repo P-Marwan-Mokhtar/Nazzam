@@ -35,7 +35,7 @@ function flipTaskMoreDropdown(id){
 // و callback الإزالة لو المستخدم ضغط "إزالة التذكير". التذكير بيتخزن على نسخة المهمة نفسها
 // (remindAt) وبيتشيك عليه المجدول كل دقيقة في notifications.js.
 export function openReminderPicker(taskId){
-  const task = state.days[ui.selectedDate].find(x => x.id === taskId);
+  const task = (state.days[ui.selectedDate] || []).find(x => x.id === taskId);
   if(!task) return;
   openTimePicker({
     title: 'وقت تذكير المهمة',
@@ -65,7 +65,7 @@ export function openReminderPicker(taskId){
 // حذف مهمة من جدول اليوم مع النسخ المكررة المرتبطة بيها، ومع توست تراجع يقدر يرجعها.
 // مستخدمة من زرار الحذف في قائمة المزيد وفي تفاصيل المهمة.
 export async function deleteTaskById(id){
-  const list = state.days[ui.selectedDate];
+  const list = state.days[ui.selectedDate] || [];
   const idx = list.findIndex(t => t.id === id);
   if(idx === -1) return;
   const [removedTask] = list.splice(idx, 1);
@@ -191,7 +191,7 @@ export function attachEvents(){
       render();
     }
     else if(action === 'set-task-priority'){
-      const task = state.days[ui.selectedDate].find(x => x.id === id);
+      const task = (state.days[ui.selectedDate] || []).find(x => x.id === id);
       if(task) task.priority = btn.dataset.choice || null;
       ui.openPriorityPopoverTaskId = null;
       render();
@@ -217,8 +217,8 @@ export function attachEvents(){
       render();
     }
     else if(action === 'sort-by-priority'){
-      const list = state.days[ui.selectedDate];
-      if(!list || list.length <= 1) return;
+      const list = state.days[ui.selectedDate] || [];
+      if(list.length <= 1) return;
       if(state._sortPriority && state._sortPriority[ui.selectedDate]){
         if(state._taskOrderCache && state._taskOrderCache[ui.selectedDate]){
           const cached = state._taskOrderCache[ui.selectedDate];
@@ -303,7 +303,7 @@ export function attachEvents(){
     }
     else if(action === 'save-task-edit'){
       ui.openTaskMoreId = null;
-      const task = state.days[ui.selectedDate].find(x => x.id === id);
+      const task = (state.days[ui.selectedDate] || []).find(x => x.id === id);
       const inp = document.getElementById('inlineEditInput_' + id);
       if(task && inp){
         const newName = inp.value.trim();
@@ -599,7 +599,7 @@ export function attachEvents(){
     saveData();
   });
   wireDragAndDrop('.task-row[data-drag-id]', (draggedId, targetId) => {
-    reorderArrayById(state.days[ui.selectedDate], draggedId, targetId);
+    reorderArrayById(state.days[ui.selectedDate] || [], draggedId, targetId);
     render();
     saveData();
   });

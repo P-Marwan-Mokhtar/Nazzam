@@ -91,12 +91,14 @@ export const ui = {
   tbSideJustOpened: false,  // true لمرة واحدة بس لحظة فتح اللوحة — عشان أنيميشن الدخول يشتغل عند الفتح مش مع كل render
   tbSideClosing: false,  // هل لوحة الجدول الزمني في مرحلة أنيميشن الإغلاق دلوقتي
   tbSideCloseTimeoutId: null,  // مؤقّت إنهاء أنيميشن الإغلاق
+  tbSideExpanded: false,  // هل لوحة "مهام غير مجدولة" على الموبايل موسعّة (بتدّي كل المهام) ولا مقفولة (أول 4 بس)
   activeSubtasksTaskId: null,  // المهمة المفتوح لها نافذة المهام الفرعية
   dayStatusFilter: 'all',  // فلتر حالة مهام اليوم: all | pending | done
   dayStatusFilterOpen: false,  // هل قائمة فلتر الحالة مفتوحة دلوقتي
   activeRecurrenceTaskId: null,  // المهمة المفتوح لها نافذة تحديد أيام التكرار دلوقتي
   pendingRecurrenceDays: [],  // نسخة عمل من أيام التكرار (0-6) قبل الحفظ
   pickerTaskId: null,
+  emptyAnimated: false,  // true أول ما الأنيميشن يتشغل على أي empty state — بيتصفّر لما المحتوى يتغير
 };
 
 export const timerPanelEl = document.getElementById('timerPanel');

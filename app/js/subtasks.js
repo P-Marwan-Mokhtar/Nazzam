@@ -23,7 +23,7 @@ export function closeSubtasksModal() {
 function renderSubtasksList() {
   const listEl = document.getElementById('subtasksList');
   if (!listEl || !ui.activeSubtasksTaskId) return;
-  const task = state.days[ui.selectedDate].find(t => t.id === ui.activeSubtasksTaskId);
+  const task = (state.days[ui.selectedDate] || []).find(t => t.id === ui.activeSubtasksTaskId);
   if (!task) return;
 
   if (!task.subtasks) task.subtasks = [];
@@ -160,7 +160,7 @@ async function handleAddSubtask() {
   const title = newSubtaskInput.value.trim();
   if (!title) return;
   
-  const task = state.days[ui.selectedDate].find(t => t.id === ui.activeSubtasksTaskId);
+  const task = (state.days[ui.selectedDate] || []).find(t => t.id === ui.activeSubtasksTaskId);
   if (!task) return;
   
   if (!task.subtasks) task.subtasks = [];

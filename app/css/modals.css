@@ -190,7 +190,7 @@ body.dark-mode .account-error {
   margin: -4px 0 4px;
 }
 
-/* Ø­Ù‚Ù„ Ø§Ù„Ø¨Ø§Ø³ÙˆØ±Ø¯ Ù…Ø¹ Ø²Ø±Ø§Ø± Ø§Ù„Ø¥Ø¸Ù‡Ø§Ø±/Ø§Ù„Ø¥Ø®ÙØ§Ø¡ */
+/* حقل الباسورد مع زرار الإظهار/الإخفاء */
 .account-pass-wrap {
   position: relative;
   display: flex;
@@ -222,7 +222,7 @@ body.dark-mode .account-error {
   font-size: 19px;
 }
 
-/* Ø²Ø±Ø§Ø± "ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„" ÙÙŠ Ø­Ø§Ù„Ø© Ø§Ù†ØªØ¸Ø§Ø± Ø§Ù„Ø±Ø¯ */
+/* زرار "تسجيل الدخول" في حالة انتظار الرد */
 .account-primary-btn:disabled,
 .account-google-btn:disabled {
   opacity: 0.7;
@@ -251,7 +251,7 @@ body.dark-mode .account-error {
   }
 }
 
-/* ÙØ§ØµÙ„ "Ø£Ùˆ" Ø¨ÙŠÙ† ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¨Ø§Ù„Ø¥ÙŠÙ…ÙŠÙ„ ÙˆGoogle */
+/* فصل "أو" بين تسجيل الدخول بالإيميل وGoogle */
 .account-divider {
   display: flex;
   align-items: center;
@@ -268,7 +268,7 @@ body.dark-mode .account-error {
   background: var(--paper-line);
 }
 
-/* Ø²Ø±Ø§Ø± Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø© Ø¹Ø¨Ø± Google */
+/* زرار المتابعة عبر Google */
 .account-google-btn {
   display: flex;
   align-items: center;
@@ -289,7 +289,7 @@ body.dark-mode .account-error {
   background: var(--done-soft);
 }
 
-/* Ø­Ø§ÙˆÙŠØ© Turnstile Ø§Ù„ØºÙŠØ± Ù…Ø±Ø¦ÙŠØ© - Ù…Ø­ØªØ§Ø¬Ø© ØªÙƒÙˆÙ† ÙÙŠ Ø§Ù„Ù€ DOM Ø¨Ø³ Ù…Ø´ Ù‡ØªØ§Ø®Ø¯ Ù…Ø³Ø§Ø­Ø© */
+/* حاوية Turnstile الغير مرئية - محتاوية تكّن في الـ DOM بس مش هتاخد مساحة */
 #turnstileContainer {
   position: absolute;
   width: 0;
