@@ -89,7 +89,7 @@ function sanitizeTask(t){
   if(!name) return null;
   const out = { id: (typeof t.id === 'string' && t.id) ? t.id : uid(), name, done: t.done === true };
   if(t.priority === 'high' || t.priority === 'medium' || t.priority === 'low') out.priority = t.priority;
-  if(t.type === 'habit' || t.type === 'hobby') out.type = t.type;
+  if(t.type === 'task' || t.type === 'habit' || t.type === 'hobby') out.type = t.type;
   if(isHHMM(t.remindAt)) out.remindAt = t.remindAt;
   if(t.reminded === true) out.reminded = true;
   if(typeof t.note === 'string') out.note = t.note;

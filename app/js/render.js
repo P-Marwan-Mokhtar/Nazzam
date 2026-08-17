@@ -370,7 +370,7 @@ export function render(){
               <span class="material-icons">${t.done ? 'check_circle' : 'radio_button_unchecked'}</span>
             </button>
             <button type="button" class="task-name-btn" data-action="open-task-details" data-id="${t.id}" title="عرض تفاصيل المهمة">
-              ${t.type ? `<span class="task-type-icon task-type-${t.type}" title="${TASK_TYPES[t.type].label}"><span class="material-icons">${TASK_TYPES[t.type].icon}</span></span>` : ''}
+              <span class="task-type-icon task-type-${t.type || 'task'}" title="${TASK_TYPES[t.type || 'task'].label}"><span class="material-icons">${TASK_TYPES[t.type || 'task'].icon}</span></span>
               <span class="task-name">${escapeHtml(t.name)}</span>
             </button>
           `}
