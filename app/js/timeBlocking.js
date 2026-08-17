@@ -639,6 +639,12 @@ function renderTimeBlockWeekView(){
       openAddTimelineTaskPopup(trackEl.dataset.date, startMin);
     });
   });
+
+  contentEl.querySelectorAll('.timeblock-side-item').forEach(itemEl => {
+    itemEl.addEventListener('pointerdown', (e) => {
+      startSideItemDrag(e, itemEl);
+    });
+  });
 }
 
 // ============================================================
@@ -736,6 +742,8 @@ function wireAddTimelineTaskPopup(){
       duration: formatMinutes(addTaskDurationMin),
     };
     if(addTaskPriority) task.priority = addTaskPriority;
+    const tlKw = state.keywords.find(k => k.name === name);
+    if(tlKw && tlKw.type) task.type = tlKw.type;
     state.days[addTaskDate].push(task);
     closeAddTimelineTaskPopup();
     render();
@@ -865,7 +873,7 @@ function startSideItemDrag(e, itemEl){
   e.preventDefault();
   const taskId = itemEl.dataset.id;
   const taskName = itemEl.dataset.name;
-  const track = document.querySelector('.timeblock-calendar-col .tbw-col-track');
+  const allTracks = document.querySelectorAll('.timeblock-calendar-col .tbw-col-track');
 
   itemEl.classList.add('dragging');
   try { itemEl.setPointerCapture(e.pointerId); } catch(err) {}
@@ -880,25 +888,29 @@ function startSideItemDrag(e, itemEl){
   document.body.appendChild(ghost);
 
   let previewEl = null;
+  let activeTrack = null;
 
   function positionGhost(clientX, clientY){
     ghost.style.left = (clientX + 12) + 'px';
     ghost.style.top = (clientY + 12) + 'px';
   }
 
-  function pointOverTrack(clientX, clientY){
-    const r = track.getBoundingClientRect();
-    if(clientX < r.left || clientX > r.right || clientY < r.top || clientY > r.bottom) return false;
-    // منطقة اللوحة المنبثقة فوق الجدول مبيتعاملش معاها كجدول أثناء السحب
-    const sideCard = document.querySelector('.timeblock-side.open');
-    if(sideCard){
-      const sr = sideCard.getBoundingClientRect();
-      if(clientX >= sr.left && clientX <= sr.right && clientY >= sr.top && clientY <= sr.bottom) return false;
+  function findTrackAtPoint(clientX, clientY){
+    for(const t of allTracks){
+      const r = t.getBoundingClientRect();
+      if(clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom){
+        const sideCard = document.querySelector('.timeblock-side.open');
+        if(sideCard){
+          const sr = sideCard.getBoundingClientRect();
+          if(clientX >= sr.left && clientX <= sr.right && clientY >= sr.top && clientY <= sr.bottom) return null;
+        }
+        return t;
+      }
     }
-    return true;
+    return null;
   }
 
-  function minutesFromClientY(clientY){
+  function minutesFromClientY(clientY, track){
     const startHour = Number(track.dataset.startHour);
     const r = track.getBoundingClientRect();
     const relY = clientY - r.top;
@@ -907,11 +919,13 @@ function startSideItemDrag(e, itemEl){
 
   function onMove(ev){
     positionGhost(ev.clientX, ev.clientY);
-    if(pointOverTrack(ev.clientX, ev.clientY)){
+    const track = findTrackAtPoint(ev.clientX, ev.clientY);
+    if(track){
       const startHour = Number(track.dataset.startHour);
-      const minutes = minutesFromClientY(ev.clientY);
+      const minutes = minutesFromClientY(ev.clientY, track);
       const top = (minutes - startHour * 60) * (HOUR_PX / 60);
-      if(!previewEl){
+      if(!previewEl || previewEl.parentElement !== track){
+        if(previewEl) previewEl.remove();
         previewEl = document.createElement('div');
         previewEl.className = 'timeline-drop-preview';
         track.appendChild(previewEl);
@@ -921,6 +935,7 @@ function startSideItemDrag(e, itemEl){
     } else if(previewEl){
       previewEl.remove();
       previewEl = null;
+      activeTrack = null;
     }
   }
 
@@ -932,18 +947,18 @@ function startSideItemDrag(e, itemEl){
     document.removeEventListener('pointermove', onMove);
     document.removeEventListener('pointerup', onUp);
 
-    if(pointOverTrack(ev.clientX, ev.clientY)){
+    const track = findTrackAtPoint(ev.clientX, ev.clientY);
+    if(track){
       const startHour = Number(track.dataset.startHour);
       const endHour = Number(track.dataset.endHour);
-      let minutes = minutesFromClientY(ev.clientY);
-      // نسيب المهمة تتحط عند أدنى نقطة صالحة بس — من غير ما يبقى جزء منها
-      // برّه منطقة الساعات المعروضة (البلوك بيترسم طوله كامل على طول)
-      const tasks = state.days[ui.selectedDate] || [];
+      let minutes = minutesFromClientY(ev.clientY, track);
+      const dateStr = track.dataset.date || ui.selectedDate;
+      const tasks = state.days[dateStr] || [];
       const t = tasks.find(x => x.id === taskId);
       const durationMin = Math.max(MIN_DURATION_MIN, parseDurationToMinutes(t && t.duration) || DEFAULT_DURATION_MIN);
       minutes = Math.min(minutes, endHour * 60 - durationMin);
       minutes = Math.max(startHour * 60, minutes);
-      commitTaskTime(taskId, minutes);
+      commitTaskTime(taskId, minutes, dateStr);
     }
   }
 
@@ -953,8 +968,21 @@ function startSideItemDrag(e, itemEl){
 
 async function commitTaskTime(taskId, minutesOrNull, dateStr){
   dateStr = dateStr || ui.selectedDate;
-  const tasks = state.days[dateStr] || [];
-  const idx = tasks.findIndex(t => t.id === taskId);
+  let tasks = state.days[dateStr] || [];
+  let idx = tasks.findIndex(t => t.id === taskId);
+  if(idx === -1){
+    for(const dKey of Object.keys(state.days)){
+      const found = state.days[dKey].findIndex(t => t.id === taskId);
+      if(found !== -1){
+        const [movedTask] = state.days[dKey].splice(found, 1);
+        if(!state.days[dateStr]) state.days[dateStr] = [];
+        state.days[dateStr].push(movedTask);
+        tasks = state.days[dateStr];
+        idx = tasks.findIndex(t => t.id === taskId);
+        break;
+      }
+    }
+  }
   if(idx === -1) return;
   const task = tasks[idx];
   // النسخ المكررة عايشة في الجدول الزمني بس — لو رجعناها لغير مجدولة بنشيلها خالص
@@ -998,6 +1026,7 @@ async function duplicateTimelineTask(taskId, dateStr){
     duration: task.duration || formatMinutes(durationMin),
   };
   if(task.priority) copy.priority = task.priority;
+  if(task.type) copy.type = task.type;
   if(task.subtasks && task.subtasks.length){
     copy.subtasks = task.subtasks.map(s => ({ id: uid(), title: s.title, done: false }));
   }

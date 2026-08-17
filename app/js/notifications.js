@@ -140,7 +140,7 @@ async function checkAndFireDigestNotifications(){
     const total = todayTasks.length;
     const body = total > 0
       ? `لديك ${total} ${total === 1 ? 'مهمة' : 'مهام'} على جدول اليوم، هيا نبدأ!`
-      : 'لا توجد مهام مضافة اليوم بعد، افتح بنك المهام واسحب ما تريد إنجازه.';
+      : 'لا توجد مهام مضافة اليوم بعد، افتح القائمة واختر ما تريد إنجازه.';
     await fireLocalNotification('صباح الخير ☀️', body);
     ns.lastMorningFiredDate = today;
     changed = true;

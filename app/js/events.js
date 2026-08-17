@@ -197,6 +197,38 @@ export function attachEvents(){
       render();
       await saveData();
     }
+    else if(action === 'toggle-type-popover'){
+      ui.openClockChoiceTaskId = null;
+      if(ui.openTypePopoverTaskId === id){
+        ui.openTypePopoverTaskId = null;
+      } else {
+        ui.openTypePopoverTaskId = id;
+      }
+      render();
+    }
+    else if(action === 'set-task-type'){
+      const task = (state.days[ui.selectedDate] || []).find(x => x.id === id);
+      if(task){
+        if(btn.dataset.choice) task.type = btn.dataset.choice;
+        else delete task.type;
+        const kw = state.keywords.find(k => k.name === task.name);
+        if(kw){
+          if(task.type) kw.type = task.type;
+          else delete kw.type;
+        }
+        Object.values(state.days).forEach(dayList => {
+          dayList.forEach(t => {
+            if(t.id !== id && t.name === task.name){
+              if(task.type) t.type = task.type;
+              else delete t.type;
+            }
+          });
+        });
+      }
+      ui.openTypePopoverTaskId = null;
+      render();
+      await saveData();
+    }
     else if(action === 'toggle-duration-view'){
       if(ui.openDurationPopoverTaskId === id){
         hideDurationPopover();
@@ -209,11 +241,22 @@ export function attachEvents(){
     }
     else if(action === 'toggle-day-status-filter'){
       ui.dayStatusFilterOpen = !ui.dayStatusFilterOpen;
+      ui.dayTypeFilterOpen = false;
       render();
     }
     else if(action === 'select-day-status-filter'){
       ui.dayStatusFilter = btn.dataset.value;
       ui.dayStatusFilterOpen = false;
+      render();
+    }
+    else if(action === 'toggle-day-type-filter'){
+      ui.dayTypeFilterOpen = !ui.dayTypeFilterOpen;
+      ui.dayStatusFilterOpen = false;
+      render();
+    }
+    else if(action === 'select-day-type-filter'){
+      ui.dayTypeFilter = btn.dataset.value;
+      ui.dayTypeFilterOpen = false;
       render();
     }
     else if(action === 'sort-by-priority'){
@@ -239,7 +282,7 @@ export function attachEvents(){
         const priorityOrder = { high: 0, medium: 1, low: 2 };
         list.sort((a, b) => (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3));
         state._sortPriority[ui.selectedDate] = true;
-        showToast('تم ترتيب مهام اليوم حسب الأهمية');
+        showToast('تم ترتيب المهام حسب الأهمية');
       }
       render();
       await saveData();
@@ -256,8 +299,35 @@ export function attachEvents(){
     }
     else if(action === 'toggle-keyword-more'){
       ui.openKeywordMoreId = ui.openKeywordMoreId === id ? null : id;
+      ui.openKeywordTypePopoverTaskId = null;
       ui.openTaskMoreId = null;
       render();
+    }
+    else if(action === 'toggle-keyword-type-popover'){
+      if(ui.openKeywordTypePopoverTaskId === id){
+        ui.openKeywordTypePopoverTaskId = null;
+      } else {
+        ui.openKeywordTypePopoverTaskId = id;
+      }
+      render();
+    }
+    else if(action === 'set-keyword-type'){
+      const kw = state.keywords.find(x => x.id === id);
+      if(kw){
+        if(btn.dataset.choice) kw.type = btn.dataset.choice;
+        else delete kw.type;
+        Object.values(state.days).forEach(dayList => {
+          dayList.forEach(t => {
+            if(t.name === kw.name){
+              if(kw.type) t.type = kw.type;
+              else delete t.type;
+            }
+          });
+        });
+      }
+      ui.openKeywordTypePopoverTaskId = null;
+      render();
+      await saveData();
     }
     else if(action === 'open-task-stats'){
       const name = btn.dataset.name;
@@ -368,10 +438,13 @@ export function attachEvents(){
         showToast('هذه المهمة مُضافة بالفعل إلى جدول اليوم');
         return;
       }
-      state.days[ui.selectedDate].push({ id: uid(), name: name, done: false });
+      const kw = state.keywords.find(k => k.name === name);
+      const newTask = { id: uid(), name, done: false };
+      if(kw && kw.type) newTask.type = kw.type;
+      state.days[ui.selectedDate].push(newTask);
       render();
       await saveData();
-      showToast('تمت الإضافة إلى مهام اليوم');
+      showToast('تمت الإضافة إلى اليوم');
     }
     else if(action === 'select-filter'){
       const newFilter = btn.dataset.filterId;

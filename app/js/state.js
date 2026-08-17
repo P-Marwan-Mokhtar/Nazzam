@@ -54,7 +54,7 @@ export const ui = {
   bankCloseTimeoutId: null,
   bankSearchQuery: '',
   globalSearchQuery: '',  // نص البحث الحالي في نافذة "البحث في كل المهام" (عبر كل الأيام)
-  mobileFiltersOpen: false,  // للموبايل: هل لوحة الفلاتر مفتوحة فوق البنك
+  mobileFiltersOpen: true,  // الفلاتر ظاهرة افتراضياً، بتنفتح/بتتقفل بالزرار
   justOpenedMobileFilters: false,  // true لمرة واحدة بس لحظة فتح لوحة الفلاتر على الموبايل — عشان الأنيميشن يشتغل عند الفتح مش مع كل render
   closingMobileFilters: false,
   mobileFiltersCloseTimeoutId: null,
@@ -83,6 +83,8 @@ export const ui = {
   openDurationPopoverTaskId: null,  // المهمة اللي فاتح لها بوب أب (الهدف/الوقت الفعلي) دلوقتي
   openClockChoiceTaskId: null,  // المهمة اللي فاتح لها اختيار (هدف / وقت فعلي) من أيقونة الساعة
   openPriorityPopoverTaskId: null,  // المهمة اللي فاتح لها اختيار مستوى الأهمية دلوقتي
+  openTypePopoverTaskId: null,  // المهمة اللي فاتح لها اختيار النوع دلوقتي
+  openKeywordTypePopoverTaskId: null,  // المهمة في البنك فاتح لها اختيار النوع دلوقتي
   timeBlockViewOpen: false,  // لما تبقى true، #content بيعرض صفحة الجدول الزمني (Time blocking) بدل مهام اليوم
   tbRangeMode: 'day',  // 'day' أو 'week' أو 'month' — مدى عرض الجدول الزمني (مهام الأسبوع/الشهر في خارطة زمنية)
   justChangedTbRange: false,  // true لمرة واحدة بس لما نبدّل بين يوم/أسبوع في الجدول الزمني — عشان الأنيميشن يشتغل مرة واحدة
@@ -95,6 +97,8 @@ export const ui = {
   activeSubtasksTaskId: null,  // المهمة المفتوح لها نافذة المهام الفرعية
   dayStatusFilter: 'all',  // فلتر حالة مهام اليوم: all | pending | done
   dayStatusFilterOpen: false,  // هل قائمة فلتر الحالة مفتوحة دلوقتي
+  dayTypeFilter: 'all',  // فلتر نوع مهام اليوم: all | task | habit | hobby
+  dayTypeFilterOpen: false,  // هل قائمة فلتر النوع مفتوحة دلوقتي
   activeRecurrenceTaskId: null,  // المهمة المفتوح لها نافذة تحديد أيام التكرار دلوقتي
   pendingRecurrenceDays: [],  // نسخة عمل من أيام التكرار (0-6) قبل الحفظ
   pickerTaskId: null,
@@ -146,3 +150,9 @@ export function showUndoToast(msg, onUndo){
 }
 
 export const PRIORITY_LABELS = { high: 'عالية', medium: 'متوسطة', low: 'منخفضة' };
+
+export const TASK_TYPES = {
+  task:   { icon: 'task',          label: 'مهمة' },
+  habit:  { icon: 'loop',          label: 'عادة' },
+  hobby:  { icon: 'palette',       label: 'هواية' },
+};

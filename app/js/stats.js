@@ -268,7 +268,7 @@ export function renderTaskStatsView(name){
   const html = `
     <div class="stats-view">
       <div class="stats-view-header">
-        <button class="nav-btn" id="taskStatsBackBtn" aria-label="رجوع لمهام اليوم"><span class="material-icons">arrow_forward</span></button>
+        <button class="nav-btn" id="taskStatsBackBtn" aria-label="رجوع إلى اليوم"><span class="material-icons">arrow_forward</span></button>
         <h2>إحصائيات ${escapeHtml(name)}${s.filterName ? ` <span class="task-stats-filter"><span class="material-icons">label</span>${escapeHtml(s.filterName)}</span>` : ''}</h2>
         <span class="nav-btn" style="visibility:hidden"><span class="material-icons">insights</span></span>
       </div>
@@ -539,7 +539,7 @@ function renderDayStatsView(dateStr){
   const html = `
     <div class="stats-view">
       <div class="stats-view-header">
-        <button class="nav-btn" id="statsBackBtn" aria-label="رجوع لمهام اليوم"><span class="material-icons">arrow_forward</span></button>
+        <button class="nav-btn" id="statsBackBtn" aria-label="رجوع إلى اليوم"><span class="material-icons">arrow_forward</span></button>
         ${renderStatsRangeToggle('day')}
         <span class="nav-btn" style="visibility:hidden"><span class="material-icons">picture_as_pdf</span></span>
       </div>
@@ -805,7 +805,7 @@ function renderWeekStatsView(){
   let html = `
     <div class="stats-view">
       <div class="stats-view-header">
-        <button class="nav-btn" id="statsBackBtn" aria-label="رجوع لمهام اليوم"><span class="material-icons">arrow_forward</span></button>
+        <button class="nav-btn" id="statsBackBtn" aria-label="رجوع إلى اليوم"><span class="material-icons">arrow_forward</span></button>
         ${renderStatsRangeToggle('week')}
         <button class="nav-btn export-pdf-btn" id="exportPdfBtn" title="تصدير تقرير أسبوعي PDF"><span class="material-icons">picture_as_pdf</span></button>
       </div>

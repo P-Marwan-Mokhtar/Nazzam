@@ -3,7 +3,7 @@
 // ============================================================
 
 import { emptyStateHtml, escapeAttr, escapeHtml, fmtDay, formatHM, fromISO, highlightMatch, normalizeArabic, parseDurationToMinutes, todayStr, uid } from './utils.js';
-import { PRIORITY_LABELS, contentEl, state, ui } from './state.js';
+import { PRIORITY_LABELS, TASK_TYPES, contentEl, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { attachEvents } from './events.js';
 import { buildFilterDropdown, hideDurationPopover } from './popovers.js';
@@ -33,7 +33,10 @@ export function ensureDayMaterialized(dateStr){
       if(!rDays.includes(weekday)) return; // مش من أيام تكرارها أصلاً، مفيش قرار نسجله
       if(dayPinned[rName]) return; // اتقرر مصيرها قبل كده في اليوم ده (اتحطت أو المستخدم شالها بنفسه)
       if(!state.days[dateStr].some(t => t.name === rName)){
-        state.days[dateStr].push({ id: uid(), name: rName, done: false, _fromRecurrence: true });
+        const recTask = { id: uid(), name: rName, done: false, _fromRecurrence: true };
+        const rKw = state.keywords.find(k => k.name === rName);
+        if(rKw && rKw.type) recTask.type = rKw.type;
+        state.days[dateStr].push(recTask);
         recurringAdded = true;
       }
       dayPinned[rName] = true;
@@ -99,7 +102,7 @@ export function render(){
   const bankIsOpen = ui.bankOpen || ui.closingBank;
   html += `<div class="bank-wrap">`;
   html += `<button class="bank-toggle" data-action="toggle-bank" type="button">
-    <span class="bank-toggle-label">بنك المهام</span>
+    <span class="bank-toggle-label">القائمة</span>
     <span class="bank-toggle-arrow ${ui.bankOpen ? 'open' : ''}"><span class="material-icons">expand_more</span></span>
   </button>`;
 
@@ -125,7 +128,7 @@ export function render(){
       <div class="bank-search-row">
         <div class="bank-search">
           <span class="material-icons bank-search-icon">search</span>
-          <input type="text" id="bankSearchInput" placeholder="ابحث عن مهمة في البنك..." value="${escapeAttr(ui.bankSearchQuery)}" />
+          <input type="text" id="bankSearchInput" placeholder="ابحث في القائمة..." value="${escapeAttr(ui.bankSearchQuery)}" />
           ${ui.bankSearchQuery ? `<button class="bank-search-clear" id="bankSearchClear" title="مسح البحث"><span class="material-icons">close</span></button>` : ``}
         </div>
         <button class="bank-filters-toggle ${ui.mobileFiltersOpen ? 'open' : ''} ${hasActiveFilter ? 'has-active' : ''}" id="bankFiltersToggleBtn" data-action="toggle-mobile-filters" type="button" title="الفلاتر">
@@ -134,7 +137,7 @@ export function render(){
       </div>
     `;
 
-    html += `<div class="filter-chips-wrap ${ui.mobileFiltersOpen ? 'mobile-open' : ''} ${ui.justOpenedMobileFilters ? 'mobile-open-anim' : ''} ${ui.closingMobileFilters ? 'mobile-closing' : ''}" id="filterChipsWrap">`;
+    html += `<div class="filter-chips-wrap ${!ui.mobileFiltersOpen ? 'mobile-closed' : ''} ${ui.closingMobileFilters ? 'mobile-closed-anim' : ''} ${ui.justOpenedMobileFilters ? 'mobile-opening' : ''}" id="filterChipsWrap">`;
     html += `<div class="filter-chips">`;
     html += `<button class="filter-chip ${ui.activeFilter === 'all' ? 'active' : ''}" data-action="select-filter" data-filter-id="all">الكل</button>`;
     const sortedFilters = [...state.filters].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
@@ -163,7 +166,7 @@ export function render(){
                 <span class="material-icons">push_pin</span><span>${f.pinned ? 'إلغاء التثبيت' : 'تثبيت'}</span>
               </button>
               <button class="tmd-btn" data-action="edit-filter" data-id="${f.id}">
-                <span class="material-icons">edit</span><span>إعادة تسمية</span>
+                <span class="material-icons">edit</span><span>تعديل</span>
               </button>
               <button class="tmd-btn delete" data-action="delete-filter" data-id="${f.id}">
                 <span class="material-icons">delete</span><span>حذف</span>
@@ -187,7 +190,7 @@ export function render(){
 
     if(visibleKeywords.length === 0){
       if(state.keywords.length === 0){
-        html += emptyStateHtml('inbox', 'بنك المهام لا يزال فارغًا', 'اكتب مهمتك في الحقل أعلاه واضغط (+). البنك هو مخزونك الدائم.', !ui.emptyAnimated);
+        html += emptyStateHtml('inbox', 'القائمة لا تزال فارغة', 'اكتب مهمتك في الحقل أعلاه واضغط (+). القائمة هي مخزونك الدائم.', !ui.emptyAnimated);
       } else if(searchNormalized){
         html += emptyStateHtml('search_off', 'لا توجد نتائج للبحث', `لا توجد مهمة تحتوي على "${escapeHtml(ui.bankSearchQuery.trim())}"`, !ui.emptyAnimated);
       } else {
@@ -195,7 +198,6 @@ export function render(){
       }
       ui.emptyAnimated = true;
     } else {
-      ui.emptyAnimated = false;
       const slicedKeywords = visibleKeywords.slice(0, ui.bankDisplayLimit);
       html += `<div class="keyword-list ${ui.justChangedFilter ? 'animate-in' : ''}">`;
       slicedKeywords.forEach(k => {
@@ -213,7 +215,7 @@ export function render(){
           const kStreak = computeTaskStreak(k.name);
           html += `
             <div class="keyword-row" draggable="true" data-drag-id="${k.id}">
-              <button class="add-to-day-btn ${alreadyAdded ? 'added' : ''}" data-action="add-to-day" data-name="${escapeAttr(k.name)}" ${alreadyAdded ? 'disabled' : ''} title="${alreadyAdded ? 'مُضافة بالفعل اليوم' : 'إضافة إلى مهام اليوم'}"><span class="material-icons">${alreadyAdded ? 'check' : 'add'}</span></button>
+              <button class="add-to-day-btn ${alreadyAdded ? 'added' : ''}" data-action="add-to-day" data-name="${escapeAttr(k.name)}" ${alreadyAdded ? 'disabled' : ''} title="${alreadyAdded ? 'مُضافة بالفعل اليوم' : 'إضافة إلى اليوم'}"><span class="material-icons">${alreadyAdded ? 'check' : 'add'}</span></button>
               <div class="keyword-main">
                 <span class="keyword-name" title="${escapeAttr(k.name)}">${highlightMatch(k.name, ui.bankSearchQuery)}</span>
                 ${kStreak >= 2 ? `<span class="keyword-streak" title="${kStreak} ${kStreak === 1 ? 'يوم متتالي' : 'أيام متتالية'} من الإنجاز"><span class="material-icons">local_fire_department</span>${kStreak}</span>` : ``}
@@ -223,14 +225,33 @@ export function render(){
                       <span class="material-icons">more_vert</span>
                     </button>
                     <div class="task-more-dropdown ${ui.openKeywordMoreId === k.id ? 'open' : ''}">
-                      <button class="tmd-btn" data-action="delete-keyword" data-id="${k.id}">
-                        <span class="material-icons">archive</span><span>مسودات</span>
-                      </button>
                       <button class="tmd-btn" data-action="edit-keyword" data-id="${k.id}">
                         <span class="material-icons">edit</span><span>تعديل</span>
                       </button>
+                      <div class="type-submenu-wrap">
+                        <button class="tmd-btn type-btn" data-action="toggle-keyword-type-popover" data-id="${k.id}" title="نوع المهمة">
+                          <span class="material-icons">${k.type ? TASK_TYPES[k.type].icon : 'label_off'}</span><span>${k.type ? TASK_TYPES[k.type].label : 'النوع'}</span>
+                        </button>
+                        <div class="priority-popover type-popover ${ui.openKeywordTypePopoverTaskId === k.id ? 'open' : ''}">
+                          <button class="priority-choice-btn ${!k.type ? 'selected' : ''}" data-action="set-keyword-type" data-choice="" data-id="${k.id}" type="button">
+                            <span class="material-icons">label_off</span>بدون
+                          </button>
+                          <button class="priority-choice-btn ${k.type === 'task' ? 'selected' : ''}" data-action="set-keyword-type" data-choice="task" data-id="${k.id}" type="button">
+                            <span class="material-icons">task</span>مهمة
+                          </button>
+                          <button class="priority-choice-btn ${k.type === 'habit' ? 'selected' : ''}" data-action="set-keyword-type" data-choice="habit" data-id="${k.id}" type="button">
+                            <span class="material-icons">loop</span>عادة
+                          </button>
+                          <button class="priority-choice-btn ${k.type === 'hobby' ? 'selected' : ''}" data-action="set-keyword-type" data-choice="hobby" data-id="${k.id}" type="button">
+                            <span class="material-icons">palette</span>هواية
+                          </button>
+                        </div>
+                      </div>
                       <button class="tmd-btn" data-action="open-task-stats" data-name="${escapeAttr(k.name)}">
                         <span class="material-icons">insights</span><span>إحصائيات</span>
+                      </button>
+                      <button class="tmd-btn" data-action="delete-keyword" data-id="${k.id}">
+                        <span class="material-icons">archive</span><span>مسودة</span>
                       </button>
                     </div>
                   </div>
@@ -260,14 +281,35 @@ export function render(){
 
   // Daily Tasks Section
   const dayFilterLabels = { all: 'الكل', pending: 'متبقية', done: 'منجزة' };
+  const dayTypeLabels = { all: 'الكل', task: 'مهام', habit: 'عادات', hobby: 'هوايات' };
   html += `
     <div class="section-title" >
-      <span>مهام اليوم</span>
+      <span>اليوم</span>
       <div class="section-title-actions">
         <button class="day-filter-btn ${state._sortPriority && state._sortPriority[ui.selectedDate] ? 'active' : ''}" data-action="sort-by-priority" title="رتّب حسب الأهمية">
           <span class="material-icons">sort</span>
           <span class="day-filter-btn-label">ترتيب</span>
         </button>
+        <div class="day-filter-wrap">
+        <button class="day-filter-btn ${ui.dayTypeFilter !== 'all' ? 'active' : ''}" data-action="toggle-day-type-filter" title="فلترة حسب النوع">
+          <span class="material-icons">label</span>
+          <span class="day-filter-btn-label">${dayTypeLabels[ui.dayTypeFilter]}</span>
+        </button>
+        <div class="day-filter-dropdown ${ui.dayTypeFilterOpen ? 'open' : ''}">
+          <button class="tmd-btn ${ui.dayTypeFilter === 'all' ? 'active' : ''}" data-action="select-day-type-filter" data-value="all">
+            <span class="material-icons">list</span><span>الكل</span>
+          </button>
+          <button class="tmd-btn ${ui.dayTypeFilter === 'task' ? 'active' : ''}" data-action="select-day-type-filter" data-value="task">
+            <span class="material-icons">task</span><span>مهام</span>
+          </button>
+          <button class="tmd-btn ${ui.dayTypeFilter === 'habit' ? 'active' : ''}" data-action="select-day-type-filter" data-value="habit">
+            <span class="material-icons">loop</span><span>عادات</span>
+          </button>
+          <button class="tmd-btn ${ui.dayTypeFilter === 'hobby' ? 'active' : ''}" data-action="select-day-type-filter" data-value="hobby">
+            <span class="material-icons">palette</span><span>هوايات</span>
+          </button>
+        </div>
+      </div>
         <div class="day-filter-wrap">
         <button class="day-filter-btn ${ui.dayStatusFilter !== 'all' ? 'active' : ''}" data-action="toggle-day-status-filter" title="فلترة مهام اليوم">
           <span class="material-icons">filter_list</span>
@@ -289,31 +331,33 @@ export function render(){
     </div>
   `;
 
-  const visibleDayTasks = ui.dayStatusFilter === 'all'
-    ? dayTasks
-    : ui.dayStatusFilter === 'done'
-      ? dayTasks.filter(t => t.done)
-      : dayTasks.filter(t => !t.done);
+  const visibleDayTasks = (ui.dayStatusFilter === 'all' ? dayTasks : ui.dayStatusFilter === 'done' ? dayTasks.filter(t => t.done) : dayTasks.filter(t => !t.done))
+    .filter(t => ui.dayTypeFilter === 'all' || (t.type || 'task') === ui.dayTypeFilter);
 
+  const wasEmptyAnimated = ui.emptyAnimated;
   if(dayTasks.length === 0){
     html += emptyStateHtml(
       'wb_sunny',
       isToday ? 'يومك لا يزال فارغًا — ابدأ بشكل إيجابي ☀️' : 'لا توجد مهام مسجلة لهذا اليوم',
-      isToday ? 'اكتب مهمة في الحقل أعلاه، أو افتح بنك المهام واختر منها.' : 'لا توجد مهام حاليًا — يمكنك اختيار يوم آخر من التقويم.',
-      !ui.emptyAnimated
+      isToday ? 'اكتب مهمة في الحقل أعلاه، أو افتح القائمة واختر منها.' : 'لا توجد مهام حاليًا — يمكنك اختيار يوم آخر من التقويم.',
+      !wasEmptyAnimated
     );
     ui.emptyAnimated = true;
   } else if(visibleDayTasks.length === 0){
-    const fLabel = dayFilterLabels[ui.dayStatusFilter];
-    html += emptyStateHtml(
-      fLabel === 'done' ? 'celebration' : 'check_circle',
-      fLabel === 'done' ? 'لم تُنجز أي مهام اليوم بعد' : 'اكتملت جميع المهام 🎉',
-      fLabel === 'done' ? 'عند إنجازك أول مهمة ستظهر هنا.' : 'استمتع بوقتك — تم إنجاز يومك بنجاح.',
-      !ui.emptyAnimated
-    );
+    const typeFiltered = ui.dayTypeFilter !== 'all';
+    const statusFiltered = ui.dayStatusFilter !== 'all';
+    if(typeFiltered || statusFiltered){
+      html += emptyStateHtml(
+        typeFiltered ? (TASK_TYPES[ui.dayTypeFilter] ? TASK_TYPES[ui.dayTypeFilter].icon : 'label_off') : (statusFiltered === 'done' ? 'celebration' : 'check_circle'),
+        typeFiltered ? `لا توجد ${dayTypeLabels[ui.dayTypeFilter]}` : (ui.dayStatusFilter === 'done' ? 'لم تُنجز أي مهمة بعد' : 'اكتملت جميع المهام 🎉'),
+        typeFiltered ? 'أضف مهمة من القائمة أو غيّر الفلتر.' : (ui.dayStatusFilter === 'done' ? 'عند إنجازك أول مهمة ستظهر هنا.' : 'استمتع بوقتك — تم إنجاز يومك بنجاح.'),
+        !wasEmptyAnimated
+      );
+    } else {
+      html += emptyStateHtml('check_circle', 'اكتملت جميع المهام 🎉', 'استمتع بوقتك — تم إنجاز يومك بنجاح.', !wasEmptyAnimated);
+    }
     ui.emptyAnimated = true;
   } else {
-    ui.emptyAnimated = false;
     html += `<div class="task-list">`;
     visibleDayTasks.forEach((t, idx) => {
       html += `
@@ -329,6 +373,7 @@ export function render(){
               <span class="material-icons">${t.done ? 'check_circle' : 'radio_button_unchecked'}</span>
             </button>
             <button type="button" class="task-name-btn" data-action="open-task-details" data-id="${t.id}" title="عرض تفاصيل المهمة">
+              ${t.type ? `<span class="task-type-icon task-type-${t.type}" title="${TASK_TYPES[t.type].label}"><span class="material-icons">${TASK_TYPES[t.type].icon}</span></span>` : ''}
               <span class="task-name">${escapeHtml(t.name)}</span>
             </button>
           `}
@@ -441,4 +486,5 @@ function updateSideNavActive(){
   markHeader('headerTasksBtn', onMainView);
   markHeader('statsBtnTop', ui.statsViewOpen);
   markHeader('headerTimeBlockBtn', ui.timeBlockViewOpen);
+  markHeader('weekViewBtn', ui.weekViewOpen);
 }

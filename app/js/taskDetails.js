@@ -4,7 +4,7 @@
 // ============================================================
 
 import { escapeHtml, formatHM, parseDurationToMinutes } from './utils.js';
-import { PRIORITY_LABELS, state, ui } from './state.js';
+import { PRIORITY_LABELS, TASK_TYPES, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
 import { openActualDurationPicker, openDurationPicker } from './wheelPicker.js';
@@ -15,6 +15,7 @@ import { openTaskNoteModal } from './taskNote.js';
 let activeDetailsTaskId = null;
 let detailsPriorityOpen = false;
 let detailsClockOpen = false;
+let detailsTypeOpen = false;
 
 function getTask(){
   if(!activeDetailsTaskId) return null;
@@ -27,6 +28,7 @@ export function openTaskDetails(taskId){
   activeDetailsTaskId = taskId;
   detailsPriorityOpen = false;
   detailsClockOpen = false;
+  detailsTypeOpen = false;
   ui.openTaskMoreId = null;
   ui.openKeywordMoreId = null;
   render();
@@ -82,6 +84,28 @@ function renderDetails(){
             </button>
             <button type="button" class="priority-choice-btn priority-choice-none ${!task.priority ? 'selected' : ''}" data-td="priority" data-value="">
               <span class="material-icons">outlined_flag</span>بدون
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="td-row">
+        <span class="td-icon material-icons">${task.type ? TASK_TYPES[task.type].icon : 'label_off'}</span>
+        <span class="td-label">النوع</span>
+        <span class="td-value ${task.type ? '' : 'muted'}">${task.type ? TASK_TYPES[task.type].label : 'مهمة'}</span>
+        <div class="task-more-menu-wrap td-more-menu-wrap">
+          <button type="button" class="icon-btn task-more-btn" data-td="toggle-details-type" title="تحديد نوع المهمة">
+            <span class="material-icons">more_vert</span>
+          </button>
+          <div class="priority-popover type-popover ${detailsTypeOpen ? 'open' : ''}">
+            <button type="button" class="priority-choice-btn ${(task.type || 'task') === 'task' ? 'selected' : ''}" data-td="task-type" data-value="task">
+              <span class="material-icons">task</span>مهمة
+            </button>
+            <button type="button" class="priority-choice-btn ${task.type === 'habit' ? 'selected' : ''}" data-td="task-type" data-value="habit">
+              <span class="material-icons">loop</span>عادة
+            </button>
+            <button type="button" class="priority-choice-btn ${task.type === 'hobby' ? 'selected' : ''}" data-td="task-type" data-value="hobby">
+              <span class="material-icons">palette</span>هواية
             </button>
           </div>
         </div>
@@ -186,9 +210,21 @@ function handleAction(el){
     const btnRect = el.getBoundingClientRect();
     detailsPriorityOpen = !detailsPriorityOpen;
     detailsClockOpen = false;
+    detailsTypeOpen = false;
     renderDetails();
     if(detailsPriorityOpen){
       const popover = document.querySelector('#taskDetailsBody .priority-popover.open');
+      if(popover) positionDetailsPopover(btnRect, popover);
+    }
+  }
+  else if(action === 'toggle-details-type'){
+    const btnRect = el.getBoundingClientRect();
+    detailsTypeOpen = !detailsTypeOpen;
+    detailsPriorityOpen = false;
+    detailsClockOpen = false;
+    renderDetails();
+    if(detailsTypeOpen){
+      const popover = document.querySelector('#taskDetailsBody .type-popover.open');
       if(popover) positionDetailsPopover(btnRect, popover);
     }
   }
@@ -196,6 +232,7 @@ function handleAction(el){
     const btnRect = el.getBoundingClientRect();
     detailsClockOpen = !detailsClockOpen;
     detailsPriorityOpen = false;
+    detailsTypeOpen = false;
     renderDetails();
     if(detailsClockOpen){
       const popover = document.querySelector('#taskDetailsBody .clock-choice-popover.open');
@@ -207,6 +244,28 @@ function handleAction(el){
     if(value) task.priority = value;
     else delete task.priority;
     detailsPriorityOpen = false;
+    saveData();
+    render();
+    renderDetails();
+  }
+  else if(action === 'task-type'){
+    const value = el.dataset.value;
+    if(value) task.type = value;
+    else delete task.type;
+    const kw = state.keywords.find(k => k.name === task.name);
+    if(kw){
+      if(task.type) kw.type = task.type;
+      else delete kw.type;
+    }
+    Object.values(state.days).forEach(dayList => {
+      dayList.forEach(t => {
+        if(t.id !== task.id && t.name === task.name){
+          if(task.type) t.type = task.type;
+          else delete t.type;
+        }
+      });
+    });
+    detailsTypeOpen = false;
     saveData();
     render();
     renderDetails();
@@ -246,9 +305,10 @@ document.getElementById('closeTaskDetailsBtn').onclick = closeTaskDetails;
 
 document.getElementById('taskDetailsOverlay').onclick = (e) => {
   if(e.target.id === 'taskDetailsOverlay') closeTaskDetails();
-  else if((detailsPriorityOpen || detailsClockOpen) && !e.target.closest('.td-more-menu-wrap')){
+  else if((detailsPriorityOpen || detailsClockOpen || detailsTypeOpen) && !e.target.closest('.td-more-menu-wrap')){
     detailsPriorityOpen = false;
     detailsClockOpen = false;
+    detailsTypeOpen = false;
     renderDetails();
   }
 };

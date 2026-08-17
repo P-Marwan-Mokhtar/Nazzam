@@ -89,14 +89,24 @@ async function startApp(){
       ui.openPriorityPopoverTaskId = null;
       render();
     }
+    if(ui.openTypePopoverTaskId && !e.target.closest('.type-popover') && !e.target.closest('.type-btn')){
+      ui.openTypePopoverTaskId = null;
+      render();
+    }
     if(ui.openTaskMoreId && !e.target.closest('.task-more-dropdown') && !e.target.closest('.task-more-btn')){
       ui.openTaskMoreId = null;
       ui.openTaskMoreUp = false;
       ui.openPriorityPopoverTaskId = null;
+      ui.openTypePopoverTaskId = null;
       render();
     }
     if(ui.openKeywordMoreId && !e.target.closest('.task-more-dropdown') && !e.target.closest('.task-more-btn')){
       ui.openKeywordMoreId = null;
+      ui.openKeywordTypePopoverTaskId = null;
+      render();
+    }
+    if(ui.openKeywordTypePopoverTaskId && !e.target.closest('.type-popover') && !e.target.closest('.type-btn')){
+      ui.openKeywordTypePopoverTaskId = null;
       render();
     }
     if(ui.openFilterMoreId && !e.target.closest('.filter-more-dropdown') && !e.target.closest('.filter-chip-more')){
@@ -105,6 +115,10 @@ async function startApp(){
     }
     if(ui.dayStatusFilterOpen && !e.target.closest('.day-filter-wrap')){
       ui.dayStatusFilterOpen = false;
+      render();
+    }
+    if(ui.dayTypeFilterOpen && !e.target.closest('.day-filter-wrap')){
+      ui.dayTypeFilterOpen = false;
       render();
     }
     if(ui.timerTypePopoverOpen && !e.target.closest('.timer-type-popover') && !e.target.closest('#addTimerBtn')){
@@ -329,9 +343,9 @@ async function startApp(){
     const exists = state.days[ui.selectedDate].some(t => t.name === ui.pendingTaskName);
     if(!exists){
       state.days[ui.selectedDate].push({ id: uid(), name: ui.pendingTaskName, done: false });
-      showToast('تمت الإضافة إلى مهام اليوم فقط');
+      showToast('تمت الإضافة إلى اليوم فقط');
     } else {
-      showToast('هذه المهمة موجودة بالفعل في مهام اليوم');
+      showToast('هذه المهمة موجودة بالفعل في اليوم');
     }
     const input = document.getElementById('newKeywordInput');
     if(input) input.value = '';
@@ -343,7 +357,7 @@ async function startApp(){
   document.getElementById('choiceBankBtn').onclick = async () => {
     if(!ui.pendingTaskName) return;
     state.keywords.push({ id: uid(), name: ui.pendingTaskName, filterId: ui.pendingTaskFilterId });
-    showToast('تمت الإضافة إلى بنك المهام');
+    showToast('تمت الإضافة إلى القائمة');
     const input = document.getElementById('newKeywordInput');
     if(input) input.value = '';
     closeAddChoiceModal();
@@ -359,7 +373,7 @@ async function startApp(){
     if(!exists){
       state.days[ui.selectedDate].push({ id: uid(), name: ui.pendingTaskName, done: false });
     }
-    showToast('تمت الإضافة إلى البنك وإلى مهام اليوم');
+    showToast('تمت الإضافة إلى القائمة وإلى اليوم');
     const input = document.getElementById('newKeywordInput');
     if(input) input.value = '';
     closeAddChoiceModal();
@@ -411,7 +425,8 @@ async function startApp(){
       if(ui.openDurationPopoverTaskId) hideDurationPopover();
       if(ui.openClockChoiceTaskId) hideClockChoicePopover();
       if(ui.openPriorityPopoverTaskId){ ui.openPriorityPopoverTaskId = null; render(); }
-      if(ui.openTaskMoreId){ ui.openTaskMoreId = null; ui.openPriorityPopoverTaskId = null; render(); }
+      if(ui.openTypePopoverTaskId){ ui.openTypePopoverTaskId = null; render(); }
+      if(ui.openTaskMoreId){ ui.openTaskMoreId = null; ui.openPriorityPopoverTaskId = null; ui.openTypePopoverTaskId = null; render(); }
       if(ui.openKeywordMoreId){ ui.openKeywordMoreId = null; render(); }
       if(ui.openFilterMoreId){ ui.openFilterMoreId = null; render(); }
     }

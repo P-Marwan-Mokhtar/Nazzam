@@ -463,27 +463,10 @@
   }
 }
 
-/* زرار فلتر البنك على الموبايل + إخفاء الفلتر افتراضياً حتى يتمسح بالزرار */
+/* إخفاء الفلاتر افتراضياً على الموبايل حتى يتمسح بالزرار */
 @media (max-width: 640px) {
   .bank-filters-toggle {
     display: flex;
-  }
-  .filter-chips-wrap {
-    max-height: 0;
-    opacity: 0;
-    margin-bottom: 0;
-  }
-  .filter-chips-wrap.mobile-open {
-    max-height: none;
-    opacity: 1;
-  }
-  .filter-chips-wrap.mobile-open-anim {
-    animation: filtersSlideDown 0.22s ease forwards;
-  }
-  .filter-chips-wrap.mobile-closing {
-    max-height: none;
-    overflow: hidden;
-    animation: filtersSlideUp 0.22s ease forwards;
   }
 }
 @keyframes filtersSlideDown {

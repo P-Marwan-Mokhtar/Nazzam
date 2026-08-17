@@ -10,6 +10,7 @@
   --missed: #c5382e;
   --missed-soft: #f4dedb;
   --card: #ffffff;
+  --popup: #ffffff;
   --radius: 10px;
   --shadow: 0 1px 2px rgba(34, 48, 61, 0.04), 0 4px 12px rgba(34, 48, 61, 0.03);
   --shadow-hover: 0 2px 4px rgba(34, 48, 61, 0.05), 0 8px 20px rgba(34, 48, 61, 0.07);
@@ -29,6 +30,7 @@ body.dark-mode {
   --missed: #ff6b5e;
   --missed-soft: #3a1c1c;
   --card: #1a2027;
+  --popup: #232b34;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.16), 0 3px 10px rgba(0, 0, 0, 0.12);
   --shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.24), 0 8px 20px rgba(0, 0, 0, 0.2);
 }

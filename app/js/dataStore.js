@@ -71,13 +71,14 @@ function isDayIndex(x){
   return typeof x === 'number' && Number.isInteger(x) && x >= 0 && x <= 6;
 }
 
-// عنصر من بنك المهام/المسودات: { id, name, filterId? }
+// عنصر من بنك المهام/المسودات: { id, name, filterId?, type? }
 function sanitizeNamedItem(x){
   if(!isPlainObject(x)) return null;
   const name = typeof x.name === 'string' ? x.name.trim() : '';
   if(!name) return null;
   const out = { id: (typeof x.id === 'string' && x.id) ? x.id : uid(), name };
   if(typeof x.filterId === 'string' && x.filterId) out.filterId = x.filterId;
+  if(x.type === 'habit' || x.type === 'hobby') out.type = x.type;
   return out;
 }
 
@@ -88,6 +89,7 @@ function sanitizeTask(t){
   if(!name) return null;
   const out = { id: (typeof t.id === 'string' && t.id) ? t.id : uid(), name, done: t.done === true };
   if(t.priority === 'high' || t.priority === 'medium' || t.priority === 'low') out.priority = t.priority;
+  if(t.type === 'habit' || t.type === 'hobby') out.type = t.type;
   if(isHHMM(t.remindAt)) out.remindAt = t.remindAt;
   if(t.reminded === true) out.reminded = true;
   if(typeof t.note === 'string') out.note = t.note;

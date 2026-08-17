@@ -17,7 +17,7 @@
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
-  background: var(--card);
+  background: var(--popup);
   border: 1px solid var(--paper-line);
   box-shadow: var(--shadow);
   border-radius: 10px;

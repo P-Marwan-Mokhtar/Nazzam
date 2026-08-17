@@ -133,7 +133,7 @@
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  background: var(--card);
+  background: var(--popup);
   border: 1px solid var(--paper-line);
   box-shadow: var(--shadow);
   border-radius: 10px;
@@ -259,7 +259,7 @@
   flex: 1 1 auto;
 }
 .bank-filters-toggle {
-  display: none; /* يظهر فقط على الموبايل، انظر media query */
+  display: flex;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;

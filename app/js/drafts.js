@@ -30,7 +30,7 @@ export function renderDraftsModal(){
       <div style="background: var(--paper); border: 1px solid var(--paper-line); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
         <span style="font-size: 0.92rem; font-weight: 700; color: var(--ink);">${highlightMatch(d.name, ui.draftsSearchQuery)}</span>
         <div style="display: flex; gap: 6px;">
-          <button class="icon-btn" data-action="restore-draft" data-id="${d.id}" title="استعادة إلى بنك المهام"><span class="material-icons">unarchive</span></button>
+          <button class="icon-btn" data-action="restore-draft" data-id="${d.id}" title="استعادة إلى القائمة"><span class="material-icons">unarchive</span></button>
           <button class="icon-btn" data-action="delete-draft-permanently" data-id="${d.id}" title="حذف نهائي"><span class="material-icons">delete_forever</span></button>
         </div>
       </div>
@@ -50,7 +50,7 @@ export function renderDraftsModal(){
           renderDraftsModal();
           render();
           await saveData();
-          showToast('تمت استعادة المهمة إلى بنك المهام');
+          showToast('تمت استعادة المهمة إلى القائمة');
         }
       } else if(action === 'delete-draft-permanently'){
         // حذف فوري + توست تراجع، متسق مع باقي حذف التطبيق (بدل نافذة confirm القديمة)
