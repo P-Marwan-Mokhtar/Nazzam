@@ -105,8 +105,8 @@
   font-size: 1rem;
 }
 .task-type-task { color: var(--ink-soft); }
-.task-type-habit { color: #e67e22; }
-.task-type-hobby  { color: #27ae60; }
+.task-type-habit { color: var(--pen); }
+.task-type-hobby  { color: var(--done); }
 .task-row.done {
   background: var(--done-soft);
 }
