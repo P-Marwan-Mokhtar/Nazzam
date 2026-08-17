@@ -98,13 +98,13 @@ function renderDetails(){
             <span class="material-icons">more_vert</span>
           </button>
           <div class="priority-popover type-popover ${detailsTypeOpen ? 'open' : ''}">
-            <button type="button" class="priority-choice-btn ${(task.type || 'task') === 'task' ? 'selected' : ''}" data-td="task-type" data-value="task">
+            <button type="button" class="priority-choice-btn tc-task ${(task.type || 'task') === 'task' ? 'selected' : ''}" data-td="task-type" data-value="task">
               <span class="material-icons">task</span>مهمة
             </button>
-            <button type="button" class="priority-choice-btn ${task.type === 'habit' ? 'selected' : ''}" data-td="task-type" data-value="habit">
+            <button type="button" class="priority-choice-btn tc-habit ${task.type === 'habit' ? 'selected' : ''}" data-td="task-type" data-value="habit">
               <span class="material-icons">loop</span>عادة
             </button>
-            <button type="button" class="priority-choice-btn ${task.type === 'hobby' ? 'selected' : ''}" data-td="task-type" data-value="hobby">
+            <button type="button" class="priority-choice-btn tc-hobby ${task.type === 'hobby' ? 'selected' : ''}" data-td="task-type" data-value="hobby">
               <span class="material-icons">palette</span>هواية
             </button>
           </div>

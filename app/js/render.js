@@ -233,13 +233,13 @@ export function render(){
                           <span class="material-icons">${TASK_TYPES[k.type || 'task'].icon}</span><span>${TASK_TYPES[k.type || 'task'].label}</span>
                         </button>
                         <div class="priority-popover type-popover ${ui.openKeywordTypePopoverTaskId === k.id ? 'open' : ''}">
-                          <button class="priority-choice-btn ${k.type === 'task' || !k.type ? 'selected' : ''}" data-action="set-keyword-type" data-choice="task" data-id="${k.id}" type="button">
+                          <button class="priority-choice-btn tc-task ${k.type === 'task' || !k.type ? 'selected' : ''}" data-action="set-keyword-type" data-choice="task" data-id="${k.id}" type="button">
                             <span class="material-icons">task</span>مهمة
                           </button>
-                          <button class="priority-choice-btn ${k.type === 'habit' ? 'selected' : ''}" data-action="set-keyword-type" data-choice="habit" data-id="${k.id}" type="button">
+                          <button class="priority-choice-btn tc-habit ${k.type === 'habit' ? 'selected' : ''}" data-action="set-keyword-type" data-choice="habit" data-id="${k.id}" type="button">
                             <span class="material-icons">loop</span>عادة
                           </button>
-                          <button class="priority-choice-btn ${k.type === 'hobby' ? 'selected' : ''}" data-action="set-keyword-type" data-choice="hobby" data-id="${k.id}" type="button">
+                          <button class="priority-choice-btn tc-hobby ${k.type === 'hobby' ? 'selected' : ''}" data-action="set-keyword-type" data-choice="hobby" data-id="${k.id}" type="button">
                             <span class="material-icons">palette</span>هواية
                           </button>
                         </div>

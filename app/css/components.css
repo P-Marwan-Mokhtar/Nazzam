@@ -104,9 +104,9 @@
 .task-type-icon .material-icons {
   font-size: 1rem;
 }
-.task-type-task { color: var(--ink-soft); }
-.task-type-habit { color: var(--pen); }
-.task-type-hobby  { color: var(--done); }
+.task-type-task, .tc-task .material-icons { color: var(--ink-soft); }
+.task-type-habit, .tc-habit .material-icons { color: var(--pen); }
+.task-type-hobby, .tc-hobby .material-icons { color: var(--done); }
 .task-row.done {
   background: var(--done-soft);
 }
