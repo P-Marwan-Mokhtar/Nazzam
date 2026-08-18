@@ -38,29 +38,123 @@
 }
 .stats-summary-pill {
   flex: 1 1 0;
-  background: var(--paper);
+  background: var(--card);
   border: 1px solid var(--paper-line);
   border-radius: 14px;
-  padding: 12px 10px;
+  padding: 14px 10px;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
 }
 .stats-summary-pill .material-icons {
-  font-size: 18px;
+  font-size: 20px;
   color: var(--pen);
-  margin-bottom: 2px;
 }
 .stats-summary-pill strong {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   color: var(--ink);
-  
+  line-height: 1.2;
 }
 .stats-summary-pill small {
   font-size: 0.72rem;
   color: var(--ink-soft);
+  line-height: 1.2;
+}
+
+/* ===== شريط تبويبات الإحصائيات (dropdown في الهيدر) ===== */
+.stats-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.stats-tab-dropdown-wrap {
+  position: relative;
+}
+.stats-tab-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 12px;
+  background: var(--popup);
+  border: 1px solid var(--paper-line);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.stats-tab-trigger:hover {
+  background: var(--paper);
+}
+.stats-tab-trigger .material-icons {
+  font-size: 20px;
+  color: var(--ink);
+}
+.stats-tab-trigger-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.stats-tab-arrow {
+  font-size: 18px !important;
+  color: var(--ink-soft) !important;
+  transition: transform 0.2s ease;
+}
+.stats-tab-dropdown-wrap.open .stats-tab-arrow {
+  transform: rotate(180deg);
+}
+.stats-tab-dropdown {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 160px;
+  background: var(--popup);
+  border: 1px solid var(--paper-line);
+  border-radius: 14px;
+  padding: 6px;
+  box-shadow: var(--shadow);
+  z-index: 100;
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.stats-tab-dropdown.open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.stats-tab-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 9px 10px;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  text-align: right;
+}
+.stats-tab-option .material-icons {
+  font-size: 18px;
+}
+.stats-tab-option:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+.stats-tab-option.active {
+  background: var(--pen);
+  color: #fff;
 }
 
 /* ===== شريط التبديل بين إحصائيات الأيام والأسبوع (جوه الـheader نفسه) ===== */
@@ -92,16 +186,8 @@
   color: #fff;
 }
 
-/* ===== مقارنة الأسبوع بالأسبوع اللي فات ===== */
-.week-compare-card {
-  background: var(--paper);
-  border: 1px solid var(--paper-line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 14px 16px;
-  margin-bottom: 14px;
-}
-.week-compare-title {
+/* ===== مقارنة بالأسبوع/اليوم السابق (grid cards) ===== */
+.compare-section-title {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -110,69 +196,76 @@
   color: var(--ink);
   margin-bottom: 10px;
 }
-.week-compare-title .material-icons {
+.compare-section-title .material-icons {
   font-size: 18px;
   color: var(--pen);
 }
-.week-compare-rows {
+.compare-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.compare-card {
+  background: var(--card);
+  border: 1px solid var(--paper-line);
+  border-radius: 14px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
-.week-compare-row {
+.compare-card-label {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 6px 0;
-  border-top: 1px dashed var(--paper-line);
-}
-.week-compare-row:first-child {
-  border-top: none;
-  padding-top: 0;
-}
-.week-compare-label {
-  font-size: 0.85rem;
-  color: var(--ink-soft);
+  gap: 4px;
+  font-size: 0.78rem;
   font-weight: 700;
-  flex: 1 1 auto;
+  color: var(--ink-soft);
 }
-.week-compare-values {
-  font-size: 0.88rem;
+.compare-card-label .material-icons {
+  font-size: 16px;
+}
+.compare-card-value {
+  font-size: 1.15rem;
   font-weight: 800;
   color: var(--ink);
-  white-space: nowrap;
-  direction: rtl;
 }
-.week-compare-values small {
-  font-size: 0.72rem;
+.compare-card-prev {
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--ink-soft);
 }
-.week-compare-delta {
-  display: flex;
+.compare-card-delta {
+  display: inline-flex;
   align-items: center;
   gap: 2px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 800;
   border-radius: 20px;
-  padding: 3px 8px;
-  flex: 0 0 auto;
+  padding: 2px 8px;
+  align-self: flex-start;
+  margin-top: 2px;
 }
-.week-compare-delta .material-icons {
-  font-size: 14px;
+.compare-card-delta .material-icons {
+  font-size: 13px;
 }
-.week-compare-delta.up {
+.compare-card-delta.up {
   color: var(--done);
   background: var(--done-soft);
 }
-.week-compare-delta.down {
+.compare-card-delta.down {
   color: var(--missed);
   background: rgba(197, 56, 46, 0.12);
 }
-.week-compare-delta.same {
+.compare-card-delta.same {
   color: var(--ink-soft);
   background: var(--paper);
+}
+@media (max-width: 480px) {
+  .compare-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .chart-grid {
@@ -182,7 +275,7 @@
   margin-bottom: 14px;
 }
 .chart-card {
-  background: var(--paper);
+  background: var(--card);
   border: 1px solid var(--paper-line);
   border-radius: 14px;
   padding: 12px 14px 14px;
@@ -222,11 +315,14 @@
   }
 }
 @media (max-width: 480px) {
-  .stats-summary-row {
-    flex-wrap: wrap;
-  }
   .stats-summary-pill {
-    flex: 1 1 calc(33.333% - 8px);
+    padding: 10px 8px;
+  }
+  .stats-summary-pill strong {
+    font-size: 1rem;
+  }
+  .stats-summary-pill small {
+    font-size: 0.68rem;
   }
   .recurrence-day-chip {
     font-size: 0.7rem;
@@ -467,6 +563,28 @@
 @media (max-width: 640px) {
   .bank-filters-toggle {
     display: flex;
+  }
+
+  /* هيدر الإحصائيات على الموبايل */
+  .stats-view-header {
+    padding: 6px 6px 6px 10px;
+    gap: 4px;
+  }
+  .stats-tab-trigger-label,
+  .stats-tab-arrow {
+    display: none;
+  }
+  .stats-tab-trigger {
+    padding: 0;
+    width: 38px;
+    justify-content: center;
+  }
+  .stats-range-toggle {
+    gap: 0;
+  }
+  .stats-range-btn {
+    padding: 6px 10px;
+    font-size: 0.8rem;
   }
 }
 @keyframes filtersSlideDown {

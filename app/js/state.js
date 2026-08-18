@@ -63,6 +63,7 @@ export const ui = {
   timerPanelRenderedForDate: null,
   statsViewOpen: false,  // لما تبقى true، #content بيعرض شاشة الإحصائيات بدل مهام اليوم
   statsRangeMode: 'week',  // 'day' أو 'week' — أي مدى زمني معروض حاليًا في شاشة الإحصائيات
+  statsTab: 'all',  // 'all' | 'task' | 'habit' | 'hobby' — التبويب الحالي في شاشة الإحصائيات
   justReturnedFromStats: false,  // true لمرة واحدة بس لما نرجع من شاشة الإحصائيات، عشان نشغّل أنيميشن الدخول مرة واحدة فقط
   justChangedDay: false,  // true لمرة واحدة بس لما ننقل بين الأيام (السابق/التالي/اليوم/التقويم)، عشان الأنيميشن يشتغل مرة واحدة
   weekViewOpen: false,  // لما تبقى true، #content بيعرض عرض الأسبوع بدل مهام اليوم
@@ -152,7 +153,7 @@ export function showUndoToast(msg, onUndo){
 export const PRIORITY_LABELS = { high: 'عالية', medium: 'متوسطة', low: 'منخفضة' };
 
 export const TASK_TYPES = {
-  task:   { icon: 'task',          label: 'مهمة' },
+  task:   { icon: 'assignment',   label: 'مهمة' },
   habit:  { icon: 'loop',          label: 'عادة' },
   hobby:  { icon: 'palette',       label: 'هواية' },
 };

@@ -99,7 +99,7 @@ function renderDetails(){
           </button>
           <div class="priority-popover type-popover ${detailsTypeOpen ? 'open' : ''}">
             <button type="button" class="priority-choice-btn tc-task ${(task.type || 'task') === 'task' ? 'selected' : ''}" data-td="task-type" data-value="task">
-              <span class="material-icons">task</span>مهمة
+              <span class="material-icons">assignment</span>مهمة
             </button>
             <button type="button" class="priority-choice-btn tc-habit ${task.type === 'habit' ? 'selected' : ''}" data-td="task-type" data-value="habit">
               <span class="material-icons">loop</span>عادة

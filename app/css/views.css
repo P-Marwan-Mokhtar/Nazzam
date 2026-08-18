@@ -247,7 +247,7 @@ body.locked-view .main-col {
   align-items: center;
   gap: 2px;
   background: var(--card);
-  border: 1px solid var(--paper-line);
+  border: 1.5px solid var(--ink-soft);
   border-radius: 10px;
   padding: 6px 10px;
   font-family: inherit;
@@ -335,7 +335,7 @@ body.locked-view .main-col {
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 1px solid var(--paper-line);
+  border: 1.5px solid var(--ink-soft);
   border-radius: 10px;
   background: var(--card);
   color: var(--ink);

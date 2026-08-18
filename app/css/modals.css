@@ -412,7 +412,7 @@ body.dark-mode .account-error {
   color: var(--missed);
 }
 .stat-block {
-  background: var(--paper);
+  background: var(--card);
   border: 1px solid var(--paper-line);
   border-radius: 14px;
   padding: 14px 16px;

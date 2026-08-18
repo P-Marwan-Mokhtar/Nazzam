@@ -79,6 +79,12 @@ async function startApp(){
 
   document.addEventListener('click', (e) => {
     document.querySelectorAll('.custom-select.open').forEach(s => s.classList.remove('open'));
+    const statsDropdown = document.getElementById('statsTabDropdown');
+    if(statsDropdown && !e.target.closest('.stats-tab-dropdown-wrap')){
+      statsDropdown.classList.remove('open');
+      const statsWrap = statsDropdown.closest('.stats-tab-dropdown-wrap');
+      if(statsWrap) statsWrap.classList.remove('open');
+    }
     if(ui.openDurationPopoverTaskId && !e.target.closest('.duration-popover') && !e.target.closest('.duration-badge')){
       hideDurationPopover();
     }

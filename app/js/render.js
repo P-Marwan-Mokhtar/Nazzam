@@ -234,7 +234,7 @@ export function render(){
                         </button>
                         <div class="priority-popover type-popover ${ui.openKeywordTypePopoverTaskId === k.id ? 'open' : ''}">
                           <button class="priority-choice-btn tc-task ${k.type === 'task' || !k.type ? 'selected' : ''}" data-action="set-keyword-type" data-choice="task" data-id="${k.id}" type="button">
-                            <span class="material-icons">task</span>مهمة
+                            <span class="material-icons">assignment</span>مهمة
                           </button>
                           <button class="priority-choice-btn tc-habit ${k.type === 'habit' ? 'selected' : ''}" data-action="set-keyword-type" data-choice="habit" data-id="${k.id}" type="button">
                             <span class="material-icons">loop</span>عادة
@@ -297,7 +297,7 @@ export function render(){
             <span class="material-icons">list</span><span>الكل</span>
           </button>
           <button class="tmd-btn ${ui.dayTypeFilter === 'task' ? 'active' : ''}" data-action="select-day-type-filter" data-value="task">
-            <span class="material-icons">task</span><span>مهام</span>
+            <span class="material-icons">assignment</span><span>مهام</span>
           </button>
           <button class="tmd-btn ${ui.dayTypeFilter === 'habit' ? 'active' : ''}" data-action="select-day-type-filter" data-value="habit">
             <span class="material-icons">loop</span><span>عادات</span>

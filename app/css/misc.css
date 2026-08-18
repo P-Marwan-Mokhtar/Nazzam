@@ -4,7 +4,6 @@
   .keyword-row:not(.dragging):not(.drag-over):hover {
     background-color: var(--paper);
   }
-  .stats-summary-pill:hover,
   .timeblock-side-item:hover,
   .week-day-card:hover {
     background-color: var(--paper);
