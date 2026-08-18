@@ -89,7 +89,7 @@
 }
 .stats-tab-trigger .material-icons {
   font-size: 20px;
-  color: var(--ink);
+  color: var(--pen);
 }
 .stats-tab-trigger-label {
   font-size: 0.85rem;
@@ -147,14 +147,19 @@
 }
 .stats-tab-option .material-icons {
   font-size: 18px;
+  color: var(--pen);
 }
 .stats-tab-option:hover {
   background: var(--paper);
   color: var(--ink);
 }
 .stats-tab-option.active {
-  background: var(--pen);
-  color: #fff;
+  background: var(--pen-soft);
+  color: var(--pen);
+  font-weight: 700;
+}
+.stats-tab-option.active .material-icons {
+  color: var(--pen);
 }
 
 /* ===== شريط التبديل بين إحصائيات الأيام والأسبوع (جوه الـheader نفسه) ===== */

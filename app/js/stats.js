@@ -162,11 +162,14 @@ export function computeDayStats(dateStr, typeFilter){
   const nameToFilterId = {};
   state.keywords.forEach(k => { if(k.filterId) nameToFilterId[k.name] = k.filterId; });
 
+  const today = todayStr();
+  const isPastDay = dateStr < today;
+
   tasks.forEach(t => {
     const tType = t.type || 'task';
     typeCounts[tType] = (typeCounts[tType] || 0) + 1;
     if(t.done) doneCount++;
-    else missedCount++;
+    else if(isPastDay) missedCount++;
     const ms = parseDurationToMinutes(t.actualDuration) * 60000;
     if(ms > 0){
       totalMs += ms;
@@ -560,6 +563,9 @@ function renderTypeStatsView(type, mode){
 function renderDayStatsView(dateStr, typeFilter){
   const s = computeDayStats(dateStr, typeFilter);
   const completionPct = s.totalTaskCount > 0 ? Math.round((s.doneCount / s.totalTaskCount) * 100) : 0;
+  const isToday = dateStr === todayStr();
+  const undoneCount = s.totalTaskCount - s.doneCount;
+  const missedLabel = isToday ? 'غير مكتملة' : 'فائتة';
 
   const t = currentPalette();
   const penColor = t['pen'];
@@ -608,8 +614,8 @@ function renderDayStatsView(dateStr, typeFilter){
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons" style="color: var(--missed);">event_busy</span>
-          <strong style="color: var(--missed);">${s.missedCount}</strong>
-          <small>فائتة</small>
+          <strong style="color: var(--missed);">${undoneCount}</strong>
+          <small>${missedLabel}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons">functions</span>
@@ -624,6 +630,11 @@ function renderDayStatsView(dateStr, typeFilter){
           <small>نسبة الإنجاز</small>
         </div>
         <div class="stats-summary-pill">
+          <span class="material-icons" style="color: var(--missed);">event_busy</span>
+          <strong style="color: var(--missed);">${undoneCount}</strong>
+          <small>${missedLabel}</small>
+        </div>
+        <div class="stats-summary-pill">
           <span class="material-icons">assignment</span>
           <strong>${s.totalTaskCount}</strong>
           <small>مهام</small>
@@ -636,9 +647,19 @@ function renderDayStatsView(dateStr, typeFilter){
         </div>` : ''}` : ''}
         ${isHabit ? `
         <div class="stats-summary-pill">
+          <span class="material-icons">task_alt</span>
+          <strong>${completionPct}%</strong>
+          <small>نسبة الإنجاز</small>
+        </div>
+        <div class="stats-summary-pill">
           <span class="material-icons">bolt</span>
           <strong>${s.streak}</strong>
           <small>${s.streak === 1 ? 'يوم متتالي' : 'أيام متتالية'}</small>
+        </div>
+        <div class="stats-summary-pill">
+          <span class="material-icons" style="color: var(--missed);">event_busy</span>
+          <strong style="color: var(--missed);">${undoneCount}</strong>
+          <small>${missedLabel}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons">loop</span>
@@ -646,6 +667,16 @@ function renderDayStatsView(dateStr, typeFilter){
           <small>عادات</small>
         </div>` : ''}
         ${isHobby ? `
+        <div class="stats-summary-pill">
+          <span class="material-icons">task_alt</span>
+          <strong>${completionPct}%</strong>
+          <small>نسبة الإنجاز</small>
+        </div>
+        <div class="stats-summary-pill">
+          <span class="material-icons" style="color: var(--missed);">event_busy</span>
+          <strong style="color: var(--missed);">${undoneCount}</strong>
+          <small>${missedLabel}</small>
+        </div>
         <div class="stats-summary-pill">
           <span class="material-icons">local_fire_department</span>
           <strong>${s.topTasks.length}</strong>
@@ -956,6 +987,11 @@ function renderWeekStatsView(typeFilter){
         </div>` : ''}` : ''}
         ${isHabit ? `
         <div class="stats-summary-pill">
+          <span class="material-icons">task_alt</span>
+          <strong>${completionPct}%</strong>
+          <small>نسبة الإنجاز</small>
+        </div>
+        <div class="stats-summary-pill">
           <span class="material-icons">bolt</span>
           <strong>${s.streak}</strong>
           <small>${s.streak === 1 ? 'يوم متتالي' : 'أيام متتالية'}</small>
@@ -971,6 +1007,16 @@ function renderWeekStatsView(typeFilter){
           <small>فائتة</small>
         </div>` : ''}
         ${isHobby ? `
+        <div class="stats-summary-pill">
+          <span class="material-icons">task_alt</span>
+          <strong>${completionPct}%</strong>
+          <small>نسبة الإنجاز</small>
+        </div>
+        <div class="stats-summary-pill">
+          <span class="material-icons" style="color: var(--missed);">event_busy</span>
+          <strong style="color: var(--missed);">${s.missedCount}</strong>
+          <small>فائتة</small>
+        </div>
         <div class="stats-summary-pill">
           <span class="material-icons">local_fire_department</span>
           <strong>${s.topTasks.length}</strong>

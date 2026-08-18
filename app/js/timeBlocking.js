@@ -970,23 +970,56 @@ async function commitTaskTime(taskId, minutesOrNull, dateStr){
   dateStr = dateStr || ui.selectedDate;
   let tasks = state.days[dateStr] || [];
   let idx = tasks.findIndex(t => t.id === taskId);
+
   if(idx === -1){
+    // المهمة مش موجودة في اليوم المطلوب بالـ ID
+    // ندور عليها في كل الأيام
+    let sourceTask = null;
+    let sourceDayKey = null;
     for(const dKey of Object.keys(state.days)){
-      const found = state.days[dKey].findIndex(t => t.id === taskId);
-      if(found !== -1){
-        const [movedTask] = state.days[dKey].splice(found, 1);
-        if(!state.days[dateStr]) state.days[dateStr] = [];
-        state.days[dateStr].push(movedTask);
-        tasks = state.days[dateStr];
-        idx = tasks.findIndex(t => t.id === taskId);
+      const foundIdx = state.days[dKey].findIndex(t => t.id === taskId);
+      if(foundIdx !== -1){
+        sourceTask = state.days[dKey][foundIdx];
+        sourceDayKey = dKey;
         break;
       }
     }
+    if(!sourceTask) return;
+
+    // نشوف لو فيه مهمة بنفس الاسم في اليوم المطلوب (زي المتكررة من ensureDayMaterialized)
+    // لو موجودة، نعدّلها بدل ما نضيف نسخة تانية
+    const existingByName = tasks.find(t => t.name === sourceTask.name);
+    if(existingByName){
+      if(minutesOrNull === null){
+        existingByName.startTime = null;
+        existingByName.duration = '';
+      } else {
+        existingByName.startTime = minutesToHHMM(minutesOrNull);
+        const durationMin = Math.max(MIN_DURATION_MIN, parseDurationToMinutes(existingByName.duration) || DEFAULT_DURATION_MIN);
+        existingByName.duration = formatMinutes(durationMin);
+      }
+      if(sourceTask.priority && !existingByName.priority) existingByName.priority = sourceTask.priority;
+      if(sourceTask.type && !existingByName.type) existingByName.type = sourceTask.type;
+      // نشيل المهمة الأصلية من يومها
+      const srcIdx = state.days[sourceDayKey].findIndex(t => t.id === taskId);
+      if(srcIdx !== -1) state.days[sourceDayKey].splice(srcIdx, 1);
+      render();
+      await saveData();
+      return;
+    }
+
+    // مش موجودة بنفس الاسم — ننقلها من يومها لليوم المطلوب
+    const srcIdx = state.days[sourceDayKey].findIndex(t => t.id === taskId);
+    const [movedTask] = state.days[sourceDayKey].splice(srcIdx, 1);
+    if(!state.days[dateStr]) state.days[dateStr] = [];
+    state.days[dateStr].push(movedTask);
+    tasks = state.days[dateStr];
+    idx = tasks.findIndex(t => t.id === taskId);
   }
+
   if(idx === -1) return;
   const task = tasks[idx];
   // النسخ المكررة عايشة في الجدول الزمني بس — لو رجعناها لغير مجدولة بنشيلها خالص
-  // عشان متظهرش تاني في قائمة المهام أو في القائمة الجانبية
   if(minutesOrNull === null && task._dupOf){
     tasks.splice(idx, 1);
     render();
@@ -994,8 +1027,6 @@ async function commitTaskTime(taskId, minutesOrNull, dateStr){
     return;
   }
   task.startTime = minutesOrNull === null ? null : minutesToHHMM(minutesOrNull);
-  // لما بنشيل المهمة من الجدول الزمني (نرجّعها لغير مجدولة)، بنمسح مدتها كمان
-  // عشان متفضلش القيمة دي عالقة وتظهر في المهام اليومية بعد ما شيلناها من هنا
   if(minutesOrNull === null) task.duration = '';
   render();
   await saveData();
