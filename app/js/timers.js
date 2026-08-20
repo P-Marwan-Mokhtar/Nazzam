@@ -222,7 +222,7 @@ export function renderTimerPanel(){
     ui.pendingNewTimerName = '';
     newInput.value = '';
     if(kind === 'open'){
-      if(await resumeExistingTimer(name)) return;
+      if(await resumeExistingTimer(name, 'open')) return;
       ensureAudioContext();
       getDayTimers(ui.selectedDate).push({
         id: uid(),
@@ -237,7 +237,7 @@ export function renderTimerPanel(){
       ui.timerPanelRenderedForDate = ui.selectedDate;
       await saveData();
     } else {
-      if(await resumeExistingTimer(name)) return;
+      if(await resumeExistingTimer(name, 'countdown')) return;
       renderTimerPanel();
       openTimerDurationPicker(name);
       ui.pendingNewTimerName = name; // يفضل محفوظ لحد ما يتم اختيار المدة
@@ -323,7 +323,7 @@ function playAlertSound(){
 
 export async function startOpenTimer(name){
   // "بدء تايمر" من المهمة: لو في مؤقت بنفس الاسم يتستأنف، غير كده بيبدأ مؤقت مفتوح فورًا من غير اختيارات
-  if(await resumeExistingTimer(name)) return;
+  if(await resumeExistingTimer(name, 'open')) return;
   ensureAudioContext();
   getDayTimers(ui.selectedDate).push({
     id: uid(),
@@ -339,10 +339,10 @@ export async function startOpenTimer(name){
   await saveData();
 }
 
-export async function resumeExistingTimer(name){
-  // بيرجّع true لو فيه مؤقت بنفس الاسم وتم استئنافه (أو شغال أصلًا) — مانعًا تكرار مؤقت بنفس الاسم
+export async function resumeExistingTimer(name, mode){
+  // بيرجّع true لو فيه مؤقت بنفس الاسم والوضع وتم استئنافه (أو شغال أصلًا) — مانعًا تكرار مؤقت بنفس الاسم والوضع
   const timers = getDayTimers(ui.selectedDate);
-  const existing = timers.find(x => x.name === name);
+  const existing = timers.find(x => x.name === name && x.mode === mode);
   if(!existing) return false;
   ensureAudioContext();
   if(existing.running){

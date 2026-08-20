@@ -200,7 +200,7 @@ export async function commitDurationPicker(){
     }
     const name = ui.pendingNewTimerName;
     if(!name){ closeDurationPicker(); return; }
-    if(await resumeExistingTimer(name)){ closeDurationPicker(); return; }
+    if(await resumeExistingTimer(name, 'countdown')){ closeDurationPicker(); return; }
     ensureAudioContext();
     getDayTimers(ui.selectedDate).push({
       id: uid(),
