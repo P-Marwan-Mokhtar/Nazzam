@@ -45,14 +45,14 @@ export function parseDurationToMinutes(str){
   let totalMinutes = 0;
   let matched = false;
 
-  const hourRegex = /(\d+(?:\.\d+)?)\s*(ساعات|ساعة|ساعه|س|hours?|h)\b/gi;
+  const hourRegex = /(\d+(?:\.\d+)?)\s*(ساعات|ساعة|ساعه|س\b|hours?\b)/gi;
   let m;
   while((m = hourRegex.exec(text)) !== null){
     totalMinutes += parseFloat(m[1]) * 60;
     matched = true;
   }
 
-  const minRegex = /(\d+(?:\.\d+)?)\s*(دقايق|دقيقة|دقيقه|د|minutes?|m)\b/gi;
+  const minRegex = /(\d+(?:\.\d+)?)\s*(دقايق|دقيقة|دقيقه|د\b|minutes?\b)/gi;
   while((m = minRegex.exec(text)) !== null){
     totalMinutes += parseFloat(m[1]);
     matched = true;
