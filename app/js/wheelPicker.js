@@ -3,6 +3,7 @@
 // ============================================================
 
 import { parseDurationToMinutes, uid } from './utils.js';
+import { t, formatMinutes } from './i18n.js';
 import { WHEEL_ITEM_H, showToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
@@ -118,7 +119,7 @@ export function openDurationPicker(taskId){
   const m = Math.min(59, Math.round(totalMin % 60));
 
   const titleEl = document.getElementById('pickerTitle');
-  if(titleEl) titleEl.textContent = 'مدة المهمة';
+  if(titleEl) titleEl.textContent = t('picker.task_duration');
 
   const hoursCol = document.getElementById('hoursWheel');
   const hoursList = document.getElementById('hoursWheelList');
@@ -144,7 +145,7 @@ export function openActualDurationPicker(taskId){
   const m = Math.min(59, Math.round(totalMin % 60));
 
   const titleEl = document.getElementById('pickerTitle');
-  if(titleEl) titleEl.textContent = 'الوقت الفعلي';
+  if(titleEl) titleEl.textContent = t('picker.actual_time');
 
   const hoursCol = document.getElementById('hoursWheel');
   const hoursList = document.getElementById('hoursWheelList');
@@ -164,7 +165,7 @@ export function openTimerDurationPicker(name){
   ui.pickerTaskId = null;
 
   const titleEl = document.getElementById('pickerTitle');
-  if(titleEl) titleEl.textContent = 'مدة المؤقت';
+  if(titleEl) titleEl.textContent = t('picker.timer_duration');
 
   const hoursCol = document.getElementById('hoursWheel');
   const hoursList = document.getElementById('hoursWheelList');
@@ -195,7 +196,7 @@ export async function commitDurationPicker(){
   if(ui.pickerMode === 'timer'){
     const targetMs = (h * 60 + m) * 60000;
     if(targetMs <= 0){
-      showToast('يرجى تحديد مدة أكبر من صفر');
+      showToast(t('timer.no_duration'));
       return;
     }
     const name = ui.pendingNewTimerName;
@@ -212,7 +213,7 @@ export async function commitDurationPicker(){
       targetMs,
       alerted: false
     });
-    showToast(`بدأ مؤقت محدد لـ "${name}"`);
+    showToast(t('timer.started_fixed', {name}));
     ui.pendingNewTimerName = '';
     ui.pickerMode = 'task';
     document.getElementById('durationPickerOverlay').classList.remove('open');
@@ -225,7 +226,8 @@ export async function commitDurationPicker(){
   if(!ui.pickerTaskId) return;
   const task = (state.days[ui.selectedDate] || []).find(t => t.id === ui.pickerTaskId);
   if(task){
-    const label = h > 0 && m > 0 ? `${h} ساعة و ${m} دقيقة` : (h > 0 ? `${h} ساعة` : (m > 0 ? `${m} دقيقة` : ''));
+    const totalMin = h * 60 + m;
+    const label = totalMin > 0 ? formatMinutes(totalMin) : '';
     if(ui.pickerMode === 'actual') task.actualDuration = label;
     else task.duration = label;
   }

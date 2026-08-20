@@ -6,6 +6,7 @@ import { emptyStateHtml, highlightMatch, normalizeArabic } from './utils.js';
 import { showToast, showUndoToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
+import { t } from './i18n.js';
 
 export function renderDraftsModal(){
   const listEl = document.getElementById('draftsModalList');
@@ -18,8 +19,8 @@ export function renderDraftsModal(){
   if(filteredDrafts.length === 0){
     listEl.innerHTML = emptyStateHtml(
       state.drafts.length === 0 ? 'archive' : 'search_off',
-      state.drafts.length === 0 ? 'لا توجد مسودات محفوظة' : 'لا توجد نتائج للبحث',
-      state.drafts.length === 0 ? 'عند حذف مهمة ستُحفظ هنا مؤقتًا حتى تتمكن من استرجاعها.' : 'جرّب اسمًا آخر.'
+      state.drafts.length === 0 ? t('drafts.empty_title') : t('drafts.no_results'),
+      state.drafts.length === 0 ? t('drafts.empty_hint') : t('drafts.no_results_hint')
     );
     return;
   }
@@ -30,8 +31,8 @@ export function renderDraftsModal(){
       <div style="background: var(--paper); border: 1px solid var(--paper-line); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
         <span style="font-size: 0.92rem; font-weight: 700; color: var(--ink);">${highlightMatch(d.name, ui.draftsSearchQuery)}</span>
         <div style="display: flex; gap: 6px;">
-          <button class="icon-btn" data-action="restore-draft" data-id="${d.id}" title="استعادة إلى القائمة"><span class="material-icons">unarchive</span></button>
-          <button class="icon-btn" data-action="delete-draft-permanently" data-id="${d.id}" title="حذف نهائي"><span class="material-icons">delete_forever</span></button>
+          <button class="icon-btn" data-action="restore-draft" data-id="${d.id}" title="${t('drafts.restore')}"><span class="material-icons">unarchive</span></button>
+          <button class="icon-btn" data-action="delete-draft-permanently" data-id="${d.id}" title="${t('drafts.delete_permanent')}"><span class="material-icons">delete_forever</span></button>
         </div>
       </div>
     `;
@@ -50,7 +51,7 @@ export function renderDraftsModal(){
           renderDraftsModal();
           render();
           await saveData();
-          showToast('تمت استعادة المهمة إلى القائمة');
+          showToast(t('drafts.restored'));
         }
       } else if(action === 'delete-draft-permanently'){
         // حذف فوري + توست تراجع، متسق مع باقي حذف التطبيق (بدل نافذة confirm القديمة)
@@ -59,7 +60,7 @@ export function renderDraftsModal(){
         state.drafts = state.drafts.filter(x => x.id !== id);
         renderDraftsModal();
         await saveData();
-        showUndoToast('تم حذف المسودة نهائيًا', async () => {
+        showUndoToast(t('drafts.deleted'), async () => {
           if(removedDraft){
             const restored = [...state.drafts];
             restored.splice(Math.min(removedIndex, restored.length), 0, removedDraft);

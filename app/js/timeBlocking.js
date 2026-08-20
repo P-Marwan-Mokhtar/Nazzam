@@ -5,12 +5,13 @@
 // زي Google Calendar.
 // ============================================================
 
-import { DAY_NAMES, MONTH_NAMES, SHORT_DAY_NAMES, addDays, escapeAttr, escapeHtml, fmtDay, formatMinutes, fromISO, parseDurationToMinutes, timeStrToMinutes, todayStr, toISO, uid } from './utils.js';
+import { DAY_NAMES, MONTH_NAMES, SHORT_DAY_NAMES, addDays, escapeAttr, escapeHtml, fmtDay, fromISO, parseDurationToMinutes, timeStrToMinutes, todayStr, toISO, uid } from './utils.js';
 import { contentEl, showToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { formatTimeArabic, openTimePicker } from './timePicker.js';
 import { ensureDayMaterialized, render } from './render.js';
 import { openCalendarModal } from './calendar.js';
+import { t, formatMinutes } from './i18n.js';
 
 const HOUR_PX = 64;
 const SNAP_MIN = 5;
@@ -214,7 +215,7 @@ export function renderTimeBlockView(){
   const needsMoreBtn = isMobile && unscheduled.length > TB_MOBILE_VISIBLE_COUNT;
   const visibleTasks = collapsed ? unscheduled.slice(0, TB_MOBILE_VISIBLE_COUNT) : unscheduled;
   if(visibleTasks.length === 0){
-    sideHtml = `<div class="timeblock-side-empty">${dayTasks.length === 0 ? 'لا توجد مهام في هذا اليوم بعد' : 'كل المهام متجدولة 🎉'}</div>`;
+    sideHtml = `<div class="timeblock-side-empty">${dayTasks.length === 0 ? t('schedule.empty_title') : t('schedule.empty_all_done')}</div>`;
   } else {
     visibleTasks.forEach(t => {
       sideHtml += `<div class="timeblock-side-item" data-id="${t.id}" data-name="${escapeAttr(t.name)}">${escapeHtml(t.name)}</div>`;
@@ -222,7 +223,7 @@ export function renderTimeBlockView(){
   }
 
   const dayName = DAY_NAMES[fromISO(ui.selectedDate).getDay()];
-  const rangeLabel = ui.tbRangeMode === 'day' ? 'يوم' : 'أسبوع';
+  const rangeLabel = ui.tbRangeMode === 'day' ? t('c.day') : t('c.week');
   const html = `
     <div class="timeblock-view ${(ui.justReturnedFromStats || ui.justChangedTbRange) ? 'animate-in' : ''}">
       <div class="date-nav tb-date-nav">
@@ -232,17 +233,17 @@ export function renderTimeBlockView(){
             <span class="material-icons tb-drop-arrow">expand_more</span>
           </button>
           <div class="tb-range-menu" id="tbRangeMenu">
-            <button class="tb-range-menu-item ${ui.tbRangeMode === 'day' ? 'active' : ''}" data-range="day">يوم</button>
-            <button class="tb-range-menu-item ${ui.tbRangeMode === 'week' ? 'active' : ''}" data-range="week">أسبوع</button>
+            <button class="tb-range-menu-item ${ui.tbRangeMode === 'day' ? 'active' : ''}" data-range="day">${t('c.day')}</button>
+            <button class="tb-range-menu-item ${ui.tbRangeMode === 'week' ? 'active' : ''}" data-range="week">${t('c.week')}</button>
           </div>
         </div>
         <div class="tb-nav-group">
-          <button class="nav-btn" id="tbPrevBtn" aria-label="اليوم السابق"><span class="material-icons">chevron_right</span></button>
+          <button class="nav-btn" id="tbPrevBtn" aria-label="${t('day.prev')}"><span class="material-icons">chevron_right</span></button>
           <button class="tb-day-label" id="tbDayLabelBtn" type="button">${dayName}</button>
-          <button class="nav-btn" id="tbNextBtn" aria-label="اليوم التالي"><span class="material-icons">chevron_left</span></button>
+          <button class="nav-btn" id="tbNextBtn" aria-label="${t('day.next')}"><span class="material-icons">chevron_left</span></button>
         </div>
         <div class="tb-actions-group">
-          <button class="tb-today-btn ${ui.selectedDate === today ? 'current' : ''}" id="tbTodayBtn" type="button">اليوم</button>
+          <button class="tb-today-btn ${ui.selectedDate === today ? 'current' : ''}" id="tbTodayBtn" type="button">${t('stats.day')}</button>
           <button class="tb-unscheduled-icon-btn" id="tbToggleSideBtn" type="button" aria-expanded="${ui.tbSideOpen}">
             <span class="material-icons">playlist_add</span>
             ${unscheduled.length > 0 ? `<span class="tb-unscheduled-badge">${unscheduled.length}</span>` : ''}
@@ -273,11 +274,11 @@ export function renderTimeBlockView(){
         <div class="timeblock-side ${ui.tbSideOpen ? 'open' : ''} ${ui.tbSideJustOpened ? 'tb-open-anim' : ''} ${ui.tbSideClosing ? 'tb-closing' : ''}">
           <div class="timeblock-side-card">
             <div class="timeblock-side-head">
-              <div class="timeblock-side-title">مهام غير مجدولة</div>
-              <button class="tb-side-close-btn" id="tbSideCloseBtn" type="button" aria-label="إغلاق"><span class="material-icons">close</span></button>
+              <div class="timeblock-side-title">${t('schedule.unscheduled')}</div>
+              <button class="tb-side-close-btn" id="tbSideCloseBtn" type="button" aria-label="${t('c.close')}"><span class="material-icons">close</span></button>
             </div>
             <div class="timeblock-unscheduled-list ${needsMoreBtn && !ui.tbSideExpanded ? 'tb-side-collapsed' : ''}" id="tbUnscheduledList">${sideHtml}</div>
-            ${needsMoreBtn ? `<button class="tb-side-more-btn" id="tbSideMoreBtn" type="button">${ui.tbSideExpanded ? 'إخفاء' : 'المزيد (' + (unscheduled.length - TB_MOBILE_VISIBLE_COUNT) + ')'}</button>` : ''}
+            ${needsMoreBtn ? `<button class="tb-side-more-btn" id="tbSideMoreBtn" type="button">${ui.tbSideExpanded ? t('schedule.less') : t('schedule.more', {count: unscheduled.length - TB_MOBILE_VISIBLE_COUNT})}</button>` : ''}
 
           </div>
         </div>
@@ -427,7 +428,7 @@ function renderTimeBlockWeekView(){
   const weekVisibleTasks = weekCollapsed ? unscheduledRecurring.slice(0, TB_MOBILE_VISIBLE_COUNT) : unscheduledRecurring;
   let weekSideHtml = '';
   if(weekVisibleTasks.length === 0){
-    weekSideHtml = `<div class="timeblock-side-empty">لا توجد مهام متكررة غير مجدولة</div>`;
+    weekSideHtml = `<div class="timeblock-side-empty">${t('schedule.no_unscheduled_recurring')}</div>`;
   } else {
     weekVisibleTasks.forEach(t => {
       weekSideHtml += `<div class="timeblock-side-item" data-id="${t.id}" data-name="${escapeAttr(t.name)}">${escapeHtml(t.name)}</div>`;
@@ -493,7 +494,7 @@ function renderTimeBlockWeekView(){
     const d = fromISO(dateStr);
     colsHtml += `
       <div class="tbw-col ${isToday ? 'today' : ''}">
-        <button class="tbw-col-head ${isToday ? 'today' : ''}" data-action="tb-open-day" data-date="${dateStr}" title="فتح يوم ${d.getDate()}">
+        <button class="tbw-col-head ${isToday ? 'today' : ''}" data-action="tb-open-day" data-date="${dateStr}" title="${t('week.open_day', {day: d.getDate()})}">
           <span class="tbw-col-day">${SHORT_DAY_NAMES[d.getDay()]}</span>
           <span class="tbw-col-num">${d.getDate()}</span>
         </button>
@@ -509,7 +510,7 @@ function renderTimeBlockWeekView(){
   const d0 = fromISO(weekStart);
   const d6 = fromISO(addDays(weekStart, 6));
 
-  const rangeLabel = ui.tbRangeMode === 'day' ? 'يوم' : 'أسبوع';
+  const rangeLabel = ui.tbRangeMode === 'day' ? t('c.day') : t('c.week');
   const weekMonthLabel = d0.getMonth() === d6.getMonth()
     ? MONTH_NAMES[d0.getMonth()]
     : `${MONTH_NAMES[d0.getMonth()]} - ${MONTH_NAMES[d6.getMonth()]}`;
@@ -523,14 +524,14 @@ function renderTimeBlockWeekView(){
             <span class="material-icons tb-drop-arrow">expand_more</span>
           </button>
           <div class="tb-range-menu" id="tbRangeMenu">
-            <button class="tb-range-menu-item ${ui.tbRangeMode === 'day' ? 'active' : ''}" data-range="day">يوم</button>
-            <button class="tb-range-menu-item ${ui.tbRangeMode === 'week' ? 'active' : ''}" data-range="week">أسبوع</button>
+            <button class="tb-range-menu-item ${ui.tbRangeMode === 'day' ? 'active' : ''}" data-range="day">${t('c.day')}</button>
+            <button class="tb-range-menu-item ${ui.tbRangeMode === 'week' ? 'active' : ''}" data-range="week">${t('c.week')}</button>
           </div>
         </div>
         <div class="tb-nav-group">
-          <button class="nav-btn" id="tbwPrevBtn" aria-label="الأسبوع السابق"><span class="material-icons">chevron_right</span></button>
+          <button class="nav-btn" id="tbwPrevBtn" aria-label="${t('week.prev')}"><span class="material-icons">chevron_right</span></button>
           <button class="tb-day-label" id="tbDayLabelBtn" type="button">${weekMonthLabel}</button>
-          <button class="nav-btn" id="tbwNextBtn" aria-label="الأسبوع التالي"><span class="material-icons">chevron_left</span></button>
+          <button class="nav-btn" id="tbwNextBtn" aria-label="${t('week.next')}"><span class="material-icons">chevron_left</span></button>
         </div>
         <div class="tb-actions-group">
           <button class="tb-unscheduled-icon-btn" id="tbToggleSideBtn" type="button" aria-expanded="${ui.tbSideOpen}">
@@ -553,11 +554,11 @@ function renderTimeBlockWeekView(){
         <div class="timeblock-side ${ui.tbSideOpen ? 'open' : ''} ${ui.tbSideJustOpened ? 'tb-open-anim' : ''} ${ui.tbSideClosing ? 'tb-closing' : ''}">
           <div class="timeblock-side-card">
             <div class="timeblock-side-head">
-              <div class="timeblock-side-title">مهام متكررة غير مجدولة</div>
-              <button class="tb-side-close-btn" id="tbSideCloseBtn" type="button" aria-label="إغلاق"><span class="material-icons">close</span></button>
+              <div class="timeblock-side-title">${t('schedule.unscheduled_recurring')}</div>
+              <button class="tb-side-close-btn" id="tbSideCloseBtn" type="button" aria-label="${t('c.close')}"><span class="material-icons">close</span></button>
             </div>
             <div class="timeblock-unscheduled-list ${weekNeedsMoreBtn && !ui.tbSideExpanded ? 'tb-side-collapsed' : ''}" id="tbUnscheduledList">${weekSideHtml}</div>
-            ${weekNeedsMoreBtn ? `<button class="tb-side-more-btn" id="tbSideMoreBtn" type="button">${ui.tbSideExpanded ? 'إخفاء' : 'المزيد (' + (unscheduledRecurring.length - TB_MOBILE_VISIBLE_COUNT) + ')'}</button>` : ''}
+            ${weekNeedsMoreBtn ? `<button class="tb-side-more-btn" id="tbSideMoreBtn" type="button">${ui.tbSideExpanded ? t('schedule.less') : t('schedule.more', {count: unscheduledRecurring.length - TB_MOBILE_VISIBLE_COUNT})}</button>` : ''}
 
           </div>
         </div>
@@ -702,7 +703,7 @@ function wireAddTimelineTaskPopup(){
 
   document.getElementById('addTimelineTaskStartBtn').onclick = () => {
     openTimePicker({
-      title: 'وقت بدء المهمة',
+      title: t('schedule.start_time'),
       initialTime: minutesToHHMM(addTaskStartMin),
       onConfirm: async (hhmm) => {
         addTaskStartMin = timeStrToMinutes(hhmm);
@@ -729,7 +730,7 @@ function wireAddTimelineTaskPopup(){
     const nameInput = document.getElementById('addTimelineTaskName');
     const name = nameInput.value.trim();
     if(!name){
-      showToast('اكتب اسم المهمة الأول');
+      showToast(t('schedule.write_name_first'));
       nameInput.focus();
       return;
     }
@@ -748,7 +749,7 @@ function wireAddTimelineTaskPopup(){
     closeAddTimelineTaskPopup();
     render();
     await saveData();
-    showToast(`تمت إضافة "${name}" إلى الجدول الزمني`);
+    showToast(t('schedule.added', {name}));
   };
 }
 
@@ -1064,7 +1065,7 @@ async function duplicateTimelineTask(taskId, dateStr){
   tasks.push(copy);
   render();
   await saveData();
-  showToast(`تم تكرار "${task.name}"`);
+  showToast(t('schedule.duplicated', {name: task.name}));
 }
 
 // ============================================================
@@ -1108,7 +1109,7 @@ function renderTimelineTaskPopup(){
   const doneBtn = document.getElementById('timelineTaskDoneBtn');
   doneBtn.classList.toggle('is-done', !!task.done);
   doneBtn.querySelector('.material-icons').textContent = task.done ? 'check_circle' : 'radio_button_unchecked';
-  document.getElementById('timelineTaskDoneLabel').textContent = task.done ? 'إلغاء الإنجاز' : 'إنجاز';
+  document.getElementById('timelineTaskDoneLabel').textContent = task.done ? t('task.undo_done') : t('task.mark_done');
 }
 
 const timelineTaskOverlay = document.getElementById('timelineTaskOverlay');
@@ -1141,7 +1142,7 @@ if(timelineTaskOverlay){
     const isDup = !!(task && task._dupOf);
     closeTimelineTaskPopup();
     await commitTaskTime(id, null, dateStr);
-    showToast(isDup ? 'تم حذف النسخة من الجدول الزمني' : 'تم إرجاع المهمة لقائمة المهام');
+    showToast(isDup ? t('schedule.deleted_version') : t('schedule.returned_task'));
   };
 }
 

@@ -3,6 +3,7 @@
 // ============================================================
 
 import { showToast, state } from './state.js';
+import { t } from './i18n.js';
 
 // الألوان الأساسية ثابتة (نفس القيم الافتراضية الحالية) — التخصيص بيغيّر
 // اللون المميز بس (pen + pen-soft) عشان التغيير يفضل هادي ومش "فاقع".
@@ -98,26 +99,26 @@ function renderAppearanceModal(onChanged){
 
   bodyEl.innerHTML = `
     <div class="account-section">
-      <div class="account-section-title"><span class="material-icons">brightness_6</span> وضع العرض</div>
+      <div class="account-section-title"><span class="material-icons">brightness_6</span> ${t('theme.display_mode')}</div>
       <div class="appearance-mode-row">
         <button type="button" class="appearance-mode-btn ${!isDark ? 'active' : ''}" data-mode="light">
-          <span class="material-icons">light_mode</span> فاتح
+          <span class="material-icons">light_mode</span> ${t('theme.light')}
         </button>
         <button type="button" class="appearance-mode-btn ${isDark ? 'active' : ''}" data-mode="dark">
-          <span class="material-icons">dark_mode</span> داكن
+          <span class="material-icons">dark_mode</span> ${t('theme.dark')}
         </button>
       </div>
     </div>
     <div class="account-section">
-      <div class="account-section-title"><span class="material-icons">palette</span> اللون المميز (${isDark ? 'الوضع الداكن' : 'الوضع الفاتح'})</div>
+      <div class="account-section-title"><span class="material-icons">palette</span> ${t('theme.accent_label')} (${isDark ? t('theme.accent_dark') : t('theme.accent_light')})</div>
       <div class="theme-picker">
         ${ACCENTS.map(a => {
           const active = currentAccent === a.id;
           const dotColor = (isDark ? a.dark : a.light).pen;
           return `
-            <button type="button" class="theme-swatch ${active ? 'active' : ''}" data-accent="${a.id}" title="${a.label}">
+            <button type="button" class="theme-swatch ${active ? 'active' : ''}" data-accent="${a.id}" title="${t('theme.accent_' + a.id)}">
               <span class="theme-swatch-dot" style="background:${dotColor}"></span>
-              <span class="theme-swatch-name">${a.label}</span>
+              <span class="theme-swatch-name">${t('theme.accent_' + a.id)}</span>
               ${active ? '<span class="material-icons">check</span>' : ''}
             </button>
           `;
@@ -137,7 +138,7 @@ function renderAppearanceModal(onChanged){
     btn.onclick = () => {
       setAccent(btn.dataset.accent, onChanged);
       renderAppearanceModal(onChanged);
-      showToast(`تم اختيار اللون «${ACCENT_BY_ID[btn.dataset.accent].label}»`);
+      showToast(t('theme.accent_selected', {name: t('theme.accent_' + btn.dataset.accent)}));
     };
   });
 }

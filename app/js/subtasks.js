@@ -4,6 +4,7 @@
 
 import { emptyStateHtml, escapeHtml, uid } from './utils.js';
 import { state, ui } from './state.js';
+import { t } from './i18n.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
 
@@ -29,7 +30,7 @@ function renderSubtasksList() {
   if (!task.subtasks) task.subtasks = [];
 
   if (task.subtasks.length === 0) {
-    listEl.innerHTML = emptyStateHtml('playlist_add', 'لا توجد مهام فرعية', 'قسم المهمة الكبيرة إلى خطوات صغيرة يسهل إنجازها.');
+    listEl.innerHTML = emptyStateHtml('playlist_add', t('subtask.empty_title'), t('subtask.empty_hint'));
     return;
   }
 
@@ -42,10 +43,10 @@ function renderSubtasksList() {
           <span class="subtask-title" data-id="${st.id}">${escapeHtml(st.title)}</span>
         </div>
         <div class="subtask-item-actions">
-          <button class="subtask-edit-btn" data-id="${st.id}" title="تعديل">
+          <button class="subtask-edit-btn" data-id="${st.id}" title="${t('c.edit')}">
             <span class="material-icons">edit</span>
           </button>
-          <button class="subtask-delete-btn" data-id="${st.id}" title="حذف">
+          <button class="subtask-delete-btn" data-id="${st.id}" title="${t('c.delete')}">
             <span class="material-icons">close</span>
           </button>
         </div>

@@ -2,12 +2,14 @@
 // popovers.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { escapeHtml, formatHM, parseDurationToMinutes } from './utils.js';
+import { escapeHtml, parseDurationToMinutes } from './utils.js';
+import { formatHM } from './i18n.js';
 import { state, ui } from './state.js';
 import { render } from './render.js';
+import { t } from './i18n.js';
 
 export function buildFilterDropdown(id, selectedId){
-  const options = [{ id: '', name: 'بدون فلتر' }, ...state.filters];
+  const options = [{ id: '', name: t('c.no_filter') }, ...state.filters];
   const current = options.find(o => o.id === (selectedId || '')) || options[0];
   return `
     <div class="custom-select" id="${id}" data-value="${selectedId || ''}">
@@ -86,11 +88,11 @@ export function showDurationPopover(taskId, badgeEl){
   const pop = document.getElementById('durationPopover');
   pop.innerHTML = `
     <div class="duration-popover-row">
-      <span class="duration-popover-label"><span class="material-icons">flag</span>الهدف</span>
+      <span class="duration-popover-label"><span class="material-icons">flag</span>${t('c.goal')}</span>
       <span class="duration-popover-value">${formatHM(targetMs)}</span>
     </div>
     <div class="duration-popover-row ${isOver ? 'is-over' : ''}">
-      <span class="duration-popover-label"><span class="material-icons">timelapse</span>الوقت الفعلي</span>
+      <span class="duration-popover-label"><span class="material-icons">timelapse</span>${t('c.actual')}</span>
       <span class="duration-popover-value">${formatHM(actualMs)}</span>
     </div>
   `;

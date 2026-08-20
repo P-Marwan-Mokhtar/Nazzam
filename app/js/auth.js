@@ -4,6 +4,7 @@
 
 import { TURNSTILE_SITE_KEY, supabaseClient } from './config.js';
 import { LOCAL_BACKUP_KEY, showToast } from './state.js';
+import { t } from './i18n.js';
 
 let turnstileWidgetId = null;
 
@@ -81,14 +82,10 @@ function applyAuthUser(user){
 function updateAccountIcon(){
   const icon = document.getElementById('accountIcon');
   const btn = document.getElementById('accountBtn');
-  const iconMobile = document.getElementById('accountIconMobile');
-  const btnMobile = document.getElementById('accountBtnMobile');
   if(!icon || !btn) return;
   icon.textContent = 'account_circle';
   btn.classList.add('is-linked');
-  btn.title = currentUserEmail || 'الحساب';
-  if(iconMobile) iconMobile.textContent = 'account_circle';
-  if(btnMobile) btnMobile.title = currentUserEmail || 'الحساب';
+  btn.title = currentUserEmail || t('auth.account');
 }
 
 function getTurnstileToken(){
@@ -122,7 +119,7 @@ function getTurnstileToken(){
 function handleOAuthReturnIfAny(){
   const params = new URLSearchParams(window.location.search);
   if(params.get('authreturn') === 'google'){
-    showToast('تم تسجيل الدخول بنجاح عبر Google');
+    showToast(t('auth.success_login'));
     params.delete('authreturn');
     const newSearch = params.toString();
     const newUrl = window.location.pathname + (newSearch ? ('?' + newSearch) : '') + window.location.hash;
@@ -136,14 +133,14 @@ function isValidEmail(email){
 
 function mapAuthError(e){
   const msg = (e && e.message) || '';
-  if(msg.includes('Invalid login credentials')) return 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
-  if(msg.includes('already registered') || msg.includes('already been registered')) return 'هذا البريد الإلكتروني مستخدم بالفعل، حاول تسجيل الدخول بدلًا من ذلك';
-  if(msg.includes('Email not confirmed')) return 'يجب تأكيد بريدك الإلكتروني أولًا، يرجى مراجعة رسالة التأكيد في بريدك';
-  if(msg.includes('Password should be at least')) return 'يجب ألا تقل كلمة المرور عن 6 أحرف';
-  if(msg.toLowerCase().includes('rate limit') || msg.includes('Too Many') || msg.includes('429')) return 'محاولات كثيرة جدًا خلال وقت قصير، يرجى الانتظار قليلًا والمحاولة مرة أخرى';
-  if(msg.toLowerCase().includes('captcha')) return 'تعذّر التحقق الأمني، يرجى تحديث الصفحة والمحاولة مرة أخرى';
-  if(msg.includes('Failed to fetch') || msg.includes('NetworkError')) return 'يرجى التأكد من اتصال الإنترنت والمحاولة مرة أخرى';
-  return msg || 'حدث خطأ، يرجى المحاولة مرة أخرى';
+  if(msg.includes('Invalid login credentials')) return t('auth.err_invalid');
+  if(msg.includes('already registered') || msg.includes('already been registered')) return t('auth.err_exists');
+  if(msg.includes('Email not confirmed')) return t('auth.err_not_confirmed');
+  if(msg.includes('Password should be at least')) return t('auth.err_password_short');
+  if(msg.toLowerCase().includes('rate limit') || msg.includes('Too Many') || msg.includes('429')) return t('auth.err_rate_limit');
+  if(msg.toLowerCase().includes('captcha')) return t('auth.err_security');
+  if(msg.includes('Failed to fetch') || msg.includes('NetworkError')) return t('auth.err_network');
+  return msg || t('auth.err_generic');
 }
 
 function setAccountFormBusy(busy){
@@ -179,10 +176,10 @@ const GOOGLE_ICON_SVG = `<svg viewBox="0 0 48 48" width="18" height="18" aria-hi
 
 function googleBlockHtml(){
   return `
-    <div class="account-divider"><span>أو</span></div>
+    <div class="account-divider"><span>${t('auth.or')}</span></div>
     <button class="account-google-btn" id="accGoogleBtn" type="button">
       ${GOOGLE_ICON_SVG}
-      <span>المتابعة عبر Google</span>
+      <span>${t('auth.google_continue')}</span>
     </button>
   `;
 }
@@ -194,16 +191,16 @@ function renderAccountModal(){
   const bodyEl = document.getElementById('accountBody');
   const titleEl = document.getElementById('accountModalTitle');
   if(!bodyEl) return;
-  if(titleEl) titleEl.textContent = 'الحساب';
+  if(titleEl) titleEl.textContent = t('auth.account');
   bodyEl.innerHTML = `
     <div class="account-status is-linked">
       <span class="material-icons">account_circle</span>
       <div class="account-status-text">
         <strong>${currentUserEmail || ''}</strong>
-        <span>حسابك متزامن ومتاح من أي جهاز</span>
+        <span>${t('auth.logged_in')}</span>
       </div>
     </div>
-    <button class="account-secondary-btn" id="signOutBtn" style="width:100%;">تسجيل الخروج</button>
+    <button class="account-secondary-btn" id="signOutBtn" style="width:100%;">${t('auth.sign_out')}</button>
   `;
   const signOutBtn = document.getElementById('signOutBtn');
   if(signOutBtn) signOutBtn.onclick = signOutUser;
@@ -216,19 +213,19 @@ function renderAuthGate(errorMsg){
   const bodyEl = document.getElementById('accountBody');
   const titleEl = document.getElementById('accountModalTitle');
   if(!bodyEl) return;
-  if(titleEl) titleEl.textContent = 'تسجيل الدخول';
+  if(titleEl) titleEl.textContent = t('auth.login_button');
 
   const errorHtml = errorMsg ? `<div class="account-error">${errorMsg}</div>` : '';
 
   if(gateMode === 'forgot'){
     bodyEl.innerHTML = `
-      <div class="account-hint">أدخل البريد الإلكتروني المرتبط بحسابك، وسنرسل إليك رابطًا لإعادة تعيين كلمة المرور.</div>
+      <div class="account-hint">${t('auth.forgot_hint')}</div>
       ${errorHtml}
       <div class="account-form" id="accForm">
-        <input type="email" class="account-input" id="accEmail" placeholder="البريد الإلكتروني" autocomplete="email" />
-        <button class="account-primary-btn" id="accSubmitBtn">إرسال رابط إعادة التعيين</button>
+        <input type="email" class="account-input" id="accEmail" placeholder="${t('auth.email_placeholder')}" autocomplete="email" />
+        <button class="account-primary-btn" id="accSubmitBtn">${t('auth.send_reset')}</button>
       </div>
-      <div class="account-switch-line"><button id="accSwitchMode">العودة إلى تسجيل الدخول</button></div>
+      <div class="account-switch-line"><button id="accSwitchMode">${t('auth.back_to_login')}</button></div>
     `;
     document.getElementById('accSwitchMode').onclick = () => { gateMode = 'signin'; renderAuthGate(); };
     const submit = () => handleForgotPassword(document.getElementById('accEmail').value.trim());
@@ -242,11 +239,11 @@ function renderAuthGate(errorMsg){
       <div class="account-status is-linked">
         <span class="material-icons">mark_email_read</span>
         <div class="account-status-text">
-          <strong>تم إرسال الرابط</strong>
-          <span>افتح بريدك الإلكتروني واضغط على رابط إعادة تعيين كلمة المرور</span>
+          <strong>${t('auth.reset_sent')}</strong>
+          <span>${t('auth.reset_sent_hint')}</span>
         </div>
       </div>
-      <div class="account-switch-line"><button id="accSwitchMode">العودة إلى تسجيل الدخول</button></div>
+      <div class="account-switch-line"><button id="accSwitchMode">${t('auth.back_to_login')}</button></div>
     `;
     document.getElementById('accSwitchMode').onclick = () => { gateMode = 'signin'; renderAuthGate(); };
     return;
@@ -257,11 +254,11 @@ function renderAuthGate(errorMsg){
       <div class="account-status is-linked">
         <span class="material-icons">mark_email_read</span>
         <div class="account-status-text">
-          <strong>تم إرسال رابط التأكيد</strong>
-          <span>افتح بريدك الإلكتروني واضغط على رابط التأكيد لتفعيل حسابك، وبعدها سجّل الدخول من هنا</span>
+          <strong>${t('auth.confirm_sent')}</strong>
+          <span>${t('auth.confirm_sent_hint')}</span>
         </div>
       </div>
-      <div class="account-switch-line"><button id="accSwitchMode">العودة إلى تسجيل الدخول</button></div>
+      <div class="account-switch-line"><button id="accSwitchMode">${t('auth.back_to_login')}</button></div>
     `;
     document.getElementById('accSwitchMode').onclick = () => { gateMode = 'signin'; renderAuthGate(); };
     return;
@@ -269,22 +266,22 @@ function renderAuthGate(errorMsg){
 
   if(gateMode === 'signup'){
     bodyEl.innerHTML = `
-      <div class="account-hint">أنشئ حسابًا بالبريد الإلكتروني وكلمة مرور لتتمكن من حفظ بياناتك واستخدام التطبيق.</div>
+      <div class="account-hint">${t('auth.signup_hint')}</div>
       ${errorHtml}
       <div class="account-form" id="accForm">
-        <input type="email" class="account-input" id="accEmail" placeholder="البريد الإلكتروني" autocomplete="email" />
+        <input type="email" class="account-input" id="accEmail" placeholder="${t('auth.email_placeholder')}" autocomplete="email" />
         <div class="account-pass-wrap">
-          <input type="password" class="account-input" id="accPassword" placeholder="كلمة المرور (6 أحرف على الأقل)" autocomplete="new-password" />
+          <input type="password" class="account-input" id="accPassword" placeholder="${t('auth.password_placeholder')}" autocomplete="new-password" />
           <button type="button" class="account-pass-toggle" id="accPassToggle" tabindex="-1"><span class="material-icons">visibility</span></button>
         </div>
         <div class="account-pass-wrap">
-          <input type="password" class="account-input" id="accPasswordConfirm" placeholder="تأكيد كلمة المرور" autocomplete="new-password" />
+          <input type="password" class="account-input" id="accPasswordConfirm" placeholder="${t('auth.password_confirm_placeholder')}" autocomplete="new-password" />
           <button type="button" class="account-pass-toggle" id="accPassConfirmToggle" tabindex="-1"><span class="material-icons">visibility</span></button>
         </div>
-        <button class="account-primary-btn" id="accSubmitBtn">إنشاء الحساب</button>
+        <button class="account-primary-btn" id="accSubmitBtn">${t('auth.create_account')}</button>
       </div>
       ${googleBlockHtml()}
-      <div class="account-switch-line">لديك حساب بالفعل؟ <button id="accSwitchMode">سجّل الدخول</button></div>
+      <div class="account-switch-line">${t('auth.has_account')} <button id="accSwitchMode">${t('auth.sign_in_link')}</button></div>
     `;
     wirePasswordToggle('accPassword', 'accPassToggle');
     wirePasswordToggle('accPasswordConfirm', 'accPassConfirmToggle');
@@ -303,19 +300,19 @@ function renderAuthGate(errorMsg){
 
   // الوضع الافتراضي: تسجيل الدخول
   bodyEl.innerHTML = `
-    <div class="account-hint">يجب تسجيل الدخول أولًا لتتمكن من استخدام التطبيق وعرض بياناتك.</div>
+    <div class="account-hint">${t('auth.signin_hint')}</div>
     ${errorHtml}
     <div class="account-form" id="accForm">
-      <input type="email" class="account-input" id="accEmail" placeholder="البريد الإلكتروني" autocomplete="email" />
+      <input type="email" class="account-input" id="accEmail" placeholder="${t('auth.login_placeholder')}" autocomplete="email" />
       <div class="account-pass-wrap">
-        <input type="password" class="account-input" id="accPassword" placeholder="كلمة المرور" autocomplete="current-password" />
+        <input type="password" class="account-input" id="accPassword" placeholder="${t('auth.password_label')}" autocomplete="current-password" />
         <button type="button" class="account-pass-toggle" id="accPassToggle" tabindex="-1"><span class="material-icons">visibility</span></button>
       </div>
-      <button class="account-primary-btn" id="accSubmitBtn">تسجيل الدخول</button>
+      <button class="account-primary-btn" id="accSubmitBtn">${t('auth.login_button')}</button>
     </div>
-    <div class="account-switch-line"><button id="accForgotBtn">نسيت كلمة المرور؟</button></div>
+    <div class="account-switch-line"><button id="accForgotBtn">${t('auth.forgot_link')}</button></div>
     ${googleBlockHtml()}
-    <div class="account-switch-line">لا يوجد حساب بعد؟ <button id="accSwitchMode">أنشئ حسابًا جديدًا</button></div>
+    <div class="account-switch-line">${t('auth.no_account')} <button id="accSwitchMode">${t('auth.signup_link')}</button></div>
   `;
   wirePasswordToggle('accPassword', 'accPassToggle');
   const submit = () => {
@@ -332,19 +329,19 @@ function renderAuthGate(errorMsg){
 
 async function signUpNewAccount(email, password, passwordConfirm){
   if(!email || !password){
-    renderAuthGate('يرجى إدخال البريد الإلكتروني وكلمة المرور أولًا');
+    renderAuthGate(t('auth.enter_email_password'));
     return;
   }
   if(!isValidEmail(email)){
-    renderAuthGate('صيغة البريد الإلكتروني غير صحيحة');
+    renderAuthGate(t('auth.invalid_email'));
     return;
   }
   if(password.length < 6){
-    renderAuthGate('يجب ألا تقل كلمة المرور عن 6 أحرف');
+    renderAuthGate(t('auth.password_short'));
     return;
   }
   if(password !== passwordConfirm){
-    renderAuthGate('كلمة المرور وتأكيدها غير متطابقين');
+    renderAuthGate(t('auth.passwords_match'));
     return;
   }
   setAccountFormBusy(true);
@@ -371,11 +368,11 @@ async function signUpNewAccount(email, password, passwordConfirm){
 
 async function signInExisting(email, password){
   if(!email || !password){
-    renderAuthGate('يرجى إدخال البريد الإلكتروني وكلمة المرور أولًا');
+    renderAuthGate(t('auth.enter_email_password'));
     return;
   }
   if(!isValidEmail(email)){
-    renderAuthGate('صيغة البريد الإلكتروني غير صحيحة');
+    renderAuthGate(t('auth.invalid_email'));
     return;
   }
   setAccountFormBusy(true);
@@ -396,7 +393,7 @@ async function signInExisting(email, password){
 
 async function handleForgotPassword(email){
   if(!email || !isValidEmail(email)){
-    renderAuthGate('يرجى إدخال بريد إلكتروني صحيح أولًا');
+    renderAuthGate(t('auth.enter_valid_email'));
     return;
   }
   setAccountFormBusy(true);
@@ -434,7 +431,7 @@ async function signInWithGoogle(){
 }
 
 async function signOutUser(){
-  if(!confirm('هل أنت متأكد من تسجيل الخروج؟ ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى بياناتك.')) return;
+  if(!confirm(t('auth.logout_confirm'))) return;
   try{
     // scope: 'local' = تسجيل الخروج من هذا الجهاز فقط، وبياناتك تفضل شغالة على الأجهزة التانية.
     // (الافتراضي global كان بيرفض توكن التحديث على كل الأجهزة، فبمجرد ما جهاز تاني
@@ -444,7 +441,7 @@ async function signOutUser(){
     window.location.reload();
   }catch(e){
     console.error('Sign out error:', e);
-    showToast('حدث خطأ أثناء تسجيل الخروج');
+    showToast(t('auth.logout_error'));
   }
 }
 

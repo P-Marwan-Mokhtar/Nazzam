@@ -17,7 +17,8 @@ export const contentEl = document.getElementById('content');
 const toastEl = document.getElementById('toast');
 
 export let state = {
-  keywords: [], 
+  lang: 'ar',
+  keywords: [],
   drafts: [], // قائمة المسودات المحفوظة بدلاً من الحذف
   notes: {}, // ملاحظات اليوم: مفتاح = تاريخ اليوم (YYYY-MM-DD) وقيمة = نص الملاحظة
   days: {},
@@ -38,7 +39,7 @@ export let state = {
 };
 
 export function resetState(){
-  state = { keywords: [], drafts: [], notes: {}, days: {}, filters: [], timers: {}, darkMode: false, accentLight: 'classic', accentDark: 'classic', recurringTasks: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null } };
+  state = { lang: 'ar', keywords: [], drafts: [], notes: {}, days: {}, filters: [], timers: {}, darkMode: false, accentLight: 'classic', accentDark: 'classic', recurringTasks: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null } };
 }
 
 export const ui = {

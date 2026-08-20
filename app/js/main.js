@@ -4,6 +4,7 @@
 
 import { uid } from './utils.js';
 import { showToast, state, ui } from './state.js';
+import { initLang, setLang, getLang, t, applyStaticTranslations } from './i18n.js';
 import { closeAccountModal, ensureAuth, openAccountModal, openAuthGate } from './auth.js';
 import { closeCalendarModal, openCalendarModal } from './calendar.js';
 import { exportDataAsJSON, importDataFromFile, loadData, saveData, trySyncPending } from './dataStore.js';
@@ -67,8 +68,10 @@ async function startApp(){
   // ويمسح بياناته الحقيقية بدل ما يضيف عليها.
   await loadData(true); // init عمل ensureAuth لتوّه — منعيدش فحص الجلسة تاني هنا
 
+  initLang(); // تهيئة اللغة المحفوظة
   applyTheme(); // نطبّق الثيم المحفوظ (themeName + darkMode) قبل أول رسم
   render();
+  applyStaticTranslations(); // ترجمة عناصر HTML الثابتة
   if(shortcutView === 'calendar') openCalendarModal(); // shortcut التقويم بيشاور على modal مش view بالـ hash — بنفتحه بعد أول render
   setInterval(tickTimers, 1000);
 
@@ -130,6 +133,10 @@ async function startApp(){
     if(ui.timerTypePopoverOpen && !e.target.closest('.timer-type-popover') && !e.target.closest('#addTimerBtn')){
       ui.timerTypePopoverOpen = false;
       renderTimerPanel();
+    }
+    const langPop = document.getElementById('sideNavLangPopover');
+    if(langPop && langPop.classList.contains('open') && !e.target.closest('#sideNavLangBtn') && !langPop.contains(e.target)){
+      langPop.classList.remove('open');
     }
     if(ui.tbSideOpen && !e.target.closest('.timeblock-side') && !e.target.closest('#tbToggleSideBtn')){
       closeTbSide();
@@ -407,6 +414,8 @@ async function startApp(){
         sideNavDataPopover.classList.remove('open');
         sideNavDataBtn.classList.remove('is-open');
       }
+      const langPop = document.getElementById('sideNavLangPopover');
+      if(langPop && langPop.classList.contains('open')) langPop.classList.remove('open');
       if(ui.taskStatsName){ ui.taskStatsName = null; ui.justReturnedFromStats = true; render(); }
       if(ui.statsViewOpen){ ui.statsViewOpen = false; ui.justReturnedFromStats = true; render(); }
       if(ui.weekViewOpen){ ui.weekViewOpen = false; ui.justReturnedFromStats = true; render(); }
@@ -439,6 +448,44 @@ async function startApp(){
   });
 
   checkMissedTasksPopup();
+
+  // تحديث عنوان الصفحة + زرار اللغة
+  document.title = getLang() === 'ar' ? 'Nazzam — إدارة المهام' : 'Nazzam — Task Manager';
+  function syncLangLabel(){
+    const lbl = document.getElementById('langToggleLabel');
+    if(lbl) lbl.textContent = getLang() === 'ar' ? 'English' : 'عربي';
+    const arBtn = document.getElementById('langArBtn');
+    const enBtn = document.getElementById('langEnBtn');
+    if(arBtn) arBtn.classList.toggle('is-linked', getLang() === 'ar');
+    if(enBtn) enBtn.classList.toggle('is-linked', getLang() === 'en');
+  }
+  syncLangLabel();
+  function doToggleLang(lang){
+    if(getLang() === lang) return;
+    setLang(lang);
+    ui.timerPanelRenderedForDate = null;
+    render();
+    applyStaticTranslations();
+    document.title = lang === 'ar' ? 'Nazzam — إدارة المهام' : 'Nazzam — Task Manager';
+    syncLangLabel();
+    // إغلاق البوب أبات
+    const pop = document.getElementById('sideNavLangPopover');
+    if(pop) pop.classList.remove('open');
+  }
+  const sideLangBtn = document.getElementById('sideNavLangBtn');
+  if(sideLangBtn) sideLangBtn.onclick = () => {
+    const pop = document.getElementById('sideNavLangPopover');
+    if(pop) pop.classList.toggle('open');
+  };
+  const langArBtn = document.getElementById('langArBtn');
+  const langEnBtn = document.getElementById('langEnBtn');
+  if(langArBtn) langArBtn.onclick = () => doToggleLang('ar');
+  if(langEnBtn) langEnBtn.onclick = () => doToggleLang('en');
+  // الموبايل: toggle مباشر من القائمة المنسدلة
+  const langToggleBtn = document.getElementById('langToggleBtn');
+  if(langToggleBtn) langToggleBtn.onclick = () => {
+    doToggleLang(getLang() === 'ar' ? 'en' : 'ar');
+  };
 
   // نسجّل الـ Service Worker ونبدأ فحص التنبيهات المحلية (لو المستخدم مفعّلها أصلاً) بعد ما البيانات توصل
   await registerServiceWorker();

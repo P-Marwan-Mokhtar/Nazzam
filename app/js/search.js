@@ -5,6 +5,7 @@
 import { emptyStateHtml, escapeHtml, fmtDay, highlightMatch, normalizeArabic, todayStr } from './utils.js';
 import { state, ui } from './state.js';
 import { render } from './render.js';
+import { t } from './i18n.js';
 
 export function renderGlobalSearchResults(){
   const listEl = document.getElementById('globalSearchResultsList');
@@ -12,7 +13,7 @@ export function renderGlobalSearchResults(){
   const q = normalizeArabic(ui.globalSearchQuery.trim());
 
   if(!q){
-    listEl.innerHTML = emptyStateHtml('manage_search', 'ابحث عن أي مهمة', 'اكتب اسم المهمة للبحث عنها في جميع الأيام السابقة.');
+    listEl.innerHTML = emptyStateHtml('manage_search', t('search.title'), t('search.hint'));
     return;
   }
 
@@ -32,7 +33,7 @@ export function renderGlobalSearchResults(){
   matches.sort((a, b) => b.date.localeCompare(a.date));
 
   if(matches.length === 0){
-    listEl.innerHTML = emptyStateHtml('search_off', 'لا توجد نتائج', `لا توجد مهمة تحتوي على "${escapeHtml(ui.globalSearchQuery.trim())}"`);
+    listEl.innerHTML = emptyStateHtml('search_off', t('search.empty_title'), t('search.empty_hint', {query: escapeHtml(ui.globalSearchQuery.trim())}));
     return;
   }
 
@@ -50,7 +51,7 @@ export function renderGlobalSearchResults(){
     `;
   });
   if(matches.length > shown.length){
-    html += `<div class="global-search-more-note">هناك ${matches.length - shown.length} نتائج إضافية، يُرجى تضييق نطاق البحث لعرضها.</div>`;
+    html += `<div class="global-search-more-note">${t('search.more_results', {count: matches.length - shown.length})}</div>`;
   }
   listEl.innerHTML = html;
 

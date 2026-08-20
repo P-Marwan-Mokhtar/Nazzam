@@ -2,7 +2,7 @@
 // calendar.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { MONTH_NAMES, fromISO, toISO, todayStr } from './utils.js';
+import { MONTH_NAMES, SHORT_DAY_NAMES, fromISO, toISO, todayStr } from './utils.js';
 import { state, ui } from './state.js';
 import { render } from './render.js';
 
@@ -18,8 +18,7 @@ export function buildCalendarGridHTML(viewDateStr){
   const startDayOfWeek = firstDayOfMonth.getDay();
 
   let gridHtml = '';
-  const weekdays = ['أ', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'];
-  weekdays.forEach(w => {
+  SHORT_DAY_NAMES.forEach(w => {
     gridHtml += `<div style="text-align:center; font-size:0.78rem; font-weight:700; color:var(--ink-soft); padding:4px 0;">${w}</div>`;
   });
 

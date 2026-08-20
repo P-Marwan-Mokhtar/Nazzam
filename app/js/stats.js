@@ -2,10 +2,11 @@
 // stats.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { DAY_NAMES, addDays, escapeHtml, fmtDay, formatHM, formatMinutes, fromISO, parseDurationToMinutes, todayStr } from './utils.js';
+import { DAY_NAMES, addDays, escapeHtml, fmtDay, fromISO, parseDurationToMinutes, todayStr } from './utils.js';
 import { contentEl, showToast, state, ui } from './state.js';
 import { render } from './render.js';
 import { currentPalette } from './theme.js';
+import { t, pl, formatHM, formatMinutes } from './i18n.js';
 
 // محور الوقت بيظهر كأرقام ساعات صحيحة (1، 2، 3...) والتفاصيل بالدقايق في التلميح
 function fmtAxisHours(v){
@@ -285,8 +286,8 @@ export function renderTaskStatsView(name){
   const html = `
     <div class="stats-view">
       <div class="stats-view-header">
-        <button class="nav-btn" id="taskStatsBackBtn" aria-label="رجوع إلى اليوم"><span class="material-icons">arrow_forward</span></button>
-        <h2>إحصائيات ${escapeHtml(name)}${s.filterName ? ` <span class="task-stats-filter"><span class="material-icons">label</span>${escapeHtml(s.filterName)}</span>` : ''}</h2>
+        <button class="nav-btn" id="taskStatsBackBtn" aria-label="${t('day.go_today')}"><span class="material-icons">arrow_forward</span></button>
+        <h2>${t('stats.task_stats', {name: escapeHtml(name)})}${s.filterName ? ` <span class="task-stats-filter"><span class="material-icons">label</span>${escapeHtml(s.filterName)}</span>` : ''}</h2>
         <span class="nav-btn" style="visibility:hidden"><span class="material-icons">insights</span></span>
       </div>
 
@@ -294,37 +295,37 @@ export function renderTaskStatsView(name){
         <div class="stats-summary-pill">
           <span class="material-icons">add_circle_outline</span>
           <strong>${s.totalCount}</strong>
-          <small>${s.totalCount === 1 ? 'مرة إضافة' : 'مرات إضافة'}</small>
+          <small>${pl(s.totalCount, t('stats.add_count_once'), t('stats.add_count_multi'))}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons">check_circle</span>
           <strong>${s.doneCount}</strong>
-          <small>${s.doneCount === 1 ? 'مرة إنجاز' : 'مرات إنجاز'}</small>
+          <small>${pl(s.doneCount, t('stats.done_count_once'), t('stats.done_count_multi'))}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons">task_alt</span>
           <strong>${s.completionPct}%</strong>
-          <small>نسبة الإنجاز</small>
+          <small>${t('stats.completion_rate')}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons">bolt</span>
           <strong>${s.streak}</strong>
-          <small>${s.streak === 1 ? 'يوم متتالي' : 'أيام متتالية'}</small>
+          <small>${pl(s.streak, t('stats.streak_day'), t('stats.streak_days'))}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons">schedule</span>
           <strong>${formatHM(s.totalActualMs)}</strong>
-          <small>الوقت الفعلي</small>
+          <small>${t('stats.actual_time')}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons">flag</span>
           <strong>${formatHM(s.totalTargetMs)}</strong>
-          <small>الهدف</small>
+          <small>${t('stats.goal')}</small>
         </div>
       </div>
 
       <div class="stat-block">
-        <div class="stat-block-title"><span class="material-icons">history</span>آخر ${recent.length} ظهور للمهمة</div>
+        <div class="stat-block-title"><span class="material-icons">history</span>${t('stats.recent_appearances', {count: recent.length})}</div>
         ${recent.length ? `
           <ul class="stat-list">
             ${recent.map(o => `
@@ -333,11 +334,11 @@ export function renderTaskStatsView(name){
                   <span class="task-stats-status ${o.done ? 'done' : ''}"><span class="material-icons">${o.done ? 'check_circle' : 'radio_button_unchecked'}</span></span>
                   ${fmtDay(o.date)}
                 </span>
-                <span class="stat-list-value">${o.done ? 'منجزة' : 'لم تُنجز'}</span>
+                <span class="stat-list-value">${o.done ? t('stats.done_short') : t('stats.not_done_short')}</span>
               </li>
             `).join('')}
           </ul>
-        ` : `<div class="stat-empty">لم تُسجَّل هذه المهمة في أي يوم بعد</div>`}
+        ` : `<div class="stat-empty">${t('stats.no_data_recorded')}</div>`}
       </div>
     </div>
   `;
@@ -353,7 +354,7 @@ function exportWeeklyPDF(){
   const isDark = state.darkMode;
 
   // بناء جدول الأيام السبعة
-  const DAY_SHORT = ['أحد','إثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'];
+  const DAY_SHORT = [t('pdf.sun'),t('pdf.mon'),t('pdf.tue'),t('pdf.wed'),t('pdf.thu'),t('pdf.fri'),t('pdf.sat')];
   const daysTableRows = s.weekDays.map(date => {
     const d = fromISO(date);
     const dayLabel = DAY_SHORT[d.getDay()];
@@ -373,11 +374,11 @@ function exportWeeklyPDF(){
   // أفضل 5 مهام وقتاً
   const topTasksRows = s.topTasks.length > 0
     ? s.topTasks.map(([name, ms]) => `<li><span>${escapeHtml(name)}</span><strong>${formatHM(ms)}</strong></li>`).join('')
-    : '<li>لا توجد بيانات</li>';
+    : `<li>${t('pdf.no_data')}</li>`;
 
   // دقة التقدير
   const estBlock = s.estimationAccuracyPct !== null
-    ? `<div class="card"><div class="card-title">📐 دقة تقدير الوقت</div><p class="big">${s.estimationAccuracyPct}%</p><p class="sub">نسبة الوقت الفعلي مقارنةً بالهدف المحدد هذا الأسبوع</p></div>`
+    ? `<div class="card"><div class="card-title">📐 ${t('pdf.accuracy_title')}</div><p class="big">${s.estimationAccuracyPct}%</p><p class="sub">${t('pdf.accuracy_subtitle')}</p></div>`
     : '';
 
   const weekLabel = `${s.weekDays[0]} → ${s.weekDays[s.weekDays.length - 1]}`;
@@ -388,7 +389,7 @@ function exportWeeklyPDF(){
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>التقرير الأسبوعي</title>
+<title>${t('pdf.title')}</title>
 <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -417,41 +418,41 @@ tr:last-child td { border-bottom: none; }
 </style>
 </head>
 <body>
-<h1>📋 التقرير الأسبوعي</h1>
-<div class="sub-header">الفترة: ${weekLabel} &nbsp;|&nbsp; تاريخ التصدير: ${printDate}</div>
+<h1>📋 ${t('pdf.title')}</h1>
+<div class="sub-header">${t('pdf.period')} ${weekLabel} &nbsp;|&nbsp; ${t('pdf.export_date')} ${printDate}</div>
 
 <div class="grid">
 <div class="card">
-  <div class="card-title">⏱ إجمالي الوقت الفعلي</div>
+  <div class="card-title">⏱ ${t('pdf.total_time')}</div>
   <div class="big">${formatHM(s.totalMs)}</div>
 </div>
 <div class="card">
-  <div class="card-title">✅ المهام المُنجزة</div>
+  <div class="card-title">✅ ${t('pdf.tasks_done')}</div>
   <div class="big">${s.doneCount}<span style="font-size:1rem;color:#aaa"> / ${s.totalTaskCount}</span></div>
 </div>
 <div class="card">
-  <div class="card-title">🔥 سلسلة الأيام</div>
+  <div class="card-title">🔥 ${t('pdf.day_streak')}</div>
   <div class="big">${s.streak}</div>
-  <div class="sub">يوم متتالي</div>
+  <div class="sub">${t('pdf.day_streak_count')}</div>
 </div>
 ${s.bestDay ? `<div class="card">
-  <div class="card-title">🏆 أفضل يوم</div>
+  <div class="card-title">🏆 ${t('pdf.best_day')}</div>
   <div class="big" style="font-size:1.1rem">${fmtDay(s.bestDay)}</div>
-  <div class="sub">${formatHM(s.bestDayMs)} وقت فعلي</div>
+  <div class="sub">${formatHM(s.bestDayMs)} ${t('pdf.time')}</div>
 </div>` : ''}
 ${s.missedCount > 0 ? `<div class="card">
-  <div class="card-title">⚠️ مهام فائتة</div>
+  <div class="card-title">⚠️ ${t('pdf.missed')}</div>
   <div class="big" style="color:#c0392b">${s.missedCount}</div>
-  <div class="sub">لم تُنجز في أيام سابقة</div>
+  <div class="sub">${t('pdf.missed_desc')}</div>
 </div>` : ''}
 ${estBlock}
 </div>
 
 <div class="grid">
 <div class="card full">
-  <div class="card-title" style="margin-bottom:12px">📅 ملخص الأيام السبعة</div>
+  <div class="card-title" style="margin-bottom:12px">📅 ${t('pdf.summary_title')}</div>
   <table>
-    <thead><tr><th>اليوم</th><th style="text-align:center">إنجاز</th><th style="text-align:center">الوقت</th><th>التقدم</th></tr></thead>
+    <thead><tr><th>${t('pdf.day_header')}</th><th style="text-align:center">${t('pdf.done_header')}</th><th style="text-align:center">${t('pdf.time_header')}</th><th>${t('pdf.progress_header')}</th></tr></thead>
     <tbody>${daysTableRows}</tbody>
   </table>
 </div>
@@ -459,7 +460,7 @@ ${estBlock}
 
 <div class="grid">
 <div class="card full">
-  <div class="card-title" style="margin-bottom:12px">⭐ أكثر المهام وقتاً هذا الأسبوع</div>
+  <div class="card-title" style="margin-bottom:12px">⭐ ${t('stats.top_tasks_week')}</div>
   <ul class="task-list">${topTasksRows}</ul>
 </div>
 </div>
@@ -469,17 +470,17 @@ ${estBlock}
   background:#3e5c2e;color:#fff;border:none;border-radius:10px;
   padding:12px 36px;font-family:'Almarai';font-weight:700;font-size:1rem;
   cursor:pointer;margin-left:10px;
-">طباعة / حفظ PDF</button>
+">${t('pdf.export_btn')}</button>
 <button onclick="window.close()" style="
   background:#f0ebe3;color:#666;border:none;border-radius:10px;
   padding:12px 24px;font-family:'Almarai';font-weight:700;font-size:1rem;cursor:pointer;
-">إغلاق</button>
+">${t('pdf.close_btn')}</button>
 </div>
 </body>
 </html>`;
 
   const win = window.open('', '_blank', 'width=820,height=700,scrollbars=yes');
-  if(!win){ showToast('يرجى السماح بالنوافذ المنبثقة'); return; }
+  if(!win){ showToast(t('pdf.popup_blocked')); return; }
   win.document.write(html);
   win.document.close();
 }
@@ -496,26 +497,29 @@ export function renderStatsView(){
   renderTypeStatsView(tab, mode);
 }
 
-const STATS_TABS = [
-  { id: 'all',     label: 'الكل',     icon: 'done_all' },
-  { id: 'task',    label: 'مهام',     icon: 'assignment' },
-  { id: 'habit',   label: 'عادات',    icon: 'loop' },
-  { id: 'hobby',   label: 'هوايات',   icon: 'palette' },
-];
+function getStatsTabs(){
+  return [
+    { id: 'all',     label: t('stats.tab_all'),     icon: 'done_all' },
+    { id: 'task',    label: t('stats.tab_task'),     icon: 'assignment' },
+    { id: 'habit',   label: t('stats.tab_habit'),    icon: 'loop' },
+    { id: 'hobby',   label: t('stats.tab_hobby'),    icon: 'palette' },
+  ];
+}
 
 function renderStatsTabDropdown(){
-  const active = STATS_TABS.find(t => t.id === (ui.statsTab || 'all'));
+  const tabs = getStatsTabs();
+  const active = tabs.find(x => x.id === (ui.statsTab || 'all'));
   return `
     <div class="stats-tab-dropdown-wrap">
-      <button class="stats-tab-trigger" id="statsTabTrigger" title="تبديل القسم">
+      <button class="stats-tab-trigger" id="statsTabTrigger" title="${t('stats.toggle_section')}">
         <span class="material-icons">${active.icon}</span>
         <span class="stats-tab-trigger-label">${active.label}</span>
         <span class="material-icons stats-tab-arrow">expand_more</span>
       </button>
       <div class="stats-tab-dropdown" id="statsTabDropdown">
-        ${STATS_TABS.map(t => `
-          <button class="stats-tab-option ${(ui.statsTab || 'all') === t.id ? 'active' : ''}" data-stats-tab="${t.id}">
-            <span class="material-icons">${t.icon}</span>${t.label}
+        ${tabs.map(x => `
+          <button class="stats-tab-option ${(ui.statsTab || 'all') === x.id ? 'active' : ''}" data-stats-tab="${x.id}">
+            <span class="material-icons">${x.icon}</span>${x.label}
           </button>
         `).join('')}
       </div>
@@ -538,8 +542,8 @@ function wireStatsTabDropdown(){
 function renderStatsRangeToggle(mode){
   return `
     <div class="stats-range-toggle" role="tablist">
-      <button class="stats-range-btn ${mode === 'day' ? 'active' : ''}" id="statsRangeDayBtn" data-range="day">اليوم</button>
-      <button class="stats-range-btn ${mode === 'week' ? 'active' : ''}" id="statsRangeWeekBtn" data-range="week">الأسبوع</button>
+      <button class="stats-range-btn ${mode === 'day' ? 'active' : ''}" id="statsRangeDayBtn" data-range="day">${t('stats.day')}</button>
+      <button class="stats-range-btn ${mode === 'week' ? 'active' : ''}" id="statsRangeWeekBtn" data-range="week">${t('stats.week')}</button>
     </div>
   `;
 }
@@ -565,15 +569,15 @@ function renderDayStatsView(dateStr, typeFilter){
   const completionPct = s.totalTaskCount > 0 ? Math.round((s.doneCount / s.totalTaskCount) * 100) : 0;
   const isToday = dateStr === todayStr();
   const undoneCount = s.totalTaskCount - s.doneCount;
-  const missedLabel = isToday ? 'غير مكتملة' : 'فائتة';
+  const missedLabel = isToday ? t('stats.non_completed') : t('stats.missed');
 
-  const t = currentPalette();
-  const penColor = t['pen'];
-  const doneColor = t['done'];
-  const inkColor = t['ink'];
-  const inkSoftColor = t['ink-soft'];
-  const paperLineColor = t['paper-line'];
-  const penSoftColor = t['pen-soft'];
+  const pal = currentPalette();
+  const penColor = pal['pen'];
+  const doneColor = pal['done'];
+  const inkColor = pal['ink'];
+  const inkSoftColor = pal['ink-soft'];
+  const paperLineColor = pal['paper-line'];
+  const penSoftColor = pal['pen-soft'];
 
   const topTasksLabels = s.topTasks.map(([name]) => name);
   const topTasksMinutes = s.topTasks.map(([,ms]) => Math.round(ms / 60000));
@@ -597,20 +601,20 @@ function renderDayStatsView(dateStr, typeFilter){
       <div class="stats-view-header">
         ${renderStatsTabDropdown()}
         ${renderStatsRangeToggle('day')}
-        <button class="nav-btn export-pdf-btn" id="exportPdfBtn" title="تصدير تقرير يومي PDF"><span class="material-icons">picture_as_pdf</span></button>
+        <button class="nav-btn export-pdf-btn" id="exportPdfBtn" title="${t('pdf.daily_export_title')}"><span class="material-icons">picture_as_pdf</span></button>
       </div>
 
       <div class="stats-summary-row">
         <div class="stats-summary-pill">
           <span class="material-icons">schedule</span>
           <strong>${formatHM(s.totalMs)}</strong>
-          <small>إجمالي الوقت</small>
+          <small>${t('stats.total_time')}</small>
         </div>
         ${showAll ? `
         <div class="stats-summary-pill">
           <span class="material-icons">task_alt</span>
           <strong>${completionPct}%</strong>
-          <small>نسبة الإنجاز</small>
+          <small>${t('stats.completion_rate')}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons" style="color: var(--missed);">event_busy</span>
@@ -620,14 +624,14 @@ function renderDayStatsView(dateStr, typeFilter){
         <div class="stats-summary-pill">
           <span class="material-icons">functions</span>
           <strong>${s.totalTaskCount}</strong>
-          <small>إجمالي العناصر</small>
+          <small>${t('stats.total_items')}</small>
         </div>
         ` : ''}
         ${isTask ? `
         <div class="stats-summary-pill">
           <span class="material-icons">task_alt</span>
           <strong>${completionPct}%</strong>
-          <small>نسبة الإنجاز</small>
+          <small>${t('stats.completion_rate')}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons" style="color: var(--missed);">event_busy</span>
@@ -637,24 +641,24 @@ function renderDayStatsView(dateStr, typeFilter){
         <div class="stats-summary-pill">
           <span class="material-icons">assignment</span>
           <strong>${s.totalTaskCount}</strong>
-          <small>مهام</small>
+          <small>${t('stats.task_count')}</small>
         </div>
         ${s.estimationAccuracyPct !== null ? `
         <div class="stats-summary-pill">
           <span class="material-icons">speed</span>
           <strong>${s.estimationAccuracyPct}%</strong>
-          <small>دقة التقدير</small>
+          <small>${t('stats.estimation_accuracy')}</small>
         </div>` : ''}` : ''}
         ${isHabit ? `
         <div class="stats-summary-pill">
           <span class="material-icons">task_alt</span>
           <strong>${completionPct}%</strong>
-          <small>نسبة الإنجاز</small>
+          <small>${t('stats.completion_rate')}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons">bolt</span>
           <strong>${s.streak}</strong>
-          <small>${s.streak === 1 ? 'يوم متتالي' : 'أيام متتالية'}</small>
+          <small>${pl(s.streak, t('stats.streak_day'), t('stats.streak_days'))}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons" style="color: var(--missed);">event_busy</span>
@@ -664,13 +668,13 @@ function renderDayStatsView(dateStr, typeFilter){
         <div class="stats-summary-pill">
           <span class="material-icons">loop</span>
           <strong>${s.totalTaskCount}</strong>
-          <small>عادات</small>
+          <small>${t('stats.habit_count')}</small>
         </div>` : ''}
         ${isHobby ? `
         <div class="stats-summary-pill">
           <span class="material-icons">task_alt</span>
           <strong>${completionPct}%</strong>
-          <small>نسبة الإنجاز</small>
+          <small>${t('stats.completion_rate')}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons" style="color: var(--missed);">event_busy</span>
@@ -680,60 +684,60 @@ function renderDayStatsView(dateStr, typeFilter){
         <div class="stats-summary-pill">
           <span class="material-icons">local_fire_department</span>
           <strong>${s.topTasks.length}</strong>
-          <small>${s.topTasks.length === 1 ? 'هواية' : 'هوايات'}</small>
+          <small>${pl(s.topTasks.length, t('stats.hobby_singular'), t('stats.hobby_count'))}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons">bolt</span>
           <strong>${s.streak}</strong>
-          <small>${s.streak === 1 ? 'يوم متتالي' : 'أيام متتالية'}</small>
+          <small>${pl(s.streak, t('stats.streak_day'), t('stats.streak_days'))}</small>
         </div>` : ''}
       </div>
 
       <div class="chart-grid">
         ${isTask || showAll ? `
         <div class="chart-card">
-          <div class="chart-card-title"><span class="material-icons">task_alt</span>نسبة إنجاز اليوم</div>
+          <div class="chart-card-title"><span class="material-icons">task_alt</span>${t('stats.completion_rate_day')}</div>
           <div class="chart-card-body">
-            ${s.totalTaskCount ? `<canvas id="chartCompletion"></canvas>` : `<div class="stat-empty">لا توجد مهام مسجلة اليوم</div>`}
+            ${s.totalTaskCount ? `<canvas id="chartCompletion"></canvas>` : `<div class="stat-empty">${t('stats.no_tasks_today')}</div>`}
           </div>
         </div>` : ''}
 
         ${isHabit ? `
         <div class="chart-card">
-          <div class="chart-card-title"><span class="material-icons">task_alt</span>نسبة إنجاز العادات اليوم</div>
+          <div class="chart-card-title"><span class="material-icons">task_alt</span>${t('stats.completion_rate_habits_day')}</div>
           <div class="chart-card-body">
-            ${s.totalTaskCount ? `<canvas id="chartCompletion"></canvas>` : `<div class="stat-empty">لا توجد عادات مسجلة اليوم</div>`}
+            ${s.totalTaskCount ? `<canvas id="chartCompletion"></canvas>` : `<div class="stat-empty">${t('stats.no_habits_today')}</div>`}
           </div>
         </div>` : ''}
 
         ${isHobby ? `
         <div class="chart-card">
-          <div class="chart-card-title"><span class="material-icons">palette</span>توزيع الوقت حسب الهواية</div>
+          <div class="chart-card-title"><span class="material-icons">palette</span>${t('stats.time_distribution')}</div>
           <div class="chart-card-body">
-            ${topTasksLabels.length ? `<canvas id="chartHobbyTime"></canvas>` : `<div class="stat-empty">لا توجد هوايات مسجلة اليوم</div>`}
+            ${topTasksLabels.length ? `<canvas id="chartHobbyTime"></canvas>` : `<div class="stat-empty">${t('stats.no_hobbies_today')}</div>`}
           </div>
         </div>` : ''}
 
         <div class="chart-card">
-          <div class="chart-card-title"><span class="material-icons">local_fire_department</span>أكثر ${isHobby ? 'الهوايات' : isHabit ? 'العادات' : showAll ? 'العناصر' : 'المهام'} استهلاكًا للوقت اليوم</div>
+          <div class="chart-card-title"><span class="material-icons">local_fire_department</span>${t('stats.more_time_task', {type: isHobby ? t('stats.hobbies_definite') : isHabit ? t('stats.habits_definite') : showAll ? t('stats.items_definite') : t('stats.tasks_definite')})}</div>
           <div class="chart-card-body">
-            ${topTasksLabels.length ? `<canvas id="chartTopTasks"></canvas>` : `<div class="stat-empty">لم تُحدَّد مدة فعلية لأي ${isHobby ? 'هواية' : isHabit ? 'عادة' : 'مهمة'} اليوم</div>`}
+            ${topTasksLabels.length ? `<canvas id="chartTopTasks"></canvas>` : `<div class="stat-empty">${t('stats.no_time_today_type', {type: isHobby ? t('stats.hobby_singular') : isHabit ? t('stats.habit_singular') : t('stats.task_singular')})}</div>`}
           </div>
         </div>
 
         ${showAll ? `
         <div class="chart-card">
-          <div class="chart-card-title"><span class="material-icons">category</span>توزيع الوقت حسب التصنيف اليوم</div>
+          <div class="chart-card-title"><span class="material-icons">category</span>${t('stats.time_distribution_day')}</div>
           <div class="chart-card-body">
-            ${filterEntries.length >= 2 ? `<canvas id="chartFilters"></canvas>` : `<div class="stat-empty">لا توجد تصنيفات مسجلة لهذا اليوم</div>`}
+            ${filterEntries.length >= 2 ? `<canvas id="chartFilters"></canvas>` : `<div class="stat-empty">${t('stats.no_categories')}</div>`}
           </div>
         </div>` : ''}
 
         ${isTask || showAll ? `
         <div class="chart-card">
-          <div class="chart-card-title"><span class="material-icons">speed</span>الوقت المخطط مقابل الوقت الفعلي اليوم</div>
+          <div class="chart-card-title"><span class="material-icons">speed</span>${t('stats.planned_vs_actual_day')}</div>
           <div class="chart-card-body">
-            ${estLabels.length ? `<canvas id="chartEstimation"></canvas>` : `<div class="stat-empty">لا توجد مهام بهدف زمني محدد لهذا اليوم</div>`}
+            ${estLabels.length ? `<canvas id="chartEstimation"></canvas>` : `<div class="stat-empty">${t('stats.no_goal_tasks')}</div>`}
           </div>
         </div>` : ''}
       </div>
@@ -757,7 +761,7 @@ function renderDayStatsView(dateStr, typeFilter){
     ui.statsChartInstances.push(new Chart(ctxCompletion, {
       type: 'doughnut',
       data: {
-        labels: ['تم إنجازها', 'لم تنجز بعد'],
+        labels: [t('stats.done'), t('stats.not_done')],
         datasets: [{
           data: [s.doneCount, Math.max(0, s.totalTaskCount - s.doneCount)],
           backgroundColor: [doneColor, penSoftColor],
@@ -778,7 +782,7 @@ function renderDayStatsView(dateStr, typeFilter){
       data: {
         labels: topTasksLabels,
         datasets: [{
-          label: 'دقيقة',
+          label: t('stats.minutes'),
           data: topTasksMinutes,
           backgroundColor: penColor,
           borderRadius: 6,
@@ -806,7 +810,7 @@ function renderDayStatsView(dateStr, typeFilter){
       data: {
         labels: filterEntries.map(f => f.name),
         datasets: [{
-          label: 'دقيقة',
+          label: t('stats.minutes'),
           data: filterEntries.map(f => Math.round(f.ms / 60000)),
           borderColor: doneColor,
           backgroundColor: doneColor + '33',
@@ -839,14 +843,14 @@ function renderDayStatsView(dateStr, typeFilter){
         labels: estLabels,
         datasets: [
           {
-            label: 'الهدف',
+            label: t('stats.goal'),
             data: estTargetMinutes,
             backgroundColor: inkSoftColor + '99',
             borderRadius: 6,
             maxBarThickness: 28
           },
           {
-            label: 'الوقت الفعلي',
+            label: t('stats.actual_time'),
             data: estActualMinutes,
             backgroundColor: penColor,
             borderRadius: 6,
@@ -897,13 +901,13 @@ function renderWeekStatsView(typeFilter){
 
   // بنجيب الألوان مباشرة من الباليتة الحالية (بدل ما نعتمد على قراءة الـ CSS variables من المتصفح)
   // عشان نضمن ألوان صح ١٠٠٪ في كل وضع من غير أي مشاكل توقيت أو قراءة خاطئة
-  const t = currentPalette();
-  const penColor = t['pen'];
-  const doneColor = t['done'];
-  const inkColor = t['ink'];
-  const inkSoftColor = t['ink-soft'];
-  const paperLineColor = t['paper-line'];
-  const penSoftColor = t['pen-soft'];
+  const pal = currentPalette();
+  const penColor = pal['pen'];
+  const doneColor = pal['done'];
+  const inkColor = pal['ink'];
+  const inkSoftColor = pal['ink-soft'];
+  const paperLineColor = pal['paper-line'];
+  const penSoftColor = pal['pen-soft'];
 
   const shortDayLabel = (dateStr) => DAY_NAMES[fromISO(dateStr).getDay()];
 
@@ -938,137 +942,137 @@ function renderWeekStatsView(typeFilter){
       <div class="stats-view-header">
         ${renderStatsTabDropdown()}
         ${renderStatsRangeToggle('week')}
-        <button class="nav-btn export-pdf-btn" id="exportPdfBtn" title="تصدير تقرير أسبوعي PDF"><span class="material-icons">picture_as_pdf</span></button>
+        <button class="nav-btn export-pdf-btn" id="exportPdfBtn" title="${t('pdf.weekly_export_title')}"><span class="material-icons">picture_as_pdf</span></button>
       </div>
 
       <div class="stats-summary-row">
         <div class="stats-summary-pill">
           <span class="material-icons">schedule</span>
           <strong>${formatHM(s.totalMs)}</strong>
-          <small>إجمالي الوقت</small>
+          <small>${t('stats.total_time')}</small>
         </div>
         ${showAll ? `
         <div class="stats-summary-pill">
           <span class="material-icons">task_alt</span>
           <strong>${completionPct}%</strong>
-          <small>نسبة الإنجاز</small>
+          <small>${t('stats.completion_rate')}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons" style="color: var(--missed);">event_busy</span>
           <strong style="color: var(--missed);">${s.missedCount}</strong>
-          <small>فائتة</small>
+          <small>${t('stats.missed')}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons">functions</span>
           <strong>${s.totalTaskCount}</strong>
-          <small>إجمالي العناصر</small>
+          <small>${t('stats.total_items')}</small>
         </div>` : ''}
         ${isTask ? `
         <div class="stats-summary-pill">
           <span class="material-icons">task_alt</span>
           <strong>${completionPct}%</strong>
-          <small>نسبة الإنجاز</small>
+          <small>${t('stats.completion_rate')}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons">assignment</span>
           <strong>${s.totalTaskCount}</strong>
-          <small>مهام</small>
+          <small>${t('stats.task_count')}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons" style="color: var(--missed);">event_busy</span>
           <strong style="color: var(--missed);">${s.missedCount}</strong>
-          <small>فائتة</small>
+          <small>${t('stats.missed')}</small>
         </div>
         ${s.estimationAccuracyPct !== null ? `
         <div class="stats-summary-pill">
           <span class="material-icons">speed</span>
           <strong>${s.estimationAccuracyPct}%</strong>
-          <small>دقة التقدير</small>
+          <small>${t('stats.estimation_accuracy')}</small>
         </div>` : ''}` : ''}
         ${isHabit ? `
         <div class="stats-summary-pill">
           <span class="material-icons">task_alt</span>
           <strong>${completionPct}%</strong>
-          <small>نسبة الإنجاز</small>
+          <small>${t('stats.completion_rate')}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons">bolt</span>
           <strong>${s.streak}</strong>
-          <small>${s.streak === 1 ? 'يوم متتالي' : 'أيام متتالية'}</small>
+          <small>${pl(s.streak, t('stats.streak_day'), t('stats.streak_days'))}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons">loop</span>
           <strong>${s.totalTaskCount}</strong>
-          <small>عادات</small>
+          <small>${t('stats.habit_count')}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons" style="color: var(--missed);">event_busy</span>
           <strong style="color: var(--missed);">${s.missedCount}</strong>
-          <small>فائتة</small>
+          <small>${t('stats.missed')}</small>
         </div>` : ''}
         ${isHobby ? `
         <div class="stats-summary-pill">
           <span class="material-icons">task_alt</span>
           <strong>${completionPct}%</strong>
-          <small>نسبة الإنجاز</small>
+          <small>${t('stats.completion_rate')}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons" style="color: var(--missed);">event_busy</span>
           <strong style="color: var(--missed);">${s.missedCount}</strong>
-          <small>فائتة</small>
+          <small>${t('stats.missed')}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons">local_fire_department</span>
           <strong>${s.topTasks.length}</strong>
-          <small>${s.topTasks.length === 1 ? 'هواية' : 'هوايات'}</small>
+          <small>${pl(s.topTasks.length, t('stats.hobby_singular'), t('stats.hobby_count'))}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons">bolt</span>
           <strong>${s.streak}</strong>
-          <small>${s.streak === 1 ? 'يوم متتالي' : 'أيام متتالية'}</small>
+          <small>${pl(s.streak, t('stats.streak_day'), t('stats.streak_days'))}</small>
         </div>` : ''}
       </div>
 
       <div class="chart-grid">
         ${isTask || showAll ? `
         <div class="chart-card">
-          <div class="chart-card-title"><span class="material-icons">task_alt</span>نسبة الإنجاز الأسبوعي</div>
+          <div class="chart-card-title"><span class="material-icons">task_alt</span>${t('stats.completion_rate_week')}</div>
           <div class="chart-card-body">
-            ${s.totalTaskCount ? `<canvas id="chartCompletion"></canvas>` : `<div class="stat-empty">لا توجد مهام مسجلة هذا الأسبوع</div>`}
+            ${s.totalTaskCount ? `<canvas id="chartCompletion"></canvas>` : `<div class="stat-empty">${t('stats.no_tasks_week')}</div>`}
           </div>
         </div>` : ''}
 
         <div class="chart-card">
-          <div class="chart-card-title"><span class="material-icons">local_fire_department</span>أكثر ${isHobby ? 'الهوايات' : isHabit ? 'العادات' : 'المهام'} استهلاكًا للوقت</div>
+          <div class="chart-card-title"><span class="material-icons">local_fire_department</span>${t('stats.more_time_task_week', {type: isHobby ? t('stats.hobbies_definite') : isHabit ? t('stats.habits_definite') : t('stats.tasks_definite')})}</div>
           <div class="chart-card-body">
-            ${topTasksLabels.length ? `<canvas id="chartTopTasks"></canvas>` : `<div class="stat-empty">لم تُحدَّد مدة لأي ${isHobby ? 'هواية' : isHabit ? 'عادة' : 'مهمة'} هذا الأسبوع</div>`}
+            ${topTasksLabels.length ? `<canvas id="chartTopTasks"></canvas>` : `<div class="stat-empty">${t('stats.no_time_week_type', {type: isHobby ? t('stats.hobby_singular') : isHabit ? t('stats.habit_singular') : t('stats.task_singular')})}</div>`}
           </div>
         </div>
 
         ${isHabit || showAll ? `
         <div class="chart-card">
-          <div class="chart-card-title"><span class="material-icons">insights</span>أداء يومي (عدد ${isHabit ? 'العادات' : 'المهام'} / الإنجاز)</div>
+          <div class="chart-card-title"><span class="material-icons">insights</span>${t('stats.daily_performance_type', {type: isHabit ? t('stats.habits_definite') : t('stats.tasks_definite')})}</div>
           <div class="chart-card-body"><canvas id="chartDailyPerf"></canvas></div>
         </div>` : ''}
 
         <div class="chart-card">
-          <div class="chart-card-title"><span class="material-icons">show_chart</span>اتجاه الوقت خلال الأسبوع</div>
+          <div class="chart-card-title"><span class="material-icons">show_chart</span>${t('stats.time_trend')}</div>
           <div class="chart-card-body"><canvas id="chartWeekTrend"></canvas></div>
         </div>
 
         ${showAll ? `
         <div class="chart-card">
-          <div class="chart-card-title"><span class="material-icons">category</span>توزيع الوقت حسب التصنيف</div>
+          <div class="chart-card-title"><span class="material-icons">category</span>${t('stats.time_distribution_week')}</div>
           <div class="chart-card-body">
-            ${filterEntries.length >= 3 ? `<canvas id="chartFilters"></canvas>` : `<div class="stat-empty">لا توجد 3 تصنيفات أو أكثر مسجلة هذا الأسبوع</div>`}
+            ${filterEntries.length >= 3 ? `<canvas id="chartFilters"></canvas>` : `<div class="stat-empty">${t('stats.no_3_categories')}</div>`}
           </div>
         </div>` : ''}
 
         ${isTask || showAll ? `
         <div class="chart-card">
-          <div class="chart-card-title"><span class="material-icons">speed</span>الوقت المخطط مقابل الوقت الفعلي</div>
+          <div class="chart-card-title"><span class="material-icons">speed</span>${t('stats.planned_vs_actual_week')}</div>
           <div class="chart-card-body">
-            ${estLabels.length ? `<canvas id="chartEstimation"></canvas>` : `<div class="stat-empty">لا توجد مهام بهدف زمني محدد هذا الأسبوع</div>`}
+            ${estLabels.length ? `<canvas id="chartEstimation"></canvas>` : `<div class="stat-empty">${t('stats.no_goal_tasks_week')}</div>`}
           </div>
         </div>` : ''}
       </div>
@@ -1096,7 +1100,7 @@ function renderWeekStatsView(typeFilter){
     ui.statsChartInstances.push(new Chart(ctxCompletion, {
       type: 'doughnut',
       data: {
-        labels: ['تم إنجازها', 'لم تنجز بعد'],
+        labels: [t('stats.done'), t('stats.not_done')],
         datasets: [{
           data: [s.doneCount, Math.max(0, s.totalTaskCount - s.doneCount)],
           backgroundColor: [doneColor, penSoftColor],
@@ -1118,7 +1122,7 @@ function renderWeekStatsView(typeFilter){
       data: {
         labels: topTasksLabels,
         datasets: [{
-          label: 'دقيقة',
+          label: t('stats.minutes'),
           data: topTasksMinutes,
           backgroundColor: penColor,
           borderRadius: 6,
@@ -1147,7 +1151,7 @@ function renderWeekStatsView(typeFilter){
       data: {
         labels: weekLabels,
         datasets: [{
-          label: 'دقيقة في اليوم',
+          label: t('stats.minutes_per_day'),
           data: weekMinutes,
           borderColor: penColor,
           backgroundColor: penColor + '33',
@@ -1179,7 +1183,7 @@ function renderWeekStatsView(typeFilter){
         datasets: [
           {
             type: 'bar',
-            label: 'عدد المهام',
+            label: t('stats.tasks_count'),
             data: weekTaskCounts,
             backgroundColor: inkSoftColor + '99',
             borderRadius: 6,
@@ -1187,7 +1191,7 @@ function renderWeekStatsView(typeFilter){
           },
           {
             type: 'line',
-            label: 'نسبة الإنجاز %',
+            label: t('stats.completion_pct'),
             data: weekCompletionPct,
             borderColor: penColor,
             backgroundColor: penColor,
@@ -1216,7 +1220,7 @@ function renderWeekStatsView(typeFilter){
       data: {
         labels: filterEntries.map(f => f.name),
         datasets: [{
-          label: 'دقيقة',
+          label: t('stats.minutes'),
           data: filterEntries.map(f => Math.round(f.ms / 60000)),
           borderColor: doneColor,
           backgroundColor: doneColor + '33',
@@ -1250,14 +1254,14 @@ function renderWeekStatsView(typeFilter){
         labels: estLabels,
         datasets: [
           {
-            label: 'الهدف',
+            label: t('stats.goal'),
             data: estTargetMinutes,
             backgroundColor: inkSoftColor + '99',
             borderRadius: 6,
             maxBarThickness: 28
           },
           {
-            label: 'الوقت الفعلي',
+            label: t('stats.actual_time'),
             data: estActualMinutes,
             backgroundColor: penColor,
             borderRadius: 6,

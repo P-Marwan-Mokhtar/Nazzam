@@ -4,6 +4,11 @@
     right: auto;
     left: calc(100% + 8px);
   }
+  html[dir="ltr"] .priority-popover,
+  html[dir="ltr"] .clock-choice-popover {
+    left: auto;
+    right: calc(100% + 8px);
+  }
 }
 
 /* ===== عرض الأسبوع ===== */
@@ -987,8 +992,7 @@ body.locked-view .main-col {
     min-width: 0;
   }
   .tb-today-btn {
-    padding: 6px 10px;
-    font-size: 0.78rem;
+    display: none;
   }
 }
 

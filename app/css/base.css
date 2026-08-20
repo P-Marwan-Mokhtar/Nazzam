@@ -225,4 +225,226 @@ body.dark-mode .header-logo-dark {
     transform: translateY(0) scale(1);
   }
 }
+
+/* ============================================================
+   LTR Overrides — بيتفعلوا لما اللغة تتغير لإنجليزي (html[dir="ltr"])
+   Arabic RTL layout مش بيتأثر — كل override مقيد بـ html[dir="ltr"] بس
+   ============================================================ */
+
+/* === Text alignment === */
+html[dir="ltr"] .bank-search-info,
+html[dir="ltr"] .keyword-name,
+html[dir="ltr"] .keyword-meta,
+html[dir="ltr"] .empty-state-title,
+html[dir="ltr"] .empty-state-hint,
+html[dir="ltr"] .task-name,
+html[dir="ltr"] .stat-list-name,
+html[dir="ltr"] .notif-setting-title,
+html[dir="ltr"] .notif-setting-desc,
+html[dir="ltr"] .side-nav-popover .header-btn-label,
+html[dir="ltr"] .filter-more-label,
+html[dir="ltr"] .timer-name {
+  text-align: start;
+}
+
+html[dir="ltr"] .stats-summary-pill strong,
+html[dir="ltr"] .stats-summary-pill small,
+html[dir="ltr"] .day-sub {
+  text-align: center;
+}
+
+/* === Header actions panel opens to the left in LTR === */
+html[dir="ltr"] .header-actions-panel {
+  right: auto;
+  left: 0;
+}
+/* === Mobile: panel must not overflow right edge === */
+@media (max-width: 640px) {
+  html[dir="ltr"] .header-actions-panel {
+    left: auto;
+    right: 0;
+  }
+}
+
+/* === Side nav popover opens to the left in LTR === */
+html[dir="ltr"] .side-nav-popover {
+  right: auto;
+  left: 100%;
+  margin-right: 0;
+  margin-left: 6px;
+}
+
+/* === Calendar chevron icons flip in LTR === */
+html[dir="ltr"] #calPrevMonth .material-icons {
+  transform: scaleX(-1);
+}
+html[dir="ltr"] #calNextMonth .material-icons {
+  transform: scaleX(-1);
+}
+
+/* === Calendar month name alignment === */
+html[dir="ltr"] .calendar-month-title {
+  text-align: center;
+}
+
+/* === Duration popover opens to the left in LTR === */
+html[dir="ltr"] .duration-popover {
+  right: auto;
+  left: 0;
+}
+
+/* === Timer panel border — border-inline-start auto-flips, no override needed === */
+
+/* === Timeblock side panel — opens from right in RTL, left in LTR === */
+html[dir="ltr"] .timeblock-side {
+  left: auto;
+  right: 0;
+}
+
+/* === Misc padding/margin overrides === */
+html[dir="ltr"] .views-timeline-day .tl-day-tasks {
+  padding-left: 44px;
+  padding-right: 0;
+}
+html[dir="ltr"] .timeline-block {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+/* === Dropdown menus alignment === */
+html[dir="ltr"] .task-more-dropdown {
+  left: 0;
+  right: auto;
+}
+html[dir="ltr"] .task-more-dropdown.task-more-up {
+  left: 0;
+  right: auto;
+}
+
+/* === Bank search icon === */
+html[dir="ltr"] .bank-search-icon {
+  left: auto;
+  right: 10px;
+}
+html[dir="ltr"] .bank-search input {
+  padding-left: 36px;
+  padding-right: 10px;
+}
+html[dir="ltr"] .bank-search-clear {
+  right: auto;
+  left: 4px;
+}
+
+/* === Add task row === */
+html[dir="ltr"] .add-row input {
+  padding-left: 14px;
+  padding-right: 40px;
+}
+
+/* === Inline edit input === */
+html[dir="ltr"] .inline-edit-input {
+  text-align: start;
+}
+
+/* === Modal card text alignment === */
+html[dir="ltr"] .modal-card p {
+  text-align: start;
+}
+
+/* === Day view nav arrows === */
+html[dir="ltr"] #prevBtn .material-icons,
+html[dir="ltr"] #nextBtn .material-icons {
+  transform: scaleX(-1);
+}
+
+/* === Week view nav arrows === */
+html[dir="ltr"] #weekPrevBtn .material-icons,
+html[dir="ltr"] #weekNextBtn .material-icons {
+  transform: scaleX(-1);
+}
+
+/* === Time blocking day nav arrows === */
+html[dir="ltr"] #tbPrevBtn .material-icons,
+html[dir="ltr"] #tbNextBtn .material-icons {
+  transform: scaleX(-1);
+}
+
+/* === Time blocking week nav arrows === */
+html[dir="ltr"] #tbwPrevBtn .material-icons,
+html[dir="ltr"] #tbwNextBtn .material-icons {
+  transform: scaleX(-1);
+}
+
+/* === Stats back arrow === */
+html[dir="ltr"] #taskStatsBackBtn .material-icons {
+  transform: scaleX(-1);
+}
+
+/* === Stats tab dropdown alignment === */
+html[dir="ltr"] .stats-tab-dropdown {
+  left: 0;
+  right: auto;
+}
+
+/* === Clock choice popover — RTL opens left of parent, LTR opens right === */
+html[dir="ltr"] .clock-choice-popover {
+  left: calc(100% + 8px);
+  right: auto;
+  transform: translateX(-6px);
+}
+html[dir="ltr"] .clock-choice-popover.open {
+  transform: translateX(0);
+}
+
+/* === Priority popover — same pattern as clock === */
+html[dir="ltr"] .priority-popover {
+  left: calc(100% + 8px);
+  right: auto;
+  transform: translateX(-6px);
+}
+html[dir="ltr"] .priority-popover.open {
+  transform: translateX(0);
+}
+
+/* === Type popover — opens outward to the right of parent in both directions === */
+html[dir="ltr"] .type-popover {
+  left: calc(100% + 8px);
+  right: auto;
+}
+
+/* === Timer type popover — inset-inline-end already handles LTR, no override needed === */
+html[dir="ltr"] .timer-type-popover {
+  inset-inline-end: auto;
+  inset-inline-start: 0;
+}
+
+/* === Day filter dropdown === */
+html[dir="ltr"] .day-filter-dropdown {
+  left: auto;
+  right: 0;
+}
+
+/* === Filter more dropdown === */
+html[dir="ltr"] .filter-more-dropdown {
+  left: auto;
+  right: 0;
+}
+
+/* === Timeblock range menu === */
+html[dir="ltr"] .tb-range-menu {
+  left: 0;
+  right: auto;
+}
+
+/* === Font family for English === */
+html[dir="ltr"] body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+html[dir="ltr"] .header-top-bar,
+html[dir="ltr"] .bank-section-title,
+html[dir="ltr"] .timer-panel-title,
+html[dir="ltr"] .stats-title,
+html[dir="ltr"] h2 {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
 

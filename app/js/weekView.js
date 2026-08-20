@@ -7,6 +7,7 @@ import { MONTH_NAMES, SHORT_DAY_NAMES, addDays, escapeHtml, fromISO, todayStr, t
 import { contentEl, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { ensureDayMaterialized, render } from './render.js';
+import { t } from './i18n.js';
 
 function getWeekStart(dateStr){
   const d = fromISO(dateStr);
@@ -54,16 +55,16 @@ export function renderWeekView(){
 
   html += `
     <div class="date-nav">
-      <button class="nav-btn" id="weekPrevBtn" aria-label="الأسبوع السابق"><span class="material-icons">chevron_right</span></button>
+      <button class="nav-btn" id="weekPrevBtn" aria-label="${t('week.prev')}"><span class="material-icons">chevron_right</span></button>
       <div class="date-display">
-        <div class="day-name">عرض الأسبوع</div>
+        <div class="day-name">${t('week.title')}</div>
         <div class="day-sub">${rangeLabel}</div>
       </div>
-      <button class="nav-btn" id="weekNextBtn" aria-label="الأسبوع التالي"><span class="material-icons">chevron_left</span></button>
+      <button class="nav-btn" id="weekNextBtn" aria-label="${t('week.next')}"><span class="material-icons">chevron_left</span></button>
     </div>
   `;
   if(!isCurrentWeek){
-    html += `<button class="today-btn" id="weekTodayBtn">الأسبوع الحالي</button>`;
+    html += `<button class="today-btn" id="weekTodayBtn">${t('week.current')}</button>`;
   }
 
   html += `<div class="week-grid">`;
@@ -76,11 +77,11 @@ export function renderWeekView(){
 
     html += `
       <div class="week-day-card ${isToday ? 'today' : ''}">
-        <button class="week-day-header" data-action="week-open-day" data-date="${dateStr}" title="فتح يوم ${d.getDate()}">
+        <button class="week-day-header" data-action="week-open-day" data-date="${dateStr}" title="${t('week.open_day', {day: d.getDate()})}">
           <span class="week-day-name">${SHORT_DAY_NAMES[d.getDay()]}</span>
           <span class="week-day-num">${d.getDate()}</span>
         </button>
-        <div class="week-day-sub">${tasks.length ? `${doneCount}/${tasks.length} أُنجزت` : 'لا مهام'}</div>
+        <div class="week-day-sub">${tasks.length ? `${doneCount}/${tasks.length} ${t('week.done')}` : t('week.no_tasks')}</div>
         <div class="week-day-tasks">
           ${visibleTasks.map(t => `
             <label class="week-task-row ${t.done ? 'done' : ''}">
@@ -88,7 +89,7 @@ export function renderWeekView(){
               <span class="week-task-name">${escapeHtml(t.name)}</span>
             </label>
           `).join('')}
-          ${extraCount > 0 ? `<div class="week-day-more">+${extraCount} أخرى</div>` : ''}
+          ${extraCount > 0 ? `<div class="week-day-more">+${extraCount} ${t('week.extra')}</div>` : ''}
         </div>
       </div>
     `;

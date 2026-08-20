@@ -9,6 +9,7 @@ import { currentUserId } from './auth.js';
 import { saveData } from './dataStore.js';
 import { computeWeekStats } from './stats.js';
 import { formatTimeArabic } from './timePicker.js';
+import { t } from './i18n.js';
 
 let swRegistration = null;
 
@@ -139,9 +140,9 @@ async function checkAndFireDigestNotifications(){
     const todayTasks = (state.days[today] || []).filter(t => !t._dupOf);
     const total = todayTasks.length;
     const body = total > 0
-      ? `لديك ${total} ${total === 1 ? 'مهمة' : 'مهام'} على جدول اليوم، هيا نبدأ!`
-      : 'لا توجد مهام مضافة اليوم بعد، افتح القائمة واختر ما تريد إنجازه.';
-    await fireLocalNotification('صباح الخير ☀️', body);
+      ? t('notif.morning_body', {total})
+      : t('notif.morning_empty');
+    await fireLocalNotification(t('notif.morning_title'), body);
     ns.lastMorningFiredDate = today;
     changed = true;
   }
@@ -152,12 +153,12 @@ async function checkAndFireDigestNotifications(){
     const done = todayTasks.filter(t => t.done).length;
     const weekS = computeWeekStats(0);
     const streakPart = weekS.streak > 0
-      ? `سلسلتك: ${weekS.streak} ${weekS.streak === 1 ? 'يوم متتالي' : 'أيام متتالية'} 🔥`
-      : 'هيا سجّل إنجازك اليوم!';
+      ? t('notif.evening_streak', {streak: weekS.streak})
+      : t('notif.evening_start');
     const body = total > 0
-      ? `أنجزت ${done} من أصل ${total} مهمة اليوم. ${streakPart}`
-      : 'وقت مراجعة يومك — افتح التطبيق وسجّل ما أنجزته.';
-    await fireLocalNotification('وقت المراجعة 🌙', body);
+      ? t('notif.evening_done', {done, total}) + ' ' + streakPart
+      : t('notif.evening_review');
+    await fireLocalNotification(t('notif.evening_title'), body);
     ns.lastEveningFiredDate = today;
     changed = true;
   }
@@ -188,7 +189,7 @@ async function checkAndFireTaskReminders(){
   let changed = false;
   tasks.forEach(t => {
     if(nowHM >= t.remindAt){
-      fireLocalNotification('تذكير ⏰', `حان وقت "${t.name}"`);
+      fireLocalNotification(t('notif.reminder_title'), t('notif.reminder_body', {name: t.name}));
       // التذكير خلص شغله — بنشيله من المهمة عشان جرس التذكير يقفل أوتوماتيك
       // وميستنىش المستخدم يشيله يدويًا.
       delete t.remindAt;
@@ -203,16 +204,16 @@ function updateNotifPermissionStatusUI(){
   const statusEl = document.getElementById('notifPermissionStatus');
   if(!statusEl) return;
   if(!('Notification' in window)){
-    statusEl.textContent = 'هذا المتصفح لا يدعم التنبيهات.';
+    statusEl.textContent = t('notif.browser_unsupported');
     statusEl.classList.add('denied');
     return;
   }
   statusEl.classList.remove('denied');
   if(Notification.permission === 'denied'){
-    statusEl.textContent = 'التنبيهات محظورة من إعدادات المتصفح — فعّلها من هناك الأول.';
+    statusEl.textContent = t('notif.browser_blocked');
     statusEl.classList.add('denied');
   } else if(Notification.permission === 'default'){
-    statusEl.textContent = 'هيُطلب منك الإذن أول مرة تفعّل أي تنبيه.';
+    statusEl.textContent = t('notif.permission_needed');
   } else {
     statusEl.textContent = '';
   }
@@ -270,7 +271,7 @@ document.getElementById('morningNotifToggle').onchange = async (e) => {
     if(!granted){
       e.target.checked = false;
       renderNotificationSettingsModal();
-      showToast('نحتاج إذنك من المتصفح لنتمكن من إرسال تنبيه الصباح إليك');
+      showToast(t('notif.morning_perm_toast'));
       return;
     }
     await ensurePushSubscription();
@@ -291,7 +292,7 @@ document.getElementById('eveningNotifToggle').onchange = async (e) => {
     if(!granted){
       e.target.checked = false;
       renderNotificationSettingsModal();
-      showToast('نحتاج إذنك من المتصفح لنتمكن من إرسال تنبيه المساء إليك');
+      showToast(t('notif.evening_perm_toast'));
       return;
     }
     await ensurePushSubscription();

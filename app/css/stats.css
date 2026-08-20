@@ -321,8 +321,13 @@
   }
 }
 @media (max-width: 480px) {
+  .stats-summary-row {
+    gap: 8px;
+  }
   .stats-summary-pill {
+    flex: 0 0 calc(50% - 4px);
     padding: 10px 8px;
+    min-width: 0;
   }
   .stats-summary-pill strong {
     font-size: 1rem;

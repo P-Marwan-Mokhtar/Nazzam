@@ -355,6 +355,12 @@
 .header-icon-btn.is-linked {
   color: var(--done);
 }
+.side-nav-lang-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-family: 'Almarai', 'Tajawal', sans-serif;
+}
 .header-btn-label {
   font-size: 0.85rem;
   font-weight: 600;

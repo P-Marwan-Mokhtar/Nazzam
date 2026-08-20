@@ -2,11 +2,11 @@
 // utils.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-export const DAY_NAMES = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+export let DAY_NAMES = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
 
-export const SHORT_DAY_NAMES = ["أحد","اثنين","ثلاثاء","أربعاء","خميس","جمعة","سبت"];
+export let SHORT_DAY_NAMES = ["أحد","اثنين","ثلاثاء","أربعاء","خميس","جمعة","سبت"];
 
-export const MONTH_NAMES = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+export let MONTH_NAMES = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
 
 export function toISO(d){
   const y = d.getFullYear();
@@ -30,7 +30,8 @@ export function addDays(dateStr, n){
 
 export function fmtDay(dateStr){
   const d = fromISO(dateStr);
-  return `${DAY_NAMES[d.getDay()]}، ${d.getDate()} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+  const comma = document.documentElement.lang === 'en' ? ',' : '،';
+  return `${DAY_NAMES[d.getDay()]}${comma} ${d.getDate()} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 export function parseDurationToMinutes(str){
@@ -44,14 +45,14 @@ export function parseDurationToMinutes(str){
   let totalMinutes = 0;
   let matched = false;
 
-  const hourRegex = /(\d+(?:\.\d+)?)\s*(ساعات|ساعة|ساعه|س\b|h\b)/gi;
+  const hourRegex = /(\d+(?:\.\d+)?)\s*(ساعات|ساعة|ساعه|س|hours?|h)\b/gi;
   let m;
   while((m = hourRegex.exec(text)) !== null){
     totalMinutes += parseFloat(m[1]) * 60;
     matched = true;
   }
 
-  const minRegex = /(\d+(?:\.\d+)?)\s*(دقايق|دقيقة|دقيقه|د\b|m\b)/gi;
+  const minRegex = /(\d+(?:\.\d+)?)\s*(دقايق|دقيقة|دقيقه|د|minutes?|m)\b/gi;
   while((m = minRegex.exec(text)) !== null){
     totalMinutes += parseFloat(m[1]);
     matched = true;

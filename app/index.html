@@ -95,41 +95,40 @@
       <div class="header-card">
         <div class="header-row">
           <div class="header-top-bar" id="headerTopBar">
-            <button class="header-icon-btn" id="accountBtn" title="الحساب">
-              <span class="material-icons" id="accountIcon"
-                >person_outline</span
-              >
+            <button class="header-icon-btn" id="accountBtn" title="الحساب" data-i18n-title="nav.account">
+              <span class="material-icons" id="accountIcon">person_outline</span>
             </button>
-            <button class="header-icon-btn" id="headerTasksBtn" title="مهام اليوم">
+            <button class="header-icon-btn" id="headerTasksBtn" title="مهام اليوم" data-i18n-title="nav.tasks_today">
               <span class="material-icons">checklist</span>
             </button>
             <button
               class="header-icon-btn"
               id="statsBtnTop"
               title="الإحصائيات"
+              data-i18n-title="nav.stats"
             >
               <span class="material-icons">insights</span>
             </button>
-            <button class="header-icon-btn" id="headerTimeBlockBtn" title="الجدول الزمني">
+            <button class="header-icon-btn" id="headerTimeBlockBtn" title="الجدول الزمني" data-i18n-title="nav.schedule">
               <span class="material-icons">event_note</span>
             </button>
-            <button class="header-icon-btn" id="weekViewBtn" title="عرض الأسبوع">
+            <button class="header-icon-btn" id="weekViewBtn" title="عرض الأسبوع" data-i18n-title="nav.week_view">
               <span class="material-icons">view_week</span>
             </button>
-            <button class="header-icon-btn" id="themeBtn" title="المظهر">
+            <button class="header-icon-btn" id="themeBtn" title="المظهر" data-i18n-title="nav.theme">
               <span class="material-icons" id="themeIcon">palette</span>
             </button>
           </div>
 
           <div class="header-logo-slot">
-            <a href="./" class="js-header-logo" title="العودة إلى مهام اليوم">
+            <a href="./" class="js-header-logo" title="العودة إلى مهام اليوم" data-i18n-title="nav.back_to_today">
               <img
                 src="img/logo-light.png"
                 alt="Nazzam"
                 class="header-logo header-logo-light"
               />
             </a>
-            <a href="./" class="js-header-logo" title="العودة إلى مهام اليوم">
+            <a href="./" class="js-header-logo" title="العودة إلى مهام اليوم" data-i18n-title="nav.back_to_today">
               <img
                 src="img/logo-dark.png"
                 alt="Nazzam"
@@ -145,6 +144,8 @@
               title="المزيد"
               aria-label="المزيد من الخيارات"
               aria-expanded="false"
+              data-i18n-title="c.more"
+              data-i18n-aria="nav.more_label"
             >
               <span class="material-icons">more_horiz</span>
             </button>
@@ -153,39 +154,47 @@
                 class="header-menu-item"
                 id="globalSearchBtnMobile"
                 title="البحث في كل المهام"
+                data-i18n-title="nav.search_all"
               >
                 <span class="material-icons">manage_search</span>
-                <span class="header-btn-label">البحث في جميع المهام</span>
+                <span class="header-btn-label" data-i18n="nav.search_all">البحث في جميع المهام</span>
               </button>
               <button
                 class="header-menu-item"
                 id="draftsBtn"
                 title="المهام المؤرشفة"
+                data-i18n-title="nav.archived"
               >
                 <span class="material-icons">drafts</span>
-                <span class="header-btn-label">المهام المؤرشفة</span>
+                <span class="header-btn-label" data-i18n="nav.archived">المهام المؤرشفة</span>
               </button>
               <button
                 class="header-menu-item"
                 id="calendarBtn"
                 title="التقويم"
+                data-i18n-title="nav.calendar"
               >
                 <span class="material-icons">calendar_today</span>
-                <span class="header-btn-label">التقويم</span>
+                <span class="header-btn-label" data-i18n="nav.calendar">التقويم</span>
               </button>
               <button
                 class="header-menu-item"
                 id="notificationSettingsBtn"
                 title="إعدادات التنبيهات"
+                data-i18n-title="nav.notif_settings"
               >
                 <span class="material-icons">notifications</span>
-                <span class="header-btn-label">إعدادات التنبيهات</span>
+                <span class="header-btn-label" data-i18n="nav.notif_settings">إعدادات التنبيهات</span>
               </button>
               <div class="header-menu-divider"></div>
+              <button class="header-menu-item" id="langToggleBtn">
+                <span class="material-icons">translate</span>
+                <span class="header-btn-label" id="langToggleLabel" data-i18n="nav.language_toggle">تبديل اللغة</span>
+              </button>
               <details class="header-menu-group" id="dataMenuGroup">
                 <summary class="header-menu-item header-menu-summary">
                   <span class="material-icons">import_export</span>
-                  <span class="header-btn-label">البيانات</span>
+                  <span class="header-btn-label" data-i18n="nav.data">البيانات</span>
                   <span class="material-icons header-menu-chevron">expand_more</span>
                 </summary>
                 <div class="header-menu-subitems">
@@ -193,25 +202,28 @@
                     class="header-menu-item"
                     id="importDataBtn"
                     title="استيراد نسخة احتياطية (JSON)"
+                    data-i18n-title="nav.import_title"
                   >
                     <span class="material-icons">file_upload</span>
-                    <span class="header-btn-label">استيراد البيانات</span>
+                    <span class="header-btn-label" data-i18n="nav.import_data">استيراد البيانات</span>
                   </button>
                   <button
                     class="header-menu-item"
                     id="exportDataBtn"
                     title="تصدير نسخة احتياطية (JSON)"
+                    data-i18n-title="nav.export_title"
                   >
                     <span class="material-icons">file_download</span>
-                    <span class="header-btn-label">تصدير البيانات</span>
+                    <span class="header-btn-label" data-i18n="nav.export_data">تصدير البيانات</span>
                   </button>
                   <button
                     class="header-menu-item"
                     id="exportIcsBtn"
                     title="تصدير المهام (من اليوم فصاعدًا) كملف تقويم لاستيرادها في Google/Apple Calendar"
+                    data-i18n-title="nav.export_ics_title"
                   >
                     <span class="material-icons">event</span>
-                    <span class="header-btn-label">تصدير للتقويم</span>
+                    <span class="header-btn-label" data-i18n="nav.export_calendar">تصدير للتقويم</span>
                   </button>
                 </div>
               </details>
@@ -228,54 +240,67 @@
 
       <div class="app-shell">
         <aside class="side-nav" aria-label="القائمة الرئيسية">
-          <button class="side-nav-btn" data-side-target="accountBtn" title="الحساب">
+          <button class="side-nav-btn" data-side-target="accountBtn" title="الحساب" data-i18n-title="nav.account">
             <span class="material-icons">person_outline</span>
           </button>
-          <button class="side-nav-btn" id="sideNavTasksBtn" title="مهام اليوم">
+          <button class="side-nav-btn" id="sideNavTasksBtn" title="مهام اليوم" data-i18n-title="nav.tasks_today">
             <span class="material-icons">checklist</span>
           </button>
-          <button class="side-nav-btn" id="sideNavStatsBtn" data-side-target="statsBtnTop" title="الإحصائيات">
+          <button class="side-nav-btn" id="sideNavStatsBtn" data-side-target="statsBtnTop" title="الإحصائيات" data-i18n-title="nav.stats">
             <span class="material-icons">insights</span>
           </button>
-          <button class="side-nav-btn" id="sideNavTimeBlockBtn" data-side-target="headerTimeBlockBtn" title="الجدول الزمني">
+          <button class="side-nav-btn" id="sideNavTimeBlockBtn" data-side-target="headerTimeBlockBtn" title="الجدول الزمني" data-i18n-title="nav.schedule">
             <span class="material-icons">event_note</span>
           </button>
-          <button class="side-nav-btn" id="sideNavWeekBtn" data-side-target="weekViewBtn" title="عرض الأسبوع">
+          <button class="side-nav-btn" id="sideNavWeekBtn" data-side-target="weekViewBtn" title="عرض الأسبوع" data-i18n-title="nav.week_view">
             <span class="material-icons">view_week</span>
           </button>
-          <button class="side-nav-btn" data-side-target="themeBtn" title="المظهر">
+          <button class="side-nav-btn" data-side-target="themeBtn" title="المظهر" data-i18n-title="nav.theme">
             <span class="material-icons">palette</span>
           </button>
+          <div class="side-nav-data-wrap">
+            <button class="side-nav-btn" id="sideNavLangBtn" title="تبديل اللغة">
+              <span class="material-icons">translate</span>
+            </button>
+            <div class="side-nav-popover" id="sideNavLangPopover">
+              <button class="header-menu-item" id="langArBtn">
+                <span class="header-btn-label">عربي</span>
+              </button>
+              <button class="header-menu-item" id="langEnBtn">
+                <span class="header-btn-label">English</span>
+              </button>
+            </div>
+          </div>
           <div class="side-nav-divider"></div>
-          <button class="side-nav-btn" data-side-target="globalSearchBtnMobile" title="البحث في كل المهام">
+          <button class="side-nav-btn" data-side-target="globalSearchBtnMobile" title="البحث في كل المهام" data-i18n-title="nav.search_all">
             <span class="material-icons">manage_search</span>
           </button>
-          <button class="side-nav-btn" data-side-target="draftsBtn" title="المهام المؤرشفة">
+          <button class="side-nav-btn" data-side-target="draftsBtn" title="المهام المؤرشفة" data-i18n-title="nav.archived">
             <span class="material-icons">drafts</span>
           </button>
-          <button class="side-nav-btn" data-side-target="calendarBtn" title="التقويم">
+          <button class="side-nav-btn" data-side-target="calendarBtn" title="التقويم" data-i18n-title="nav.calendar">
             <span class="material-icons">calendar_today</span>
           </button>
-          <button class="side-nav-btn" data-side-target="notificationSettingsBtn" title="إعدادات التنبيهات">
+          <button class="side-nav-btn" data-side-target="notificationSettingsBtn" title="إعدادات التنبيهات" data-i18n-title="nav.notif_settings">
             <span class="material-icons">notifications</span>
           </button>
           <div class="side-nav-divider"></div>
           <div class="side-nav-data-wrap">
-            <button class="side-nav-btn" id="sideNavDataBtn" title="البيانات">
+            <button class="side-nav-btn" id="sideNavDataBtn" title="البيانات" data-i18n-title="nav.data">
               <span class="material-icons">import_export</span>
             </button>
             <div class="side-nav-popover" id="sideNavDataPopover">
-              <button class="header-menu-item" data-side-target="importDataBtn" title="استيراد نسخة احتياطية (JSON)">
+              <button class="header-menu-item" data-side-target="importDataBtn" title="استيراد نسخة احتياطية (JSON)" data-i18n-title="nav.import_title">
                 <span class="material-icons">file_upload</span>
-                <span class="header-btn-label">استيراد البيانات</span>
+                <span class="header-btn-label" data-i18n="nav.import_data">استيراد البيانات</span>
               </button>
-              <button class="header-menu-item" data-side-target="exportDataBtn" title="تصدير نسخة احتياطية (JSON)">
+              <button class="header-menu-item" data-side-target="exportDataBtn" title="تصدير نسخة احتياطية (JSON)" data-i18n-title="nav.export_title">
                 <span class="material-icons">file_download</span>
-                <span class="header-btn-label">تصدير البيانات</span>
+                <span class="header-btn-label" data-i18n="nav.export_data">تصدير البيانات</span>
               </button>
-              <button class="header-menu-item" data-side-target="exportIcsBtn" title="تصدير المهام كملف تقويم">
+              <button class="header-menu-item" data-side-target="exportIcsBtn" title="تصدير المهام كملف تقويم" data-i18n-title="nav.export_ics_short">
                 <span class="material-icons">event</span>
-                <span class="header-btn-label">تصدير للتقويم</span>
+                <span class="header-btn-label" data-i18n="nav.export_calendar">تصدير للتقويم</span>
               </button>
             </div>
           </div>
@@ -287,7 +312,7 @@
               <div id="content">
                 <div class="content-loading">
                   <div class="content-loading-spinner"></div>
-                  <p>جارٍ تحميل بياناتك...</p>
+                  <p data-i18n="c.loading">جارٍ تحميل بياناتك...</p>
                 </div>
               </div>
             </div>
@@ -302,8 +327,8 @@
     <div class="modal-overlay" id="calendarOverlay">
       <div class="modal-card" style="max-width: 380px">
         <div class="modal-header">
-          <h2>التقويم</h2>
-          <button class="icon-btn" id="closeCalendarBtn" title="إغلاق">
+          <h2 data-i18n="modal.calendar">التقويم</h2>
+          <button class="icon-btn" id="closeCalendarBtn" title="إغلاق" data-i18n-title="c.close">
             <span class="material-icons">close</span>
           </button>
         </div>
@@ -336,8 +361,8 @@
     <div class="modal-overlay" id="draftsOverlay">
       <div class="modal-card" style="max-width: 500px">
         <div class="modal-header">
-          <h2>بنك المسودات</h2>
-          <button class="icon-btn" id="closeDraftsBtn" title="إغلاق">
+          <h2 data-i18n="modal.drafts">بنك المسودات</h2>
+          <button class="icon-btn" id="closeDraftsBtn" title="إغلاق" data-i18n-title="c.close">
             <span class="material-icons">close</span>
           </button>
         </div>
@@ -348,12 +373,14 @@
               type="text"
               id="draftsSearchInput"
               placeholder="بحث ذكي في المسودات..."
+              data-i18n-placeholder="drafts.search_placeholder"
             />
             <button
               class="bank-search-clear"
               id="draftsSearchClear"
               style="display: none"
               title="مسح البحث"
+              data-i18n-title="c.search"
             >
               <span class="material-icons">close</span>
             </button>
@@ -378,8 +405,8 @@
     <div class="modal-overlay" id="globalSearchOverlay">
       <div class="modal-card" style="max-width: 500px">
         <div class="modal-header">
-          <h2>البحث في جميع المهام</h2>
-          <button class="icon-btn" id="closeGlobalSearchBtn" title="إغلاق">
+          <h2 data-i18n="modal.search">البحث في جميع المهام</h2>
+          <button class="icon-btn" id="closeGlobalSearchBtn" title="إغلاق" data-i18n-title="c.close">
             <span class="material-icons">close</span>
           </button>
         </div>
@@ -390,12 +417,14 @@
               type="text"
               id="globalSearchInput"
               placeholder="ابحث عن مهمة سابقة..."
+              data-i18n-placeholder="nav.search_placeholder"
             />
             <button
               class="bank-search-clear"
               id="globalSearchClear"
               style="display: none"
               title="مسح البحث"
+              data-i18n-title="c.search"
             >
               <span class="material-icons">close</span>
             </button>
@@ -420,11 +449,12 @@
     <div class="modal-overlay" id="notificationSettingsOverlay">
       <div class="modal-card" style="max-width: 440px">
         <div class="modal-header">
-          <h2>إعدادات التنبيهات</h2>
+          <h2 data-i18n="modal.notif_settings">إعدادات التنبيهات</h2>
           <button
             class="icon-btn"
             id="closeNotificationSettingsBtn"
             title="إغلاق"
+            data-i18n-title="c.close"
           >
             <span class="material-icons">close</span>
           </button>
@@ -434,9 +464,9 @@
             <div class="notif-setting-info">
               <span class="notif-setting-title">
                 <span class="material-icons">wb_sunny</span>
-                تنبيه الصباح
+                <span data-i18n="notif.morning">تنبيه الصباح</span>
               </span>
-              <span class="notif-setting-desc">تذكير بمهام وعادات اليوم</span>
+              <span class="notif-setting-desc" data-i18n="notif.morning_desc">تذكير بمهام وعادات اليوم</span>
             </div>
             <label class="toggle">
               <input type="checkbox" id="morningNotifToggle" />
@@ -444,7 +474,7 @@
             </label>
           </div>
           <div class="notif-setting-time-row" id="morningTimeRow">
-            <span>الوقت</span>
+            <span data-i18n="notif.time">الوقت</span>
             <button
               type="button"
               class="notif-time-btn"
@@ -459,9 +489,9 @@
             <div class="notif-setting-info">
               <span class="notif-setting-title">
                 <span class="material-icons">nights_stay</span>
-                تنبيه المساء
+                <span data-i18n="notif.evening">تنبيه المساء</span>
               </span>
-              <span class="notif-setting-desc"
+              <span class="notif-setting-desc" data-i18n="notif.evening_desc"
                 >مراجعة إنجازات اليوم والسلسلة</span
               >
             </div>
@@ -471,7 +501,7 @@
             </label>
           </div>
           <div class="notif-setting-time-row" id="eveningTimeRow">
-            <span>الوقت</span>
+            <span data-i18n="notif.time">الوقت</span>
             <button
               type="button"
               class="notif-time-btn"
@@ -491,8 +521,8 @@
     <div class="modal-overlay" id="accountOverlay">
       <div class="modal-card" style="max-width: 420px">
         <div class="modal-header">
-          <h2 id="accountModalTitle">الحساب</h2>
-          <button class="icon-btn" id="closeAccountBtn" title="إغلاق">
+          <h2 id="accountModalTitle" data-i18n="modal.account">الحساب</h2>
+          <button class="icon-btn" id="closeAccountBtn" title="إغلاق" data-i18n-title="c.close">
             <span class="material-icons">close</span>
           </button>
         </div>
@@ -505,8 +535,8 @@
     <div class="modal-overlay" id="appearanceOverlay">
       <div class="modal-card" style="max-width: 420px">
         <div class="modal-header">
-          <h2 id="appearanceModalTitle">المظهر</h2>
-          <button class="icon-btn" id="closeAppearanceBtn" title="إغلاق">
+          <h2 id="appearanceModalTitle" data-i18n="modal.appearance">المظهر</h2>
+          <button class="icon-btn" id="closeAppearanceBtn" title="إغلاق" data-i18n-title="c.close">
             <span class="material-icons">close</span>
           </button>
         </div>
@@ -517,21 +547,21 @@
     <div class="modal-overlay picker-overlay" id="durationPickerOverlay">
       <div class="picker-sheet">
         <div class="picker-header">
-          <button class="picker-cancel" id="pickerCancelBtn">إلغاء</button>
-          <h3 id="pickerTitle">مدة المهمة</h3>
-          <button class="picker-done" id="pickerDoneBtn">تم</button>
+          <button class="picker-cancel" id="pickerCancelBtn" data-i18n="picker.cancel">إلغاء</button>
+          <h3 id="pickerTitle" data-i18n="picker.task_duration">مدة المهمة</h3>
+          <button class="picker-done" id="pickerDoneBtn" data-i18n="picker.done">تم</button>
         </div>
         <div class="picker-body">
           <div class="wheel-picker">
             <div class="wheel-highlight"></div>
-            <div class="wheel-label-col">س</div>
+            <div class="wheel-label-col" data-i18n="picker.hours_label">س</div>
             <div class="wheel-col" id="hoursWheel">
               <ul class="wheel-list" id="hoursWheelList"></ul>
             </div>
             <div class="wheel-col" id="minutesWheel">
               <ul class="wheel-list" id="minutesWheelList"></ul>
             </div>
-            <div class="wheel-label-col">د</div>
+            <div class="wheel-label-col" data-i18n="picker.minutes_label">د</div>
           </div>
         </div>
       </div>
@@ -540,9 +570,9 @@
     <div class="modal-overlay picker-overlay" id="timeOfDayPickerOverlay">
       <div class="picker-sheet">
         <div class="picker-header">
-          <button class="picker-cancel" id="timePickerCancelBtn">إلغاء</button>
-          <h3 id="timePickerTitle">وقت التنبيه</h3>
-          <button class="picker-done" id="timePickerDoneBtn">تم</button>
+          <button class="picker-cancel" id="timePickerCancelBtn" data-i18n="picker.cancel">إلغاء</button>
+          <h3 id="timePickerTitle" data-i18n="picker.reminder_time">وقت التنبيه</h3>
+          <button class="picker-done" id="timePickerDoneBtn" data-i18n="picker.done">تم</button>
         </div>
         <div class="picker-body">
           <div class="wheel-picker">
@@ -558,7 +588,7 @@
               <ul class="wheel-list" id="tpPeriodWheelList"></ul>
             </div>
           </div>
-          <button type="button" class="picker-remove" id="timePickerRemoveBtn">إزالة التذكير</button>
+          <button type="button" class="picker-remove" id="timePickerRemoveBtn" data-i18n="picker.remove_reminder">إزالة التذكير</button>
         </div>
       </div>
     </div>
@@ -567,8 +597,8 @@
     <div class="modal-overlay" id="addChoiceOverlay">
       <div class="modal-card" style="max-width: 440px">
         <div class="modal-header">
-          <h2>مكان إضافة المهمة</h2>
-          <button class="icon-btn" id="closeAddChoiceBtn" title="إغلاق">
+          <h2 data-i18n="modal.add_task_place">مكان إضافة المهمة</h2>
+          <button class="icon-btn" id="closeAddChoiceBtn" title="إغلاق" data-i18n-title="c.close">
             <span class="material-icons">close</span>
           </button>
         </div>
@@ -593,22 +623,22 @@
             <button class="choice-btn choice-today" id="choiceTodayBtn">
               <span class="material-icons">today</span>
               <div class="choice-text">
-                <strong>مهام اليوم فقط</strong>
-                <span>تُضاف إلى جدول اليوم فقط ولن تُحفظ في البنك</span>
+                <strong data-i18n="modal.choice_today">مهام اليوم فقط</strong>
+                <span data-i18n="modal.choice_today_desc">تُضاف إلى جدول اليوم فقط ولن تُحفظ في البنك</span>
               </div>
             </button>
             <button class="choice-btn" id="choiceBankBtn">
               <span class="material-icons">inventory_2</span>
               <div class="choice-text">
-                <strong>بنك المهام</strong>
-                <span>تُحفظ في البنك حتى تتمكن من اضافتها في أي يوم لاحقًا</span>
+                <strong data-i18n="modal.choice_bank">قائمة المهام</strong>
+                <span data-i18n="modal.choice_bank_desc">تُحفظ في القائمة حتى تتمكن من اضافتها في أي يوم لاحقًا</span>
               </div>
             </button>
             <button class="choice-btn choice-both" id="choiceBothBtn">
               <span class="material-icons">done_all</span>
               <div class="choice-text">
-                <strong>كلاهما معًا</strong>
-                <span>تُحفظ في البنك وتُضاف إلى جدول اليوم في الوقت نفسه</span>
+                <strong data-i18n="modal.choice_both">كلاهما معًا</strong>
+                <span data-i18n="modal.choice_both_desc">تُحفظ في البنك وتُضاف إلى جدول اليوم في الوقت نفسه</span>
               </div>
             </button>
           </div>
@@ -620,8 +650,8 @@
     <div class="modal-overlay" id="missedTasksOverlay">
       <div class="modal-card" style="max-width: 420px">
         <div class="modal-header">
-          <h2>مهام الأمس</h2>
-          <button class="icon-btn" id="closeMissedTasksBtn" title="إغلاق">
+          <h2 data-i18n="modal.missed_tasks">مهام الأمس</h2>
+          <button class="icon-btn" id="closeMissedTasksBtn" title="إغلاق" data-i18n-title="c.close">
             <span class="material-icons">close</span>
           </button>
         </div>
@@ -649,8 +679,8 @@
     <div class="modal-overlay" id="recurrenceOverlay">
       <div class="modal-card" style="max-width: 420px">
         <div class="modal-header">
-          <h2>تكرار المهمة</h2>
-          <button class="icon-btn" id="closeRecurrenceBtn" title="إغلاق">
+          <h2 data-i18n="modal.recurrence">تكرار المهمة</h2>
+          <button class="icon-btn" id="closeRecurrenceBtn" title="إغلاق" data-i18n-title="c.close">
             <span class="material-icons">close</span>
           </button>
         </div>
@@ -664,12 +694,12 @@
               line-height: 1.5;
             "
           >
-            اختر الأيام التي ترغب
+            <span data-i18n="modal.recurrence_desc_prefix">اختر الأيام التي ترغب</span>
             <strong
               id="recurrenceTaskNameDisplay"
               style="color: var(--pen)"
             ></strong>
-            تتكرر فيها تلقائيًا كل أسبوع:
+            <span data-i18n="modal.recurrence_desc_suffix">تتكرر فيها تلقائيًا كل أسبوع:</span>
           </p>
           <div class="recurrence-days-grid" id="recurrenceDaysGrid"></div>
           <div class="recurrence-quick-actions">
@@ -677,6 +707,7 @@
               type="button"
               class="recurrence-quick-btn"
               id="recurrenceSelectAllBtn"
+              data-i18n="modal.recurrence_all"
             >
               كل يوم
             </button>
@@ -684,6 +715,7 @@
               type="button"
               class="recurrence-quick-btn"
               id="recurrenceClearBtn"
+              data-i18n="modal.recurrence_none"
             >
               إلغاء التكرار
             </button>
@@ -693,6 +725,7 @@
             class="add-btn"
             id="saveRecurrenceBtn"
             style="width: 100%; margin-top: 18px; padding: 12px"
+            data-i18n="c.save"
           >
             حفظ
           </button>
@@ -704,8 +737,8 @@
     <div class="modal-overlay" id="taskNoteOverlay">
       <div class="modal-card" style="max-width: 460px">
         <div class="modal-header">
-          <h2>ملاحظة المهمة</h2>
-          <button class="icon-btn" id="closeTaskNoteBtn" title="إغلاق">
+          <h2 data-i18n="modal.note">ملاحظة المهمة</h2>
+          <button class="icon-btn" id="closeTaskNoteBtn" title="إغلاق" data-i18n-title="c.close">
             <span class="material-icons">close</span>
           </button>
         </div>
@@ -729,6 +762,7 @@
             id="taskNoteInput"
             class="task-note-input"
             placeholder="اكتب ملاحظة للمهمة (وصف، تفاصيل، رابط...)..."
+            data-i18n-placeholder="modal.note_placeholder"
             rows="5"
           ></textarea>
           <button
@@ -736,6 +770,7 @@
             class="add-btn"
             id="saveTaskNoteBtn"
             style="width: 100%; margin-top: 16px; padding: 12px"
+            data-i18n="modal.note_save"
           >
             حفظ الملاحظة
           </button>
@@ -747,8 +782,8 @@
     <div class="modal-overlay" id="subtasksOverlay">
       <div class="modal-card" style="max-width: 420px">
         <div class="modal-header">
-          <h2>مهام فرعية</h2>
-          <button class="icon-btn" id="closeSubtasksBtn" title="إغلاق">
+          <h2 data-i18n="modal.subtasks">مهام فرعية</h2>
+          <button class="icon-btn" id="closeSubtasksBtn" title="إغلاق" data-i18n-title="c.close">
             <span class="material-icons">close</span>
           </button>
         </div>
@@ -758,8 +793,9 @@
               type="text"
               id="newSubtaskInput"
               placeholder="أضف مهمة فرعية..."
+              data-i18n-placeholder="modal.subtasks_placeholder"
             />
-            <button class="add-btn" id="addSubtaskBtn">إضافة</button>
+            <button class="add-btn" id="addSubtaskBtn" data-i18n="c.add">إضافة</button>
           </div>
           <div
             id="subtasksList"
@@ -779,8 +815,8 @@
     <div class="modal-overlay" id="taskDetailsOverlay">
       <div class="modal-card" style="max-width: 460px">
         <div class="modal-header">
-          <h2>تفاصيل المهمة</h2>
-          <button class="icon-btn" id="closeTaskDetailsBtn" title="إغلاق">
+          <h2 data-i18n="modal.task_details">تفاصيل المهمة</h2>
+          <button class="icon-btn" id="closeTaskDetailsBtn" title="إغلاق" data-i18n-title="c.close">
             <span class="material-icons">close</span>
           </button>
         </div>
@@ -793,8 +829,8 @@
     <div class="modal-overlay" id="timelineTaskOverlay">
       <div class="modal-card" style="max-width: 420px">
         <div class="modal-header">
-          <h2 id="timelineTaskTitle">المهمة</h2>
-          <button class="icon-btn" id="closeTimelineTaskBtn" title="إغلاق">
+          <h2 id="timelineTaskTitle" data-i18n="modal.timeline_task">المهمة</h2>
+          <button class="icon-btn" id="closeTimelineTaskBtn" title="إغلاق" data-i18n-title="c.close">
             <span class="material-icons">close</span>
           </button>
         </div>
@@ -806,15 +842,15 @@
           <div class="tl-task-actions">
             <button class="tl-task-btn" id="timelineTaskDoneBtn" type="button">
               <span class="material-icons">radio_button_unchecked</span>
-              <span id="timelineTaskDoneLabel">إنجاز</span>
+              <span id="timelineTaskDoneLabel" data-i18n="modal.task_done">إنجاز</span>
             </button>
             <button class="tl-task-btn" id="timelineTaskDupBtn" type="button">
               <span class="material-icons">content_copy</span>
-              <span>تكرار</span>
+              <span data-i18n="modal.task_duplicate">تكرار</span>
             </button>
             <button class="tl-task-btn danger" id="timelineTaskDelBtn" type="button">
               <span class="material-icons">close</span>
-              <span>حذف من الجدول</span>
+              <span data-i18n="modal.task_delete_schedule">حذف من الجدول</span>
             </button>
           </div>
         </div>
@@ -825,8 +861,8 @@
     <div class="modal-overlay" id="addTimelineTaskOverlay">
       <div class="modal-card" style="max-width: 420px">
         <div class="modal-header">
-          <h2>إضافة مهمة مجدولة</h2>
-          <button class="icon-btn" id="closeAddTimelineTaskBtn" title="إغلاق">
+          <h2 data-i18n="modal.add_scheduled">إضافة مهمة مجدولة</h2>
+          <button class="icon-btn" id="closeAddTimelineTaskBtn" title="إغلاق" data-i18n-title="c.close">
             <span class="material-icons">close</span>
           </button>
         </div>
@@ -835,37 +871,37 @@
             <span class="material-icons">calendar_today</span>
             <span id="addTimelineTaskDate"></span>
           </div>
-          <input type="text" id="addTimelineTaskName" class="addtl-input" placeholder="اسم المهمة..." maxlength="80" />
+          <input type="text" id="addTimelineTaskName" class="addtl-input" placeholder="اسم المهمة..." data-i18n-placeholder="modal.timeline_task" maxlength="80" />
           <div class="addtl-field">
-            <span class="addtl-field-label">وقت البدء</span>
+            <span class="addtl-field-label" data-i18n="modal.start_time">وقت البدء</span>
             <button class="addtl-time-btn" id="addTimelineTaskStartBtn" type="button">
               <span class="material-icons">schedule</span>
               <span id="addTimelineTaskStartLabel"></span>
             </button>
           </div>
           <div class="addtl-field">
-            <span class="addtl-field-label">المدة</span>
+            <span class="addtl-field-label" data-i18n="modal.duration">المدة</span>
             <div class="addtl-chips" id="addTimelineTaskDurationChips">
-              <button class="addtl-duration-chip" data-min="15" type="button">15 دقيقة</button>
-              <button class="addtl-duration-chip" data-min="30" type="button">30 دقيقة</button>
-              <button class="addtl-duration-chip" data-min="45" type="button">45 دقيقة</button>
-              <button class="addtl-duration-chip" data-min="60" type="button">ساعة</button>
-              <button class="addtl-duration-chip" data-min="90" type="button">ساعة ونصف</button>
-              <button class="addtl-duration-chip" data-min="120" type="button">ساعتين</button>
+              <button class="addtl-duration-chip" data-min="15" type="button" data-i18n="schedule.duration_15">15 دقيقة</button>
+              <button class="addtl-duration-chip" data-min="30" type="button" data-i18n="schedule.duration_30">30 دقيقة</button>
+              <button class="addtl-duration-chip" data-min="45" type="button" data-i18n="schedule.duration_45">45 دقيقة</button>
+              <button class="addtl-duration-chip" data-min="60" type="button" data-i18n="schedule.duration_60">ساعة</button>
+              <button class="addtl-duration-chip" data-min="90" type="button" data-i18n="schedule.duration_90">ساعة ونصف</button>
+              <button class="addtl-duration-chip" data-min="120" type="button" data-i18n="schedule.duration_120">ساعتين</button>
             </div>
           </div>
           <div class="addtl-field">
-            <span class="addtl-field-label">الأهمية</span>
+            <span class="addtl-field-label" data-i18n="modal.priority">الأهمية</span>
             <div class="addtl-priority">
-              <button class="priority-choice-btn priority-choice-none" data-choice="" type="button">بدون</button>
-              <button class="priority-choice-btn priority-choice-high" data-choice="high" type="button">عالية</button>
-              <button class="priority-choice-btn priority-choice-medium" data-choice="medium" type="button">متوسطة</button>
-              <button class="priority-choice-btn priority-choice-low" data-choice="low" type="button">منخفضة</button>
+              <button class="priority-choice-btn priority-choice-none" data-choice="" type="button" data-i18n="schedule.priority_none">بدون</button>
+              <button class="priority-choice-btn priority-choice-high" data-choice="high" type="button" data-i18n="schedule.priority_high">عالية</button>
+              <button class="priority-choice-btn priority-choice-medium" data-choice="medium" type="button" data-i18n="schedule.priority_medium">متوسطة</button>
+              <button class="priority-choice-btn priority-choice-low" data-choice="low" type="button" data-i18n="schedule.priority_low">منخفضة</button>
             </div>
           </div>
           <div class="modal-actions addtl-actions">
-            <button class="tl-task-btn danger" id="cancelAddTimelineTaskBtn" type="button">إلغاء</button>
-            <button class="tl-task-btn primary" id="confirmAddTimelineTaskBtn" type="button">إضافة</button>
+            <button class="tl-task-btn danger" id="cancelAddTimelineTaskBtn" type="button" data-i18n="modal.cancel">إلغاء</button>
+            <button class="tl-task-btn primary" id="confirmAddTimelineTaskBtn" type="button" data-i18n="modal.add">إضافة</button>
           </div>
         </div>
       </div>
@@ -875,8 +911,8 @@
     <div class="modal-overlay onboarding-overlay" id="onboardingOverlay">
       <div class="modal-card onboarding-card" style="max-width: 420px">
         <div class="modal-header">
-          <h2>أهلاً بك في نظّم</h2>
-          <button class="icon-btn" id="closeOnboardingBtn" title="إغلاق">
+          <h2 data-i18n="onboard.welcome">أهلاً بك في نظّم</h2>
+          <button class="icon-btn" id="closeOnboardingBtn" title="إغلاق" data-i18n-title="c.close">
             <span class="material-icons">close</span>
           </button>
         </div>
@@ -885,22 +921,22 @@
             <div class="onboarding-illust">
               <span class="material-icons">playlist_add_check</span>
             </div>
-            <h3 class="onboarding-step-title">اكتب المهمة مرة واحدة</h3>
-            <p class="onboarding-step-text">ضع مهامك الثابتة في بنك المهام، وأضفها إلى مهام اليوم بضغطة واحدة دون الحاجة إلى إعادة كتابتها كل مرة.</p>
+            <h3 class="onboarding-step-title" data-i18n="onboard.step1_title">اكتب المهمة مرة واحدة</h3>
+            <p class="onboarding-step-text" data-i18n="onboard.step1_text">ضع مهامك الثابتة في بنك المهام، وأضفها إلى مهام اليوم بضغطة واحدة دون الحاجة إلى إعادة كتابتها كل مرة.</p>
           </div>
           <div class="onboarding-step" data-step="1">
             <div class="onboarding-illust">
               <span class="material-icons">event_repeat</span>
             </div>
-            <h3 class="onboarding-step-title">رتب يومك وكرّر مهامك</h3>
-            <p class="onboarding-step-text">اضبط المهام المتكررة باليوم أو بالأسبوع، وحدد لكل مهمة موعدها ومدتها وأهميتها، وستُرتب مهام اليوم تلقائيًا مع متابعة إنجازك.</p>
+            <h3 class="onboarding-step-title" data-i18n="onboard.step2_title">رتب يومك وكرّر مهامك</h3>
+            <p class="onboarding-step-text" data-i18n="onboard.step2_text">اضبط المهام المتكررة باليوم أو بالأسبوع، وحدد لكل مهمة موعدها ومدتها وأهميتها، وستُرتب مهام اليوم تلقائيًا مع متابعة إنجازك.</p>
           </div>
           <div class="onboarding-step" data-step="2">
             <div class="onboarding-illust">
               <span class="material-icons">timer</span>
             </div>
-            <h3 class="onboarding-step-title">ركّز باستخدام المؤقتات</h3>
-            <p class="onboarding-step-text">سجّل وقتك عبر مؤقت مفتوح أو مؤقت بمدة محددة من لوحة مؤقتات اليوم، أو ابدأ مؤقتًا باسم أي مهمة من قائمة الوقت الخاصة بها، وتابع إجمالي وقتك الفعلي في الإحصائيات.</p>
+            <h3 class="onboarding-step-title" data-i18n="onboard.step3_title">ركّز باستخدام المؤقتات</h3>
+            <p class="onboarding-step-text" data-i18n="onboard.step3_text">سجّل وقتك عبر مؤقت مفتوح أو مؤقت بمدة محددة من لوحة مؤقتات اليوم، أو ابدأ مؤقتًا باسم أي مهمة من قائمة الوقت الخاصة بها، وتابع إجمالي وقتك الفعلي في الإحصائيات.</p>
           </div>
           <div class="onboarding-dots">
             <span class="onboarding-dot active" data-dot="0"></span>
@@ -909,9 +945,9 @@
           </div>
         </div>
         <div class="onboarding-footer">
-          <button class="onboarding-skip-btn" id="onboardingSkipBtn" type="button">تخطي</button>
+          <button class="onboarding-skip-btn" id="onboardingSkipBtn" type="button" data-i18n="onboard.skip">تخطي</button>
           <button class="onboarding-next-btn" id="onboardingNextBtn" type="button">
-            <span id="onboardingNextLabel">التالي</span>
+            <span id="onboardingNextLabel" data-i18n="onboard.next">التالي</span>
           </button>
         </div>
       </div>

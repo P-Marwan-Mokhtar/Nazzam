@@ -2,6 +2,7 @@
 // events.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
+import { t } from './i18n.js';
 import { addDays, reorderArrayById, todayStr, uid } from './utils.js';
 import { contentEl, showToast, showUndoToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
@@ -38,26 +39,26 @@ export function openReminderPicker(taskId){
   const task = (state.days[ui.selectedDate] || []).find(x => x.id === taskId);
   if(!task) return;
   openTimePicker({
-    title: 'وقت تذكير المهمة',
+    title: t('picker.reminder_time'),
     initialTime: task.remindAt || currentHHMM(),
     onConfirm: async (hhmm) => {
       const granted = await ensureNotificationPermission();
       if(!granted){
-        showToast('نحتاج إذنك من المتصفح لكي يعمل التذكير');
+        showToast(t('notif.permission_toast'));
         return;
       }
       task.remindAt = hhmm;
       task.reminded = false;
       await saveData();
       render();
-      showToast(`تم ضبط تذكير "${task.name}" الساعة ${formatTimeArabic(hhmm)}`);
+      showToast(t('notif.reminder_set_toast', {name: task.name, time: formatTimeArabic(hhmm)}));
     },
     onRemove: async () => {
       delete task.remindAt;
       delete task.reminded;
       await saveData();
       render();
-      showToast('تم إزالة التذكير');
+      showToast(t('notif.reminder_removed_toast'));
     }
   });
 }
@@ -82,7 +83,7 @@ export async function deleteTaskById(id){
   if(ui.pickerTaskId === id) closeDurationPicker();
   render();
   await saveData();
-  showUndoToast(`تم حذف "${removedTask.name}"`, async () => {
+  showUndoToast(t('toast.task_deleted', {name: removedTask.name}), async () => {
     list.splice(idx, 0, removedTask);
     removedDupIndices.forEach((pos, k) => {
       list.splice(pos, 0, removedDups[k]);
@@ -274,7 +275,7 @@ export function attachEvents(){
           state.days[ui.selectedDate] = restored.concat(newlyAdded);
         }
         state._sortPriority[ui.selectedDate] = false;
-        showToast('تم إلغاء ترتيب الأولوية');
+        showToast(t('toast.priority_cleared'));
       } else {
         if(!state._sortPriority) state._sortPriority = {};
         if(!state._taskOrderCache) state._taskOrderCache = {};
@@ -282,7 +283,7 @@ export function attachEvents(){
         const priorityOrder = { high: 0, medium: 1, low: 2 };
         list.sort((a, b) => (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3));
         state._sortPriority[ui.selectedDate] = true;
-        showToast('تم ترتيب المهام حسب الأهمية');
+        showToast(t('toast.priority_sorted'));
       }
       render();
       await saveData();
@@ -435,7 +436,7 @@ export function attachEvents(){
       if(!state.days[ui.selectedDate]) state.days[ui.selectedDate] = [];
       const exists = state.days[ui.selectedDate].some(t => t.name === name);
       if(exists){
-        showToast('هذه المهمة مُضافة بالفعل إلى جدول اليوم');
+        showToast(t('toast.task_exists_bank'));
         return;
       }
       const kw = state.keywords.find(k => k.name === name);
@@ -444,7 +445,7 @@ export function attachEvents(){
       state.days[ui.selectedDate].push(newTask);
       render();
       await saveData();
-      showToast('تمت الإضافة إلى اليوم');
+      showToast(t('toast.added_to_day'));
     }
     else if(action === 'select-filter'){
       const newFilter = btn.dataset.filterId;
@@ -461,7 +462,7 @@ export function attachEvents(){
       const filter = state.filters.find(f => f.id === id);
       if(filter){
         filter.pinned = !filter.pinned;
-        showToast(filter.pinned ? 'تم تثبيت الفلتر' : 'تم إلغاء تثبيت الفلتر');
+        showToast(filter.pinned ? t('toast.filter_pinned') : t('toast.filter_unpinned'));
       }
       ui.openFilterMoreId = null;
       render();
@@ -482,7 +483,7 @@ export function attachEvents(){
         if(val && val !== filter.name){
           const exists = state.filters.some(f => f.name === val && f.id !== id);
           if(exists){
-            showToast('هذا الفلتر موجود بالفعل');
+            showToast(t('toast.filter_exists'));
             return;
           }
           filter.name = val;
@@ -508,7 +509,7 @@ export function attachEvents(){
       ui.openFilterMoreId = null;
       render();
       await saveData();
-      showUndoToast(`تم حذف فلتر "${removedFilter.name}"`, async () => {
+      showUndoToast(t('toast.filter_deleted', {name: removedFilter.name}), async () => {
         state.filters.splice(idx, 0, removedFilter);
         affectedKeywords.forEach(k => { k.filterId = id; });
         if(wasActive) ui.activeFilter = id;
@@ -527,7 +528,7 @@ export function attachEvents(){
         ui.openKeywordMoreId = null;
         render();
         await saveData();
-        showUndoToast(`تم نقل "${kw.name}" إلى المسودات`, async () => {
+        showUndoToast(t('toast.keyword_to_drafts', {name: kw.name}), async () => {
           state.drafts = state.drafts.filter(d => d.id !== id);
           const restored = [...state.keywords];
           restored.splice(Math.min(removedIndex, restored.length), 0, kw);
@@ -619,7 +620,7 @@ export function attachEvents(){
       if(!val) return;
       const exists = state.filters.some(f => f.name === val);
       if(exists){
-        showToast('هذا الفلتر موجود بالفعل');
+        showToast(t('toast.filter_exists'));
         return;
       }
       state.filters.push({ id: uid(), name: val, pinned: false });
