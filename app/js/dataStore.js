@@ -4,7 +4,7 @@
 
 import { supabaseClient } from './config.js';
 import { detectTimezone, todayStr, uid } from './utils.js';
-import { LOCAL_BACKUP_KEY, PENDING_SYNC_KEY, showToast, state } from './state.js';
+import { LOCAL_BACKUP_KEY, BACKUP_OWNER_KEY, PENDING_SYNC_KEY, showToast, state } from './state.js';
 import { currentUserId, ensureAuth } from './auth.js';
 import { render } from './render.js';
 import { applyTheme, isValidAccent, resolveLegacyTheme } from './theme.js';
@@ -336,8 +336,21 @@ function applyLoadedState(parsed){
   applyTheme();
 }
 
+// ملكية النسخة المحلية: بتتسجل مع كل كتابة عشان نعرف بعدين النسخة دي
+// كانت بتاعة حساب مسجّل دخوله ولا اتكتبت من استخدام بعد تسجيل خروج
+function getBackupOwner(){
+  try{ return localStorage.getItem(BACKUP_OWNER_KEY); }catch(e){ return null; }
+}
+
+function setBackupOwner(userId){
+  try{ localStorage.setItem(BACKUP_OWNER_KEY, userId || ''); }catch(e){}
+}
+
 function saveLocalBackup(){
-  try{ localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(state)); }catch(e){}
+  try{
+    localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(state));
+    setBackupOwner(currentUserId); // ختم الملكية مع كل حفظ محلي
+  }catch(e){}
 }
 
 function loadLocalBackup(){
@@ -377,6 +390,12 @@ async function pushToServer(){
 // لو فيه تعديلات محلية معلّقة، تحاول ترفعها للسيرفر قبل أي حاجة تانية
 export async function trySyncPending(){
   if(!currentUserId || !hasPendingSync()) return;
+  // حماية إضافية: التعديلات المعلّقة لازم تكون مكتوبة باسم الحساب الحالي —
+  // لو ملك حد تاني (أو استخدام بعد خروج) بنعتبرها غير صالحة وبنشيل العلم
+  if(getBackupOwner() !== currentUserId){
+    markPendingSync(false);
+    return;
+  }
   try{
     await pushToServer();
     warnedNoServer = false;
@@ -394,20 +413,32 @@ export async function loadData(skipAuthCheck){
   if(!skipAuthCheck) await ensureAuth();
 
   if(!currentUserId){
-    // تعذر الاتصال بـ Supabase (مفيش نت مثلًا) - استخدم آخر نسخة محفوظة محليًا
+    // أوفلاين: بنرجّع آخر نسخة محلية بس لو هي ملك مستخدم كان مسجّل دخوله فعلًا.
+    // النسخ اللي اتكتبت بعد تسجيل خروج (owner فاضي) ما نعرضهاش كبيانات حساب —
+    // وإلا جلسة وهمية فاضية ممكن تتلصق فوق بيانات الحساب الحقيقي عند أول دخول بعدها.
     showToast('تعذّر الاتصال بالخادم، يعمل التطبيق حاليًا بنسخة محلية');
-    applyLoadedState(loadLocalBackup());
+    if(getBackupOwner()) applyLoadedState(loadLocalBackup());
     return;
   }
+
+  // ترحيل: نسخ اتعملت قبل إضافة ختم الملكية — بنعتبرها بتاعة أول حساب يسجّل
+  // دخوله على الجهاز ده بعد التحديث (وسيرفر بيغلب المحلي في أي تناقض)
+  if(getBackupOwner() === null) setBackupOwner(currentUserId);
 
   // لو فيه تعديلات محلية اتعملت من غير نت ولسه ماوصلتش للسيرفر: منجيبش نسخة
   // السيرفر (القديمة) دلوقتي، عشان منكتبش فوق التعديلات دي. الأول نستخدم
   // النسخة المحلية كما هي، ونحاول نرفعها للسيرفر؛ لو نجحنا يبقى الاتنين اتزامنوا،
   // ولو فشلنا (لسه أوفلاين فعليًا) هنفضل نستخدم المحلية ونعيد المحاولة تاني بعدين.
   if(hasPendingSync()){
-    applyLoadedState(loadLocalBackup());
-    await trySyncPending();
-    return;
+    const backup = loadLocalBackup();
+    // بنرفع التعديلات المعلّقة بس لو مكتوبة باسم الحساب نفسه —
+    // غير كده السيرفر هو المرجع الآمن ومنمسحش العلم ونكمل تحميل عادي
+    if(backup && getBackupOwner() === currentUserId){
+      applyLoadedState(backup);
+      await trySyncPending();
+      return;
+    }
+    markPendingSync(false);
   }
 
   try{

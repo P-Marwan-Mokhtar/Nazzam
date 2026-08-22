@@ -10,6 +10,11 @@ export const LOCAL_BACKUP_KEY = 'habit-data-v2';
 // (اتعملت وإحنا أوفلاين مثلًا)، عشان منكتبش فوقها لما نرجع نجيب نسخة السيرفر
 export const PENDING_SYNC_KEY = 'habit-data-pending-sync-v1';
 
+// ختم ملكية النسخة المحلية: userId بتاع آخر جلسة مسجّلة كتبت النسخة،
+// أو '' لو النسخة اتكتبت من استخدام بعد تسجيل خروج (مش بتاعة أي حساب).
+// بيمنع تعديلات جلسة "بعد الخروج" من تلصق فوق بيانات الحساب عند أول دخول.
+export const BACKUP_OWNER_KEY = 'habit-data-backup-owner-v1';
+
 export const MISSED_POPUP_SHOWN_KEY = 'nazam-missed-popup-last-shown';
 
 export const contentEl = document.getElementById('content');

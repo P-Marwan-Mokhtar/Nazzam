@@ -3,7 +3,7 @@
 // ============================================================
 
 import { TURNSTILE_SITE_KEY, supabaseClient } from './config.js';
-import { LOCAL_BACKUP_KEY, PENDING_SYNC_KEY, showToast } from './state.js';
+import { LOCAL_BACKUP_KEY, BACKUP_OWNER_KEY, PENDING_SYNC_KEY, showToast } from './state.js';
 import { t } from './i18n.js';
 
 let turnstileWidgetId = null;
@@ -458,6 +458,10 @@ async function signOutUser(){
     // يفتح التطبيق كان بيقابل بشاشة تسجيل الدخول برضو.)
     await supabaseClient.auth.signOut({ scope: 'local' });
     try{ localStorage.removeItem(LOCAL_BACKUP_KEY); }catch(e){}
+    // بنمسح ختم الملكية كمان: أي استخدام للتطبيق بعد كده وهو أوفلاين
+    // بيكتب نسخة محلية "يتيمة" مش بتاعة أي حساب، ومش هتترفع فوق بيانات
+    // الحساب الحقيقي عند أول تسجيل دخول بعدها (حماية في dataStore.js)
+    try{ localStorage.removeItem(BACKUP_OWNER_KEY); }catch(e){}
     window.location.reload();
   }catch(e){
     console.error('Sign out error:', e);
