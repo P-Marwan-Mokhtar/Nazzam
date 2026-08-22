@@ -93,6 +93,447 @@ export async function deleteTaskById(id){
   });
 }
 
+// ============================================================
+// خريطة معالجات أزرار contentEl — مفتاح = قيمة data-action.
+// كل معالج بيستقبِل زرار الضغطة نفسه (btn) وبيقرأ منه dataset.id/choice/value/name.
+// لإضافة زر جديد: ضيف data-action في الـ HTML + مفتاح بنفس الاسم هنا.
+// ============================================================
+const contentActions = {
+  'toggle-bank': async () => {
+    if(ui.bankOpen){
+      ui.bankOpen = false;
+      ui.closingBank = true;
+      ui.bankDisplayLimit = 10;
+      render();
+      ui.bankCloseTimeoutId = setTimeout(() => {
+        ui.closingBank = false;
+        ui.bankCloseTimeoutId = null;
+        render();
+      }, 240);
+    } else {
+      if(ui.bankCloseTimeoutId){ clearTimeout(ui.bankCloseTimeoutId); ui.bankCloseTimeoutId = null; }
+      ui.closingBank = false;
+      ui.bankOpen = true;
+      ui.justOpenedBank = true;
+      render();
+    }
+  },
+  'toggle-task': async (btn) => {
+    const { id } = btn.dataset;
+    const task = (state.days[ui.selectedDate] || []).find(t => t.id === id);
+    if(task){
+      task.done = !task.done;
+      if(task.done){ delete task.remindAt; delete task.reminded; } // المهمة اتنجزت — التذكير/الجرس مالوش لزمة
+      render();
+      await saveData();
+    }
+  },
+  'open-task-details': async (btn) => {
+    openTaskDetails(btn.dataset.id);
+  },
+  'toggle-mobile-filters': async () => {
+    if(ui.mobileFiltersCloseTimeoutId){ clearTimeout(ui.mobileFiltersCloseTimeoutId); ui.mobileFiltersCloseTimeoutId = null; }
+    if(ui.mobileFiltersOpen){
+      ui.mobileFiltersOpen = false;
+      ui.closingMobileFilters = true;
+      render();
+      ui.mobileFiltersCloseTimeoutId = setTimeout(() => {
+        ui.closingMobileFilters = false;
+        ui.mobileFiltersCloseTimeoutId = null;
+        render();
+      }, 220);
+    } else {
+      ui.closingMobileFilters = false;
+      ui.mobileFiltersOpen = true;
+      ui.justOpenedMobileFilters = true;
+      render();
+    }
+  },
+  'bank-show-more': async () => {
+    ui.bankDisplayLimit += 10;
+    render();
+  },
+  'bank-show-less': async () => {
+    ui.bankDisplayLimit = 10;
+    render();
+  },
+  'toggle-duration': async (btn) => {
+    const { id } = btn.dataset;
+    ui.openPriorityPopoverTaskId = null;
+    if(ui.openClockChoiceTaskId === id){
+      ui.openClockChoiceTaskId = null;
+    } else {
+      ui.openClockChoiceTaskId = id;
+    }
+    render();
+  },
+  'toggle-priority-popover': async (btn) => {
+    const { id } = btn.dataset;
+    ui.openClockChoiceTaskId = null;
+    if(ui.openPriorityPopoverTaskId === id){
+      ui.openPriorityPopoverTaskId = null;
+    } else {
+      ui.openPriorityPopoverTaskId = id;
+    }
+    render();
+  },
+  'set-task-priority': async (btn) => {
+    const { id } = btn.dataset;
+    const task = (state.days[ui.selectedDate] || []).find(x => x.id === id);
+    if(task) task.priority = btn.dataset.choice || null;
+    ui.openPriorityPopoverTaskId = null;
+    render();
+    await saveData();
+  },
+  'delete-task': async (btn) => {
+    await deleteTaskById(btn.dataset.id);
+  },
+  'toggle-day-status-filter': async () => {
+    ui.dayStatusFilterOpen = !ui.dayStatusFilterOpen;
+    ui.dayTypeFilterOpen = false;
+    render();
+  },
+  'select-day-status-filter': async (btn) => {
+    ui.dayStatusFilter = btn.dataset.value;
+    ui.dayStatusFilterOpen = false;
+    render();
+  },
+  'toggle-day-type-filter': async () => {
+    ui.dayTypeFilterOpen = !ui.dayTypeFilterOpen;
+    ui.dayStatusFilterOpen = false;
+    render();
+  },
+  'select-day-type-filter': async (btn) => {
+    ui.dayTypeFilter = btn.dataset.value;
+    ui.dayTypeFilterOpen = false;
+    render();
+  },
+  'sort-by-priority': async () => {
+    const list = state.days[ui.selectedDate] || [];
+    if(list.length <= 1) return;
+    if(state._sortPriority && state._sortPriority[ui.selectedDate]){
+      if(state._taskOrderCache && state._taskOrderCache[ui.selectedDate]){
+        const cached = state._taskOrderCache[ui.selectedDate];
+        const map = {};
+        list.forEach(t => { map[t.id] = t; });
+        const restored = cached.map(tid => map[tid]).filter(Boolean);
+        // أي مهمة اتضافت وهي في وضع الترتيب مش موجودة في الـ cache القديم — نضيفها في الآخر بدل ما تتشال
+        const restoredIds = new Set(restored.map(t => t.id));
+        const newlyAdded = list.filter(t => !restoredIds.has(t.id));
+        state.days[ui.selectedDate] = restored.concat(newlyAdded);
+      }
+      state._sortPriority[ui.selectedDate] = false;
+      showToast(t('toast.priority_cleared'));
+    } else {
+      if(!state._sortPriority) state._sortPriority = {};
+      if(!state._taskOrderCache) state._taskOrderCache = {};
+      state._taskOrderCache[ui.selectedDate] = list.map(t => t.id);
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      list.sort((a, b) => (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3));
+      state._sortPriority[ui.selectedDate] = true;
+      showToast(t('toast.priority_sorted'));
+    }
+    render();
+    await saveData();
+  },
+  'toggle-task-more': async (btn) => {
+    const { id } = btn.dataset;
+    const willOpen = ui.openTaskMoreId !== id;
+    ui.openTaskMoreId = willOpen ? id : null;
+    ui.openKeywordMoreId = null;
+    ui.openPriorityPopoverTaskId = null;
+    ui.openClockChoiceTaskId = null;
+    if(!willOpen) ui.openTaskMoreUp = false;
+    render();
+    if(willOpen) flipTaskMoreDropdown(id);
+  },
+  'toggle-keyword-more': async (btn) => {
+    const { id } = btn.dataset;
+    ui.openKeywordMoreId = ui.openKeywordMoreId === id ? null : id;
+    ui.openKeywordTypePopoverTaskId = null;
+    ui.openTaskMoreId = null;
+    render();
+  },
+  'toggle-keyword-type-popover': async (btn) => {
+    const { id } = btn.dataset;
+    if(ui.openKeywordTypePopoverTaskId === id){
+      ui.openKeywordTypePopoverTaskId = null;
+    } else {
+      ui.openKeywordTypePopoverTaskId = id;
+    }
+    render();
+  },
+  'set-keyword-type': async (btn) => {
+    const { id } = btn.dataset;
+    const kw = state.keywords.find(x => x.id === id);
+    if(kw){
+      if(btn.dataset.choice) kw.type = btn.dataset.choice;
+      else delete kw.type;
+      Object.values(state.days).forEach(dayList => {
+        dayList.forEach(t => {
+          if(t.name === kw.name){
+            if(kw.type) t.type = kw.type;
+            else delete t.type;
+          }
+        });
+      });
+    }
+    ui.openKeywordTypePopoverTaskId = null;
+    render();
+    await saveData();
+  },
+  'open-task-stats': async (btn) => {
+    const name = btn.dataset.name;
+    if(!name) return;
+    ui.openKeywordMoreId = null;
+    ui.taskStatsName = name;
+    render();
+  },
+  'clock-choice-target': async (btn) => {
+    const { id } = btn.dataset;
+    ui.openClockChoiceTaskId = null;
+    ui.openTaskMoreId = null;
+    render();
+    openDurationPicker(id);
+  },
+  'clock-choice-actual': async (btn) => {
+    const { id } = btn.dataset;
+    ui.openClockChoiceTaskId = null;
+    ui.openTaskMoreId = null;
+    render();
+    openActualDurationPicker(id);
+  },
+  'clock-choice-timer': async (btn) => {
+    const { id } = btn.dataset;
+    ui.openClockChoiceTaskId = null;
+    ui.openTaskMoreId = null;
+    render();
+    const task = (state.days[ui.selectedDate] || []).find(x => x.id === id);
+    if(!task) return;
+    await startOpenTimer(task.name);
+  },
+  'open-subtasks': async (btn) => {
+    const { id } = btn.dataset;
+    ui.openTaskMoreId = null;
+    openSubtasksModal(id);
+    render();
+  },
+  'edit-task-today': async (btn) => {
+    const { id } = btn.dataset;
+    ui.openTaskMoreId = null;
+    ui.editingTaskId = id;
+    render();
+    const inp = document.getElementById('inlineEditInput_' + id);
+    if(inp) {
+      inp.focus();
+      inp.setSelectionRange(inp.value.length, inp.value.length);
+    }
+  },
+  'save-task-edit': async (btn) => {
+    const { id } = btn.dataset;
+    ui.openTaskMoreId = null;
+    const task = (state.days[ui.selectedDate] || []).find(x => x.id === id);
+    const inp = document.getElementById('inlineEditInput_' + id);
+    if(task && inp){
+      const newName = inp.value.trim();
+      if(newName && newName !== task.name){
+        const oldName = task.name;
+        if(state.recurringTasks && state.recurringTasks[oldName]){
+          state.recurringTasks[newName] = state.recurringTasks[oldName];
+          delete state.recurringTasks[oldName];
+        }
+        // بنعيد التسمية على كل نسخ المهمة عبر كل الأيام (غير نسخ الجدول الزمني المكررة)
+        // عشان النسخ اللي اتحقنت تلقائيًا في الأيام الجاية بالاسم القديم ميتسابش ليها
+        // نسخ يتيمة بالاسم القديم، ونسخ جديدة بالاسم الجديد تتحقن جنبهم (تكرار).
+        // وبما إن التكرار متعرف بالاسم، فإعادة التسمية = إعادة تسمية المهمة في كل مكان.
+        Object.keys(state.days).forEach(dateStr => {
+          state.days[dateStr] = state.days[dateStr].map(t => {
+            if(t.name === oldName && !t._dupOf) return { ...t, name: newName };
+            return t;
+          });
+        });
+        // بنرحّل "قرار" الأيام بتاع الاسم القديم للاسم الجديد في pinnedInjected
+        // عشان القرارات اللي اتخدت (مثلاً: مسحت نسخة من يوم مستقبلي) تفضل شغالة
+        // على الاسم الجديد، وكل يوم يفضل مقرر مصيره مرة واحدة بس من غير تكرر.
+        if(state.pinnedInjected){
+          Object.keys(state.pinnedInjected).forEach(dateStr => {
+            const dayPinned = state.pinnedInjected[dateStr];
+            if(dayPinned && dayPinned[oldName]){
+              dayPinned[newName] = dayPinned[oldName];
+              delete dayPinned[oldName];
+            }
+          });
+        }
+      }
+    }
+    ui.editingTaskId = null;
+    render();
+    saveData();
+  },
+  'cancel-task-edit': async () => {
+    ui.editingTaskId = null;
+    render();
+  },
+  'open-task-note': async (btn) => {
+    const { id } = btn.dataset;
+    ui.openTaskMoreId = null;
+    openTaskNoteModal(id);
+    render();
+  },
+  'open-recurrence': async (btn) => {
+    const { id } = btn.dataset;
+    ui.openTaskMoreId = null;
+    openRecurrenceModal(id);
+    render();
+  },
+  'open-reminder': async (btn) => {
+    const { id } = btn.dataset;
+    ui.openTaskMoreId = null;
+    openReminderPicker(id);
+    render();
+  },
+  'add-to-day': async (btn) => {
+    const name = btn.dataset.name;
+    if(!state.days[ui.selectedDate]) state.days[ui.selectedDate] = [];
+    const exists = state.days[ui.selectedDate].some(t => t.name === name);
+    if(exists){
+      showToast(t('toast.task_exists_bank'));
+      return;
+    }
+    const kw = state.keywords.find(k => k.name === name);
+    const newTask = { id: uid(), name, done: false };
+    if(kw && kw.type) newTask.type = kw.type;
+    state.days[ui.selectedDate].push(newTask);
+    render();
+    await saveData();
+    showToast(t('toast.added_to_day'));
+  },
+  'select-filter': async (btn) => {
+    const newFilter = btn.dataset.filterId;
+    if(newFilter !== ui.activeFilter) ui.justChangedFilter = true;
+    ui.activeFilter = newFilter;
+    ui.bankDisplayLimit = 10;
+    render();
+  },
+  'toggle-filter-more': async (btn) => {
+    const { id } = btn.dataset;
+    ui.openFilterMoreId = ui.openFilterMoreId === id ? null : id;
+    render();
+  },
+  'toggle-pin-filter': async (btn) => {
+    const { id } = btn.dataset;
+    const filter = state.filters.find(f => f.id === id);
+    if(filter){
+      filter.pinned = !filter.pinned;
+      showToast(filter.pinned ? t('toast.filter_pinned') : t('toast.filter_unpinned'));
+    }
+    ui.openFilterMoreId = null;
+    render();
+    await saveData();
+  },
+  'edit-filter': async (btn) => {
+    const { id } = btn.dataset;
+    ui.editingFilterId = id;
+    ui.openFilterMoreId = null;
+    render();
+    const input = document.getElementById('editFilterInput');
+    if(input){ input.focus(); input.select(); }
+  },
+  'save-filter': async (btn) => {
+    const { id } = btn.dataset;
+    const input = document.getElementById('editFilterInput');
+    const filter = state.filters.find(f => f.id === id);
+    if(filter && input){
+      const val = input.value.trim();
+      if(val && val !== filter.name){
+        const exists = state.filters.some(f => f.name === val && f.id !== id);
+        if(exists){
+          showToast(t('toast.filter_exists'));
+          return;
+        }
+        filter.name = val;
+        await saveData();
+      }
+    }
+    ui.editingFilterId = null;
+    render();
+  },
+  'cancel-filter': async () => {
+    ui.editingFilterId = null;
+    render();
+  },
+  'delete-filter': async (btn) => {
+    const { id } = btn.dataset;
+    const idx = state.filters.findIndex(f => f.id === id);
+    if(idx === -1) return;
+    const [removedFilter] = state.filters.splice(idx, 1);
+    const affectedKeywords = state.keywords.filter(k => k.filterId === id);
+    affectedKeywords.forEach(k => { k.filterId = null; });
+    const wasActive = ui.activeFilter === id;
+    if(wasActive) ui.activeFilter = 'all';
+    ui.bankDisplayLimit = 10;
+    ui.openFilterMoreId = null;
+    render();
+    await saveData();
+    showUndoToast(t('toast.filter_deleted', {name: removedFilter.name}), async () => {
+      state.filters.splice(idx, 0, removedFilter);
+      affectedKeywords.forEach(k => { k.filterId = id; });
+      if(wasActive) ui.activeFilter = id;
+      render();
+      await saveData();
+    });
+  },
+  'delete-keyword': async (btn) => {
+    const { id } = btn.dataset;
+    // بدل الحذف النهائي، بننقلها للـ Drafts عشان البيانات متضيعش —
+    // مع توست تراجع لو المستخدم داس بالغلط يرجعها مكانها فورًا
+    const kw = state.keywords.find(k => k.id === id);
+    if(kw){
+      const removedIndex = state.keywords.indexOf(kw);
+      state.keywords = state.keywords.filter(k => k.id !== id);
+      state.drafts.push(kw);
+      ui.openKeywordMoreId = null;
+      render();
+      await saveData();
+      showUndoToast(t('toast.keyword_to_drafts', {name: kw.name}), async () => {
+        state.drafts = state.drafts.filter(d => d.id !== id);
+        const restored = [...state.keywords];
+        restored.splice(Math.min(removedIndex, restored.length), 0, kw);
+        state.keywords = restored;
+        render();
+        await saveData();
+      });
+    }
+  },
+  'edit-keyword': async (btn) => {
+    const { id } = btn.dataset;
+    ui.editingKeywordId = id;
+    ui.openKeywordMoreId = null;
+    render();
+    const input = document.getElementById('editKeywordInput');
+    if(input){ input.focus(); input.select(); }
+  },
+  'save-keyword': async () => {
+    const input = document.getElementById('editKeywordInput');
+    const filterSelect = document.getElementById('editKeywordFilterCustom');
+    const val = input.value.trim();
+    if(val){
+      const kw = state.keywords.find(k => k.id === ui.editingKeywordId);
+      if(kw){
+        kw.name = val;
+        kw.filterId = filterSelect && filterSelect.dataset.value ? filterSelect.dataset.value : null;
+      }
+    }
+    ui.editingKeywordId = null;
+    render();
+    await saveData();
+  },
+  'cancel-keyword': async () => {
+    ui.editingKeywordId = null;
+    render();
+  }
+};
+
 export function attachEvents(){
   document.getElementById('prevBtn').onclick = () => { ui.selectedDate = addDays(ui.selectedDate, -1); ui.justChangedDay = true; render(); };
   const nextBtn = document.getElementById('nextBtn');
@@ -106,425 +547,12 @@ export function attachEvents(){
     if(!btn){
       if(e.target.closest('input')) return;
       const nameEl = e.target.closest('.keyword-name');
-      if(nameEl){
-        nameEl.classList.toggle('expanded');
-        return;
-      }
+      if(nameEl) nameEl.classList.toggle('expanded');
       return;
     }
-    
-    const action = btn.dataset.action;
-    const id = btn.dataset.id;
 
-    if(action === 'toggle-bank'){
-      if(ui.bankOpen){
-        ui.bankOpen = false;
-        ui.closingBank = true;
-        ui.bankDisplayLimit = 10;
-        render();
-        ui.bankCloseTimeoutId = setTimeout(() => {
-          ui.closingBank = false;
-          ui.bankCloseTimeoutId = null;
-          render();
-        }, 240);
-      } else {
-        if(ui.bankCloseTimeoutId){ clearTimeout(ui.bankCloseTimeoutId); ui.bankCloseTimeoutId = null; }
-        ui.closingBank = false;
-        ui.bankOpen = true;
-        ui.justOpenedBank = true;
-        render();
-      }
-    }
-    else if(action === 'toggle-task'){
-      const task = (state.days[ui.selectedDate] || []).find(t => t.id === id);
-      if(task){
-        task.done = !task.done;
-        if(task.done){ delete task.remindAt; delete task.reminded; } // المهمة اتنجزت — التذكير/الجرس مالوش لزمة
-        render();
-        await saveData();
-      }
-    }
-    else if(action === 'open-task-details'){
-      openTaskDetails(id);
-    }
-    else if(action === 'toggle-mobile-filters'){
-      if(ui.mobileFiltersCloseTimeoutId){ clearTimeout(ui.mobileFiltersCloseTimeoutId); ui.mobileFiltersCloseTimeoutId = null; }
-      if(ui.mobileFiltersOpen){
-        ui.mobileFiltersOpen = false;
-        ui.closingMobileFilters = true;
-        render();
-        ui.mobileFiltersCloseTimeoutId = setTimeout(() => {
-          ui.closingMobileFilters = false;
-          ui.mobileFiltersCloseTimeoutId = null;
-          render();
-        }, 220);
-      } else {
-        ui.closingMobileFilters = false;
-        ui.mobileFiltersOpen = true;
-        ui.justOpenedMobileFilters = true;
-        render();
-      }
-    }
-    else if(action === 'bank-show-more'){
-      ui.bankDisplayLimit += 10;
-      render();
-    }
-    else if(action === 'bank-show-less'){
-      ui.bankDisplayLimit = 10;
-      render();
-    }
-    else if(action === 'toggle-duration'){
-      ui.openPriorityPopoverTaskId = null;
-      if(ui.openClockChoiceTaskId === id){
-        ui.openClockChoiceTaskId = null;
-      } else {
-        ui.openClockChoiceTaskId = id;
-      }
-      render();
-    }
-    else if(action === 'toggle-priority-popover'){
-      ui.openClockChoiceTaskId = null;
-      if(ui.openPriorityPopoverTaskId === id){
-        ui.openPriorityPopoverTaskId = null;
-      } else {
-        ui.openPriorityPopoverTaskId = id;
-      }
-      render();
-    }
-    else if(action === 'set-task-priority'){
-      const task = (state.days[ui.selectedDate] || []).find(x => x.id === id);
-      if(task) task.priority = btn.dataset.choice || null;
-      ui.openPriorityPopoverTaskId = null;
-      render();
-      await saveData();
-    }
-    else if(action === 'delete-task'){
-      await deleteTaskById(id);
-    }
-    else if(action === 'toggle-day-status-filter'){
-      ui.dayStatusFilterOpen = !ui.dayStatusFilterOpen;
-      ui.dayTypeFilterOpen = false;
-      render();
-    }
-    else if(action === 'select-day-status-filter'){
-      ui.dayStatusFilter = btn.dataset.value;
-      ui.dayStatusFilterOpen = false;
-      render();
-    }
-    else if(action === 'toggle-day-type-filter'){
-      ui.dayTypeFilterOpen = !ui.dayTypeFilterOpen;
-      ui.dayStatusFilterOpen = false;
-      render();
-    }
-    else if(action === 'select-day-type-filter'){
-      ui.dayTypeFilter = btn.dataset.value;
-      ui.dayTypeFilterOpen = false;
-      render();
-    }
-    else if(action === 'sort-by-priority'){
-      const list = state.days[ui.selectedDate] || [];
-      if(list.length <= 1) return;
-      if(state._sortPriority && state._sortPriority[ui.selectedDate]){
-        if(state._taskOrderCache && state._taskOrderCache[ui.selectedDate]){
-          const cached = state._taskOrderCache[ui.selectedDate];
-          const map = {};
-          list.forEach(t => { map[t.id] = t; });
-          const restored = cached.map(id => map[id]).filter(Boolean);
-          // أي مهمة اتضافت وهي في وضع الترتيب مش موجودة في الـ cache القديم — نضيفها في الآخر بدل ما تتشال
-          const restoredIds = new Set(restored.map(t => t.id));
-          const newlyAdded = list.filter(t => !restoredIds.has(t.id));
-          state.days[ui.selectedDate] = restored.concat(newlyAdded);
-        }
-        state._sortPriority[ui.selectedDate] = false;
-        showToast(t('toast.priority_cleared'));
-      } else {
-        if(!state._sortPriority) state._sortPriority = {};
-        if(!state._taskOrderCache) state._taskOrderCache = {};
-        state._taskOrderCache[ui.selectedDate] = list.map(t => t.id);
-        const priorityOrder = { high: 0, medium: 1, low: 2 };
-        list.sort((a, b) => (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3));
-        state._sortPriority[ui.selectedDate] = true;
-        showToast(t('toast.priority_sorted'));
-      }
-      render();
-      await saveData();
-    }
-    else if(action === 'toggle-task-more'){
-      const willOpen = ui.openTaskMoreId !== id;
-      ui.openTaskMoreId = willOpen ? id : null;
-      ui.openKeywordMoreId = null;
-      ui.openPriorityPopoverTaskId = null;
-      ui.openClockChoiceTaskId = null;
-      if(!willOpen) ui.openTaskMoreUp = false;
-      render();
-      if(willOpen) flipTaskMoreDropdown(id);
-    }
-    else if(action === 'toggle-keyword-more'){
-      ui.openKeywordMoreId = ui.openKeywordMoreId === id ? null : id;
-      ui.openKeywordTypePopoverTaskId = null;
-      ui.openTaskMoreId = null;
-      render();
-    }
-    else if(action === 'toggle-keyword-type-popover'){
-      if(ui.openKeywordTypePopoverTaskId === id){
-        ui.openKeywordTypePopoverTaskId = null;
-      } else {
-        ui.openKeywordTypePopoverTaskId = id;
-      }
-      render();
-    }
-    else if(action === 'set-keyword-type'){
-      const kw = state.keywords.find(x => x.id === id);
-      if(kw){
-        if(btn.dataset.choice) kw.type = btn.dataset.choice;
-        else delete kw.type;
-        Object.values(state.days).forEach(dayList => {
-          dayList.forEach(t => {
-            if(t.name === kw.name){
-              if(kw.type) t.type = kw.type;
-              else delete t.type;
-            }
-          });
-        });
-      }
-      ui.openKeywordTypePopoverTaskId = null;
-      render();
-      await saveData();
-    }
-    else if(action === 'open-task-stats'){
-      const name = btn.dataset.name;
-      if(!name) return;
-      ui.openKeywordMoreId = null;
-      ui.taskStatsName = name;
-      render();
-    }
-    else if(action === 'clock-choice-target'){
-      ui.openClockChoiceTaskId = null;
-      ui.openTaskMoreId = null;
-      render();
-      openDurationPicker(id);
-    }
-    else if(action === 'clock-choice-actual'){
-      ui.openClockChoiceTaskId = null;
-      ui.openTaskMoreId = null;
-      render();
-      openActualDurationPicker(id);
-    }
-    else if(action === 'clock-choice-timer'){
-      ui.openClockChoiceTaskId = null;
-      ui.openTaskMoreId = null;
-      render();
-      const task = (state.days[ui.selectedDate] || []).find(x => x.id === id);
-      if(!task) return;
-      await startOpenTimer(task.name);
-    }
-    else if(action === 'open-subtasks'){
-      ui.openTaskMoreId = null;
-      openSubtasksModal(id);
-      render();
-    }
-    else if(action === 'edit-task-today'){
-      ui.openTaskMoreId = null;
-      ui.editingTaskId = id;
-      render();
-      const inp = document.getElementById('inlineEditInput_' + id);
-      if(inp) {
-        inp.focus();
-        inp.setSelectionRange(inp.value.length, inp.value.length);
-      }
-    }
-    else if(action === 'save-task-edit'){
-      ui.openTaskMoreId = null;
-      const task = (state.days[ui.selectedDate] || []).find(x => x.id === id);
-      const inp = document.getElementById('inlineEditInput_' + id);
-      if(task && inp){
-        const newName = inp.value.trim();
-        if(newName && newName !== task.name){
-          const oldName = task.name;
-          if(state.recurringTasks && state.recurringTasks[oldName]){
-            state.recurringTasks[newName] = state.recurringTasks[oldName];
-            delete state.recurringTasks[oldName];
-          }
-          // بنعيد التسمية على كل نسخ المهمة عبر كل الأيام (غير نسخ الجدول الزمني المكررة)
-          // عشان النسخ اللي اتحقنت تلقائيًا في الأيام الجاية بالاسم القديم ميتسابش ليها
-          // نسخ يتيمة بالاسم القديم، ونسخ جديدة بالاسم الجديد تتحقن جنبهم (تكرار).
-          // وبما إن التكرار متعرف بالاسم، فإعادة التسمية = إعادة تسمية المهمة في كل مكان.
-          Object.keys(state.days).forEach(dateStr => {
-            state.days[dateStr] = state.days[dateStr].map(t => {
-              if(t.name === oldName && !t._dupOf) return { ...t, name: newName };
-              return t;
-            });
-          });
-          // بنرحّل "قرار" الأيام بتاع الاسم القديم للاسم الجديد في pinnedInjected
-          // عشان القرارات اللي اتخدت (مثلاً: مسحت نسخة من يوم مستقبلي) تفضل شغالة
-          // على الاسم الجديد، وكل يوم يفضل مقرر مصيره مرة واحدة بس من غير تكرر.
-          if(state.pinnedInjected){
-            Object.keys(state.pinnedInjected).forEach(dateStr => {
-              const dayPinned = state.pinnedInjected[dateStr];
-              if(dayPinned && dayPinned[oldName]){
-                dayPinned[newName] = dayPinned[oldName];
-                delete dayPinned[oldName];
-              }
-            });
-          }
-        }
-      }
-      ui.editingTaskId = null;
-      render();
-      saveData();
-    }
-    else if(action === 'cancel-task-edit'){
-      ui.editingTaskId = null;
-      render();
-    }
-    else if(action === 'open-task-note'){
-      ui.openTaskMoreId = null;
-      openTaskNoteModal(id);
-      render();
-    }
-    else if(action === 'open-recurrence'){
-      ui.openTaskMoreId = null;
-      openRecurrenceModal(id);
-      render();
-    }
-    else if(action === 'open-reminder'){
-      ui.openTaskMoreId = null;
-      openReminderPicker(id);
-      render();
-    }
-    else if(action === 'add-to-day'){
-      const name = btn.dataset.name;
-      if(!state.days[ui.selectedDate]) state.days[ui.selectedDate] = [];
-      const exists = state.days[ui.selectedDate].some(t => t.name === name);
-      if(exists){
-        showToast(t('toast.task_exists_bank'));
-        return;
-      }
-      const kw = state.keywords.find(k => k.name === name);
-      const newTask = { id: uid(), name, done: false };
-      if(kw && kw.type) newTask.type = kw.type;
-      state.days[ui.selectedDate].push(newTask);
-      render();
-      await saveData();
-      showToast(t('toast.added_to_day'));
-    }
-    else if(action === 'select-filter'){
-      const newFilter = btn.dataset.filterId;
-      if(newFilter !== ui.activeFilter) ui.justChangedFilter = true;
-      ui.activeFilter = newFilter;
-      ui.bankDisplayLimit = 10;
-      render();
-    }
-    else if(action === 'toggle-filter-more'){
-      ui.openFilterMoreId = ui.openFilterMoreId === id ? null : id;
-      render();
-    }
-    else if(action === 'toggle-pin-filter'){
-      const filter = state.filters.find(f => f.id === id);
-      if(filter){
-        filter.pinned = !filter.pinned;
-        showToast(filter.pinned ? t('toast.filter_pinned') : t('toast.filter_unpinned'));
-      }
-      ui.openFilterMoreId = null;
-      render();
-      await saveData();
-    }
-    else if(action === 'edit-filter'){
-      ui.editingFilterId = id;
-      ui.openFilterMoreId = null;
-      render();
-      const input = document.getElementById('editFilterInput');
-      if(input){ input.focus(); input.select(); }
-    }
-    else if(action === 'save-filter'){
-      const input = document.getElementById('editFilterInput');
-      const filter = state.filters.find(f => f.id === id);
-      if(filter && input){
-        const val = input.value.trim();
-        if(val && val !== filter.name){
-          const exists = state.filters.some(f => f.name === val && f.id !== id);
-          if(exists){
-            showToast(t('toast.filter_exists'));
-            return;
-          }
-          filter.name = val;
-          await saveData();
-        }
-      }
-      ui.editingFilterId = null;
-      render();
-    }
-    else if(action === 'cancel-filter'){
-      ui.editingFilterId = null;
-      render();
-    }
-    else if(action === 'delete-filter'){
-      const idx = state.filters.findIndex(f => f.id === id);
-      if(idx === -1) return;
-      const [removedFilter] = state.filters.splice(idx, 1);
-      const affectedKeywords = state.keywords.filter(k => k.filterId === id);
-      affectedKeywords.forEach(k => { k.filterId = null; });
-      const wasActive = ui.activeFilter === id;
-      if(wasActive) ui.activeFilter = 'all';
-      ui.bankDisplayLimit = 10;
-      ui.openFilterMoreId = null;
-      render();
-      await saveData();
-      showUndoToast(t('toast.filter_deleted', {name: removedFilter.name}), async () => {
-        state.filters.splice(idx, 0, removedFilter);
-        affectedKeywords.forEach(k => { k.filterId = id; });
-        if(wasActive) ui.activeFilter = id;
-        render();
-        await saveData();
-      });
-    }
-    else if(action === 'delete-keyword'){
-      // بدل الحذف النهائي، بننقلها للـ Drafts عشان البيانات متضيعش —
-      // مع توست تراجع لو المستخدم داس بالغلط يرجعها مكانها فورًا
-      const kw = state.keywords.find(k => k.id === id);
-      if(kw){
-        const removedIndex = state.keywords.indexOf(kw);
-        state.keywords = state.keywords.filter(k => k.id !== id);
-        state.drafts.push(kw);
-        ui.openKeywordMoreId = null;
-        render();
-        await saveData();
-        showUndoToast(t('toast.keyword_to_drafts', {name: kw.name}), async () => {
-          state.drafts = state.drafts.filter(d => d.id !== id);
-          const restored = [...state.keywords];
-          restored.splice(Math.min(removedIndex, restored.length), 0, kw);
-          state.keywords = restored;
-          render();
-          await saveData();
-        });
-      }
-    }
-    else if(action === 'edit-keyword'){
-      ui.editingKeywordId = id;
-      ui.openKeywordMoreId = null;
-      render();
-      const input = document.getElementById('editKeywordInput');
-      if(input){ input.focus(); input.select(); }
-    }
-    else if(action === 'save-keyword'){
-      const input = document.getElementById('editKeywordInput');
-      const filterSelect = document.getElementById('editKeywordFilterCustom');
-      const val = input.value.trim();
-      if(val){
-        const kw = state.keywords.find(k => k.id === ui.editingKeywordId);
-        if(kw){
-          kw.name = val;
-          kw.filterId = filterSelect && filterSelect.dataset.value ? filterSelect.dataset.value : null;
-        }
-      }
-      ui.editingKeywordId = null;
-      render();
-      await saveData();
-    }
-    else if(action === 'cancel-keyword'){
-      ui.editingKeywordId = null;
-      render();
-    }
+    const handler = contentActions[btn.dataset.action];
+    if(handler) await handler(btn);
   };
 
   const bankSearchInput = document.getElementById('bankSearchInput');

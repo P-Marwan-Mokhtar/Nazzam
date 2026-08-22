@@ -5,7 +5,7 @@
 // رقم الإصدار (CACHE_VERSION) بيتغيّر تلقائيًا مع أي تغيير في المحتوى.
 // ============================================================
 
-const CACHE_VERSION = 'v67c2acbec1';
+const CACHE_VERSION = 'v79f5552cb2';
 const CACHE_NAME = 'daily-tasks-shell-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [

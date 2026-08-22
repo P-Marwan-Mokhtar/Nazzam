@@ -53,7 +53,7 @@
 
 ## الأنماط المعمارية (الأهم — التزم بها)
 
-- **التفاعلات كلها بنظام `data-action`**: أي زر/عنصر تفاعلي جواه `data-action="..."` (مع `data-id` و `data-choice` وغيرها)، وكلها بتتعامل في `app/js/events.js` داخل `attachEvents()` من خلال **handler موحد واحد** على `contentEl`. لو عايز تضيف زر جديد: ضيف `data-action` جديد + حالة `else if` في `attachEvents` (الـ handler async).
+- **التفاعلات كلها بنظام `data-action`**: أي زر/عنصر تفاعلي جواه `data-action="..."` (مع `data-id` و `data-choice` وغيرها)، وكلها بتتعامل في `app/js/events.js` من خلال خريطة `contentActions` (مفتاح = قيمة الـ action) ومُوزِّع واحد على `contentEl` داخل `attachEvents()`. لو عايز تضيف زر جديد: ضيف `data-action` في الـ HTML + مفتاح بنفس الاسم في `contentActions` (معالج async بيستقبِل الزر نفسه وبيلقط منه `dataset.id` وغيره).
 - **الرسم مركزي**: `render()` في `app/js/render.js` بتبني `contentEl.innerHTML` بالكامل من `state.days` + حالة `ui`. أي تغيير في البيانات أو حالة الواجهة = عدّل `state`/`ui` ثم استدعي `render()` (وبعد تعديل البيانات استدعي `saveData()` من `dataStore.js`).
 - **الحالة**: `state` (البيانات المحفوظة) و `ui` (حالة الواجهة) و `contentEl` و `PRIORITY_LABELS` كلها في `app/js/state.js`.
 - **القوائم والبوب أبات**: تُرسم جوه الـ markup مباشرة بكلاس `open` حسب حالة `ui` (مثل `priority-popover` و `clock-choice-popover` و `type-popover` جوه `task-more-dropdown`) — الإغلاق بيعتمد على toggle الحالة + `render()`، والنقر خارجها بيتقفل في handler الـ document في `main.js`.
