@@ -154,6 +154,18 @@ Deno.serve(async (req) => {
       }
 
       if (stateChanged) {
+        // الأولوية للكتابة الذرية عن طريق merge_user_state (قفل صف FOR UPDATE +
+        // دمج عمق-واحد جوه transaction — شوف supabase/migrations/) — مفيش أي
+        // نافذة سباق مع حفظ المستخدم من التطبيق خالص.
+        // لو الـ migration لسه ما اتنفذتش على قاعدة البيانات، بنرجع مؤقتًا
+        // لأسلوب "قراءة أخيرة + دمج" تحت عشان الفنكشن تفضل شغالة في الحالتين.
+        const { error: rpcError } = await supabase.rpc("merge_user_state", {
+          p_user_id: userId,
+          p_data: appState,
+        });
+        if (!rpcError) continue;
+        console.warn("merge_user_state غير متاحة — fallback للحفظ المباشر:", rpcError.message);
+
         // نقلّص نافذة السباق مع حفظ المستخدم من التطبيق: بدل ما نكتب فوق النسخة القديمة
         // اللي قريناها في بداية التشغيل (وكانت تمسح أي تعديل حصل بين القراءة والكتابة)،
         // بنقرأ أحدث نسخة دلوقتي ونطبّق عليها تغييراتنا الضيقة بس (تواريخ الإطلاق
