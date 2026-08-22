@@ -491,6 +491,164 @@ function destroyStatsCharts(){
   ui.statsChartInstances = [];
 }
 
+// ============================================================
+// مصنع رسوم الإحصائيات — الرسوم المشتركة كانت متكتبة مرتين بنفس
+// الخيارات بالظبط في شاشة اليوم وشاشة الأسبوع. دلوقتي كل رسمة ليها
+// دالة واحدة بتبني config، والفرق الوحيد بين الشاشتين هو البيانات.
+// mountChart بيتكلف عن (إيجاد الـ canvas + إنشاء الرسم + تسجيله للمسح).
+// ============================================================
+function statsChartColors(){
+  const pal = currentPalette();
+  return {
+    penColor: pal['pen'],
+    doneColor: pal['done'],
+    inkColor: pal['ink'],
+    inkSoftColor: pal['ink-soft'],
+    paperLineColor: pal['paper-line'],
+    penSoftColor: pal['pen-soft']
+  };
+}
+
+function mountChart(canvasId, config){
+  const el = document.getElementById(canvasId);
+  if(!el) return;
+  ui.statsChartInstances.push(new Chart(el, config));
+}
+
+function chartLegendBottom(inkColor){
+  return { position: 'bottom', rtl: true, labels: { color: inkColor, font: { size: 11 } } };
+}
+
+function chartXCategory(inkColor){
+  return { grid: { display: false }, ticks: { color: inkColor } };
+}
+
+// محور الدقايق الموحد: يبدأ من صفر، خطوط شبكة بلون الورق، تظليل بالساعات، وحد أدنى ساعة
+function chartYMinutes(colors){
+  return {
+    beginAtZero: true,
+    grid: { color: colors.paperLineColor },
+    ticks: { color: colors.inkColor, stepSize: 60, callback: (v) => fmtAxisHours(v) },
+    afterDataLimits(s){ if(s.max < 60) s.max = 60; }
+  };
+}
+
+// دونات نسبة الإنجاز (مشتركة بين اليوم والأسبوع)
+function completionDonutCfg(colors, s){
+  return {
+    type: 'doughnut',
+    data: {
+      labels: [t('stats.done'), t('stats.not_done')],
+      datasets: [{
+        data: [s.doneCount, Math.max(0, s.totalTaskCount - s.doneCount)],
+        backgroundColor: [colors.doneColor, colors.penSoftColor],
+        borderColor: 'transparent'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: chartLegendBottom(colors.inkColor) }
+    }
+  };
+}
+
+// بار أكثر المهام وقتًا (مشتركة)
+function topTasksBarCfg(colors, labels, minutes){
+  return {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: t('stats.minutes'),
+        data: minutes,
+        backgroundColor: colors.penColor,
+        borderRadius: 6,
+        maxBarThickness: 40
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (ctx) => formatMinutes(ctx.parsed.y) } }
+      },
+      scales: {
+        x: chartXCategory(colors.inkColor),
+        y: chartYMinutes(colors)
+      }
+    }
+  };
+}
+
+// رادار توزيع الوقت حسب التصنيف (مشتركة)
+function filtersRadarCfg(colors, filterEntries){
+  return {
+    type: 'radar',
+    data: {
+      labels: filterEntries.map(f => f.name),
+      datasets: [{
+        label: t('stats.minutes'),
+        data: filterEntries.map(f => Math.round(f.ms / 60000)),
+        borderColor: colors.doneColor,
+        backgroundColor: colors.doneColor + '33',
+        pointBackgroundColor: colors.doneColor
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (ctx) => formatMinutes(ctx.parsed.r) } }
+      },
+      scales: {
+        r: {
+          grid: { color: colors.paperLineColor },
+          angleLines: { color: colors.paperLineColor },
+          pointLabels: { color: colors.inkColor, font: { size: 11 } },
+          ticks: { display: false }
+        }
+      }
+    }
+  };
+}
+
+// بار مزدوج: الهدف مقابل الوقت الفعلي (مشتركة)
+function estimationBarsCfg(colors, labels, targetMinutes, actualMinutes){
+  return {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: t('stats.goal'),
+          data: targetMinutes,
+          backgroundColor: colors.inkSoftColor + '99',
+          borderRadius: 6,
+          maxBarThickness: 28
+        },
+        {
+          label: t('stats.actual_time'),
+          data: actualMinutes,
+          backgroundColor: colors.penColor,
+          borderRadius: 6,
+          maxBarThickness: 28
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: chartLegendBottom(colors.inkColor),
+        tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${formatMinutes(ctx.parsed.y)}` } }
+      },
+      scales: {
+        x: chartXCategory(colors.inkColor),
+        y: chartYMinutes(colors)
+      }
+    }
+  };
+}
+
 // نقطة الدخول الوحيدة لشاشة الإحصائيات: بتحدد التبويب والمدى وتودّي للدالة المناسبة
 export function renderStatsView(){
   const tab = ui.statsTab || 'all';
@@ -572,13 +730,8 @@ function renderDayStatsView(dateStr, typeFilter){
   const undoneCount = s.totalTaskCount - s.doneCount;
   const missedLabel = isToday ? t('stats.non_completed') : t('stats.missed');
 
-  const pal = currentPalette();
-  const penColor = pal['pen'];
-  const doneColor = pal['done'];
-  const inkColor = pal['ink'];
-  const inkSoftColor = pal['ink-soft'];
-  const paperLineColor = pal['paper-line'];
-  const penSoftColor = pal['pen-soft'];
+  const chartColors = statsChartColors();
+  const { penColor, doneColor, inkColor, inkSoftColor, paperLineColor, penSoftColor } = chartColors;
 
   const topTasksLabels = s.topTasks.map(([name]) => name);
   const topTasksMinutes = s.topTasks.map(([,ms]) => Math.round(ms / 60000));
@@ -761,142 +914,34 @@ function renderDayStatsView(dateStr, typeFilter){
   Chart.defaults.font.family = "'Almarai', sans-serif";
   Chart.defaults.color = inkColor;
 
-  const ctxCompletion = document.getElementById('chartCompletion');
-  if(ctxCompletion){
-    ui.statsChartInstances.push(new Chart(ctxCompletion, {
-      type: 'doughnut',
-      data: {
-        labels: [t('stats.done'), t('stats.not_done')],
-        datasets: [{
-          data: [s.doneCount, Math.max(0, s.totalTaskCount - s.doneCount)],
-          backgroundColor: [doneColor, penSoftColor],
-          borderColor: 'transparent'
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', rtl: true, labels: { color: inkColor, font: { size: 11 } } } }
-      }
-    }));
-  }
+  mountChart('chartCompletion', completionDonutCfg(chartColors, s));
+  mountChart('chartTopTasks', topTasksBarCfg(chartColors, topTasksLabels, topTasksMinutes));
+  mountChart('chartFilters', filtersRadarCfg(chartColors, filterEntries));
+  mountChart('chartEstimation', estimationBarsCfg(chartColors, estLabels, estTargetMinutes, estActualMinutes));
 
-  const ctxTopTasks = document.getElementById('chartTopTasks');
-  if(ctxTopTasks){
-    ui.statsChartInstances.push(new Chart(ctxTopTasks, {
-      type: 'bar',
-      data: {
-        labels: topTasksLabels,
-        datasets: [{
-          label: t('stats.minutes'),
-          data: topTasksMinutes,
-          backgroundColor: penColor,
-          borderRadius: 6,
-          maxBarThickness: 40
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (ctx) => formatMinutes(ctx.parsed.y) } }
+  // دونات توزيع وقت الهوايات — خاصة بشاشة اليوم
+  if(topTasksLabels.length){
+    const ctxHobbyTime = document.getElementById('chartHobbyTime');
+    if(ctxHobbyTime){
+      ui.statsChartInstances.push(new Chart(ctxHobbyTime, {
+        type: 'doughnut',
+        data: {
+          labels: topTasksLabels,
+          datasets: [{
+            data: topTasksMinutes,
+            backgroundColor: [penColor, doneColor, inkSoftColor, '#e67e22', '#9b59b6'],
+            borderColor: 'transparent'
+          }]
         },
-        scales: {
-          x: { grid: { display: false }, ticks: { color: inkColor } },
-          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, stepSize: 60, callback: (v) => fmtAxisHours(v) }, afterDataLimits(s){ if(s.max < 60) s.max = 60; } }
-        }
-      }
-    }));
-  }
-
-  const ctxFilters = document.getElementById('chartFilters');
-  if(ctxFilters){
-    ui.statsChartInstances.push(new Chart(ctxFilters, {
-      type: 'radar',
-      data: {
-        labels: filterEntries.map(f => f.name),
-        datasets: [{
-          label: t('stats.minutes'),
-          data: filterEntries.map(f => Math.round(f.ms / 60000)),
-          borderColor: doneColor,
-          backgroundColor: doneColor + '33',
-          pointBackgroundColor: doneColor
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (ctx) => formatMinutes(ctx.parsed.r) } }
-        },
-        scales: {
-          r: {
-            grid: { color: paperLineColor },
-            angleLines: { color: paperLineColor },
-            pointLabels: { color: inkColor, font: { size: 11 } },
-            ticks: { display: false }
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: chartLegendBottom(inkColor),
+            tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${formatMinutes(ctx.parsed)}` } }
           }
         }
-      }
-    }));
-  }
-
-  const ctxEstimation = document.getElementById('chartEstimation');
-  if(ctxEstimation){
-    ui.statsChartInstances.push(new Chart(ctxEstimation, {
-      type: 'bar',
-      data: {
-        labels: estLabels,
-        datasets: [
-          {
-            label: t('stats.goal'),
-            data: estTargetMinutes,
-            backgroundColor: inkSoftColor + '99',
-            borderRadius: 6,
-            maxBarThickness: 28
-          },
-          {
-            label: t('stats.actual_time'),
-            data: estActualMinutes,
-            backgroundColor: penColor,
-            borderRadius: 6,
-            maxBarThickness: 28
-          }
-        ]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom', rtl: true, labels: { color: inkColor, font: { size: 11 } } },
-          tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${formatMinutes(ctx.parsed.y)}` } }
-        },
-        scales: {
-          x: { grid: { display: false }, ticks: { color: inkColor } },
-          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, stepSize: 60, callback: (v) => fmtAxisHours(v) }, afterDataLimits(s){ if(s.max < 60) s.max = 60; } }
-        }
-      }
-    }));
-  }
-
-  const ctxHobbyTime = document.getElementById('chartHobbyTime');
-  if(ctxHobbyTime && topTasksLabels.length){
-    ui.statsChartInstances.push(new Chart(ctxHobbyTime, {
-      type: 'doughnut',
-      data: {
-        labels: topTasksLabels,
-        datasets: [{
-          data: topTasksMinutes,
-          backgroundColor: [penColor, doneColor, inkSoftColor, '#e67e22', '#9b59b6'],
-          borderColor: 'transparent'
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom', rtl: true, labels: { color: inkColor, font: { size: 11 } } },
-          tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${formatMinutes(ctx.parsed)}` } }
-        }
-      }
-    }));
+      }));
+    }
   }
 }
 
@@ -906,13 +951,8 @@ function renderWeekStatsView(typeFilter){
 
   // بنجيب الألوان مباشرة من الباليتة الحالية (بدل ما نعتمد على قراءة الـ CSS variables من المتصفح)
   // عشان نضمن ألوان صح ١٠٠٪ في كل وضع من غير أي مشاكل توقيت أو قراءة خاطئة
-  const pal = currentPalette();
-  const penColor = pal['pen'];
-  const doneColor = pal['done'];
-  const inkColor = pal['ink'];
-  const inkSoftColor = pal['ink-soft'];
-  const paperLineColor = pal['paper-line'];
-  const penSoftColor = pal['pen-soft'];
+  const chartColors = statsChartColors();
+  const { penColor, doneColor, inkColor, inkSoftColor, paperLineColor, penSoftColor } = chartColors;
 
   const shortDayLabel = (dateStr) => DAY_NAMES[fromISO(dateStr).getDay()];
 
@@ -1100,53 +1140,10 @@ function renderWeekStatsView(typeFilter){
   Chart.defaults.color = inkColor;
 
   // 1) دونات: نسبة الإنجاز
-  const ctxCompletion = document.getElementById('chartCompletion');
-  if(ctxCompletion){
-    ui.statsChartInstances.push(new Chart(ctxCompletion, {
-      type: 'doughnut',
-      data: {
-        labels: [t('stats.done'), t('stats.not_done')],
-        datasets: [{
-          data: [s.doneCount, Math.max(0, s.totalTaskCount - s.doneCount)],
-          backgroundColor: [doneColor, penSoftColor],
-          borderColor: 'transparent'
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', rtl: true, labels: { color: inkColor, font: { size: 11 } } } }
-      }
-    }));
-  }
+  mountChart('chartCompletion', completionDonutCfg(chartColors, s));
 
   // 2) بار: أكثر المهام استهلاكًا للوقت
-  const ctxTopTasks = document.getElementById('chartTopTasks');
-  if(ctxTopTasks){
-    ui.statsChartInstances.push(new Chart(ctxTopTasks, {
-      type: 'bar',
-      data: {
-        labels: topTasksLabels,
-        datasets: [{
-          label: t('stats.minutes'),
-          data: topTasksMinutes,
-          backgroundColor: penColor,
-          borderRadius: 6,
-          maxBarThickness: 40
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (ctx) => formatMinutes(ctx.parsed.y) } }
-        },
-        scales: {
-          x: { grid: { display: false }, ticks: { color: inkColor } },
-          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, stepSize: 60, callback: (v) => fmtAxisHours(v) }, afterDataLimits(s){ if(s.max < 60) s.max = 60; } }
-        }
-      }
-    }));
-  }
+  mountChart('chartTopTasks', topTasksBarCfg(chartColors, topTasksLabels, topTasksMinutes));
 
   // 3) خط: اتجاه الوقت خلال الأسبوع
   const ctxTrend = document.getElementById('chartWeekTrend');
@@ -1172,8 +1169,8 @@ function renderWeekStatsView(typeFilter){
           tooltip: { callbacks: { label: (ctx) => formatMinutes(ctx.parsed.y) } }
         },
         scales: {
-          x: { grid: { display: false }, ticks: { color: inkColor } },
-          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, stepSize: 60, callback: (v) => fmtAxisHours(v) }, afterDataLimits(s){ if(s.max < 60) s.max = 60; } }
+          x: chartXCategory(inkColor),
+          y: chartYMinutes(chartColors)
         }
       }
     }));
@@ -1218,73 +1215,8 @@ function renderWeekStatsView(typeFilter){
   }
 
   // 5) رادار: توزيع الوقت حسب التصنيف (لو فيه 3 تصنيفات أو أكتر بوقت مسجل)
-  const ctxFilters = document.getElementById('chartFilters');
-  if(ctxFilters){
-    ui.statsChartInstances.push(new Chart(ctxFilters, {
-      type: 'radar',
-      data: {
-        labels: filterEntries.map(f => f.name),
-        datasets: [{
-          label: t('stats.minutes'),
-          data: filterEntries.map(f => Math.round(f.ms / 60000)),
-          borderColor: doneColor,
-          backgroundColor: doneColor + '33',
-          pointBackgroundColor: doneColor
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: { callbacks: { label: (ctx) => formatMinutes(ctx.parsed.r) } }
-        },
-        scales: {
-          r: {
-            grid: { color: paperLineColor },
-            angleLines: { color: paperLineColor },
-            pointLabels: { color: inkColor, font: { size: 11 } },
-            ticks: { display: false }
-          }
-        }
-      }
-    }));
-  }
+  mountChart('chartFilters', filtersRadarCfg(chartColors, filterEntries));
 
   // 6) بار مزدوج: الوقت المخطط (الهدف) مقابل الوقت الفعلي لكل مهمة
-  const ctxEstimation = document.getElementById('chartEstimation');
-  if(ctxEstimation){
-    ui.statsChartInstances.push(new Chart(ctxEstimation, {
-      type: 'bar',
-      data: {
-        labels: estLabels,
-        datasets: [
-          {
-            label: t('stats.goal'),
-            data: estTargetMinutes,
-            backgroundColor: inkSoftColor + '99',
-            borderRadius: 6,
-            maxBarThickness: 28
-          },
-          {
-            label: t('stats.actual_time'),
-            data: estActualMinutes,
-            backgroundColor: penColor,
-            borderRadius: 6,
-            maxBarThickness: 28
-          }
-        ]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom', rtl: true, labels: { color: inkColor, font: { size: 11 } } },
-          tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${formatMinutes(ctx.parsed.y)}` } }
-        },
-        scales: {
-          x: { grid: { display: false }, ticks: { color: inkColor } },
-          y: { beginAtZero: true, grid: { color: paperLineColor }, ticks: { color: inkColor, stepSize: 60, callback: (v) => fmtAxisHours(v) }, afterDataLimits(s){ if(s.max < 60) s.max = 60; } }
-        }
-      }
-    }));
-  }
+  mountChart('chartEstimation', estimationBarsCfg(chartColors, estLabels, estTargetMinutes, estActualMinutes));
 }
