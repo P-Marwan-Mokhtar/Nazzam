@@ -3,18 +3,11 @@
 // تحديد المهام كمنجزة أو الانتقال لأي يوم مباشرة.
 // ============================================================
 
-import { MONTH_NAMES, SHORT_DAY_NAMES, addDays, escapeHtml, fromISO, todayStr, toISO } from './utils.js';
+import { MONTH_NAMES, SHORT_DAY_NAMES, addDays, escapeHtml, fromISO, getWeekStart, todayStr } from './utils.js';
 import { contentEl, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { ensureDayMaterialized, render } from './render.js';
 import { t } from './i18n.js';
-
-function getWeekStart(dateStr){
-  const d = fromISO(dateStr);
-  const dow = d.getDay(); // 0 = الأحد
-  d.setDate(d.getDate() - dow);
-  return toISO(d);
-}
 
 export function toggleWeekView(){
   const wasOpen = ui.weekViewOpen;

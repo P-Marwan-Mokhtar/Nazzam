@@ -28,24 +28,31 @@ import { applyHashToState, consumeShortcutViewParam } from './routing.js';
 import { applyTheme, closeAppearanceModal, openAppearanceModal } from './theme.js';
 
 (async function init(){
-  // أول حاجة: نتأكد إن فيه مستخدم حقيقي مسجّل دخوله فعليًا قبل ما نعرض أي حاجة من التطبيق.
-  // لو لأ (وده فشل حقيقي، مش بسبب النت)، بنعرض شاشة تسجيل الدخول الإجبارية ونوقف هنا؛
-  // التطبيق هيبدأ من جديد (reload) تلقائيًا بعد نجاح تسجيل الدخول أو إنشاء الحساب.
-  //
-  // لو فشل التحقق بسبب مفيش نت (ensureAuth بترجع 'offline')، ميبقاش المفروض نقفل
-  // على المستخدم بشاشة اللوجين، لأنه ممكن يكون أصلًا مسجّل دخول وعنده نسخة محلية
-  // محفوظة (localStorage) من قبل كده. بنكمّل عادي ونسيب loadData() في dataStore.js
-  // تتكفّل بجلب آخر نسخة محلية محفوظة.
-  const authed = await ensureAuth();
-  if(authed === false){
-    openAuthGate();
-    return;
+  try{
+    // أول حاجة: نتأكد إن فيه مستخدم حقيقي مسجّل دخوله فعليًا قبل ما نعرض أي حاجة من التطبيق.
+    // لو لأ (وده فشل حقيقي، مش بسبب النت)، بنعرض شاشة تسجيل الدخول الإجبارية ونوقف هنا؛
+    // التطبيق هيبدأ من جديد (reload) تلقائيًا بعد نجاح تسجيل الدخول أو إنشاء الحساب.
+    //
+    // لو فشل التحقق بسبب مفيش نت (ensureAuth بترجع 'offline')، ميبقاش المفروض نقفل
+    // على المستخدم بشاشة اللوجين، لأنه ممكن يكون أصلًا مسجّل دخول وعنده نسخة محلية
+    // محفوظة (localStorage) من قبل كده. بنكمّل عادي ونسيب loadData() في dataStore.js
+    // تتكفّل بجلب آخر نسخة محلية محفوظة.
+    const authed = await ensureAuth();
+    if(authed === false){
+      openAuthGate();
+      return;
+    }
+    document.getElementById('app').style.display = '';
+    if(authed === 'offline'){
+      showToast('تعذّر التحقق من الاتصال بالخادم، يعمل التطبيق حاليًا بنسخة محلية');
+    }
+    await startApp();
+  }catch(e){
+    // حدود خطأ عند الإقلاع: أي استثناء غير متوقع هنا كان بيسيب شاشة فاضية تمامًا
+    // من غير أي رسالة — بنسجل الخطأ ونعرض رسالة واضحة بدل موت صامت.
+    console.error('فشل تهيئة التطبيق:', e);
+    showToast('حدث خطأ أثناء تشغيل التطبيق، جرّب تحديث الصفحة');
   }
-  document.getElementById('app').style.display = '';
-  if(authed === 'offline'){
-    showToast('تعذّر التحقق من الاتصال بالخادم، يعمل التطبيق حاليًا بنسخة محلية');
-  }
-  await startApp();
 
   // لو النت رجع والتطبيق لسه مفتوح (من غير ما المستخدم يعمل reload)،
   // نحاول نرفع أي تعديلات محلية معلّقة تلقائيًا.
@@ -53,8 +60,10 @@ import { applyTheme, closeAppearanceModal, openAppearanceModal } from './theme.j
   // فبنعيد التحقق الأول (ensureAuth) عشان trySyncPending يلاقي مستخدم حقيقي
   // يرفعله البيانات — من غيرها التعديلات المعلّقة كانت بتفضل محلية لحد ما يعمل reload.
   window.addEventListener('online', async () => {
-    await ensureAuth();
-    trySyncPending();
+    try{
+      await ensureAuth();
+      await trySyncPending();
+    }catch(e){ console.warn('تعذرت مزامنة التعديلات المعلقة بعد رجوع الاتصال:', e); }
   });
 })();
 
@@ -350,48 +359,42 @@ async function startApp(){
   }
 
   // أحداث أزرار الاختيار في الـ Modal الجديد
-  document.getElementById('choiceTodayBtn').onclick = async () => {
-    if(!ui.pendingTaskName) return;
+  // (منطق مشترك: إضافة المهمة لليوم المختار + تفريغ الحقل + إغلاق + رسم + حفظ)
+  const addPendingTaskToDay = () => {
     if(!state.days[ui.selectedDate]) state.days[ui.selectedDate] = [];
     const exists = state.days[ui.selectedDate].some(t => t.name === ui.pendingTaskName);
-    if(!exists){
-      state.days[ui.selectedDate].push({ id: uid(), name: ui.pendingTaskName, done: false });
-      showToast('تمت الإضافة إلى اليوم فقط');
-    } else {
-      showToast('هذه المهمة موجودة بالفعل في اليوم');
-    }
+    if(exists) return false;
+    state.days[ui.selectedDate].push({ id: uid(), name: ui.pendingTaskName, done: false });
+    return true;
+  };
+  const finishAddChoice = async () => {
     const input = document.getElementById('newKeywordInput');
     if(input) input.value = '';
     closeAddChoiceModal();
     render();
     await saveData();
+  };
+
+  document.getElementById('choiceTodayBtn').onclick = async () => {
+    if(!ui.pendingTaskName) return;
+    const added = addPendingTaskToDay();
+    showToast(added ? 'تمت الإضافة إلى اليوم فقط' : 'هذه المهمة موجودة بالفعل في اليوم');
+    await finishAddChoice();
   };
 
   document.getElementById('choiceBankBtn').onclick = async () => {
     if(!ui.pendingTaskName) return;
     state.keywords.push({ id: uid(), name: ui.pendingTaskName, filterId: ui.pendingTaskFilterId });
     showToast('تمت الإضافة إلى القائمة');
-    const input = document.getElementById('newKeywordInput');
-    if(input) input.value = '';
-    closeAddChoiceModal();
-    render();
-    await saveData();
+    await finishAddChoice();
   };
 
   document.getElementById('choiceBothBtn').onclick = async () => {
     if(!ui.pendingTaskName) return;
     state.keywords.push({ id: uid(), name: ui.pendingTaskName, filterId: ui.pendingTaskFilterId });
-    if(!state.days[ui.selectedDate]) state.days[ui.selectedDate] = [];
-    const exists = state.days[ui.selectedDate].some(t => t.name === ui.pendingTaskName);
-    if(!exists){
-      state.days[ui.selectedDate].push({ id: uid(), name: ui.pendingTaskName, done: false });
-    }
+    addPendingTaskToDay();
     showToast('تمت الإضافة إلى القائمة وإلى اليوم');
-    const input = document.getElementById('newKeywordInput');
-    if(input) input.value = '';
-    closeAddChoiceModal();
-    render();
-    await saveData();
+    await finishAddChoice();
   };
 
   document.getElementById('closeAddChoiceBtn').onclick = closeAddChoiceModal;

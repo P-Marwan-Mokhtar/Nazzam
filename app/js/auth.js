@@ -3,7 +3,7 @@
 // ============================================================
 
 import { TURNSTILE_SITE_KEY, supabaseClient } from './config.js';
-import { LOCAL_BACKUP_KEY, showToast } from './state.js';
+import { LOCAL_BACKUP_KEY, PENDING_SYNC_KEY, showToast } from './state.js';
 import { t } from './i18n.js';
 
 let turnstileWidgetId = null;
@@ -97,7 +97,18 @@ function getTurnstileToken(){
     const container = document.getElementById('turnstileContainer');
     if(!container){ resolve(null); return; }
 
-    turnstileResolve = resolve;
+    // مهلة قصوى: لو ويدجت Turnstile علِق (مشكلة شبكة مثلًا) بنكمّل بدون توكن
+    // بدل ما يفضل زرار الدخول معلّق للأبد — Supabase هيرد بخطأ captcha ونعرضه للمستخدم
+    let settled = false;
+    const settle = (value) => {
+      if(settled) return;
+      settled = true;
+      clearTimeout(timeoutId);
+      turnstileResolve = null;
+      resolve(value);
+    };
+    const timeoutId = setTimeout(() => settle(null), 15000);
+    turnstileResolve = settle;
 
     if(turnstileWidgetId === null){
       turnstileWidgetId = turnstile.render(container, {
@@ -432,6 +443,15 @@ async function signInWithGoogle(){
 
 async function signOutUser(){
   if(!confirm(t('auth.logout_confirm'))) return;
+  // حماية من فقدان البيانات: لو فيه تعديلات محلية لسه ماوصلتش للسيرفر، تسجيل الخروج
+  // كان بيمسح النسخة المحلية الوحيدة اللي فيها التعديلات دي — وعند الدخول التاني
+  // كانت بترفع نسخة فاضية فوق بيانات السيرفر. فبنمنع الخروج لحد ما المزامنة تتم.
+  let hasPendingSync = false;
+  try{ hasPendingSync = localStorage.getItem(PENDING_SYNC_KEY) === '1'; }catch(e){}
+  if(hasPendingSync){
+    showToast(t('auth.logout_pending'));
+    return;
+  }
   try{
     // scope: 'local' = تسجيل الخروج من هذا الجهاز فقط، وبياناتك تفضل شغالة على الأجهزة التانية.
     // (الافتراضي global كان بيرفض توكن التحديث على كل الأجهزة، فبمجرد ما جهاز تاني

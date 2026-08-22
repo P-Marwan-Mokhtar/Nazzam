@@ -30,7 +30,9 @@ export function addDays(dateStr, n){
 
 export function fmtDay(dateStr){
   const d = fromISO(dateStr);
-  const comma = document.documentElement.lang === 'en' ? ',' : '،';
+  // حماية typeof عشان الدالة تفضل شغالة في بيئات من غير DOM (اختبارات Node مثلًا)
+  const isEnglish = typeof document !== 'undefined' && document.documentElement.lang === 'en';
+  const comma = isEnglish ? ',' : '،';
   return `${DAY_NAMES[d.getDay()]}${comma} ${d.getDate()} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
 }
 
@@ -40,19 +42,25 @@ export function parseDurationToMinutes(str){
   if(!text) return 0;
   const arabicDigits = '٠١٢٣٤٥٦٧٨٩';
   text = text.replace(/[٠-٩]/g, d => arabicDigits.indexOf(d));
-  text = text.replace(/½/g, '.5');
+  // مهم: بنحوّل ½ لـ"0.5" مش ".5" — الـ regex بتاعنا بيتطلب رقم قبل العلامة العشرية،
+  // ولو سيبنا ".5" كان بيتخطى النقطة ويقرأ "5 ساعات" (300 دقيقة) بدل نص ساعة!
+  text = text.replace(/½/g, '0.5');
 
   let totalMinutes = 0;
   let matched = false;
 
-  const hourRegex = /(\d+(?:\.\d+)?)\s*(ساعات|ساعة|ساعه|س\b|h\b|hours?\b)/gi;
+  // ملاحظة مهمة عن \b: في JavaScript هو بيعتمد على أحرف ASCII بس ([A-Za-z0-9_])،
+  // فالحرف العربي مش بيتعتبر word char — يعني "س\b" و"د\b" عمرها ما بتتطابق!
+  // عشان كده بنستخدم lookahead (?![ء-ي]) للاختصارات العربية: الحرف يُقبل
+  // لو ما بعدهوش حرف عربي تاني (يعني "2 س" تتشال، لكن أول حرف من كلمة تانية لأ).
+  const hourRegex = /(\d+(?:\.\d+)?)\s*(ساعات|ساعة|ساعه|س(?![ء-ي])|hours?\b|h\b)/gi;
   let m;
   while((m = hourRegex.exec(text)) !== null){
     totalMinutes += parseFloat(m[1]) * 60;
     matched = true;
   }
 
-  const minRegex = /(\d+(?:\.\d+)?)\s*(دقايق|دقيقة|دقيقه|د\b|m\b|minutes?\b)/gi;
+  const minRegex = /(\d+(?:\.\d+)?)\s*(دقايق|دقيقة|دقيقه|د(?![ء-ي])|minutes?\b|m\b)/gi;
   while((m = minRegex.exec(text)) !== null){
     totalMinutes += parseFloat(m[1]);
     matched = true;
@@ -69,20 +77,19 @@ export function parseDurationToMinutes(str){
   return matched ? totalMinutes : 0;
 }
 
-export function formatMinutes(totalMinutes){
-  if(!totalMinutes || totalMinutes <= 0) return '';
-  const hours = Math.floor(totalMinutes / 60);
-  const mins = Math.round(totalMinutes % 60);
-  if(hours > 0 && mins > 0) return `${hours} ${hours === 1 ? 'ساعة' : 'ساعات'} و ${mins} دقيقة`;
-  if(hours > 0) return `${hours} ${hours === 1 ? 'ساعة' : 'ساعات'}`;
-  return `${mins} دقيقة`;
-}
-
 export function timeStrToMinutes(hhmm){
   if(!hhmm) return null;
   const [h, m] = hhmm.split(':').map(Number);
   if(Number.isNaN(h) || Number.isNaN(m)) return null;
   return h * 60 + m;
+}
+
+// بداية الأسبوع (الأحد) للتاريخ المعطى — مشتركة بين عرض الأسبوع والجدول الزمني (عرض أسبوع/شهر)
+export function getWeekStart(dateStr){
+  const d = fromISO(dateStr);
+  const dow = d.getDay(); // 0 = الأحد
+  d.setDate(d.getDate() - dow);
+  return toISO(d);
 }
 
 // رمز ثابت لكل تثبيت (بتتولد مرة واحدة وبتتخزن في localStorage) —
@@ -119,16 +126,6 @@ export function formatElapsed(ms){
   const s = totalSec % 60;
   const pad = (n) => String(n).padStart(2,'0');
   return `${pad(h)}:${pad(m)}:${pad(s)}`;
-}
-
-export function formatHM(ms){
-  const totalMin = Math.round(ms / 60000);
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
-  if(h > 0 && m > 0) return `${h} س ${m} د`;
-  if(h > 0) return `${h} ساعة`;
-  if(m > 0) return `${m} دقيقة`;
-  return '0 د';
 }
 
 export function detectTimezone(){

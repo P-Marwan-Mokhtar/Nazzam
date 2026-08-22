@@ -375,6 +375,12 @@ html[dir="ltr"] #tbwNextBtn .material-icons {
   transform: scaleX(-1);
 }
 
+/* === Time blocking month nav arrows === */
+html[dir="ltr"] #tbmPrevBtn .material-icons,
+html[dir="ltr"] #tbmNextBtn .material-icons {
+  transform: scaleX(-1);
+}
+
 /* === Stats back arrow === */
 html[dir="ltr"] #taskStatsBackBtn .material-icons {
   transform: scaleX(-1);

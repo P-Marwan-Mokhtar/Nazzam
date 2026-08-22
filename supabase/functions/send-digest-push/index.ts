@@ -14,6 +14,12 @@ const VAPID_PUBLIC_KEY = Deno.env.get("VAPID_PUBLIC_KEY")!;
 const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY")!;
 const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") || "mailto:example@example.com";
 
+// 🔐 سر اختياري لحماية الفنكشن من الاستدعاء العشوائي (هي URL عام):
+// لو ظبطت CRON_SECRET في إعدادات الفنكشن (supabase secrets set CRON_SECRET=...),
+// أي طلب من غير هيدر x-cron-secret بنفس القيمة هيرفض بـ401 — حدّث جدولة الـ cron
+// تبعت نفس الهيدر. لو مش متظبط، السلوك يفضل زي الأول (مفتوح) عشان مايتكسرش cron قائم.
+const CRON_SECRET = Deno.env.get("CRON_SECRET");
+
 // ⚠️ بسّطنا الموضوع بافتراض كل المستخدمين في نفس المنطقة الزمنية دي بدل ما نخزن منطقة كل مستخدم لوحده.
 // غيّرها لو جمهورك في منطقة تانية، أو قولّي لو عايز نضيف حفظ منطقة كل مستخدم لوحده.
 const APP_TIMEZONE = Deno.env.get("APP_TIMEZONE") || "Africa/Cairo";
@@ -58,7 +64,13 @@ async function sendToSubs(subs: any[], title: string, body: string) {
   );
 }
 
-Deno.serve(async () => {
+Deno.serve(async (req) => {
+  if (CRON_SECRET && req.headers.get("x-cron-secret") !== CRON_SECRET) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
   try {
     const { data: subs, error: subsErr } = await supabase.from("push_subscriptions").select("*");
     if (subsErr) throw subsErr;
@@ -100,6 +112,9 @@ Deno.serve(async () => {
       const done = todayTasks.filter((t: any) => t.done).length;
 
       let stateChanged = false;
+      let firedMorning = false;
+      let firedEvening = false;
+      const remindedIds = new Set<string>();
 
       if (ns.morningEnabled && ns.lastMorningFiredDate !== today && nowHM >= ns.morningTime) {
         const body =
@@ -109,6 +124,7 @@ Deno.serve(async () => {
         await sendToSubs(userSubs, "صباح الخير ☀️", body);
         ns.lastMorningFiredDate = today;
         stateChanged = true;
+        firedMorning = true;
         sentCount++;
       }
 
@@ -120,6 +136,7 @@ Deno.serve(async () => {
         await sendToSubs(userSubs, "وقت المراجعة 🌙", body);
         ns.lastEveningFiredDate = today;
         stateChanged = true;
+        firedEvening = true;
         sentCount++;
       }
 
@@ -129,6 +146,7 @@ Deno.serve(async () => {
       for (const t of reminderTasks) {
         if (nowHM >= t.remindAt) {
           await sendToSubs(userSubs, "تذكير ⏰", `حان وقت "${t.name}"`);
+          if (t.id) remindedIds.add(t.id as string);
           t.reminded = true;
           stateChanged = true;
           sentCount++;
@@ -136,7 +154,28 @@ Deno.serve(async () => {
       }
 
       if (stateChanged) {
-        await supabase.from("user_data").update({ data: appState }).eq("user_id", userId);
+        // نقلّص نافذة السباق مع حفظ المستخدم من التطبيق: بدل ما نكتب فوق النسخة القديمة
+        // اللي قريناها في بداية التشغيل (وكانت تمسح أي تعديل حصل بين القراءة والكتابة)،
+        // بنقرأ أحدث نسخة دلوقتي ونطبّق عليها تغييراتنا الضيقة بس (تواريخ الإطلاق
+        // وعلامات reminded) — أي تعديل تاني من المستخدم بيفضل محفوظ.
+        const { data: freshRow } = await supabase
+          .from("user_data")
+          .select("data")
+          .eq("user_id", userId)
+          .maybeSingle();
+        if (!freshRow || !freshRow.data) continue;
+        const freshState = freshRow.data as any;
+        if (freshState.notificationSettings) {
+          if (firedMorning) freshState.notificationSettings.lastMorningFiredDate = today;
+          if (firedEvening) freshState.notificationSettings.lastEveningFiredDate = today;
+        }
+        if (remindedIds.size > 0) {
+          const freshTodayTasks = ((freshState.days && freshState.days[today]) || []) as any[];
+          for (const t of freshTodayTasks) {
+            if (t.id && remindedIds.has(t.id)) t.reminded = true;
+          }
+        }
+        await supabase.from("user_data").update({ data: freshState }).eq("user_id", userId);
       }
     }
 

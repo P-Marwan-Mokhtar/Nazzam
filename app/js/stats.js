@@ -22,78 +22,117 @@ function getLastNDays(n, endDate){
   return list;
 }
 
-// بنحسب الأيام السابقة (من غير النهاردة) اللي خلصت فيها كل مهامها بالكامل، وصولاً للنهاردة نفسها لو خلصت
-function computeCurrentStreak(){
+// بنحسب الأيام السابقة (من غير النهاردة) اللي خلصت فيها كل مهامها بالكامل، وصولاً للنهاردة نفسها لو خلصت.
+// مع typeFilter (مهام/عادة/هواية): اليوم بيتعد "مكتمل" لو كل مهام *النوع ده* فيه خلصت (ويكون فيه وحدة على الأقل)،
+// عشان ستريك تبويب العادات/الهوايات يعكس النوع المعروض فعلًا مش كل المهام.
+function computeCurrentStreak(typeFilter){
+  const dayQualifies = (date) => {
+    let tasks = state.days[date] || [];
+    if(typeFilter) tasks = tasks.filter(t => (t.type || 'task') === typeFilter);
+    return tasks.length > 0 && tasks.every(t => t.done);
+  };
   let streak = 0;
   let cursor = addDays(todayStr(), -1);
   while(true){
-    const tasks = state.days[cursor] || [];
-    if(tasks.length === 0 || !tasks.every(t => t.done)) break;
+    if(!dayQualifies(cursor)) break;
     streak++;
     cursor = addDays(cursor, -1);
   }
-  const todayTasksForStreak = state.days[todayStr()] || [];
-  if(todayTasksForStreak.length > 0 && todayTasksForStreak.every(t => t.done)) streak++;
+  if(dayQualifies(todayStr())) streak++;
   return streak;
+}
+
+// ============================================================
+// مجمّع إحصائيات مشترك: بيتغذى بمهمة + تاريخها، وبيجمع كل العدادات
+// (الوقت الفعلي، الإنجاز، الفوات، التوزيعات حسب النوع/التصنيف، دقة التقدير).
+// بيُستخدم من computeWeekStats وcomputeDayStats — منطق الجمع مكتوب مرة واحدة بس.
+// addTask بيرجّع الوقت الفعلي (ms) للمهمة — النداء بيستخدمه لو محتاج مجاميع يومية.
+// ============================================================
+function createStatsAccumulator(){
+  const today = todayStr();
+  // خريطة من اسم المهمة لتصنيفها (filterId) بناءً على بنك المهام
+  const nameToFilterId = {};
+  state.keywords.forEach(k => { if(k.filterId) nameToFilterId[k.name] = k.filterId; });
+
+  const acc = {
+    totalMs: 0,
+    doneCount: 0,
+    totalTaskCount: 0,
+    missedCount: 0, // مهام اتضافت ليوم فات ومتعملهاش check
+    typeCounts: {}, // type -> count
+    taskTimeMap: {},
+    filterTotals: {}, // filterId -> ms (لرسم توزيع الوقت حسب التصنيف)
+    typeTimeTotals: {}, // type -> ms (لرسم توزيع الوقت حسب النوع: مهمة/عادة/هواية)
+    longestTask: null,
+    taskTargetMap: {}, // name -> إجمالي الهدف (ms) للمهام اللي ليها هدف ووقت فعلي معًا
+    taskActualForEstMap: {}, // name -> إجمالي الوقت الفعلي (ms) لنفس المهام دي
+    totalTargetMsWithActual: 0,
+    totalActualMsForEst: 0
+  };
+
+  acc.addTask = (t, date) => {
+    const isPastDay = date < today;
+    const tType = t.type || 'task';
+    acc.totalTaskCount++;
+    acc.typeCounts[tType] = (acc.typeCounts[tType] || 0) + 1;
+    if(t.done){ acc.doneCount++; }
+    else if(isPastDay){ acc.missedCount++; }
+    const ms = parseDurationToMinutes(t.actualDuration) * 60000;
+    if(ms > 0){
+      acc.totalMs += ms;
+      acc.taskTimeMap[t.name] = (acc.taskTimeMap[t.name] || 0) + ms;
+      if(!acc.longestTask || ms > acc.longestTask.ms){
+        acc.longestTask = { ms, name: t.name, date };
+      }
+      const fId = nameToFilterId[t.name];
+      if(fId) acc.filterTotals[fId] = (acc.filterTotals[fId] || 0) + ms;
+
+      acc.typeTimeTotals[tType] = (acc.typeTimeTotals[tType] || 0) + ms;
+      const targetMs = parseDurationToMinutes(t.duration) * 60000;
+      if(targetMs > 0){
+        acc.taskTargetMap[t.name] = (acc.taskTargetMap[t.name] || 0) + targetMs;
+        acc.taskActualForEstMap[t.name] = (acc.taskActualForEstMap[t.name] || 0) + ms;
+        acc.totalTargetMsWithActual += targetMs;
+        acc.totalActualMsForEst += ms;
+      }
+    }
+    return ms;
+  };
+
+  return acc;
+}
+
+// مشتقات بتتحسب من المجمّع بعد اكتماله: أكثر المهام وقتًا + دقة تقدير الوقت
+function finalizeStats(acc){
+  const topTasks = Object.entries(acc.taskTimeMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
+  // دقة تقدير الوقت: نسبة الوقت الفعلي إلى الهدف المحدد
+  const estimationAccuracyPct = acc.totalTargetMsWithActual > 0
+    ? Math.round((acc.totalActualMsForEst / acc.totalTargetMsWithActual) * 100)
+    : null;
+  const estimationTasks = Object.keys(acc.taskTargetMap)
+    .map(name => ({ name, targetMs: acc.taskTargetMap[name], actualMs: acc.taskActualForEstMap[name] }))
+    .sort((a,b) => (b.targetMs + b.actualMs) - (a.targetMs + a.actualMs))
+    .slice(0, 5);
+  return { topTasks, estimationAccuracyPct, estimationTasks };
 }
 
 export function computeWeekStats(offsetWeeks, typeFilter){
   offsetWeeks = offsetWeeks || 0;
   const today = todayStr();
   const weekDays = getLastNDays(7, offsetWeeks > 0 ? addDays(today, -7 * offsetWeeks) : today);
-  let totalMs = 0;
-  let doneCount = 0;
-  let totalTaskCount = 0;
-  let missedCount = 0; // مهام اتضافت ليوم فات ومتعملهاش check
-  const typeCounts = {}; // type -> count
-  const taskTimeMap = {};
+  const acc = createStatsAccumulator();
   const dayTotals = {};
   const dayTaskCounts = {};
   const dayDoneCounts = {};
-  const filterTotals = {}; // filterId -> ms (لرسم توزيع الوقت حسب التصنيف)
-  const typeTimeTotals = {}; // type -> ms (لرسم توزيع الوقت حسب النوع: مهمة/عادة/هواية)
-  let longestTask = null;
-  const taskTargetMap = {}; // name -> إجمالي الهدف (ms) للمهام اللي ليها هدف ووقت فعلي معًا هذا الأسبوع
-  const taskActualForEstMap = {}; // name -> إجمالي الوقت الفعلي (ms) لنفس المهام دي
-  let totalTargetMsWithActual = 0;
-  let totalActualMsForEst = 0;
-
-  // خريطة من اسم المهمة لتصنيفها (filterId) بناءً على بنك المهام
-  const nameToFilterId = {};
-  state.keywords.forEach(k => { if(k.filterId) nameToFilterId[k.name] = k.filterId; });
 
   weekDays.forEach(date => {
     let tasks = (state.days[date] || []).filter(t => !t._dupOf);
     if(typeFilter) tasks = tasks.filter(t => (t.type || 'task') === typeFilter);
-    let dayMs = 0;
     let dayDone = 0;
-    const isPastDay = date < today;
+    let dayMs = 0;
     tasks.forEach(t => {
-      totalTaskCount++;
-      const tType = t.type || 'task';
-      typeCounts[tType] = (typeCounts[tType] || 0) + 1;
-      if(t.done){ doneCount++; dayDone++; }
-      else if(isPastDay){ missedCount++; }
-      const ms = parseDurationToMinutes(t.actualDuration) * 60000;
-      if(ms > 0){
-        totalMs += ms;
-        dayMs += ms;
-        taskTimeMap[t.name] = (taskTimeMap[t.name] || 0) + ms;
-        if(!longestTask || ms > longestTask.ms){
-          longestTask = { ms, name: t.name, date };
-        }
-        const fId = nameToFilterId[t.name];
-        if(fId) filterTotals[fId] = (filterTotals[fId] || 0) + ms;
-
-        typeTimeTotals[tType] = (typeTimeTotals[tType] || 0) + ms;
-        const targetMs = parseDurationToMinutes(t.duration) * 60000;
-        if(targetMs > 0){
-          taskTargetMap[t.name] = (taskTargetMap[t.name] || 0) + targetMs;
-          taskActualForEstMap[t.name] = (taskActualForEstMap[t.name] || 0) + ms;
-          totalTargetMsWithActual += targetMs;
-          totalActualMsForEst += ms;
-        }
-      }
+      if(t.done) dayDone++;
+      dayMs += acc.addTask(t, date); // addTask بيرجّع 0 للمهام من غير وقت فعلي مسجل
     });
     dayTotals[date] = dayMs;
     dayTaskCounts[date] = tasks.length;
@@ -101,7 +140,8 @@ export function computeWeekStats(offsetWeeks, typeFilter){
   });
 
   // بنحسب سلسلة الأيام المتتالية اللي خلصت فيها كل المهام (نفس الحساب بغض النظر عن مدى العرض)
-  let streak = computeCurrentStreak();
+  // لو فيه فلتر نوع، الستريك بيتحسب على مهام النوع ده بس — عشان يطابق ما معروض في التبويب
+  let streak = computeCurrentStreak(typeFilter);
 
   let bestDay = null, bestDayMs = -1;
   weekDays.forEach(date => {
@@ -109,36 +149,14 @@ export function computeWeekStats(offsetWeeks, typeFilter){
   });
   if(bestDayMs <= 0) bestDay = null;
 
-  const topTasks = Object.entries(taskTimeMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
-  const freqMap = {};
-  Object.values(state.days).forEach(tasks => {
-    tasks.forEach(t => {
-      if(t._dupOf) return;
-      freqMap[t.name] = (freqMap[t.name] || 0) + 1;
-    });
-  });
-  const topFrequent = Object.entries(freqMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
-
-  const recentNames = new Set();
-  getLastNDays(14).forEach(date => {
-    (state.days[date] || []).forEach(t => recentNames.add(t.name));
-  });
-  const neglected = state.keywords.filter(k => !recentNames.has(k.name)).slice(0, 8);
-
-  // دقة تقدير الوقت: نسبة الوقت الفعلي إلى الهدف المحدد، على مستوى الأسبوع وعلى مستوى كل مهمة
-  const estimationAccuracyPct = totalTargetMsWithActual > 0
-    ? Math.round((totalActualMsForEst / totalTargetMsWithActual) * 100)
-    : null;
-  const estimationTasks = Object.keys(taskTargetMap)
-    .map(name => ({ name, targetMs: taskTargetMap[name], actualMs: taskActualForEstMap[name] }))
-    .sort((a,b) => (b.targetMs + b.actualMs) - (a.targetMs + a.actualMs))
-    .slice(0, 5);
+  const { topTasks, estimationAccuracyPct, estimationTasks } = finalizeStats(acc);
 
   return {
-    totalMs, doneCount, totalTaskCount, missedCount, typeCounts,
-    topTasks, longestTask, streak, bestDay, bestDayMs,
-    topFrequent, neglected,
-    weekDays, dayTotals, dayTaskCounts, dayDoneCounts, filterTotals, typeTimeTotals,
+    totalMs: acc.totalMs, doneCount: acc.doneCount, totalTaskCount: acc.totalTaskCount,
+    missedCount: acc.missedCount, typeCounts: acc.typeCounts,
+    topTasks, longestTask: acc.longestTask, streak, bestDay, bestDayMs,
+    weekDays, dayTotals, dayTaskCounts, dayDoneCounts,
+    filterTotals: acc.filterTotals, typeTimeTotals: acc.typeTimeTotals,
     estimationAccuracyPct, estimationTasks
   };
 }
@@ -147,67 +165,17 @@ export function computeWeekStats(offsetWeeks, typeFilter){
 export function computeDayStats(dateStr, typeFilter){
   let tasks = (state.days[dateStr] || []).filter(t => !t._dupOf);
   if(typeFilter) tasks = tasks.filter(t => (t.type || 'task') === typeFilter);
-  let totalMs = 0;
-  let doneCount = 0;
-  let missedCount = 0;
-  const typeCounts = {};
-  const taskTimeMap = {};
-  const filterTotals = {};
-  const typeTimeTotals = {};
-  let longestTask = null;
-  const taskTargetMap = {};
-  const taskActualForEstMap = {};
-  let totalTargetMsWithActual = 0;
-  let totalActualMsForEst = 0;
 
-  const nameToFilterId = {};
-  state.keywords.forEach(k => { if(k.filterId) nameToFilterId[k.name] = k.filterId; });
-
-  const today = todayStr();
-  const isPastDay = dateStr < today;
-
-  tasks.forEach(t => {
-    const tType = t.type || 'task';
-    typeCounts[tType] = (typeCounts[tType] || 0) + 1;
-    if(t.done) doneCount++;
-    else if(isPastDay) missedCount++;
-    const ms = parseDurationToMinutes(t.actualDuration) * 60000;
-    if(ms > 0){
-      totalMs += ms;
-      taskTimeMap[t.name] = (taskTimeMap[t.name] || 0) + ms;
-      if(!longestTask || ms > longestTask.ms){
-        longestTask = { ms, name: t.name, date: dateStr };
-      }
-      const fId = nameToFilterId[t.name];
-      if(fId) filterTotals[fId] = (filterTotals[fId] || 0) + ms;
-
-      typeTimeTotals[tType] = (typeTimeTotals[tType] || 0) + ms;
-
-      const targetMs = parseDurationToMinutes(t.duration) * 60000;
-      if(targetMs > 0){
-        taskTargetMap[t.name] = (taskTargetMap[t.name] || 0) + targetMs;
-        taskActualForEstMap[t.name] = (taskActualForEstMap[t.name] || 0) + ms;
-        totalTargetMsWithActual += targetMs;
-        totalActualMsForEst += ms;
-      }
-    }
-  });
-
-  const topTasks = Object.entries(taskTimeMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
-
-  const estimationAccuracyPct = totalTargetMsWithActual > 0
-    ? Math.round((totalActualMsForEst / totalTargetMsWithActual) * 100)
-    : null;
-  const estimationTasks = Object.keys(taskTargetMap)
-    .map(name => ({ name, targetMs: taskTargetMap[name], actualMs: taskActualForEstMap[name] }))
-    .sort((a,b) => (b.targetMs + b.actualMs) - (a.targetMs + a.actualMs))
-    .slice(0, 5);
+  const acc = createStatsAccumulator();
+  tasks.forEach(t => acc.addTask(t, dateStr));
+  const { topTasks, estimationAccuracyPct, estimationTasks } = finalizeStats(acc);
 
   return {
-    date: dateStr, totalMs, doneCount, totalTaskCount: tasks.length, missedCount, typeCounts,
-    topTasks, longestTask, filterTotals, typeTimeTotals,
+    date: dateStr, totalMs: acc.totalMs, doneCount: acc.doneCount,
+    totalTaskCount: tasks.length, missedCount: acc.missedCount, typeCounts: acc.typeCounts,
+    topTasks, longestTask: acc.longestTask, filterTotals: acc.filterTotals, typeTimeTotals: acc.typeTimeTotals,
     estimationAccuracyPct, estimationTasks,
-    streak: computeCurrentStreak(),
+    streak: computeCurrentStreak(typeFilter),
   };
 }
 
@@ -349,47 +317,84 @@ export function renderTaskStatsView(name){
   if(backBtn) backBtn.onclick = () => { ui.taskStatsName = null; ui.justReturnedFromStats = true; render(); };
 }
 
-function exportWeeklyPDF(){
-  const s = computeWeekStats();
-  const isDark = state.darkMode;
+// تصدير تقرير PDF من نافذة طباعة: أسبوعي (آخر 7 أيام) أو يومي (اليوم المختار).
+// الوضعان بيتقاسموا نفس القالب بالظبط — الفرق في مصدر الإحصائيات وجدول الملخص وكارت التمييز.
+function exportStatsPDF(mode){
+  const isDaily = mode === 'day';
+  const dateStr = ui.selectedDate || todayStr();
+  const s = isDaily ? computeDayStats(dateStr, null) : computeWeekStats();
+  const reportTitle = t(isDaily ? 'pdf.title_day' : 'pdf.title');
 
-  // بناء جدول الأيام السبعة
-  const DAY_SHORT = [t('pdf.sun'),t('pdf.mon'),t('pdf.tue'),t('pdf.wed'),t('pdf.thu'),t('pdf.fri'),t('pdf.sat')];
-  const daysTableRows = s.weekDays.map(date => {
-    const d = fromISO(date);
-    const dayLabel = DAY_SHORT[d.getDay()];
-    const done = s.dayDoneCounts[date] || 0;
-    const total = s.dayTaskCounts[date] || 0;
-    const ms = s.dayTotals[date] || 0;
+  const now = new Date();
+  const printDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const periodLabel = isDaily
+    ? fmtDay(dateStr)
+    : `${s.weekDays[0]} → ${s.weekDays[s.weekDays.length - 1]}`;
+
+  // جدول الملخص: صف لكل يوم في التقرير الأسبوعي، وصف واحد لليوم المعروض في اليومي
+  const progressBarHtml = (pct) =>
+    `<div style="width:100%;background:#e8e0d5;border-radius:4px;height:6px;"><div style="width:${pct}%;background:#5c6e4e;border-radius:4px;height:6px;"></div></div>`;
+  let daysTableRows;
+  if(isDaily){
+    const done = s.doneCount;
+    const total = s.totalTaskCount;
     const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-    const bar = `<div style="width:100%;background:#e8e0d5;border-radius:4px;height:6px;"><div style="width:${pct}%;background:#5c6e4e;border-radius:4px;height:6px;"></div></div>`;
-    return `<tr>
-      <td>${dayLabel} ${date.slice(5)}</td>
+    daysTableRows = `<tr>
+      <td>${fmtDay(dateStr)}</td>
       <td style="text-align:center">${done}/${total}</td>
-      <td style="text-align:center">${ms > 0 ? formatHM(ms) : '—'}</td>
-      <td style="width:120px">${bar}</td>
+      <td style="text-align:center">${s.totalMs > 0 ? formatHM(s.totalMs) : '—'}</td>
+      <td style="width:120px">${progressBarHtml(pct)}</td>
     </tr>`;
-  }).join('');
+  } else {
+    const DAY_SHORT = [t('pdf.sun'),t('pdf.mon'),t('pdf.tue'),t('pdf.wed'),t('pdf.thu'),t('pdf.fri'),t('pdf.sat')];
+    daysTableRows = s.weekDays.map(date => {
+      const d = fromISO(date);
+      const dayLabel = DAY_SHORT[d.getDay()];
+      const done = s.dayDoneCounts[date] || 0;
+      const total = s.dayTaskCounts[date] || 0;
+      const ms = s.dayTotals[date] || 0;
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+      return `<tr>
+        <td>${dayLabel} ${date.slice(5)}</td>
+        <td style="text-align:center">${done}/${total}</td>
+        <td style="text-align:center">${ms > 0 ? formatHM(ms) : '—'}</td>
+        <td style="width:120px">${progressBarHtml(pct)}</td>
+      </tr>`;
+    }).join('');
+  }
 
   // أفضل 5 مهام وقتاً
+  const topTasksTitle = t(isDaily ? 'stats.task_time_today' : 'stats.top_tasks_week');
   const topTasksRows = s.topTasks.length > 0
     ? s.topTasks.map(([name, ms]) => `<li><span>${escapeHtml(name)}</span><strong>${formatHM(ms)}</strong></li>`).join('')
     : `<li>${t('pdf.no_data')}</li>`;
 
   // دقة التقدير
   const estBlock = s.estimationAccuracyPct !== null
-    ? `<div class="card"><div class="card-title">📐 ${t('pdf.accuracy_title')}</div><p class="big">${s.estimationAccuracyPct}%</p><p class="sub">${t('pdf.accuracy_subtitle')}</p></div>`
+    ? `<div class="card"><div class="card-title">📐 ${t('pdf.accuracy_title')}</div><p class="big">${s.estimationAccuracyPct}%</p><p class="sub">${t(isDaily ? 'pdf.accuracy_subtitle_day' : 'pdf.accuracy_subtitle')}</p></div>`
     : '';
 
-  const weekLabel = `${s.weekDays[0]} → ${s.weekDays[s.weekDays.length - 1]}`;
-  const now = new Date();
-  const printDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  // كارت التمييز: أفضل يوم في التقرير الأسبوعي، وأكثر مهمة وقتًا في اليومي
+  let highlightCard = '';
+  if(!isDaily && s.bestDay){
+    highlightCard = `<div class="card">
+      <div class="card-title">🏆 ${t('pdf.best_day')}</div>
+      <div class="big" style="font-size:1.1rem">${fmtDay(s.bestDay)}</div>
+      <div class="sub">${formatHM(s.bestDayMs)} ${t('pdf.time')}</div>
+    </div>`;
+  } else if(isDaily && s.longestTask){
+    highlightCard = `<div class="card">
+      <div class="card-title">🏆 ${t('stats.task_time_today')}</div>
+      <div class="big" style="font-size:1.1rem">${escapeHtml(s.longestTask.name)}</div>
+      <div class="sub">${formatHM(s.longestTask.ms)} ${t('pdf.time')}</div>
+    </div>`;
+  }
 
   const html = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>${t('pdf.title')}</title>
+<title>${reportTitle}</title>
 <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -418,8 +423,8 @@ tr:last-child td { border-bottom: none; }
 </style>
 </head>
 <body>
-<h1>📋 ${t('pdf.title')}</h1>
-<div class="sub-header">${t('pdf.period')} ${weekLabel} &nbsp;|&nbsp; ${t('pdf.export_date')} ${printDate}</div>
+<h1>📋 ${reportTitle}</h1>
+<div class="sub-header">${t('pdf.period')} ${periodLabel} &nbsp;|&nbsp; ${t('pdf.export_date')} ${printDate}</div>
 
 <div class="grid">
 <div class="card">
@@ -435,11 +440,7 @@ tr:last-child td { border-bottom: none; }
   <div class="big">${s.streak}</div>
   <div class="sub">${t('pdf.day_streak_count')}</div>
 </div>
-${s.bestDay ? `<div class="card">
-  <div class="card-title">🏆 ${t('pdf.best_day')}</div>
-  <div class="big" style="font-size:1.1rem">${fmtDay(s.bestDay)}</div>
-  <div class="sub">${formatHM(s.bestDayMs)} ${t('pdf.time')}</div>
-</div>` : ''}
+${highlightCard}
 ${s.missedCount > 0 ? `<div class="card">
   <div class="card-title">⚠️ ${t('pdf.missed')}</div>
   <div class="big" style="color:#c0392b">${s.missedCount}</div>
@@ -450,7 +451,7 @@ ${estBlock}
 
 <div class="grid">
 <div class="card full">
-  <div class="card-title" style="margin-bottom:12px">📅 ${t('pdf.summary_title')}</div>
+  <div class="card-title" style="margin-bottom:12px">📅 ${t(isDaily ? 'pdf.summary_title_day' : 'pdf.summary_title')}</div>
   <table>
     <thead><tr><th>${t('pdf.day_header')}</th><th style="text-align:center">${t('pdf.done_header')}</th><th style="text-align:center">${t('pdf.time_header')}</th><th>${t('pdf.progress_header')}</th></tr></thead>
     <tbody>${daysTableRows}</tbody>
@@ -460,21 +461,21 @@ ${estBlock}
 
 <div class="grid">
 <div class="card full">
-  <div class="card-title" style="margin-bottom:12px">⭐ ${t('stats.top_tasks_week')}</div>
+  <div class="card-title" style="margin-bottom:12px">⭐ ${topTasksTitle}</div>
   <ul class="task-list">${topTasksRows}</ul>
 </div>
 </div>
 
-<div style="margin-top:24px; text-align:center; no-print">
+<div class="no-print" style="margin-top:24px; text-align:center;">
 <button onclick="window.print()" style="
   background:#3e5c2e;color:#fff;border:none;border-radius:10px;
   padding:12px 36px;font-family:'Almarai';font-weight:700;font-size:1rem;
   cursor:pointer;margin-left:10px;
-">${t('pdf.export_btn')}</button>
+ ">${t('pdf.export_btn')}</button>
 <button onclick="window.close()" style="
   background:#f0ebe3;color:#666;border:none;border-radius:10px;
   padding:12px 24px;font-family:'Almarai';font-weight:700;font-size:1rem;cursor:pointer;
-">${t('pdf.close_btn')}</button>
+ ">${t('pdf.close_btn')}</button>
 </div>
 </body>
 </html>`;
@@ -748,6 +749,10 @@ function renderDayStatsView(dateStr, typeFilter){
 
   wireStatsTabDropdown();
   wireStatsRangeToggle();
+
+  // زر تصدير تقرير اليوم PDF
+  const dayExportPdfBtn = document.getElementById('exportPdfBtn');
+  if(dayExportPdfBtn) dayExportPdfBtn.onclick = () => exportStatsPDF('day');
 
   destroyStatsCharts();
 
@@ -1082,7 +1087,7 @@ function renderWeekStatsView(typeFilter){
   contentEl.innerHTML = html;
 
   const exportPdfBtn = document.getElementById('exportPdfBtn');
-  if(exportPdfBtn) exportPdfBtn.onclick = () => exportWeeklyPDF();
+  if(exportPdfBtn) exportPdfBtn.onclick = () => exportStatsPDF('week');
 
   wireStatsTabDropdown();
   wireStatsRangeToggle();

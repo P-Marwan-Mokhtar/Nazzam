@@ -17,6 +17,9 @@ export function applyHashToState(){
   ui.statsViewOpen = hash === HASH_STATS;
   ui.weekViewOpen = hash === HASH_WEEK;
   ui.timeBlockViewOpen = hash === HASH_TIMEBLOCK;
+  // الشاشات الأربعة متعارضة مع بعضها؛ إحصائيات المهمة الواحدة مش ليها hash
+  // فبنمسحها هنا عشان الـ hash يبقى هو الفيصل دايمًا لما الرابط يتغير
+  if(ui.statsViewOpen || ui.weekViewOpen || ui.timeBlockViewOpen) ui.taskStatsName = null;
   if(ui.weekViewOpen && !ui.weekViewDate) ui.weekViewDate = ui.selectedDate;
 }
 

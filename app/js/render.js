@@ -9,7 +9,7 @@ import { saveData } from './dataStore.js';
 import { attachEvents } from './events.js';
 import { buildFilterDropdown, hideDurationPopover } from './popovers.js';
 import { computeTaskStreak, renderStatsView, renderTaskStatsView } from './stats.js';
-import { renderTimeBlockView } from './timeBlocking.js';
+import { renderTimeBlockView, setTbStretch } from './timeBlocking.js';
 import { renderTimerPanel } from './timers.js';
 import { formatTimeArabic } from './timePicker.js';
 import { renderWeekView } from './weekView.js';
@@ -58,17 +58,20 @@ export function render(){
     return;
   }
   if(ui.statsViewOpen){
+    setTbStretch(false); // خرجنا من الجدول الزمني — نرجّع الحاويات للوضع الطبيعي
     renderStatsView();
     return;
   }
   if(ui.weekViewOpen){
+    setTbStretch(false);
     renderWeekView();
     return;
   }
   if(ui.timeBlockViewOpen){
-    renderTimeBlockView();
+    renderTimeBlockView(); // جواه بيتظبط وضع طول الشاشة (بتاع عرض الشهر) لواحده
     return;
   }
+  setTbStretch(false); // مهام اليوم — الوضع الطبيعي
   const today = todayStr();
   const isToday = ui.selectedDate === today;
   const isPastDay = ui.selectedDate < today;

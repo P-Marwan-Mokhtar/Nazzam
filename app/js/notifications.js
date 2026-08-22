@@ -255,52 +255,62 @@ export function closeNotificationSettingsModal(){
   document.getElementById('notificationSettingsOverlay').classList.remove('open');
 }
 
-document.getElementById('notificationSettingsBtn').onclick = openNotificationSettingsModal;
+// قفل بسيط يمنع تداخل عمليتي تبديل غير متزامنتين (طلب إذن / اشتراك push / حفظ):
+// من غيره، الضغط السريع على مفتاحي الصباح والمساء كان ممكن يخلّي واحدة تلغي
+// اشتراك الـ push بينما التانية لسه بتجهّزه.
+let digestToggleBusy = false;
 
-document.getElementById('closeNotificationSettingsBtn').onclick = closeNotificationSettingsModal;
-
-document.getElementById('notificationSettingsOverlay').onclick = (e) => {
-  if(e.target.id === 'notificationSettingsOverlay') closeNotificationSettingsModal();
-};
-
-document.getElementById('morningNotifToggle').onchange = async (e) => {
-  const ns = ensureNotificationSettings();
-  if(e.target.checked){
-    if(!swRegistration) await registerServiceWorker();
-    const granted = await ensureNotificationPermission();
-    if(!granted){
-      e.target.checked = false;
-      renderNotificationSettingsModal();
-      showToast(t('notif.morning_perm_toast'));
-      return;
-    }
-    await ensurePushSubscription();
-  } else if(!ns.eveningEnabled){
-    await removePushSubscriptionIfUnused();
+async function handleDigestToggle(kind, checked, toggleEl){
+  if(digestToggleBusy){
+    toggleEl.checked = !checked; // عملية شغالة — نرجّع المفتاح مكانه ونتجاهل الضغطة
+    return;
   }
-  ns.morningEnabled = e.target.checked;
-  renderNotificationSettingsModal();
-  await saveData();
-  startNotificationScheduler();
-};
-
-document.getElementById('eveningNotifToggle').onchange = async (e) => {
-  const ns = ensureNotificationSettings();
-  if(e.target.checked){
-    if(!swRegistration) await registerServiceWorker();
-    const granted = await ensureNotificationPermission();
-    if(!granted){
-      e.target.checked = false;
-      renderNotificationSettingsModal();
-      showToast(t('notif.evening_perm_toast'));
-      return;
+  digestToggleBusy = true;
+  try{
+    const ns = ensureNotificationSettings();
+    const otherEnabled = kind === 'morning' ? ns.eveningEnabled : ns.morningEnabled;
+    if(checked){
+      if(!swRegistration) await registerServiceWorker();
+      const granted = await ensureNotificationPermission();
+      if(!granted){
+        toggleEl.checked = false;
+        renderNotificationSettingsModal();
+        showToast(t(kind === 'morning' ? 'notif.morning_perm_toast' : 'notif.evening_perm_toast'));
+        return;
+      }
+      await ensurePushSubscription();
+    } else if(!otherEnabled){
+      // آخر مفاتيح التنبيهات اتقفلت — مش محتاجين اشتراك الـ push أكتر
+      await removePushSubscriptionIfUnused();
     }
-    await ensurePushSubscription();
-  } else if(!ns.morningEnabled){
-    await removePushSubscriptionIfUnused();
+    if(kind === 'morning') ns.morningEnabled = checked;
+    else ns.eveningEnabled = checked;
+    renderNotificationSettingsModal();
+    await saveData();
+    startNotificationScheduler();
+  }finally{
+    digestToggleBusy = false;
   }
-  ns.eveningEnabled = e.target.checked;
-  renderNotificationSettingsModal();
-  await saveData();
-  startNotificationScheduler();
-};
+}
+
+// ربط عناصر Modal الإعدادات — الموديول بيتقيّم مرة واحدة عند الاستيراد، فبنحط حماية
+// null على كل عنصر: لو ID اتحذف أو اتغيّر في الـ HTML مستقبلًا، الخطأ ميقتلش شجرة
+// الاستيراد كلها (كانت بتظهر شاشة فاضية تمامًا من غير أي رسالة).
+const notificationSettingsBtn = document.getElementById('notificationSettingsBtn');
+if(notificationSettingsBtn) notificationSettingsBtn.onclick = openNotificationSettingsModal;
+
+const closeNotificationSettingsBtn = document.getElementById('closeNotificationSettingsBtn');
+if(closeNotificationSettingsBtn) closeNotificationSettingsBtn.onclick = closeNotificationSettingsModal;
+
+const notificationSettingsOverlay = document.getElementById('notificationSettingsOverlay');
+if(notificationSettingsOverlay){
+  notificationSettingsOverlay.onclick = (e) => {
+    if(e.target.id === 'notificationSettingsOverlay') closeNotificationSettingsModal();
+  };
+}
+
+const morningNotifToggle = document.getElementById('morningNotifToggle');
+if(morningNotifToggle) morningNotifToggle.onchange = (e) => handleDigestToggle('morning', e.target.checked, e.target);
+
+const eveningNotifToggle = document.getElementById('eveningNotifToggle');
+if(eveningNotifToggle) eveningNotifToggle.onchange = (e) => handleDigestToggle('evening', e.target.checked, e.target);

@@ -6,7 +6,7 @@ import { t } from './i18n.js';
 import { addDays, reorderArrayById, todayStr, uid } from './utils.js';
 import { contentEl, showToast, showUndoToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
-import { hideDurationPopover, showDurationPopover, wireCustomSelects, wireDragAndDrop } from './popovers.js';
+import { wireCustomSelects, wireDragAndDrop } from './popovers.js';
 import { openRecurrenceModal } from './recurrence.js';
 import { render } from './render.js';
 import { openSubtasksModal } from './subtasks.js';
@@ -197,45 +197,6 @@ export function attachEvents(){
       ui.openPriorityPopoverTaskId = null;
       render();
       await saveData();
-    }
-    else if(action === 'toggle-type-popover'){
-      ui.openClockChoiceTaskId = null;
-      if(ui.openTypePopoverTaskId === id){
-        ui.openTypePopoverTaskId = null;
-      } else {
-        ui.openTypePopoverTaskId = id;
-      }
-      render();
-    }
-    else if(action === 'set-task-type'){
-      const task = (state.days[ui.selectedDate] || []).find(x => x.id === id);
-      if(task){
-        if(btn.dataset.choice) task.type = btn.dataset.choice;
-        else delete task.type;
-        const kw = state.keywords.find(k => k.name === task.name);
-        if(kw){
-          if(task.type) kw.type = task.type;
-          else delete kw.type;
-        }
-        Object.values(state.days).forEach(dayList => {
-          dayList.forEach(t => {
-            if(t.id !== id && t.name === task.name){
-              if(task.type) t.type = task.type;
-              else delete t.type;
-            }
-          });
-        });
-      }
-      ui.openTypePopoverTaskId = null;
-      render();
-      await saveData();
-    }
-    else if(action === 'toggle-duration-view'){
-      if(ui.openDurationPopoverTaskId === id){
-        hideDurationPopover();
-      } else {
-        showDurationPopover(id, btn);
-      }
     }
     else if(action === 'delete-task'){
       await deleteTaskById(id);

@@ -5,7 +5,7 @@
 // زي Google Calendar.
 // ============================================================
 
-import { DAY_NAMES, MONTH_NAMES, SHORT_DAY_NAMES, addDays, escapeAttr, escapeHtml, fmtDay, fromISO, parseDurationToMinutes, timeStrToMinutes, todayStr, toISO, uid } from './utils.js';
+import { DAY_NAMES, MONTH_NAMES, SHORT_DAY_NAMES, addDays, escapeAttr, escapeHtml, fmtDay, fromISO, getWeekStart, parseDurationToMinutes, timeStrToMinutes, todayStr, toISO, uid } from './utils.js';
 import { contentEl, showToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { formatTimeArabic, openTimePicker } from './timePicker.js';
@@ -29,11 +29,64 @@ _tbMq.addEventListener('change', () => {
   if(ui.timeBlockViewOpen) render();
 });
 
-function getWeekStart(dateStr){
+// شبكة الشهر زي Google Calendar: مصفوفة أسابيع، كل أسبوع 7 تواريخ ISO،
+// بتبدأ من الأحد اللي قبل أول يوم في الشهر (أو نفسه) وبتخلص بسبت بعد آخر يوم.
+function getMonthGrid(dateStr){
   const d = fromISO(dateStr);
-  const dow = d.getDay(); // 0 = الأحد
-  d.setDate(d.getDate() - dow);
-  return toISO(d);
+  const year = d.getFullYear();
+  const month = d.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const startOffset = new Date(year, month, 1).getDay();
+  const totalCells = Math.ceil((startOffset + daysInMonth) / 7) * 7;
+  const weeks = [];
+  const cursor = new Date(year, month, 1 - startOffset);
+  for(let i = 0; i < totalCells; i++){
+    if(i % 7 === 0) weeks.push([]);
+    weeks[weeks.length - 1].push(toISO(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return weeks;
+}
+
+// تنقّل بين الشهور: بنرجع أول يوم في الشهر الجديد (نفس اليوم رقم 1 عشان العرض يثبت)
+function shiftMonth(dateStr, delta){
+  const d = fromISO(dateStr);
+  return toISO(new Date(d.getFullYear(), d.getMonth() + delta, 1));
+}
+
+// قائمة مدى العرض (يوم/أسبوع/شهر) — مشتركة بين الأنماط الثلاثة بدل ما تتكرر في كل واحد
+function buildTbRangeDropdown(){
+  const labels = { day: t('c.day'), week: t('c.week'), month: t('c.month') };
+  return `
+    <div class="tb-range-dropdown" id="tbRangeDropdown">
+      <button class="tb-range-drop-btn" id="tbRangeDropBtn" type="button">
+        <span>${labels[ui.tbRangeMode] || labels.day}</span>
+        <span class="material-icons tb-drop-arrow">expand_more</span>
+      </button>
+      <div class="tb-range-menu" id="tbRangeMenu">
+        <button class="tb-range-menu-item ${ui.tbRangeMode === 'day' ? 'active' : ''}" data-range="day">${labels.day}</button>
+        <button class="tb-range-menu-item ${ui.tbRangeMode === 'week' ? 'active' : ''}" data-range="week">${labels.week}</button>
+        <button class="tb-range-menu-item ${ui.tbRangeMode === 'month' ? 'active' : ''}" data-range="month">${labels.month}</button>
+      </div>
+    </div>
+  `;
+}
+
+function wireTbRangeDropdown(){
+  const dropBtn = document.getElementById('tbRangeDropBtn');
+  const dropMenu = document.getElementById('tbRangeMenu');
+  if(dropBtn && dropMenu){
+    dropBtn.onclick = (e) => { e.stopPropagation(); dropMenu.classList.toggle('open'); };
+    dropMenu.querySelectorAll('.tb-range-menu-item').forEach(item => {
+      item.onclick = () => {
+        ui.tbRangeMode = item.dataset.range;
+        ui.justChangedTbRange = true;
+        closeTbSide();
+        dropMenu.classList.remove('open');
+        render();
+      };
+    });
+  }
 }
 
 export function toggleTimeBlockView(){
@@ -141,8 +194,24 @@ function layoutTimelineBlocks(items){
   return positioned;
 }
 
+// تشغيل/إيقاف وضع "طول الشاشة" للحاويات اللي فوق عرض الشهر (main-col و #content).
+// بنستخدم كلاسات بدل :has() عشان الدعم يكون مضمون في كل المتصفحات والاتجاهات.
+export function setTbStretch(on){
+  const appShell = document.querySelector('.app-shell');
+  const mainLayout = document.querySelector('.main-layout');
+  const mainCol = document.querySelector('.main-col');
+  const content = document.getElementById('content');
+  if(appShell) appShell.classList.toggle('tb-stretch', !!on);
+  if(mainLayout) mainLayout.classList.toggle('tb-stretch', !!on);
+  if(mainCol) mainCol.classList.toggle('tb-stretch', !!on);
+  if(content) content.classList.toggle('tb-stretch', !!on);
+}
+
 export function renderTimeBlockView(){
+  // عرض الشهر بس هو اللي بيمدّ سلسلة الحاويات لطول الشاشة — الباقي بيرجع للوضع الطبيعي
+  setTbStretch(ui.tbRangeMode === 'month');
   if(ui.tbRangeMode === 'week'){ renderTimeBlockWeekView(); return; }
+  if(ui.tbRangeMode === 'month'){ renderTimeBlockMonthView(); return; }
   if(ui.justChangedDay) ui.tbSideExpanded = false; // نعيد توسيع اللوحة لما نغيّر اليوم
   ensureDayMaterialized(ui.selectedDate);
   const dayTasks = state.days[ui.selectedDate] || [];
@@ -223,20 +292,10 @@ export function renderTimeBlockView(){
   }
 
   const dayName = DAY_NAMES[fromISO(ui.selectedDate).getDay()];
-  const rangeLabel = ui.tbRangeMode === 'day' ? t('c.day') : t('c.week');
   const html = `
     <div class="timeblock-view ${(ui.justReturnedFromStats || ui.justChangedTbRange) ? 'animate-in' : ''}">
       <div class="date-nav tb-date-nav">
-        <div class="tb-range-dropdown" id="tbRangeDropdown">
-          <button class="tb-range-drop-btn" id="tbRangeDropBtn" type="button">
-            <span>${rangeLabel}</span>
-            <span class="material-icons tb-drop-arrow">expand_more</span>
-          </button>
-          <div class="tb-range-menu" id="tbRangeMenu">
-            <button class="tb-range-menu-item ${ui.tbRangeMode === 'day' ? 'active' : ''}" data-range="day">${t('c.day')}</button>
-            <button class="tb-range-menu-item ${ui.tbRangeMode === 'week' ? 'active' : ''}" data-range="week">${t('c.week')}</button>
-          </div>
-        </div>
+        ${buildTbRangeDropdown()}
         <div class="tb-nav-group">
           <button class="nav-btn" id="tbPrevBtn" aria-label="${t('day.prev')}"><span class="material-icons">chevron_right</span></button>
           <button class="tb-day-label" id="tbDayLabelBtn" type="button">${dayName}</button>
@@ -324,19 +383,7 @@ function attachTimeBlockEvents(){
   const moreBtn = document.getElementById('tbSideMoreBtn');
   if(moreBtn) moreBtn.onclick = () => { ui.tbSideExpanded = !ui.tbSideExpanded; render(); };
 
-  const dropBtn = document.getElementById('tbRangeDropBtn');
-  const dropMenu = document.getElementById('tbRangeMenu');
-  if(dropBtn && dropMenu){
-    dropBtn.onclick = (e) => { e.stopPropagation(); dropMenu.classList.toggle('open'); };
-    dropMenu.querySelectorAll('.tb-range-menu-item').forEach(item => {
-      item.onclick = () => {
-        ui.tbRangeMode = item.dataset.range;
-        ui.justChangedTbRange = true;
-        dropMenu.classList.remove('open');
-        render();
-      };
-    });
-  }
+  wireTbRangeDropdown();
 
   contentEl.querySelectorAll('.timeline-block').forEach(blockEl => {
     const taskId = blockEl.dataset.id;
@@ -493,7 +540,7 @@ function renderTimeBlockWeekView(){
 
     const d = fromISO(dateStr);
     colsHtml += `
-      <div class="tbw-col ${isToday ? 'today' : ''}">
+      <div class="tbw-col ${isToday ? 'today' : ''} ${(d.getDay() === 5 || d.getDay() === 6) ? 'weekend' : ''}">
         <button class="tbw-col-head ${isToday ? 'today' : ''}" data-action="tb-open-day" data-date="${dateStr}" title="${t('week.open_day', {day: d.getDate()})}">
           <span class="tbw-col-day">${SHORT_DAY_NAMES[d.getDay()]}</span>
           <span class="tbw-col-num">${d.getDate()}</span>
@@ -510,7 +557,6 @@ function renderTimeBlockWeekView(){
   const d0 = fromISO(weekStart);
   const d6 = fromISO(addDays(weekStart, 6));
 
-  const rangeLabel = ui.tbRangeMode === 'day' ? t('c.day') : t('c.week');
   const weekMonthLabel = d0.getMonth() === d6.getMonth()
     ? MONTH_NAMES[d0.getMonth()]
     : `${MONTH_NAMES[d0.getMonth()]} - ${MONTH_NAMES[d6.getMonth()]}`;
@@ -518,22 +564,14 @@ function renderTimeBlockWeekView(){
   const html = `
     <div class="timeblock-view ${(ui.justReturnedFromStats || ui.justChangedTbRange) ? 'animate-in' : ''}">
       <div class="date-nav tb-date-nav">
-        <div class="tb-range-dropdown" id="tbRangeDropdown">
-          <button class="tb-range-drop-btn" id="tbRangeDropBtn" type="button">
-            <span>${rangeLabel}</span>
-            <span class="material-icons tb-drop-arrow">expand_more</span>
-          </button>
-          <div class="tb-range-menu" id="tbRangeMenu">
-            <button class="tb-range-menu-item ${ui.tbRangeMode === 'day' ? 'active' : ''}" data-range="day">${t('c.day')}</button>
-            <button class="tb-range-menu-item ${ui.tbRangeMode === 'week' ? 'active' : ''}" data-range="week">${t('c.week')}</button>
-          </div>
-        </div>
+        ${buildTbRangeDropdown()}
         <div class="tb-nav-group">
           <button class="nav-btn" id="tbwPrevBtn" aria-label="${t('week.prev')}"><span class="material-icons">chevron_right</span></button>
           <button class="tb-day-label" id="tbDayLabelBtn" type="button">${weekMonthLabel}</button>
           <button class="nav-btn" id="tbwNextBtn" aria-label="${t('week.next')}"><span class="material-icons">chevron_left</span></button>
         </div>
         <div class="tb-actions-group">
+          <button class="tb-today-btn ${getWeekStart(ui.selectedDate) === getWeekStart(today) ? 'current' : ''}" id="tbwTodayBtn" type="button">${t('stats.day')}</button>
           <button class="tb-unscheduled-icon-btn" id="tbToggleSideBtn" type="button" aria-expanded="${ui.tbSideOpen}">
             <span class="material-icons">playlist_add</span>
             ${unscheduledRecurring.length > 0 ? `<span class="tb-unscheduled-badge">${unscheduledRecurring.length}</span>` : ''}
@@ -572,8 +610,21 @@ function renderTimeBlockWeekView(){
 
   const prevBtn = document.getElementById('tbwPrevBtn');
   const nextBtn = document.getElementById('tbwNextBtn');
-  if(prevBtn) prevBtn.onclick = () => { ui.selectedDate = addDays(getWeekStart(ui.selectedDate), -7); ui.justChangedDay = true; render(); };
-  if(nextBtn) nextBtn.onclick = () => { ui.selectedDate = addDays(getWeekStart(ui.selectedDate), 7); ui.justChangedDay = true; render(); };
+  // ملاحظة: التنقل بين الأسابيع هنا مالوش علاقة بعلم justChangedDay (بتاع أنيميشن عرض اليوم)
+  // فمنعملش عليه true — كان بيفضل معلّق وبيولّد أنيميشن زائف أول ما نرجع لعرض اليوم.
+  if(prevBtn) prevBtn.onclick = () => { ui.selectedDate = addDays(getWeekStart(ui.selectedDate), -7); render(); };
+  if(nextBtn) nextBtn.onclick = () => { ui.selectedDate = addDays(getWeekStart(ui.selectedDate), 7); render(); };
+  const weekTodayBtn = document.getElementById('tbwTodayBtn');
+  if(weekTodayBtn) weekTodayBtn.onclick = () => {
+    const today = todayStr();
+    if(ui.selectedDate === today) return;
+    ui.selectedDate = today;
+    render();
+    requestAnimationFrame(() => {
+      const nowLine = contentEl.querySelector('.timeline-now-line');
+      if(nowLine) nowLine.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  };
 
   const dayLabelBtn = document.getElementById('tbDayLabelBtn');
   if(dayLabelBtn) dayLabelBtn.onclick = () => openCalendarModal();
@@ -587,19 +638,7 @@ function renderTimeBlockWeekView(){
   const weekMoreBtn = document.getElementById('tbSideMoreBtn');
   if(weekMoreBtn) weekMoreBtn.onclick = () => { ui.tbSideExpanded = !ui.tbSideExpanded; render(); };
 
-  const dropBtn = document.getElementById('tbRangeDropBtn');
-  const dropMenu = document.getElementById('tbRangeMenu');
-  if(dropBtn && dropMenu){
-    dropBtn.onclick = (e) => { e.stopPropagation(); dropMenu.classList.toggle('open'); };
-    dropMenu.querySelectorAll('.tb-range-menu-item').forEach(item => {
-      item.onclick = () => {
-        ui.tbRangeMode = item.dataset.range;
-        ui.justChangedTbRange = true;
-        dropMenu.classList.remove('open');
-        render();
-      };
-    });
-  }
+  wireTbRangeDropdown();
 
   contentEl.querySelectorAll('[data-action="tb-open-day"]').forEach(btn => {
     btn.onclick = () => {
@@ -647,6 +686,349 @@ function renderTimeBlockWeekView(){
     });
   });
 }
+
+// ============================================================
+// عرض الشهر زي Google Calendar: شبكة 7 أعمدة × 5-6 صفوف، كل خلية
+// فيها رقم اليوم + chips مختصرة للمهام المجدولة فيها. الضغط على
+// أي يوم أو مهمة بينقلك لعرض اليوم بتاعه.
+// ============================================================
+const TBM_MAX_EVENTS = 3; // عدد المهام المعروضة في الخلية قبل سطر "+N المزيد"
+
+// ملاءمة ارتفاع شبكة الشهر للمساحة الفعلية المتبقية تحت الهيدر — قياس مباشر
+// بعد الرسم بدل الاعتماد على سلسلة الـ flex بس، عشان النتيجة مضمونة
+// في كل المقاسات والاتجاهات (RTL/LTR) وكمان على الموبايل
+function fitTbmHeight(){
+  const wrap = contentEl.querySelector('.tbm-grid-wrap');
+  if(!wrap) return;
+  wrap.style.height = ''; // نفضّي القيمة القديمة الأول عشان القياس يبقى صحيح
+  const top = wrap.getBoundingClientRect().top;
+  const bodyPadBottom = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+  const avail = window.innerHeight - top - bodyPadBottom - 2;
+  if(avail > 240) wrap.style.height = Math.floor(avail) + 'px';
+}
+
+let _tbmResizeBound = false;
+function bindTbmResize(){
+  if(_tbmResizeBound) return;
+  _tbmResizeBound = true;
+  window.addEventListener('resize', () => {
+    if(contentEl.querySelector('.tbm-grid-wrap')) fitTbmHeight();
+  });
+}
+
+function renderTimeBlockMonthView(){
+  const today = todayStr();
+  const grid = getMonthGrid(ui.selectedDate);
+  const d0 = fromISO(ui.selectedDate);
+  const year = d0.getFullYear();
+  const month = d0.getMonth();
+
+  // بنجمع مهام كل يوم في الشبكة (بما فيها أيام الشهور المجاورة الظاهرة في أول/آخر أسبوع)
+  let headHtml = '';
+  SHORT_DAY_NAMES.forEach(name => {
+    headHtml += `<div class="tbm-head-cell">${escapeHtml(name)}</div>`;
+  });
+
+  let bodyHtml = '';
+  grid.forEach(week => {
+    week.forEach(dateStr => {
+      ensureDayMaterialized(dateStr);
+      const tasks = state.days[dateStr] || [];
+      const scheduled = [];
+      tasks.forEach(task => {
+        const startMin = timeStrToMinutes(task.startTime);
+        if(startMin === null) return;
+        scheduled.push({ task, startMin });
+      });
+      scheduled.sort((a, b) => a.startMin - b.startMin);
+
+      const dt = fromISO(dateStr);
+      const inMonth = dt.getMonth() === month;
+      const isToday = dateStr === today;
+      const dow = dt.getDay();
+      const isWeekend = dow === 5 || dow === 6; // الجمعة والسبت
+
+      let chipsHtml = '';
+      scheduled.slice(0, TBM_MAX_EVENTS).forEach(({ task, startMin }) => {
+        chipsHtml += `
+          <button type="button" class="tbm-event ${task.done ? 'done' : ''} ${task.priority ? 'priority-' + task.priority : ''}"
+                  data-action="tbm-open-event" data-id="${task.id}" data-date="${dateStr}" title="${escapeAttr(task.name)}">
+            <span class="tbm-event-time">${formatTimeArabic(minutesToHHMM(startMin))}</span>
+            <span class="tbm-event-name">${escapeHtml(task.name)}</span>
+          </button>
+        `;
+      });
+      const moreCount = scheduled.length - TBM_MAX_EVENTS;
+      if(moreCount > 0){
+        chipsHtml += `<button type="button" class="tbm-event-more" data-action="tbm-more" data-date="${dateStr}">${t('schedule.month_more', {count: moreCount})}</button>`;
+      }
+
+      bodyHtml += `
+        <div class="tbm-cell ${inMonth ? '' : 'other-month'} ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''}" data-date="${dateStr}">
+          <button type="button" class="tbm-day-num" data-action="tbm-open-day" data-date="${dateStr}" aria-label="${fmtDay(dateStr)}">${dt.getDate()}</button>
+          <div class="tbm-events">${chipsHtml}</div>
+        </div>
+      `;
+    });
+  });
+
+  // المهام المتكررة غير المجدولة خلال الشهر (تظهر في لوحة جانبية زي عرض الأسبوع)
+  const isMobile = window.innerWidth <= 900;
+  const unscheduledMap = new Map();
+  grid.forEach(week => week.forEach(dateStr => {
+    (state.days[dateStr] || []).forEach(task => {
+      if(!task.startTime && state.recurringTasks && state.recurringTasks[task.name]){
+        if(!unscheduledMap.has(task.name)) unscheduledMap.set(task.name, task);
+      }
+    });
+  }));
+  const unscheduledMonth = [...unscheduledMap.values()];
+  const monthCollapsed = isMobile && !ui.tbSideExpanded && unscheduledMonth.length > TB_MOBILE_VISIBLE_COUNT;
+  const monthNeedsMoreBtn = isMobile && unscheduledMonth.length > TB_MOBILE_VISIBLE_COUNT;
+  const monthVisibleTasks = monthCollapsed ? unscheduledMonth.slice(0, TB_MOBILE_VISIBLE_COUNT) : unscheduledMonth;
+  let monthSideHtml = '';
+  if(monthVisibleTasks.length === 0){
+    monthSideHtml = `<div class="timeblock-side-empty">${t('schedule.no_unscheduled_recurring')}</div>`;
+  } else {
+    monthVisibleTasks.forEach(task => {
+      monthSideHtml += `<div class="timeblock-side-item" data-id="${task.id}" data-name="${escapeAttr(task.name)}">${escapeHtml(task.name)}</div>`;
+    });
+  }
+
+  const monthLabel = `${MONTH_NAMES[month]} ${year}`;
+
+  const html = `
+    <div class="timeblock-view tb-full-height ${(ui.justReturnedFromStats || ui.justChangedTbRange) ? 'animate-in' : ''}">
+      <div class="date-nav tb-date-nav">
+        ${buildTbRangeDropdown()}
+        <div class="tb-nav-group">
+          <button class="nav-btn" id="tbmPrevBtn" aria-label="${t('day.prev')}"><span class="material-icons">chevron_right</span></button>
+          <button class="tb-day-label" id="tbDayLabelBtn" type="button">${monthLabel}</button>
+          <button class="nav-btn" id="tbmNextBtn" aria-label="${t('day.next')}"><span class="material-icons">chevron_left</span></button>
+        </div>
+        <div class="tb-actions-group">
+          <button class="tb-today-btn ${ui.selectedDate === today ? 'current' : ''}" id="tbTodayBtn" type="button">${t('stats.day')}</button>
+          <button class="tb-unscheduled-icon-btn" id="tbToggleSideBtn" type="button" aria-expanded="${ui.tbSideOpen}">
+            <span class="material-icons">playlist_add</span>
+            ${unscheduledMonth.length > 0 ? `<span class="tb-unscheduled-badge">${unscheduledMonth.length}</span>` : ''}
+          </button>
+        </div>
+      </div>
+      <div class="timeblock-layout timeblock-layout-month">
+        <div class="tbm-grid-wrap">
+          <div class="tbm-head">${headHtml}</div>
+          <div class="tbm-body">${bodyHtml}</div>
+        </div>
+        <div class="timeblock-side-backdrop ${ui.tbSideOpen ? 'open' : ''}" id="tbSideBackdrop"></div>
+        <div class="timeblock-side ${ui.tbSideOpen ? 'open' : ''} ${ui.tbSideJustOpened ? 'tb-open-anim' : ''} ${ui.tbSideClosing ? 'tb-closing' : ''}">
+          <div class="timeblock-side-card">
+            <div class="timeblock-side-head">
+              <div class="timeblock-side-title">${t('schedule.unscheduled_recurring')}</div>
+              <button class="tb-side-close-btn" id="tbSideCloseBtn" type="button" aria-label="${t('c.close')}"><span class="material-icons">close</span></button>
+            </div>
+            <div class="timeblock-unscheduled-list ${monthNeedsMoreBtn && !ui.tbSideExpanded ? 'tb-side-collapsed' : ''}" id="tbUnscheduledList">${monthSideHtml}</div>
+            ${monthNeedsMoreBtn ? `<button class="tb-side-more-btn" id="tbSideMoreBtn" type="button">${ui.tbSideExpanded ? t('schedule.less') : t('schedule.more', {count: unscheduledMonth.length - TB_MOBILE_VISIBLE_COUNT})}</button>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  contentEl.innerHTML = html;
+  ui.justReturnedFromStats = false;
+  ui.justChangedTbRange = false;
+
+  const prevBtn = document.getElementById('tbmPrevBtn');
+  const nextBtn = document.getElementById('tbmNextBtn');
+  // نفس ملاحظة عرض الأسبوع: من غير justChangedDay هنا (مش مستهلكة في عرض الشهر)
+  if(prevBtn) prevBtn.onclick = () => { ui.selectedDate = shiftMonth(ui.selectedDate, -1); render(); };
+  if(nextBtn) nextBtn.onclick = () => { ui.selectedDate = shiftMonth(ui.selectedDate, 1); render(); };
+
+  const dayLabelBtn = document.getElementById('tbDayLabelBtn');
+  if(dayLabelBtn) dayLabelBtn.onclick = () => openCalendarModal();
+
+  const todayBtn = document.getElementById('tbTodayBtn');
+  if(todayBtn) todayBtn.onclick = () => {
+    if(ui.selectedDate !== today){ ui.selectedDate = today; render(); }
+  };
+
+  wireTbRangeDropdown();
+
+  const toggleSideBtn = document.getElementById('tbToggleSideBtn');
+  const sideCloseBtn = document.getElementById('tbSideCloseBtn');
+  const sideBackdrop = document.getElementById('tbSideBackdrop');
+  if(toggleSideBtn) toggleSideBtn.onclick = toggleTbSide;
+  if(sideCloseBtn) sideCloseBtn.onclick = () => closeTbSide();
+  if(sideBackdrop) sideBackdrop.onclick = () => closeTbSide();
+  const monthMoreBtn = document.getElementById('tbSideMoreBtn');
+  if(monthMoreBtn) monthMoreBtn.onclick = () => { ui.tbSideExpanded = !ui.tbSideExpanded; render(); };
+
+  contentEl.querySelectorAll('[data-action="tbm-open-day"]').forEach(btn => {
+    btn.onclick = () => {
+      ui.selectedDate = btn.dataset.date;
+      ui.justChangedDay = true;
+      ui.tbRangeMode = 'day';
+      render();
+    };
+  });
+
+  // الضغط على الـ chip بيفتح تفاصيل المهمة (زي Google Calendar)
+  contentEl.querySelectorAll('[data-action="tbm-open-event"]').forEach(btn => {
+    btn.onclick = () => {
+      openTimelineTaskPopup(btn.dataset.id, btn.dataset.date);
+    };
+  });
+
+  // الضغط على سطر "+N المزيد" بيفتح بوب صغير فيه كل مهام اليوم ده
+  contentEl.querySelectorAll('[data-action="tbm-more"]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      openTbmMorePop(btn);
+    };
+  });
+
+  // الضغط على مكان فاضي في الخلية بيفتح بوب إضافة مهمة لليوم ده
+  contentEl.querySelectorAll('.tbm-cell').forEach(cellEl => {
+    cellEl.addEventListener('click', (e) => {
+      if(e.target.closest('button')) return;
+      openAddTimelineTaskPopup(cellEl.dataset.date, 8 * 60);
+    });
+  });
+
+  // سحب المهام من اللوحة الجانبية وإفلاتها في أي خلية يوم
+  contentEl.querySelectorAll('.timeblock-side-item').forEach(itemEl => {
+    itemEl.addEventListener('pointerdown', (e) => {
+      startSideItemDragMonth(e, itemEl);
+    });
+  });
+
+  bindTbmResize();
+  requestAnimationFrame(fitTbmHeight);
+}
+
+// ============================================================
+// سحب مهمة من اللوحة الجانبية في عرض الشهر: زي سحب عرض الأسبوع
+// بس الهدف خلية يوم مش track بالساعات — الإفلات بيحط المهمة
+// الساعة 8:00 صباحًا في اليوم اللي اتإفلتت فيه.
+// ============================================================
+function startSideItemDragMonth(e, itemEl){
+  e.preventDefault();
+  const taskId = itemEl.dataset.id;
+  const allCells = document.querySelectorAll('.tbm-cell');
+
+  itemEl.classList.add('dragging');
+  try { itemEl.setPointerCapture(e.pointerId); } catch(err) {}
+
+  const ghost = document.createElement('div');
+  ghost.className = 'timeblock-side-item';
+  ghost.style.position = 'fixed';
+  ghost.style.pointerEvents = 'none';
+  ghost.style.zIndex = '999';
+  ghost.style.width = itemEl.offsetWidth + 'px';
+  ghost.textContent = itemEl.dataset.name;
+  document.body.appendChild(ghost);
+
+  let hoverCell = null;
+
+  function positionGhost(clientX, clientY){
+    ghost.style.left = (clientX + 12) + 'px';
+    ghost.style.top = (clientY + 12) + 'px';
+  }
+
+  function findCellAtPoint(clientX, clientY){
+    for(const cell of allCells){
+      const r = cell.getBoundingClientRect();
+      if(clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) return cell;
+    }
+    return null;
+  }
+
+  function onMove(ev){
+    positionGhost(ev.clientX, ev.clientY);
+    const cell = findCellAtPoint(ev.clientX, ev.clientY);
+    if(hoverCell && hoverCell !== cell) hoverCell.classList.remove('drop-hover');
+    hoverCell = cell;
+    if(cell) cell.classList.add('drop-hover');
+  }
+
+  function onUp(ev){
+    try { itemEl.releasePointerCapture(ev.pointerId); } catch(err) {}
+    itemEl.classList.remove('dragging');
+    ghost.remove();
+    if(hoverCell){ hoverCell.classList.remove('drop-hover'); hoverCell = null; }
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+
+    const cell = findCellAtPoint(ev.clientX, ev.clientY);
+    if(!cell) return;
+    commitTaskTime(taskId, 8 * 60, cell.dataset.date);
+  }
+
+  document.addEventListener('pointermove', onMove);
+  document.addEventListener('pointerup', onUp);
+}
+
+// ============================================================
+// بوب "+N المزيد" في عرض الشهر: قائمة صغيرة جنب السطر فيها كل
+// مهام اليوم، وكل صف بيفتح تفاصيل المهمة. بيتقفل بالضغط بره أو Escape.
+// ============================================================
+let tbmMorePopEl = null;
+
+function closeTbmMorePop(){
+  if(tbmMorePopEl){ tbmMorePopEl.remove(); tbmMorePopEl = null; }
+}
+
+function openTbmMorePop(triggerBtn){
+  closeTbmMorePop();
+  const dateStr = triggerBtn.dataset.date;
+  ensureDayMaterialized(dateStr);
+  const scheduled = [];
+  (state.days[dateStr] || []).forEach(task => {
+    const startMin = timeStrToMinutes(task.startTime);
+    if(startMin === null) return;
+    scheduled.push({ task, startMin });
+  });
+  scheduled.sort((a, b) => a.startMin - b.startMin);
+
+  const pop = document.createElement('div');
+  pop.className = 'tbm-more-pop';
+  pop.innerHTML = `
+    <div class="tbm-more-head">${fmtDay(dateStr)}</div>
+    ${scheduled.length === 0 ? `<div class="tbm-more-empty">${t('day.no_tasks_recorded')}</div>` : ''}
+    ${scheduled.map(({ task, startMin }) => `
+      <button type="button" class="tbm-more-item ${task.done ? 'done' : ''} ${task.priority ? 'priority-' + task.priority : ''}"
+              data-id="${task.id}" data-date="${dateStr}">
+        <span class="tbm-event-time">${formatTimeArabic(minutesToHHMM(startMin))}</span>
+        <span class="tbm-event-name">${escapeHtml(task.name)}</span>
+      </button>
+    `).join('')}
+  `;
+  document.body.appendChild(pop);
+  tbmMorePopEl = pop;
+
+  const rect = triggerBtn.getBoundingClientRect();
+  const popRect = pop.getBoundingClientRect();
+  let top = rect.bottom + 6;
+  if(top + popRect.height > window.innerHeight - 8) top = Math.max(8, rect.top - popRect.height - 6);
+  let left = rect.left;
+  left = Math.max(8, Math.min(left, window.innerWidth - popRect.width - 8));
+  pop.style.top = top + 'px';
+  pop.style.left = left + 'px';
+
+  pop.querySelectorAll('.tbm-more-item').forEach(item => {
+    item.onclick = () => {
+      closeTbmMorePop();
+      openTimelineTaskPopup(item.dataset.id, item.dataset.date);
+    };
+  });
+}
+
+document.addEventListener('click', (e) => {
+  if(tbmMorePopEl && !tbmMorePopEl.contains(e.target)) closeTbmMorePop();
+});
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape') closeTbmMorePop();
+});
 
 // ============================================================
 // بوب إضافة مهمة مجدولة من عرض الأسبوع: الضغط على مكان فاضي في يوم

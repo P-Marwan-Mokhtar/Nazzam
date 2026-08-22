@@ -5,7 +5,7 @@
 // رقم الإصدار (CACHE_VERSION) بيتغيّر تلقائيًا مع أي تغيير في المحتوى.
 // ============================================================
 
-const CACHE_VERSION = 'vc3cd078c75';
+const CACHE_VERSION = 'v0386bed909';
 const CACHE_NAME = 'daily-tasks-shell-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -59,6 +59,7 @@ const PRECACHE_URLS = [
 ];
 
 self.addEventListener('install', (event) => {
+  const failed = [];
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) =>
@@ -67,14 +68,25 @@ self.addEventListener('install', (event) => {
             const target = new URL(url, self.location.href).href;
             return fetch(new Request(target, { cache: 'reload' }))
               .then((res) => {
-                if (res && res.status === 200) return cache.put(target, res);
+                if (!res || res.status !== 200) throw new Error("HTTP " + (res ? res.status : "no-response"));
+                return cache.put(target, res);
               })
               .catch((err) => {
-                console.warn('تعذر تخزين هذا الملف مؤقتًا، هيتم تجاهله والمتابعة:', url, err);
+                console.warn('تعذر تخزين هذا الملف أثناء التثبيت:', url, err);
+                failed.push(url);
               });
           })
         )
       )
+      .then(() => {
+        // لو أي ملف من هيكل التطبيق فشل، بنفشّل التثبيت كله (من غير skipWaiting):
+        // الـ Service Worker القديم بيفضل شغال بالكاش الكامل بتاعه، والمتصفح بيعيد
+        // محاولة التثبيت تلقائيًا بعدين. ده أفضل من Service Worker ناقص ملفات
+        // يفضل شغال لحد النشر اللي بعده.
+        if (failed.length > 0) {
+          throw new Error('precache incomplete: ' + failed.join(', '));
+        }
+      })
       .then(() => self.skipWaiting())
   );
 });

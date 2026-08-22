@@ -112,13 +112,16 @@ function sanitizeTimer(t){
   if(!isPlainObject(t)) return null;
   const name = typeof t.name === 'string' ? t.name.trim() : '';
   if(!name) return null;
+  const hasValidStartedAt = (typeof t.startedAt === 'number' && isFinite(t.startedAt));
   const out = {
     id: (typeof t.id === 'string' && t.id) ? t.id : uid(),
     name,
     mode: t.mode === 'countdown' ? 'countdown' : 'open',
     elapsedMs: (typeof t.elapsedMs === 'number' && isFinite(t.elapsedMs) && t.elapsedMs >= 0) ? t.elapsedMs : 0,
-    running: t.running === true,
-    startedAt: (typeof t.startedAt === 'number' && isFinite(t.startedAt)) ? t.startedAt : null
+    // مؤقت "شغّال" من غير startedAt صالح بيتحول لموقوف — غير كده حساب الوقت الفعلي
+    // كان بيطلع رقم فلكي (Date.now() - null) وبيولّد تنبيه إنهاء زائف للمؤقتات العدّادية
+    running: t.running === true && hasValidStartedAt,
+    startedAt: hasValidStartedAt ? t.startedAt : null
   };
   if(out.mode === 'countdown'){
     out.targetMs = (typeof t.targetMs === 'number' && isFinite(t.targetMs) && t.targetMs > 0) ? t.targetMs : 0;
@@ -376,6 +379,7 @@ export async function trySyncPending(){
   if(!currentUserId || !hasPendingSync()) return;
   try{
     await pushToServer();
+    warnedNoServer = false;
     markPendingSync(false);
     showToast('تمت مزامنة التغييرات التي أجريتها دون اتصال بالإنترنت بنجاح');
   }catch(e){
@@ -436,13 +440,20 @@ let saveInFlight = false;
 
 let savePending = false;
 
+// نعرض تحذير "الحفظ محلي فقط" مرة واحدة بس طوال فترة الانقطاع، بدل ما يتكرر
+ // مع كل عملية حفظ (كل تفاعل بيلوح توست جديد مزعج). بنصفّره لما المزامنة تنجح.
+let warnedNoServer = false;
+
 export async function saveData(){
   saveLocalBackup(); // حفظ فوري محلي مايفوتش أي تحديث حتى لو النت وقع
   // نعتبر التعديل ده "معلّق" لحد ما نتأكد إنه فعلًا وصل للسيرفر بنجاح تحت
   markPendingSync(true);
 
   if(!currentUserId){
-    showToast('تعذّر الحفظ على الخادم (لا يوجد اتصال)، تم الحفظ محليًا فقط');
+    if(!warnedNoServer){
+      warnedNoServer = true;
+      showToast('تعذّر الحفظ على الخادم (لا يوجد اتصال)، تم الحفظ محليًا فقط');
+    }
     return;
   }
 
@@ -455,6 +466,7 @@ export async function saveData(){
 
   try{
     await pushToServer();
+    warnedNoServer = false;
     markPendingSync(false); // اتزامنت بنجاح، مبقتش معلّقة
   }catch(e){
     console.error('Save failed:', e);

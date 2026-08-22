@@ -108,6 +108,7 @@ const swSource =
 'const PRECACHE_URLS = @@PRECACHE_URLS@@;\n' +
 '\n' +
 "self.addEventListener('install', (event) => {\n" +
+'  const failed = [];\n' +
 '  event.waitUntil(\n' +
 '    caches.open(CACHE_NAME)\n' +
 '      .then((cache) =>\n' +
@@ -116,14 +117,25 @@ const swSource =
 "            const target = new URL(url, self.location.href).href;\n" +
 "            return fetch(new Request(target, { cache: 'reload' }))\n" +
 '              .then((res) => {\n' +
-'                if (res && res.status === 200) return cache.put(target, res);\n' +
+'                if (!res || res.status !== 200) throw new Error("HTTP " + (res ? res.status : "no-response"));\n' +
+'                return cache.put(target, res);\n' +
 '              })\n' +
 '              .catch((err) => {\n' +
-"                console.warn('تعذر تخزين هذا الملف مؤقتًا، هيتم تجاهله والمتابعة:', url, err);\n" +
+"                console.warn('تعذر تخزين هذا الملف أثناء التثبيت:', url, err);\n" +
+'                failed.push(url);\n' +
 '              });\n' +
 '          })\n' +
 '        )\n' +
 '      )\n' +
+'      .then(() => {\n' +
+'        // لو أي ملف من هيكل التطبيق فشل، بنفشّل التثبيت كله (من غير skipWaiting):\n' +
+'        // الـ Service Worker القديم بيفضل شغال بالكاش الكامل بتاعه، والمتصفح بيعيد\n' +
+'        // محاولة التثبيت تلقائيًا بعدين. ده أفضل من Service Worker ناقص ملفات\n' +
+"        // يفضل شغال لحد النشر اللي بعده.\n" +
+'        if (failed.length > 0) {\n' +
+"          throw new Error('precache incomplete: ' + failed.join(', '));\n" +
+'        }\n' +
+'      })\n' +
 "      .then(() => self.skipWaiting())\n" +
 '  );\n' +
 '});\n' +

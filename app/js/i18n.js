@@ -150,6 +150,7 @@ ar: {
   'c.done': 'تم',
   'c.day': 'يوم',
   'c.week': 'أسبوع',
+  'c.month': 'شهر',
   'c.time': 'الوقت',
   'c.goal': 'الهدف',
   'c.actual': 'الوقت الفعلي',
@@ -366,8 +367,6 @@ ar: {
   'stats.no_data_recorded': 'لم تُسجَّل هذه المهمة في أي يوم بعد',
   'stats.task_time_today': 'أكثر المهام وقتًا هذا اليوم',
   'stats.top_tasks_week': 'أكثر المهام وقتاً هذا الأسبوع',
-  'stats.task_done_once': 'منجزة',
-  'stats.task_done_multi': 'لم تُنجز',
   'stats.completion_rate_habits_day': 'نسبة إنجاز العادات اليوم',
   'stats.hobbies_definite': 'الهوايات',
   'stats.habits_definite': 'العادات',
@@ -381,6 +380,7 @@ ar: {
 
   // PDF
   'pdf.title': 'التقرير الأسبوعي',
+  'pdf.title_day': 'التقرير اليومي',
   'pdf.daily_export_title': 'تصدير تقرير يومي PDF',
   'pdf.weekly_export_title': 'تصدير تقرير أسبوعي PDF',
   'pdf.period': 'الفترة:',
@@ -394,6 +394,7 @@ ar: {
   'pdf.missed': 'مهام فائتة',
   'pdf.missed_desc': 'لم تُنجز في أيام سابقة',
   'pdf.summary_title': 'ملخص الأيام السبعة',
+  'pdf.summary_title_day': 'ملخص اليوم',
   'pdf.day_header': 'اليوم',
   'pdf.done_header': 'إنجاز',
   'pdf.time_header': 'الوقت',
@@ -401,6 +402,7 @@ ar: {
   'pdf.no_data': 'لا توجد بيانات',
   'pdf.accuracy_title': 'دقة تقدير الوقت',
   'pdf.accuracy_subtitle': 'نسبة الوقت الفعلي مقارنةً بالهدف المحدد هذا الأسبوع',
+  'pdf.accuracy_subtitle_day': 'نسبة الوقت الفعلي مقارنةً بالهدف المحدد في هذا اليوم',
   'pdf.export_btn': 'طباعة / حفظ PDF',
   'pdf.close_btn': 'إغلاق',
   'pdf.popup_blocked': 'يرجى السماح بالنوافذ المنبثقة',
@@ -430,6 +432,7 @@ ar: {
   'schedule.more': 'المزيد ({count})',
   'schedule.less': 'إخفاء',
   'schedule.no_unscheduled_recurring': 'لا توجد مهام متكررة غير مجدولة',
+  'schedule.month_more': '+{count} المزيد',
   'schedule.start_time': 'وقت بدء المهمة',
   'schedule.write_name_first': 'اكتب اسم المهمة الأول',
   'schedule.added': 'تمت إضافة "{name}" إلى الجدول الزمني',
@@ -511,6 +514,7 @@ ar: {
   'auth.err_generic': 'حدث خطأ، يرجى المحاولة مرة أخرى',
   'auth.logout_confirm': 'هل أنت متأكد من تسجيل الخروج؟ ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى بياناتك.',
   'auth.logout_error': 'حدث خطأ أثناء تسجيل الخروج',
+  'auth.logout_pending': 'عندك تعديلات لسه ما اترفعتش للخادم — استنى الاتصال يرجع لحد ما تتم المزامنة قبل تسجيل الخروج، عشان ماتضيعش أي تعديلات',
   'auth.success_login': 'تم تسجيل الدخول بنجاح عبر Google',
 
   // Notifications
@@ -668,6 +672,7 @@ en: {
   'c.done': 'Done',
   'c.day': 'Day',
   'c.week': 'Week',
+  'c.month': 'Month',
   'c.time': 'Time',
   'c.goal': 'Goal',
   'c.actual': 'Actual Time',
@@ -897,6 +902,7 @@ en: {
 
   // PDF
   'pdf.title': 'Weekly Report',
+  'pdf.title_day': 'Daily Report',
   'pdf.daily_export_title': 'Export Daily PDF Report',
   'pdf.weekly_export_title': 'Export Weekly PDF Report',
   'pdf.period': 'Period:',
@@ -910,6 +916,7 @@ en: {
   'pdf.missed': 'Missed Tasks',
   'pdf.missed_desc': 'Not completed on previous days',
   'pdf.summary_title': '7-Day Summary',
+  'pdf.summary_title_day': 'Day Summary',
   'pdf.day_header': 'Day',
   'pdf.done_header': 'Done',
   'pdf.time_header': 'Time',
@@ -917,6 +924,7 @@ en: {
   'pdf.no_data': 'No data',
   'pdf.accuracy_title': 'Time Estimation Accuracy',
   'pdf.accuracy_subtitle': 'Actual time compared to set goals this week',
+  'pdf.accuracy_subtitle_day': 'Actual time compared to goals set on this day',
   'pdf.export_btn': 'Print / Save PDF',
   'pdf.close_btn': 'Close',
   'pdf.popup_blocked': 'Please allow pop-ups',
@@ -946,6 +954,7 @@ en: {
   'schedule.more': 'More ({count})',
   'schedule.less': 'Hide',
   'schedule.no_unscheduled_recurring': 'No unscheduled recurring tasks',
+  'schedule.month_more': '+{count} more',
   'schedule.start_time': 'Task start time',
   'schedule.write_name_first': 'Type the task name first',
   'schedule.added': '"{name}" added to schedule',
@@ -1027,6 +1036,7 @@ en: {
   'auth.err_generic': 'An error occurred. Please try again.',
   'auth.logout_confirm': 'Are you sure you want to sign out? You will need to sign in again to access your data.',
   'auth.logout_error': 'An error occurred during sign out',
+  'auth.logout_pending': 'You have unsaved changes that have not been uploaded to the server yet — wait for the connection to be restored so they sync before signing out, so nothing is lost',
   'auth.success_login': 'Successfully signed in with Google',
 
   // Notifications
