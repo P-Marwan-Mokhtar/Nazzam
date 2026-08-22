@@ -230,6 +230,19 @@ async function startApp(){
   const exportIcsBtn = document.getElementById('exportIcsBtn');
   if(exportIcsBtn) exportIcsBtn.onclick = exportCalendarAsICS;
 
+  // «تقارير PDF» في قائمة البيانات: بيوصل المستخدم لشاشة الإحصائيات —
+  // مصدر زرار التصدير السياقي (يومي/أسبوعي) بدل ما نكرر منطق التصدير هنا.
+  const openStatsPdfBtn = document.getElementById('openStatsPdfBtn');
+  if(openStatsPdfBtn){
+    openStatsPdfBtn.onclick = () => {
+      ui.statsViewOpen = true;
+      ui.weekViewOpen = false;
+      ui.timeBlockViewOpen = false;
+      ui.taskStatsName = null;
+      render();
+    };
+  }
+
   const importDataBtn = document.getElementById('importDataBtn');
   const importDataInput = document.getElementById('importDataInput');
   if(importDataBtn && importDataInput){
