@@ -300,6 +300,15 @@
   background: #c0392b;
   color: #fff;
 }
+/* زر فتح وضع التركيز لكل مؤقت */
+.timer-focus-btn {
+  background: var(--pen-soft);
+  color: var(--pen);
+}
+.timer-focus-btn:hover {
+  background: var(--pen);
+  color: #fff;
+}
 .timer-delete-btn {
   background: transparent;
   color: var(--ink-soft);
@@ -410,6 +419,8 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  /* أنيميشن الطي والتوسيع */
+  transition: flex-basis 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .side-nav-btn {
   width: 46px;
@@ -446,12 +457,84 @@
 .side-nav-btn .material-icons {
   font-size: 22px;
 }
+/* أسماء الأقسام جنب الأيقونات — تظهر على الشاشات الكبيرة فقط، والزر الأول بيطويها */
+.side-nav-label {
+  display: none;
+  font-size: 0.84rem;
+  font-weight: 700;
+  white-space: nowrap;
+  line-height: 1;
+}
+/* زر الطي بيجنب زر الحساب في نفس السطر — مبياخدش سطر لوحده */
+.side-nav-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+.side-nav-collapse-btn { display: none; }
+@media (min-width: 1350px) {
+  .side-nav:not(.collapsed) .side-nav-head { flex-direction: row-reverse; }
+  .side-nav-collapse-btn {
+    display: flex;
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+  }
+  .side-nav-collapse-btn .material-icons {
+    font-size: 19px;
+    transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .side-nav.collapsed .side-nav-collapse-btn .material-icons {
+    transform: rotate(180deg);
+  }
+  /* في الإنجليزي الشريط على الشمال — اتجاه السهم بيتعكس */
+  html[dir="ltr"] .side-nav-collapse-btn .material-icons {
+    transform: rotate(180deg);
+  }
+  html[dir="ltr"] .side-nav.collapsed .side-nav-collapse-btn .material-icons {
+    transform: rotate(0deg);
+  }
+}
+@media (min-width: 1350px) {
+  .side-nav:not(.collapsed) {
+    flex-basis: 212px;
+    align-items: stretch;
+    padding: 12px 10px;
+  }
+  .side-nav:not(.collapsed) .side-nav-btn {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 12px;
+    padding-inline: 13px;
+  }
+  .side-nav:not(.collapsed) .side-nav-head .side-nav-btn:last-child { flex: 1; }
+  /* الأسماء بتظهر بأنيميشن مع التوسيع */
+  .side-nav-btn .side-nav-label {
+    display: inline;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    vertical-align: middle;
+    transition:
+      max-width 0.28s ease,
+      opacity 0.22s ease;
+  }
+  .side-nav:not(.collapsed) .side-nav-btn .side-nav-label {
+    max-width: 150px;
+    opacity: 1;
+  }
+  .side-nav:not(.collapsed) .side-nav-divider { width: 100%; }
+}
 .side-nav-divider {
   width: 30px;
   height: 1px;
   background: var(--paper-line);
   margin: 6px 0;
   flex: 0 0 auto;
+  transition: width 0.28s ease;
 }
 .side-nav-data-wrap {
   position: relative;

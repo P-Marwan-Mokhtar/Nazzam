@@ -22,14 +22,14 @@ const BASE_DARK = {
 // الألوان المميزة الهادية. كل لون ليه نسخة للوضع الفاتح ونسخة للوضع الداكن
 // (مستقلة عن بعضها) عشان يبقى لكل وضع شخصيته.
 export const ACCENTS = [
-  { id: 'classic', label: 'طيني',   light: { 'pen': '#c5482e', 'pen-soft': '#e8dcd6' }, dark: { 'pen': '#c5482e', 'pen-soft': '#38221e' } },
+  { id: 'classic', label: 'طوبي',   light: { 'pen': '#c5482e', 'pen-soft': '#e8dcd6' }, dark: { 'pen': '#c5482e', 'pen-soft': '#38221e' } },
   { id: 'teal',    label: 'فيروزي', light: { 'pen': '#2f7d76', 'pen-soft': '#dae9e6' }, dark: { 'pen': '#5ba6a0', 'pen-soft': '#1f3a37' } },
   { id: 'blue',    label: 'أزرق',   light: { 'pen': '#3a6fa5', 'pen-soft': '#dbe6f1' }, dark: { 'pen': '#6b9fc8', 'pen-soft': '#22364c' } },
-  { id: 'forest',  label: 'أخضر',   light: { 'pen': '#4a7d59', 'pen-soft': '#e0ebe2' }, dark: { 'pen': '#6fae83', 'pen-soft': '#203428' } },
+  { id: 'forest',  label: 'زيتوني', light: { 'pen': '#4a7d59', 'pen-soft': '#e0ebe2' }, dark: { 'pen': '#6fae83', 'pen-soft': '#203428' } },
   { id: 'violet',  label: 'بنفسجي', light: { 'pen': '#6b5b95', 'pen-soft': '#e6e0f1' }, dark: { 'pen': '#9483c6', 'pen-soft': '#2b2440' } },
   { id: 'rose',    label: 'وردي',   light: { 'pen': '#a6565c', 'pen-soft': '#f0dfe1' }, dark: { 'pen': '#cf848a', 'pen-soft': '#3a2426' } },
-  { id: 'amber',   label: 'عنبري',  light: { 'pen': '#ab7a2e', 'pen-soft': '#f0e5d4' }, dark: { 'pen': '#d3a24f', 'pen-soft': '#3a2e1c' } },
-  { id: 'slate',   label: 'رمادي',  light: { 'pen': '#5c6672', 'pen-soft': '#e0e4e9' }, dark: { 'pen': '#a7b0bc', 'pen-soft': '#2c333c' } }
+  { id: 'amber',   label: 'عسلي',   light: { 'pen': '#ab7a2e', 'pen-soft': '#f0e5d4' }, dark: { 'pen': '#d3a24f', 'pen-soft': '#3a2e1c' } },
+  { id: 'slate',   label: 'رصاصي',  light: { 'pen': '#5c6672', 'pen-soft': '#e0e4e9' }, dark: { 'pen': '#a7b0bc', 'pen-soft': '#2c333c' } }
 ];
 
 const ACCENT_BY_ID = Object.fromEntries(ACCENTS.map(a => [a.id, a]));

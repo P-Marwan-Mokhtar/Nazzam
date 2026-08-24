@@ -53,6 +53,10 @@ function renderDetails(){
   const pct = targetMin > 0 ? Math.round((actualMin / targetMin) * 100) : 0;
   const barPct = Math.min(100, Math.max(0, pct));
 
+  // فيلتر المهمة: المهمة مربوطة بالكلمة بالاسم، والكلمة ليها فلتر
+  const kw = state.keywords.find(k => k.name === task.name);
+  const taskFilter = kw && kw.filterId ? state.filters.find(f => f.id === kw.filterId) : null;
+
   const subs = task.subtasks || [];
   const doneSubs = subs.filter(s => s.done).length;
 
@@ -62,6 +66,7 @@ function renderDetails(){
         <span class="material-icons">${done ? 'check_circle' : 'radio_button_unchecked'}</span>
       </button>
       <h3 class="td-title ${done ? 'done' : ''}">${escapeHtml(task.name)}</h3>
+      ${taskFilter ? `<span class="td-filter-chip">#${escapeHtml(taskFilter.name)}</span>` : ''}
     </div>
 
     <div class="td-section">

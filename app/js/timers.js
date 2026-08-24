@@ -2,9 +2,9 @@
 // timers.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { addDays, emptyStateHtml, escapeHtml, formatElapsed, getElapsedMs, todayStr, uid } from './utils.js';
+import { addDays, emptyStateHtml, escapeHtml, formatElapsed, getElapsedMs, parseDurationToMinutes, todayStr, uid } from './utils.js';
 import { t, formatHM } from './i18n.js';
-import { MISSED_POPUP_SHOWN_KEY, showToast, showUndoToast, state, timerPanelEl, ui } from './state.js';
+import { MISSED_POPUP_SHOWN_KEY, TASK_TYPES, showToast, showUndoToast, state, timerPanelEl, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { openTimerDurationPicker } from './wheelPicker.js';
 
@@ -49,6 +49,9 @@ function buildTimerItemHtml(timer){
       <div class="timer-item-bottom">
         <span class="timer-clock" id="timerClock_${timer.id}">${formatElapsed(remainingMs)}</span>
         <div class="timer-controls">
+          <button class="timer-btn timer-focus-btn" data-action="focus-timer" data-id="${timer.id}" title="${t('focusmode.open')}">
+            <span class="material-icons">center_focus_strong</span>
+          </button>
           <button class="timer-btn timer-toggle-btn ${timer.running ? 'is-running' : ''}" data-action="toggle-timer" data-id="${timer.id}" title="${timer.running ? t('timer.toggle_pause') : t('timer.toggle_play')}">
             <span class="material-icons">${timer.running ? 'pause' : 'play_arrow'}</span>
           </button>
@@ -257,7 +260,10 @@ export function renderTimerPanel(){
       const timer = list.find(x => x.id === id);
       if(!timer) return;
 
-      if(action === 'toggle-timer'){
+      if(action === 'focus-timer'){
+        openFocusMode(id);
+      }
+      else if(action === 'toggle-timer'){
         ensureAudioContext();
         if(timer.running){
           timer.elapsedMs = getElapsedMs(timer);
@@ -392,4 +398,128 @@ export function tickTimers(){
   }
 
   if(timersChanged) saveData();
+
+  // وضع التركيز بيتحدث مع كل ثانية (الدالة بتتجاهل نفسها لو الـ overlay مقفول)
+  renderFocusMode();
 }
+
+// ============================================================
+// وضع التركيز — شاشة غامرة لمؤقت واحد محدد، بتفتح من زرار
+// المؤقت نفسه. مينفعش يبقى مفتوح أكتر من واحد في نفس الوقت،
+// والخروج منه بيبقى من زرار الإغلاق أو «إنهاء» بس.
+// ============================================================
+
+let focusTimerId = null;
+
+function getFocusTimer(){
+  if(!focusTimerId) return null;
+  return getDayTimers(ui.selectedDate).find(x => x.id === focusTimerId) || null;
+}
+
+export function openFocusMode(timerId){
+  // مؤقت واحد بس — لازم تقفل المفتوح الأول
+  const overlay = document.getElementById('focusModeOverlay');
+  if(overlay && overlay.classList.contains('open')){
+    showToast(t('focusmode.already_open'));
+    return;
+  }
+  focusTimerId = timerId;
+  overlay.classList.add('open');
+  renderFocusMode();
+}
+
+export function closeFocusMode(){
+  const el = document.getElementById('focusModeOverlay');
+  if(el) el.classList.remove('open');
+  focusTimerId = null;
+}
+
+export function renderFocusMode(){
+  const overlay = document.getElementById('focusModeOverlay');
+  if(!overlay || !overlay.classList.contains('open')) return;
+  const timer = getFocusTimer();
+  if(!timer){ closeFocusMode(); return; }
+
+  const elapsed = timer.running ? getElapsedMs(timer) : (timer.elapsedMs || 0);
+  const task = (state.days[ui.selectedDate] || []).find(x => x.name === timer.name);
+  const typeInfo = task && task.type ? TASK_TYPES[task.type] : null;
+  // الهدف: من المهمة لو ليها مدة، وإلا هدف المؤقت نفسه لو محدد المدة
+  const goalMin = task ? parseDurationToMinutes(task.duration) : 0;
+  const goalMs = goalMin > 0 ? goalMin * 60000 : (timer.mode === 'countdown' ? timer.targetMs : 0);
+
+  const nameEl = document.getElementById('focusTaskName');
+  const iconEl = document.getElementById('focusTaskIcon');
+  if(nameEl) nameEl.textContent = timer.name;
+  if(iconEl) iconEl.textContent = typeInfo ? typeInfo.icon : 'timer';
+
+  const digitsEl = document.getElementById('focusDigits');
+  if(digitsEl) digitsEl.textContent = formatElapsed(elapsed);
+
+  const barWrap = document.getElementById('focusBarWrap');
+  const fill = document.getElementById('focusBarFill');
+  const scaleEl = document.getElementById('focusScale');
+  const actualLabel = document.getElementById('focusActualLabel');
+  const goalLabel = document.getElementById('focusGoalLabel');
+  if(goalMs > 0 && barWrap && fill){
+    barWrap.style.display = '';
+    if(scaleEl) scaleEl.style.display = '';
+    fill.style.width = `${Math.min(100, (elapsed / goalMs) * 100)}%`;
+    if(actualLabel) actualLabel.textContent = `${t('task.actual')} ${formatElapsed(elapsed)}`;
+    if(goalLabel) goalLabel.textContent = `${t('task.goal')} ${formatElapsed(goalMs)}`;
+  } else {
+    // من غير هدف: أرقام بس — من غير شريط ولا مقياس
+    if(barWrap) barWrap.style.display = 'none';
+    if(scaleEl) scaleEl.style.display = 'none';
+  }
+
+  const toggleIcon = document.getElementById('focusToggleIcon');
+  const toggleBtn = document.getElementById('focusToggleBtn');
+  if(toggleIcon) toggleIcon.textContent = timer.running ? 'pause' : 'play_arrow';
+  if(toggleBtn) toggleBtn.title = timer.running ? t('timer.toggle_pause') : t('timer.toggle_play');
+}
+
+async function focusToggle(){
+  // الإيقاف/التشغيل بس — الوضع بيفضل مفتوح
+  const timer = getFocusTimer();
+  if(!timer) return;
+  ensureAudioContext();
+  if(timer.running){
+    timer.elapsedMs = getElapsedMs(timer);
+    timer.running = false;
+    timer.startedAt = null;
+  } else {
+    if(timer.mode === 'countdown' && timer.elapsedMs >= timer.targetMs){
+      timer.elapsedMs = 0;
+      timer.alerted = false;
+    }
+    timer.running = true;
+    timer.startedAt = Date.now();
+  }
+  renderTimerPanel();
+  renderFocusMode();
+  await saveData();
+}
+
+async function focusFinish(){
+  // «إنهاء» بيقفل المؤقت (يوقفه عند الوقت اللي وصل له) ويخرج من الوضع
+  const timer = getFocusTimer();
+  if(timer && timer.running){
+    timer.elapsedMs = getElapsedMs(timer);
+    timer.running = false;
+    timer.startedAt = null;
+    renderTimerPanel();
+    await saveData();
+  }
+  closeFocusMode();
+}
+
+// التوصيلات بتتعمل مرة واحدة — الـ overlay ثابت في الـ HTML.
+// ملاحظة: الدوس برة مبيقفلش الوضع — الخروج من زرار الإغلاق أو «إنهاء» بس
+(function initFocusMode(){
+  const closeBtn = document.getElementById('focusCloseBtn');
+  const toggleBtn = document.getElementById('focusToggleBtn');
+  const finishBtn = document.getElementById('focusFinishBtn');
+  if(closeBtn) closeBtn.addEventListener('click', closeFocusMode);
+  if(toggleBtn) toggleBtn.addEventListener('click', focusToggle);
+  if(finishBtn) finishBtn.addEventListener('click', focusFinish);
+})();

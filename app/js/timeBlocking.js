@@ -342,6 +342,13 @@ export function renderTimeBlockView(){
           </div>
         </div>
       </div>
+
+      ${ui.selectedDate === today ? '' : `
+        <button class="tb-today-fab" id="tbTodayFab" type="button" aria-label="${t('day.go_today')}" title="${t('day.go_today')}">
+          <span class="material-icons">today</span>
+          <span>${t('c.day')}</span>
+        </button>
+      `}
     </div>
   `;
 
@@ -378,6 +385,9 @@ function attachTimeBlockEvents(){
       });
     }
   };
+  // زر «اليوم» العائم على الموبايل — نفس سلوك زر الهيدر
+  const todayFab = document.getElementById('tbTodayFab');
+  if(todayFab) todayFab.onclick = () => { if(todayBtn) todayBtn.click(); };
   const dayLabelBtn = document.getElementById('tbDayLabelBtn');
   if(dayLabelBtn) dayLabelBtn.onclick = () => openCalendarModal();
   const moreBtn = document.getElementById('tbSideMoreBtn');

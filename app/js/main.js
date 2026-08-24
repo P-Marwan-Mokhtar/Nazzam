@@ -293,6 +293,25 @@ async function startApp(){
     });
   }
 
+  // طي/توسيع أسماء الشريط الجانبي — الاختيار محفوظ في localStorage،
+  // والتوسع التلقائي للأسماء بيحصل من 1350px عبر CSS
+  const sideNavEl = document.querySelector('.side-nav');
+  const collapseBtn = document.getElementById('sideNavCollapseBtn');
+  if(sideNavEl && collapseBtn){
+    let sideNavCollapsed = false;
+    try{ sideNavCollapsed = localStorage.getItem('nazam-side-nav') === 'collapsed'; }catch(e){}
+    // اتجاه السهم بيتظبط بالـ CSS (دوران 180 درجة) حسب كلاس collapsed
+    const applySideNavCollapsed = () => {
+      sideNavEl.classList.toggle('collapsed', sideNavCollapsed);
+    };
+    applySideNavCollapsed();
+    collapseBtn.addEventListener('click', () => {
+      sideNavCollapsed = !sideNavCollapsed;
+      try{ localStorage.setItem('nazam-side-nav', sideNavCollapsed ? 'collapsed' : 'expanded'); }catch(e){}
+      applySideNavCollapsed();
+    });
+  }
+
   document.getElementById('closeGlobalSearchBtn').onclick = closeGlobalSearchModal;
   document.getElementById('globalSearchBtnMobile').onclick = openGlobalSearchModal;
   document.getElementById('globalSearchOverlay').onclick = (e) => {

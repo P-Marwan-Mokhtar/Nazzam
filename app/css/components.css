@@ -395,6 +395,17 @@ body.dark-mode .task-row.priority-medium {
   color: var(--ink-soft);
   opacity: 0.7;
 }
+/* شيب الفيلتر جنب اسم المهمة في التفاصيل */
+.td-filter-chip {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  background: var(--paper-line);
+  border-radius: 999px;
+  padding: 3px 11px;
+  white-space: nowrap;
+}
 .td-actions {
   display: flex;
   flex-wrap: wrap;

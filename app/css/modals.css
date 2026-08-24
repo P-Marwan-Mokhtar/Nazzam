@@ -526,4 +526,135 @@ body.dark-mode .account-error {
     min-width: 72px;
   }
 }
-
+
+/* ============================================================
+   وضع التركيز — شاشة غامرة للمؤقت الشغّال
+   ============================================================ */
+.focus-mode-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: #0f1d33;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.focus-mode-overlay.open {
+  display: flex;
+  animation: focus-in 0.35s ease;
+}
+@keyframes focus-in {
+  from { opacity: 0; }
+}
+/* زر الإغلاق — الطريقة الوحيدة للخروج غير «إنهاء» */
+.focus-close-btn {
+  position: absolute;
+  top: 22px;
+  inset-inline-start: 22px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #e7eef7;
+}
+.focus-close-btn .material-icons {
+  font-size: 22px;
+}
+.focus-close-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+.focus-mode-card {
+  text-align: center;
+  color: #fff;
+  width: min(640px, 100%);
+}
+.focus-task-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 26px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  max-width: 100%;
+}
+.focus-task-chip .material-icons {
+  font-size: 18px;
+  color: #9ecff5;
+}
+.focus-digits {
+  font-size: clamp(4.2rem, 17vw, 8rem);
+  font-weight: 800;
+  line-height: 1.15;
+  margin-top: 14px;
+  direction: ltr;
+  font-variant-numeric: tabular-nums;
+}
+.focus-bar {
+  height: 7px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  margin-top: 8px;
+}
+.focus-bar i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: 99px;
+  background: var(--pen);
+  transition: width 0.6s linear;
+}
+.focus-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: #8ba0bd;
+  margin-top: 8px;
+  min-height: 1.2em;
+}
+.focus-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 34px;
+}
+.focus-toggle-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--pen);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 12px 30px -12px color-mix(in srgb, var(--pen) 60%, transparent);
+  transition: transform 0.12s ease;
+}
+.focus-toggle-btn:active {
+  transform: scale(0.93);
+}
+.focus-toggle-btn .material-icons {
+  font-size: 28px;
+}
+.focus-finish-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #e7eef7;
+  border-radius: 12px;
+  padding: 12px 22px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+.focus-finish-btn .material-icons {
+  font-size: 19px;
+}

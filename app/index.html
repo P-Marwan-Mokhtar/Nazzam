@@ -249,27 +249,39 @@
 
       <div class="app-shell">
         <aside class="side-nav" aria-label="القائمة الرئيسية">
-          <button class="side-nav-btn" data-side-target="accountBtn" title="الحساب" data-i18n-title="nav.account">
-            <span class="material-icons">person_outline</span>
-          </button>
+          <div class="side-nav-head">
+            <button class="side-nav-btn side-nav-collapse-btn" id="sideNavCollapseBtn" title="طي/توسيع الشريط" data-i18n-title="nav.side_nav_toggle">
+              <span class="material-icons">chevron_right</span>
+            </button>
+            <button class="side-nav-btn" data-side-target="accountBtn" title="الحساب" data-i18n-title="nav.account">
+              <span class="material-icons">person_outline</span>
+              <span class="side-nav-label" data-i18n="nav.account">الحساب</span>
+            </button>
+          </div>
           <button class="side-nav-btn" id="sideNavTasksBtn" title="مهام اليوم" data-i18n-title="nav.tasks_today">
             <span class="material-icons">checklist</span>
+            <span class="side-nav-label" data-i18n="nav.tasks_today">مهام اليوم</span>
           </button>
           <button class="side-nav-btn" id="sideNavStatsBtn" data-side-target="statsBtnTop" title="الإحصائيات" data-i18n-title="nav.stats">
             <span class="material-icons">insights</span>
+            <span class="side-nav-label" data-i18n="nav.stats">الإحصائيات</span>
           </button>
           <button class="side-nav-btn" id="sideNavTimeBlockBtn" data-side-target="headerTimeBlockBtn" title="الجدول الزمني" data-i18n-title="nav.schedule">
             <span class="material-icons">event_note</span>
+            <span class="side-nav-label" data-i18n="nav.schedule">الجدول الزمني</span>
           </button>
           <button class="side-nav-btn" id="sideNavWeekBtn" data-side-target="weekViewBtn" title="عرض الأسبوع" data-i18n-title="nav.week_view">
             <span class="material-icons">view_week</span>
+            <span class="side-nav-label" data-i18n="nav.week_view">عرض الأسبوع</span>
           </button>
           <button class="side-nav-btn" data-side-target="themeBtn" title="المظهر" data-i18n-title="nav.theme">
             <span class="material-icons">palette</span>
+            <span class="side-nav-label" data-i18n="nav.theme">المظهر</span>
           </button>
           <div class="side-nav-data-wrap">
-            <button class="side-nav-btn" id="sideNavLangBtn" title="تبديل اللغة">
+            <button class="side-nav-btn" id="sideNavLangBtn" title="تبديل اللغة" data-i18n-title="nav.language_toggle">
               <span class="material-icons">translate</span>
+              <span class="side-nav-label" data-i18n="nav.language_toggle">تبديل اللغة</span>
             </button>
             <div class="side-nav-popover" id="sideNavLangPopover">
               <button class="header-menu-item" id="langArBtn">
@@ -283,20 +295,25 @@
           <div class="side-nav-divider"></div>
           <button class="side-nav-btn" data-side-target="globalSearchBtnMobile" title="البحث في كل المهام" data-i18n-title="nav.search_all">
             <span class="material-icons">manage_search</span>
+            <span class="side-nav-label" data-i18n="nav.search_all">البحث في كل المهام</span>
           </button>
           <button class="side-nav-btn" data-side-target="draftsBtn" title="المهام المؤرشفة" data-i18n-title="nav.archived">
             <span class="material-icons">drafts</span>
+            <span class="side-nav-label" data-i18n="nav.archived">المهام المؤرشفة</span>
           </button>
           <button class="side-nav-btn" data-side-target="calendarBtn" title="التقويم" data-i18n-title="nav.calendar">
             <span class="material-icons">calendar_today</span>
+            <span class="side-nav-label" data-i18n="nav.calendar">التقويم</span>
           </button>
           <button class="side-nav-btn" data-side-target="notificationSettingsBtn" title="إعدادات التنبيهات" data-i18n-title="nav.notif_settings">
             <span class="material-icons">notifications</span>
+            <span class="side-nav-label" data-i18n="nav.notif_settings">إعدادات التنبيهات</span>
           </button>
           <div class="side-nav-divider"></div>
           <div class="side-nav-data-wrap">
             <button class="side-nav-btn" id="sideNavDataBtn" title="البيانات" data-i18n-title="nav.data">
               <span class="material-icons">import_export</span>
+              <span class="side-nav-label" data-i18n="nav.data">البيانات</span>
             </button>
             <div class="side-nav-popover" id="sideNavDataPopover">
               <button class="header-menu-item" data-side-target="importDataBtn" title="استيراد نسخة احتياطية (JSON)" data-i18n-title="nav.import_title">
@@ -765,7 +782,7 @@
               line-height: 1.5;
             "
           >
-            ملاحظة لـ
+            <span data-i18n="modal.note_for">ملاحظة لـ</span>
             <strong
               id="taskNoteTaskNameDisplay"
               style="color: var(--pen)"
@@ -835,6 +852,34 @@
         </div>
         <div class="modal-body" id="taskDetailsBody">
           <!-- سيتم تعبئتها ديناميكياً من taskDetails.js -->
+        </div>
+      </div>
+    </div>
+
+    <!-- وضع التركيز — شاشة غامرة لمؤقت واحد -->
+    <div class="focus-mode-overlay" id="focusModeOverlay">
+      <button type="button" class="focus-close-btn" id="focusCloseBtn" title="إغلاق" data-i18n-title="c.close">
+        <span class="material-icons">close</span>
+      </button>
+      <div class="focus-mode-card">
+        <div class="focus-task-chip">
+          <span class="material-icons" id="focusTaskIcon">timer</span>
+          <span id="focusTaskName"></span>
+        </div>
+        <div class="focus-digits" id="focusDigits">00:00</div>
+        <div class="focus-bar" id="focusBarWrap"><i id="focusBarFill"></i></div>
+        <div class="focus-scale" id="focusScale">
+          <span id="focusActualLabel"></span>
+          <span id="focusGoalLabel"></span>
+        </div>
+        <div class="focus-controls">
+          <button type="button" class="focus-toggle-btn" id="focusToggleBtn" title="إيقاف مؤقت">
+            <span class="material-icons" id="focusToggleIcon">pause</span>
+          </button>
+          <button type="button" class="focus-finish-btn" id="focusFinishBtn">
+            <span class="material-icons">done_all</span>
+            <span data-i18n="focusmode.finish">إنهاء</span>
+          </button>
         </div>
       </div>
     </div>

@@ -1262,6 +1262,33 @@ body.locked-view .main-col {
   .tb-today-btn {
     display: none;
   }
+  /* زر «اليوم» العائم على الموبايل — بيظهر لما تكون بتتصفح يوم غير النهاردة */
+  .tb-today-fab {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    position: fixed;
+    bottom: 18px;
+    inset-inline-start: 18px;
+    z-index: 60;
+    background: var(--pen);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 12px 20px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 10px 26px -8px color-mix(in srgb, var(--pen) 55%, transparent);
+    animation: tb-fab-in 0.3s ease both;
+  }
+  .tb-today-fab .material-icons { font-size: 18px; }
+  .tb-today-fab:active { transform: scale(0.94); }
+  @keyframes tb-fab-in {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+  }
   /* عرض الشهر على الموبايل: خلايا أضغط — الطول الكامل بيتم عن طريق
      إعادة سلسلة flex في stats.css (app-shell.tb-stretch) مش بارتفاع ثابت */
   .tbm-grid-wrap {
