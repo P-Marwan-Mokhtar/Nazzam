@@ -176,10 +176,6 @@
         <div class="hero-aura" aria-hidden="true"></div>
         <div class="hero-dots" aria-hidden="true"></div>
         <div class="container hero-inner">
-          <span class="hero-badge anim" style="--ad: 0.05s">
-            <svg class="ic"><use href="#i-spark"/></svg>
-            مجاني أثناء الإطلاق — بدون بطاقة بنكية
-          </span>
           <h1 class="hero-title">
             <span class="line anim" style="--ad: 0.12s"><span>رتّب يومك.</span></span>
             <span class="line anim" style="--ad: 0.2s"
@@ -217,70 +213,43 @@
       <section class="section" id="organize">
         <div class="container">
           <div class="sec-head reveal">
-            <p class="kicker">التنظيم<b>٩:٠٠ ص</b></p>
-            <h2>كل ما عليك فعله… في مكانٍ واحد.</h2>
+<h2>كل ما عليك فعله… في مكانٍ واحد.</h2>
             <p class="sec-lead">
               اكتب مهمتك مرة واحدة في بنك المهام، فتظهر تلقائيًا في أيامها.
               صنّف كل شيء بكلماتك الخاصة، ورتّبه بأولويةٍ ونوعٍ ووقت.
             </p>
           </div>
 
-          <div class="org-visual reveal">
-            <!-- القائمة — مطابق لـ list.png -->
-            <div class="mk-card org-bank">
-              <div class="mk-head">
-                <strong>القائمة</strong>
-                <span class="mk-head-icon"><svg class="ic"><use href="#i-chev"/></svg></span>
+          <div class="chaos-slider reveal" id="chaosSlider" style="--pos:58%">
+            <div class="cs-frame">
+              <!-- طبقة الفوضى -->
+              <div class="cs-pane cs-chaos">
+                <div class="cs-pane-label">فوضى</div>
+                <div class="cs-scatter">
+                  <span class="cs-chip s1" style="--r:-3deg; top:12%; right:8%">مراجعة البريد</span>
+                  <span class="cs-chip s2" style="--r:2deg; top:28%; right:22%">ممارسة الرياضة</span>
+                  <span class="cs-chip s3" style="--r:-1.5deg; top:44%; right:6%">القراءة اليومية</span>
+                  <span class="cs-chip s4" style="--r:1deg; top:60%; right:18%">شرب 2 لتر مياه</span>
+                  <span class="cs-chip s5" style="--r:-2deg; top:76%; right:10%">استرخاء</span>
+                  <span class="cs-note">5 مهام مبعثرة</span>
+                </div>
               </div>
-              <div class="org-bank-body">
-                <div class="org-input-bar">
-                  <span class="org-input-ph">اكتب مهمة جديدة...</span>
-                  <span class="org-filter-pill">بدون فلتر <svg class="ic"><use href="#i-chev"/></svg></span>
-                  <span class="org-add-btn"><svg class="ic"><use href="#i-plus"/></svg></span>
-                </div>
-                <div class="org-input-bar">
-                  <span class="org-input-ph">أضف فلتر جديد...</span>
-                  <span class="org-add-btn"><svg class="ic"><use href="#i-plus"/></svg></span>
-                </div>
-                <div class="org-search-row">
-                  <span class="org-search-box"><svg class="ic"><use href="#i-search"/></svg> ابحث في القائمة...</span>
-                  <span class="org-tune-btn"><svg class="ic"><use href="#i-tag"/></svg></span>
-                </div>
-                <ul class="org-list">
-                  <li class="org-row"><svg class="ic dots"><use href="#i-grip"/></svg><span>ممارسة الرياضة</span><svg class="ic check"><use href="#i-check"/></svg></li>
-                  <li class="org-row"><svg class="ic dots"><use href="#i-grip"/></svg><span>شرب 2 لتر مياه</span><svg class="ic check"><use href="#i-check"/></svg></li>
-                  <li class="org-row"><svg class="ic dots"><use href="#i-grip"/></svg><span>استرخاء</span><svg class="ic check"><use href="#i-check"/></svg></li>
-                  <li class="org-row"><svg class="ic dots"><use href="#i-grip"/></svg><span>القراءة اليومية</span><svg class="ic check"><use href="#i-check"/></svg></li>
-                  <li class="org-row"><svg class="ic dots"><use href="#i-grip"/></svg><span>مراجعة البريد الإلكتروني</span><svg class="ic check"><use href="#i-check"/></svg></li>
+              <!-- طبقة النظام -->
+              <div class="cs-pane cs-order">
+                <div class="cs-pane-label on">نظام</div>
+                <ul class="cs-order-list">
+                  <li><svg class="ic"><use href="#i-check-circle"/></svg>ممارسة الرياضة</li>
+                  <li><svg class="ic"><use href="#i-check-circle"/></svg>شرب 2 لتر مياه</li>
+                  <li><svg class="ic"><use href="#i-check-circle"/></svg>القراءة اليومية</li>
+                  <li><svg class="ic"><use href="#i-check-circle"/></svg>مراجعة البريد الإلكتروني</li>
+                  <li><svg class="ic"><use href="#i-check-circle"/></svg>استرخاء</li>
                 </ul>
               </div>
+              <!-- الفاصل القابل للسحب -->
+              <div class="cs-divider"><span class="cs-handle"><svg class="ic" viewBox="0 0 24 24"><path d="M8 7l-4 5 4 5M16 7l4 5-4 5" /></svg></span></div>
+              <input class="cs-range" type="range" min="5" max="95" value="58" aria-label="مقارنة الفوضى بالنظام">
             </div>
-
-            <div class="org-flow" aria-hidden="true">
-              <span class="flow-pill"><svg class="ic"><use href="#i-plus"/></svg>من القائمة — إلى اليوم تلقائيًا</span>
-            </div>
-
-            <!-- اليوم — مطابق لـ tasks.png -->
-            <div class="mk-card org-day">
-              <div class="mk-head">
-                <strong>اليوم</strong>
-                <span class="mk-head-meta">
-                  <span class="mk-filter-chip"><svg class="ic"><use href="#i-list"/></svg> ترتيب</span>
-                  <span class="mk-filter-chip">الكل</span>
-                  <span class="mk-filter-chip">الكل</span>
-                </span>
-              </div>
-              <ul class="org-day-list">
-                <li class="oday-row done"><svg class="ic dots"><use href="#i-grip"/></svg><span>ممارسة الرياضة</span><svg class="ic o-check"><use href="#i-check-circle"/></svg></li>
-                <li class="oday-row done"><svg class="ic dots"><use href="#i-grip"/></svg><span>شرب 2 لتر مياه</span><span class="o-note">▤</span><svg class="ic o-check"><use href="#i-check-circle"/></svg></li>
-                <li class="oday-row done"><svg class="ic dots"><use href="#i-grip"/></svg><span>القراءة اليومية</span><svg class="ic o-check"><use href="#i-check-circle"/></svg></li>
-                <li class="oday-row done"><svg class="ic dots"><use href="#i-grip"/></svg><span>مراجعة البريد الإلكتروني</span><span class="o-note">▤</span><svg class="ic o-check"><use href="#i-check-circle"/></svg></li>
-                <li class="oday-row missed"><svg class="ic dots"><use href="#i-grip"/></svg><span>اجتماع التخطيط لمشروع</span><span class="o-note">▤</span><span class="o-circle"></span></li>
-                <li class="oday-row"><svg class="ic dots"><use href="#i-grip"/></svg><svg class="ic o-bell"><use href="#i-bell"/></svg><span>تمرين الكارديو المسائي</span><span class="o-note">▤</span><span class="o-circle"></span></li>
-                <li class="oday-row done"><svg class="ic dots"><use href="#i-grip"/></svg><span>استرخاء</span><svg class="ic o-check"><use href="#i-check-circle"/></svg></li>
-                <li class="oday-row done"><svg class="ic dots"><use href="#i-grip"/></svg><span>بودكاست</span><span class="o-palette">◉</span><svg class="ic o-check"><use href="#i-check-circle"/></svg></li>
-              </ul>
-            </div>
+            <div class="cs-hint"><svg class="ic"><use href="#i-arrow"/></svg> اسحب لتكشف الفرق</div>
           </div>
 
           <ul class="org-points reveal">
@@ -298,8 +267,7 @@
       <section class="section band-alt" id="plan">
         <div class="container">
           <div class="sec-head reveal">
-            <p class="kicker">التخطيط<b>١٢:٠٠ م</b></p>
-            <h2>خطّط ليومك بالساعة… لا بالتقدير.</h2>
+<h2>خطّط ليومك بالساعة… لا بالتقدير.</h2>
             <p class="sec-lead">
               اسحب أي مهمة إلى الساعة التي تناسبها وحدّد مدّتها، فتتحوّل قائمتك
               إلى خارطة زمنية واضحة — والمهام غير المجدولة تنتظر في لوحتها الجانبية.
@@ -348,8 +316,7 @@
       <section class="section" id="focus">
         <div class="container focus-grid">
           <div class="focus-copy reveal">
-            <p class="kicker">التنفيذ<b>٤:٠٠ م</b></p>
-            <h2>من الخطة… إلى عملٍ حقيقي.</h2>
+<h2>من الخطة… إلى عملٍ حقيقي.</h2>
             <p class="sec-lead">
               شغّل مؤقّتًا على مهمتك — مفتوحًا أو بمدّة محدّدة — وادخل وضع التركيز،
               وسيُسجَّل ما عملته فعلًا على المهمة تلقائيًا ليغذّي إحصائياتك.
@@ -372,32 +339,35 @@
                 <span class="ti-ph">اسم المهمة التي ستعمل عليها…</span>
               </div>
               <div class="timer-item">
-                <div class="ti-top"><strong>صفحة الهبوط</strong></div>
+                <div class="ti-top"><span class="ti-dot"></span><strong>المذاكرة</strong><span class="ti-dur"><svg class="ic"><use href="#i-timer"/></svg> ١ ساعة</span></div>
                 <div class="ti-bottom">
-                  <span class="ti-clock digits">٠٠:٠٩:٥٤</span>
+                  <span class="ti-clock digits">٠٠:٥٩:٥٩</span>
                   <div class="ti-btns">
+                    <span class="tib trash"><svg class="ic"><use href="#i-archive"/></svg></span>
                     <span class="tib play"><svg class="ic"><use href="#i-play"/></svg></span>
-                    <span class="tib"><svg class="ic"><use href="#i-target"/></svg></span>
+                    <span class="tib full"><svg class="ic"><use href="#i-target"/></svg></span>
                   </div>
                 </div>
               </div>
               <div class="timer-item">
-                <div class="ti-top"><strong>القراءة</strong></div>
+                <div class="ti-top"><span class="ti-dot"></span><strong>بودكاست</strong><span class="ti-dur"><svg class="ic"><use href="#i-timer"/></svg> ١٥ س</span></div>
                 <div class="ti-bottom">
-                  <span class="ti-clock digits">٠٠:١٢:١٤</span>
+                  <span class="ti-clock digits">٠١:١٤:٥٩</span>
                   <div class="ti-btns">
+                    <span class="tib trash"><svg class="ic"><use href="#i-archive"/></svg></span>
                     <span class="tib play"><svg class="ic"><use href="#i-play"/></svg></span>
-                    <span class="tib"><svg class="ic"><use href="#i-target"/></svg></span>
+                    <span class="tib full"><svg class="ic"><use href="#i-target"/></svg></span>
                   </div>
                 </div>
               </div>
-              <div class="timer-item running">
-                <div class="ti-top"><strong>مشروع نَظْم</strong></div>
+              <div class="timer-item">
+                <div class="ti-top"><span class="ti-dot"></span><strong>القراءة</strong><span class="ti-dur"><svg class="ic"><use href="#i-timer"/></svg> ٣٠ دقيقة</span></div>
                 <div class="ti-bottom">
-                  <span class="ti-clock digits">٠٠:٠٧:٥٤</span>
+                  <span class="ti-clock digits">٠٠:٢٩:٥٨</span>
                   <div class="ti-btns">
-                    <span class="tib pause"><svg class="ic"><use href="#i-pause"/></svg></span>
-                    <span class="tib"><svg class="ic"><use href="#i-target"/></svg></span>
+                    <span class="tib trash"><svg class="ic"><use href="#i-archive"/></svg></span>
+                    <span class="tib play"><svg class="ic"><use href="#i-play"/></svg></span>
+                    <span class="tib full"><svg class="ic"><use href="#i-target"/></svg></span>
                   </div>
                 </div>
               </div>
@@ -425,8 +395,7 @@
       <section class="section band-alt" id="stats">
         <div class="container">
           <div class="sec-head reveal">
-            <p class="kicker">القياس<b>٩:٠٠ م</b></p>
-            <h2>اعرف ماذا أنجزت… وأين ذهب وقتك.</h2>
+<h2>اعرف ماذا أنجزت… وأين ذهب وقتك.</h2>
             <p class="sec-lead">
               كل مؤقّت ومهمة تتحوّل إلى أرقام: وقتك الفعلي، نسبة إنجازك، توزيع وقتك حسب النوع،
               واتجاه أسبوعك — وإحصائية مستقلة لكل مهمة، وتقرير PDF جاهز للمشاركة.
@@ -447,8 +416,7 @@
       <section class="section" id="more">
         <div class="container">
           <div class="sec-head reveal">
-            <p class="kicker">والمزيد</p>
-            <h2>تفاصيل صغيرة… تصنع فرقًا كبيرًا.</h2>
+<h2>تفاصيل صغيرة… تصنع فرقًا كبيرًا.</h2>
             <p class="sec-lead">كل ما تحتاجه لإدارة يومٍ كامل، في تطبيقٍ واحد يعمل من متصفحك.</p>
           </div>
 
@@ -487,13 +455,15 @@
             </article>
 
             <article class="bcard reveal">
-              <span class="bcard-ic"><svg class="ic"><use href="#i-sub"/></svg></span>
-              <h3>مهام فرعية</h3>
-              <p>قسّم المهمة الكبيرة إلى خطوات، وتابع نسبة إنجازها.</p>
+              <span class="bcard-ic"><svg class="ic"><use href="#i-calendar"/></svg></span>
+              <h3>تقويم مصغّر</h3>
+              <p>نظرة سريعة على شهرك — النقاط الخضرا بتعرفك أيام مهامك.</p>
               <div class="bcard-demo" aria-hidden="true">
-                <div class="demo-sub done"><svg class="ic"><use href="#i-check"/></svg>جمع البيانات</div>
-                <div class="demo-sub done"><svg class="ic"><use href="#i-check"/></svg>التحليل</div>
-                <div class="demo-sub"><span class="sub-box"></span>كتابة التقرير</div>
+                <div class="mini-cal">
+                  <div class="mc-head"><span>أغسطس 2026</span><span class="mc-arrows"><svg class="ic"><use href="#i-chev"/></svg><svg class="ic" style="transform:rotate(180deg)"><use href="#i-chev"/></svg></span></div>
+                  <div class="mc-grid"><span>أحد</span><span>اثنين</span><span>ثلاثاء</span><span>أربعاء</span><span>خميس</span><span>جمعة</span><span>سبت</span></div>
+                  <div class="mc-days"><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span class="on">26</span><span>27</span><span>28</span><span>29</span></div>
+                </div>
               </div>
             </article>
 
@@ -521,14 +491,46 @@
       </section>
 
       <!-- ============================================================
-           شريط داكن — يومك يتبعك (مزامنة/أوفلاين)
+            تفاصيل كل مهمة — الأولوية والوقت والتكرار والتذكير...
+      ============================================================ -->
+      <section class="section" id="task-detail">
+        <div class="container">
+          <div class="sec-head reveal">
+            <h2>كل تفصيلة لمهمتك… في مكان واحد.</h2>
+            <p class="sec-lead">أولوية، نوع، وقت، مهام فرعية، ملاحظة، تذكير، تكرار وفلتر — وكلها تظهر في مودال واحد بضغطة.</p>
+          </div>
+          <div class="detail-visual reveal">
+            <div class="detail-menu">
+              <span><svg class="ic"><use href="#i-tag"/></svg> تعديل</span>
+              <span><svg class="ic"><use href="#i-file"/></svg> ملاحظة</span>
+              <span><svg class="ic"><use href="#i-clock"/></svg> الوقت</span>
+              <span><svg class="ic"><use href="#i-sub"/></svg> مهام فرعية</span>
+              <span class="on"><svg class="ic"><use href="#i-repeat"/></svg> التكرار</span>
+              <span><svg class="ic"><use href="#i-star"/></svg> الأهمية</span>
+              <span><svg class="ic"><use href="#i-bell"/></svg> تذكير</span>
+              <span class="del"><svg class="ic"><use href="#i-archive"/></svg> حذف</span>
+            </div>
+            <div class="detail-modal">
+              <div class="dm-head"><strong>تفاصيل المهمة</strong><span class="dm-close"><svg class="ic"><use href="#i-close"/></svg></span></div>
+              <div class="dm-row"><span class="dm-label"><svg class="ic"><use href="#i-star"/></svg> الأهمية</span><span class="dm-val">بدون</span><span class="dm-more"><svg class="ic"><use href="#i-tag"/></svg></span></div>
+              <div class="dm-row"><span class="dm-label"><svg class="ic"><use href="#i-file"/></svg> النوع</span><span class="dm-val">مهمة</span><span class="dm-more"><svg class="ic"><use href="#i-tag"/></svg></span></div>
+              <div class="dm-row"><span class="dm-label"><svg class="ic"><use href="#i-clock"/></svg> الوقت</span><span class="dm-val muted">لم يحدد وقت</span><span class="dm-more"><svg class="ic"><use href="#i-tag"/></svg></span></div>
+              <div class="dm-row"><span class="dm-label"><svg class="ic"><use href="#i-sub"/></svg> مهام فرعية</span><span class="dm-val muted">لا توجد</span><span class="dm-btn">إضافة</span></div>
+              <div class="dm-row"><span class="dm-label"><svg class="ic"><use href="#i-file"/></svg> ملاحظة</span><span class="dm-val muted">لا توجد ملاحظة</span><span class="dm-btn">إضافة</span></div>
+              <div class="dm-foot">بودكاست <span class="dm-tag">#تطوير الذات</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+            شريط داكن — يومك يتبعك (مزامنة/أوفلاين)
       ============================================================ -->
       <section class="sync-band" id="sync">
         <div class="container">
           <div class="sync-inner reveal">
             <div class="sync-copy">
-              <p class="kicker light">أينما كنت</p>
-              <h2>يومك يتبعك… حتى دون إنترنت.</h2>
+<h2>يومك يتبعك… حتى دون إنترنت.</h2>
               <p class="sync-lead">
                 ثبّت نَظْم كتطبيق على هاتفك وحاسوبك، واعمل بلا اتصال — كل تعديل يُحفظ
                 على جهازك فورًا ثم يتزامن تلقائيًا عند عودة الشبكة.
@@ -573,8 +575,7 @@
       <section class="section" id="arabic">
         <div class="container arabic-grid">
           <div class="arabic-copy reveal">
-            <p class="kicker">مصمّم لك</p>
-            <h2>عربيٌّ أولًا… وبشكلٍ يشبهك.</h2>
+<h2>عربيٌّ أولًا… وبشكلٍ يشبهك.</h2>
             <p class="sec-lead">
               واجهة عربية من اليمين إلى اليسار أصلًا — لا مترجمة — مع دعم كامل للإنجليزية،
               ووضعَي فاتح وداكن، وثمانية ألوان مميزة. جرّبها الآن بنفسك:
@@ -650,8 +651,7 @@
       <section class="section band-alt" id="pricing">
         <div class="container">
           <div class="sec-head reveal">
-            <p class="kicker">الأسعار</p>
-            <h2>ابدأ مجانًا… وارتقِ عندما تحتاج.</h2>
+<h2>ابدأ مجانًا… وارتقِ عندما تحتاج.</h2>
             <p class="sec-lead">
               جرّب نَظْم بكل المميزات مجانًا ٧ أيام — وبعدها أكمل مجانًا بالأساسيات،
               أو فعّل كل المميزات باشتراك شهري أو سنوي.
@@ -715,8 +715,7 @@
       <section class="section" id="faq">
         <div class="container">
           <div class="sec-head reveal">
-            <p class="kicker">أسئلة شائعة</p>
-            <h2>كل ما قد يخطر ببالك.</h2>
+<h2>كل ما قد يخطر ببالك.</h2>
           </div>
 
           <div class="faq-list reveal">

@@ -104,6 +104,17 @@ if (burger && header) {
   wrap.addEventListener('pointerleave', leave);
 })();
 
+// ===== سلايدر فوضى←نظام =====
+(function initChaosSlider(){
+  const slider=document.getElementById('chaosSlider');
+  if(!slider) return;
+  const range=slider.querySelector('.cs-range');
+  if(!range) return;
+  const update=()=> slider.style.setProperty('--pos', range.value+'%');
+  range.addEventListener('input', update);
+  update();
+})();
+
 // ===== توهج حدود كروت Bento يتبع الماوس =====
 (function initSpotlight() {
   if (!FINE_POINTER) return;
