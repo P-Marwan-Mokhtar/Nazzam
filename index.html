@@ -220,36 +220,32 @@
             </p>
           </div>
 
-          <div class="chaos-slider reveal" id="chaosSlider" style="--pos:58%">
-            <div class="cs-frame">
-              <!-- طبقة الفوضى -->
-              <div class="cs-pane cs-chaos">
-                <div class="cs-pane-label">فوضى</div>
-                <div class="cs-scatter">
-                  <span class="cs-chip s1" style="--r:-3deg; top:12%; right:8%">مراجعة البريد</span>
-                  <span class="cs-chip s2" style="--r:2deg; top:28%; right:22%">ممارسة الرياضة</span>
-                  <span class="cs-chip s3" style="--r:-1.5deg; top:44%; right:6%">القراءة اليومية</span>
-                  <span class="cs-chip s4" style="--r:1deg; top:60%; right:18%">شرب 2 لتر مياه</span>
-                  <span class="cs-chip s5" style="--r:-2deg; top:76%; right:10%">استرخاء</span>
-                  <span class="cs-note">5 مهام مبعثرة</span>
-                </div>
+          <div class="timeline-steps reveal" id="timelineSteps">
+            <div class="tl-track">
+              <div class="tl-step">
+                <span class="tl-icon"><svg class="ic"><use href="#i-file"/></svg></span>
+                <h4>تكتب مرة</h4>
+                <p>في بنك المهام</p>
               </div>
-              <!-- طبقة النظام -->
-              <div class="cs-pane cs-order">
-                <div class="cs-pane-label on">نظام</div>
-                <ul class="cs-order-list">
-                  <li><svg class="ic"><use href="#i-check-circle"/></svg>ممارسة الرياضة</li>
-                  <li><svg class="ic"><use href="#i-check-circle"/></svg>شرب 2 لتر مياه</li>
-                  <li><svg class="ic"><use href="#i-check-circle"/></svg>القراءة اليومية</li>
-                  <li><svg class="ic"><use href="#i-check-circle"/></svg>مراجعة البريد الإلكتروني</li>
-                  <li><svg class="ic"><use href="#i-check-circle"/></svg>استرخاء</li>
-                </ul>
+              <span class="tl-conn"><svg class="ic"><use href="#i-arrow"/></svg></span>
+              <div class="tl-step">
+                <span class="tl-icon"><svg class="ic"><use href="#i-calendar"/></svg></span>
+                <h4>تظهر تلقائياً</h4>
+                <p>في يومها</p>
               </div>
-              <!-- الفاصل القابل للسحب -->
-              <div class="cs-divider"><span class="cs-handle"><svg class="ic" viewBox="0 0 24 24"><path d="M8 7l-4 5 4 5M16 7l4 5-4 5" /></svg></span></div>
-              <input class="cs-range" type="range" min="5" max="95" value="58" aria-label="مقارنة الفوضى بالنظام">
+              <span class="tl-conn"><svg class="ic"><use href="#i-arrow"/></svg></span>
+              <div class="tl-step">
+                <span class="tl-icon"><svg class="ic"><use href="#i-clock"/></svg></span>
+                <h4>تسحب للساعة</h4>
+                <p>في الجدول</p>
+              </div>
+              <span class="tl-conn"><svg class="ic"><use href="#i-arrow"/></svg></span>
+              <div class="tl-step">
+                <span class="tl-icon on"><svg class="ic"><use href="#i-play"/></svg></span>
+                <h4>تشغّل المؤقت</h4>
+                <p>وتتابع وقتك</p>
+              </div>
             </div>
-            <div class="cs-hint"><svg class="ic"><use href="#i-arrow"/></svg> اسحب لتكشف الفرق</div>
           </div>
 
           <ul class="org-points reveal">
@@ -343,9 +339,9 @@
                 <div class="ti-bottom">
                   <span class="ti-clock digits">٠٠:٥٩:٥٩</span>
                   <div class="ti-btns">
-                    <span class="tib trash"><svg class="ic"><use href="#i-archive"/></svg></span>
-                    <span class="tib play"><svg class="ic"><use href="#i-play"/></svg></span>
                     <span class="tib full"><svg class="ic"><use href="#i-target"/></svg></span>
+                    <span class="tib play"><svg class="ic"><use href="#i-play"/></svg></span>
+                    <span class="tib trash"><svg class="ic"><use href="#i-archive"/></svg></span>
                   </div>
                 </div>
               </div>
@@ -354,9 +350,9 @@
                 <div class="ti-bottom">
                   <span class="ti-clock digits">٠١:١٤:٥٩</span>
                   <div class="ti-btns">
-                    <span class="tib trash"><svg class="ic"><use href="#i-archive"/></svg></span>
-                    <span class="tib play"><svg class="ic"><use href="#i-play"/></svg></span>
                     <span class="tib full"><svg class="ic"><use href="#i-target"/></svg></span>
+                    <span class="tib play"><svg class="ic"><use href="#i-play"/></svg></span>
+                    <span class="tib trash"><svg class="ic"><use href="#i-archive"/></svg></span>
                   </div>
                 </div>
               </div>
@@ -365,9 +361,9 @@
                 <div class="ti-bottom">
                   <span class="ti-clock digits">٠٠:٢٩:٥٨</span>
                   <div class="ti-btns">
-                    <span class="tib trash"><svg class="ic"><use href="#i-archive"/></svg></span>
-                    <span class="tib play"><svg class="ic"><use href="#i-play"/></svg></span>
                     <span class="tib full"><svg class="ic"><use href="#i-target"/></svg></span>
+                    <span class="tib play"><svg class="ic"><use href="#i-play"/></svg></span>
+                    <span class="tib trash"><svg class="ic"><use href="#i-archive"/></svg></span>
                   </div>
                 </div>
               </div>
@@ -512,12 +508,12 @@
             </div>
             <div class="detail-modal">
               <div class="dm-head"><strong>تفاصيل المهمة</strong><span class="dm-close"><svg class="ic"><use href="#i-close"/></svg></span></div>
+              <div class="dm-top"><span class="dm-name">بودكاست</span><span class="dm-tag">#تطوير الذات</span></div>
               <div class="dm-row"><span class="dm-label"><svg class="ic"><use href="#i-star"/></svg> الأهمية</span><span class="dm-val">بدون</span><span class="dm-more"><svg class="ic"><use href="#i-tag"/></svg></span></div>
               <div class="dm-row"><span class="dm-label"><svg class="ic"><use href="#i-file"/></svg> النوع</span><span class="dm-val">مهمة</span><span class="dm-more"><svg class="ic"><use href="#i-tag"/></svg></span></div>
               <div class="dm-row"><span class="dm-label"><svg class="ic"><use href="#i-clock"/></svg> الوقت</span><span class="dm-val muted">لم يحدد وقت</span><span class="dm-more"><svg class="ic"><use href="#i-tag"/></svg></span></div>
               <div class="dm-row"><span class="dm-label"><svg class="ic"><use href="#i-sub"/></svg> مهام فرعية</span><span class="dm-val muted">لا توجد</span><span class="dm-btn">إضافة</span></div>
               <div class="dm-row"><span class="dm-label"><svg class="ic"><use href="#i-file"/></svg> ملاحظة</span><span class="dm-val muted">لا توجد ملاحظة</span><span class="dm-btn">إضافة</span></div>
-              <div class="dm-foot">بودكاست <span class="dm-tag">#تطوير الذات</span></div>
             </div>
           </div>
         </div>
@@ -657,11 +653,6 @@
               أو فعّل كل المميزات باشتراك شهري أو سنوي.
             </p>
           </div>
-
-          <p class="trial-ribbon reveal">
-            <svg class="ic"><use href="#i-spark"/></svg>
-            تجربة مجانية ٧ أيام بكل المميزات — بدون بطاقة بنكية
-          </p>
 
           <div class="pricing-grid reveal">
             <div class="price-card spot">
