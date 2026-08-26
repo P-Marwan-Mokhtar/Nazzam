@@ -104,15 +104,74 @@ if (burger && header) {
   wrap.addEventListener('pointerleave', leave);
 })();
 
-// ===== سلايدر فوضى←نظام =====
-(function initChaosSlider(){
-  const slider=document.getElementById('chaosSlider');
-  if(!slider) return;
-  const range=slider.querySelector('.cs-range');
-  if(!range) return;
-  const update=()=> slider.style.setProperty('--pos', range.value+'%');
-  range.addEventListener('input', update);
-  update();
+// ===== قصة المهمة: أوتوبلاي 4 مشاهد + توقف عند hover + تبديل يدوي =====
+(function initOrgStory() {
+  const story = document.getElementById('orgStory');
+  if (!story) return;
+  const steps = story.querySelectorAll('.sstep');
+  const SCENE_MS = 2600;
+  let current = 1;
+  let timer = null;
+  let paused = false;
+
+  function show(n) {
+    const prev = current;
+    current = n;
+    story.dataset.scene = String(n);
+    steps.forEach((s) => {
+      const on = Number(s.dataset.scene) === n;
+      s.classList.toggle('on', on);
+      s.setAttribute('aria-selected', String(on));
+      const bar = s.querySelector('.sprog');
+      if (bar) { bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = ''; }
+    });
+    // إعادة تشغيل أنيميشن المهمة الطائرة والهبوط — حتى لو راجع من ٤ لـ ٣
+    if (n === 3 || n === 4) {
+      const landing = document.getElementById('stLanding');
+      const fly = story.querySelector('.st-fly');
+      const kw = document.getElementById('stNewRow');
+      [landing, fly].forEach((el) => {
+        if (!el) return;
+        el.style.animation = 'none';
+        void el.offsetWidth;
+        el.style.animation = '';
+      });
+      if (kw) {
+        // يعيد تايمر تحول + → ✓
+        kw.style.animation = 'none';
+        void kw.offsetWidth;
+        kw.style.animation = '';
+        kw.querySelectorAll('.material-icons').forEach((ic) => {
+          ic.style.transition = 'none';
+          void ic.offsetWidth;
+          ic.style.transition = '';
+        });
+      }
+    }
+  }
+
+  function next() {
+    if (paused) return;
+    show(current === 4 ? 1 : current + 1);
+  }
+
+  function play() {
+    if (REDUCE_MOTION) return;
+    clearInterval(timer);
+    timer = setInterval(next, SCENE_MS);
+  }
+
+  steps.forEach((s) =>
+    s.addEventListener('click', () => {
+      show(Number(s.dataset.scene));
+      play();
+    })
+  );
+
+  // يفضل شغال تلقائياً حتى مع التفاعل — لا يتوقف على hover/focus
+
+  show(1);
+  play();
 })();
 
 // ===== توهج حدود كروت Bento يتبع الماوس =====

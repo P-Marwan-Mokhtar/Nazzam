@@ -127,6 +127,7 @@
         <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
         <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
         <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+        <symbol id="i-radio-unchecked" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
       </defs>
     </svg>
 
@@ -136,13 +137,7 @@
     <header class="nav" id="siteHeader">
       <div class="container nav-inner">
         <a href="#top" class="nav-logo" aria-label="نظم — الصفحة الرئيسية">
-          <svg class="logo-mark" viewBox="183 96 705 802" aria-hidden="true">
-            <path d="M271 810 L271 230 L800 810" fill="none" stroke="#0F172B" stroke-width="135" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M732.5 477.5 A67.5 67.5 0 0 1 800 410 A67.5 67.5 0 0 1 867.5 477.5 L867.5 810 L732.5 810 Z" fill="#0F172B"/>
-            <circle cx="800" cy="240" r="124" fill="#0284C7"/>
-            <path d="M749 255 L783 290 L862 200" fill="none" stroke="#FFFFFF" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span class="logo-word">نظم</span>
+          <img src="app/img/Nazzam-icon-no-bg.png" alt="نظم" class="logo-mark" width="80" height="80" decoding="async" fetchpriority="high" />
         </a>
         <nav class="nav-links" aria-label="التنقل الرئيسي">
           <a href="#organize">التنظيم</a>
@@ -220,40 +215,129 @@
             </p>
           </div>
 
-          <div class="timeline-steps reveal" id="timelineSteps">
-            <div class="tl-track">
-              <div class="tl-step">
-                <span class="tl-icon"><svg class="ic"><use href="#i-file"/></svg></span>
-                <h4>تكتب مرة</h4>
-                <p>في بنك المهام</p>
+          <div class="story reveal" id="orgStory" data-scene="1">
+            <div class="story-steps" role="tablist" aria-label="خطوات تنظيم المهام">
+              <button type="button" class="sstep on" role="tab" aria-selected="true" data-scene="1">
+                <b>١</b><span>اكتبها مرة</span><i class="sprog" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="sstep" role="tab" aria-selected="false" data-scene="2">
+                <b>٢</b><span>تصطف في البنك</span><i class="sprog" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="sstep" role="tab" aria-selected="false" data-scene="3">
+                <b>٣</b><span>تنزل ليومها</span><i class="sprog" aria-hidden="true"></i>
+              </button>
+              <button type="button" class="sstep" role="tab" aria-selected="false" data-scene="4">
+                <b>٤</b><span>أنجزها</span><i class="sprog" aria-hidden="true"></i>
+              </button>
+            </div>
+
+            <div class="story-stage" aria-hidden="true">
+              <!-- البنك — مطابق للتطبيق -->
+              <div class="st-bank">
+                <div class="bank-wrap">
+                  <button class="bank-toggle" type="button" tabindex="-1" aria-hidden="true">
+                    <span class="bank-toggle-label">بنك المهام</span>
+                  </button>
+                  <div class="bank-content">
+                    <div class="add-row">
+                      <span class="st-typed"><span class="st-text">قراءة كتاب</span><i class="st-caret"></i></span>
+                      <span class="st-ph">أضف مهمة جديدة..</span>
+                      <button class="add-btn" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">add</span></button>
+                    </div>
+                    <div class="st-keyword-list">
+                      <div class="st-kw new" id="stNewRow">
+                        <button class="st-kw-add" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons icon-add">add</span><span class="material-icons icon-done">check</span></button>
+                        <span class="st-kw-name">قراءة كتاب</span>
+                        <span class="st-kw-streak"><span class="material-icons">local_fire_department</span> ٥</span>
+                      </div>
+                      <div class="st-kw">
+                        <button class="st-kw-add added" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">check</span></button>
+                        <span class="st-kw-name">التمرين اليومي</span>
+                      </div>
+                      <div class="st-kw">
+                        <button class="st-kw-add added" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">check</span></button>
+                        <span class="st-kw-name">مذاكرة إحصاء</span>
+                      </div>
+                      <div class="st-kw">
+                        <button class="st-kw-add added" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">check</span></button>
+                        <span class="st-kw-name">شرب 2 لتر مياه</span>
+                      </div>
+                      <div class="st-kw">
+                        <button class="st-kw-add added" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">check</span></button>
+                        <span class="st-kw-name">تعلم لغة جديدة</span>
+                      </div>
+                      <div class="st-kw">
+                        <button class="st-kw-add added" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">check</span></button>
+                        <span class="st-kw-name">بودكاست</span>
+                      </div>
+                      <div class="st-kw">
+                        <button class="st-kw-add added" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">check</span></button>
+                        <span class="st-kw-name">العمل</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <span class="tl-conn"><svg class="ic"><use href="#i-arrow"/></svg></span>
-              <div class="tl-step">
-                <span class="tl-icon"><svg class="ic"><use href="#i-calendar"/></svg></span>
-                <h4>تظهر تلقائياً</h4>
-                <p>في يومها</p>
+
+              <!-- الموصل -->
+              <div class="st-conn">
+                <svg class="ic"><use href="#i-arrow"/></svg>
               </div>
-              <span class="tl-conn"><svg class="ic"><use href="#i-arrow"/></svg></span>
-              <div class="tl-step">
-                <span class="tl-icon"><svg class="ic"><use href="#i-clock"/></svg></span>
-                <h4>تسحب للساعة</h4>
-                <p>في الجدول</p>
-              </div>
-              <span class="tl-conn"><svg class="ic"><use href="#i-arrow"/></svg></span>
-              <div class="tl-step">
-                <span class="tl-icon on"><svg class="ic"><use href="#i-play"/></svg></span>
-                <h4>تشغّل المؤقت</h4>
-                <p>وتتابع وقتك</p>
+
+              <!-- اليوم — مطابق للتطبيق -->
+              <div class="st-day">
+                <div class="day-wrap">
+                  <div class="section-title"><span>اليوم</span><span class="st-day-date">الثلاثاء ٢٥ أغسطس</span></div>
+                  <div class="st-task-list">
+                    <div class="st-task done">
+                      <button class="st-check" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">check_circle</span></button>
+                      <span class="st-task-icon habit"><span class="material-icons">loop</span></span>
+                      <span class="st-task-name">التمرين اليومي</span>
+                      <button class="st-more" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">more_vert</span></button>
+                    </div>
+                    <div class="st-task landing" id="stLanding">
+                      <button class="st-check" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons unchecked">radio_button_unchecked</span><span class="material-icons checked">check_circle</span></button>
+                      <span class="st-task-icon task"><span class="material-icons">assignment</span></span>
+                      <span class="st-task-name">قراءة كتاب</span>
+                      <button class="st-more" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">more_vert</span></button>
+                    </div>
+                    <div class="st-task">
+                      <button class="st-check" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">radio_button_unchecked</span></button>
+                      <span class="st-task-icon hobby"><span class="material-icons">palette</span></span>
+                      <span class="st-task-name">مذاكرة إحصاء</span>
+                      <button class="st-more" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">more_vert</span></button>
+                    </div>
+                    <div class="st-task done">
+                      <button class="st-check" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">check_circle</span></button>
+                      <span class="st-task-icon habit"><span class="material-icons">loop</span></span>
+                      <span class="st-task-name">شرب 2 لتر مياه</span>
+                      <button class="st-more" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">more_vert</span></button>
+                    </div>
+                    <div class="st-task">
+                      <button class="st-check" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">radio_button_unchecked</span></button>
+                      <span class="st-task-icon task"><span class="material-icons">assignment</span></span>
+                      <span class="st-task-name">تعلم لغة جديدة</span>
+                      <button class="st-more" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">more_vert</span></button>
+                    </div>
+                    <div class="st-task done">
+                      <button class="st-check" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">check_circle</span></button>
+                      <span class="st-task-icon hobby"><span class="material-icons">palette</span></span>
+                      <span class="st-task-name">بودكاست</span>
+                      <button class="st-more" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">more_vert</span></button>
+                    </div>
+                    <div class="st-task">
+                      <button class="st-check" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">radio_button_unchecked</span></button>
+                      <span class="st-task-icon task"><span class="material-icons">assignment</span></span>
+                      <span class="st-task-name">العمل</span>
+                      <button class="st-more" type="button" tabindex="-1" aria-hidden="true"><span class="material-icons">more_vert</span></button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <ul class="org-points reveal">
-            <li><svg class="ic"><use href="#i-repeat"/></svg>تكتب مرة… وتتكرر تلقائيًا</li>
-            <li><svg class="ic"><use href="#i-tag"/></svg>كلمات وفلاتر من اختيارك</li>
-            <li><svg class="ic"><use href="#i-star"/></svg>أولوية ونوع ووقت لكل مهمة</li>
-            <li><svg class="ic"><use href="#i-search"/></svg>بحث فوري في كل مهامك</li>
-          </ul>
+
+          </div>
         </div>
       </section>
 
@@ -407,114 +491,21 @@
       </section>
 
       <!-- ============================================================
-           وأكثر — شبكة Bento للمميزات الثانوية
+           تفاصيل صغيرة… تصنع فرقًا كبيرًا — مودرن ونضيف
       ============================================================ -->
       <section class="section" id="more">
         <div class="container">
           <div class="sec-head reveal">
 <h2>تفاصيل صغيرة… تصنع فرقًا كبيرًا.</h2>
-            <p class="sec-lead">كل ما تحتاجه لإدارة يومٍ كامل، في تطبيقٍ واحد يعمل من متصفحك.</p>
+            <p class="sec-lead">كل ميزة بصورة حقيقية من التطبيق — نظرة سريعة على ما ينتظرك.</p>
           </div>
 
-          <div class="bento">
-            <article class="bcard span-2 reveal">
-              <span class="bcard-ic"><svg class="ic"><use href="#i-search"/></svg></span>
-              <h3>بحث شامل</h3>
-              <p>ابحث في كل مهام كل الأيام — ليس اليوم فقط — وانتقل مباشرة إلى المهمة.</p>
-              <div class="bcard-demo" aria-hidden="true">
-                <div class="demo-search"><svg class="ic"><use href="#i-search"/></svg>مشروع</div>
-                <div class="demo-hit"><svg class="ic"><use href="#i-code"/></svg>مشروع نَظْم<small>الأحد ٢٣ أغسطس</small></div>
-                <div class="demo-hit"><svg class="ic"><use href="#i-mail"/></svg>مراسلات المشروع<small>الخميس ٢٠ أغسطس</small></div>
-              </div>
-            </article>
-
-            <article class="bcard reveal">
-              <span class="bcard-ic"><svg class="ic"><use href="#i-bell"/></svg></span>
-              <h3>تذكيرات وملخصات</h3>
-              <p>ملخص صباحي ومسائي بتوقيتك، وتذكير لكل مهمة في وقتها.</p>
-              <div class="bcard-demo" aria-hidden="true">
-                <span class="demo-chip">٨:٠٠ ص</span>
-                <span class="demo-chip">١٠:٠٠ م</span>
-              </div>
-            </article>
-
-            <article class="bcard reveal">
-              <span class="bcard-ic hot"><svg class="ic"><use href="#i-flame"/></svg></span>
-              <h3>سلاسل الالتزام</h3>
-              <p>عدّاد أيامك المتصلة في كل عادة — حافزٌ يومي للاستمرار.</p>
-              <div class="bcard-demo" aria-hidden="true">
-                <div class="demo-streak">
-                  <svg class="ic"><use href="#i-flame"/></svg><b class="digits">١٢</b> يومًا متصلًا
-                </div>
-                <div class="demo-days"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
-              </div>
-            </article>
-
-            <article class="bcard reveal">
-              <span class="bcard-ic"><svg class="ic"><use href="#i-calendar"/></svg></span>
-              <h3>تقويم مصغّر</h3>
-              <p>نظرة سريعة على شهرك — النقاط الخضرا بتعرفك أيام مهامك.</p>
-              <div class="bcard-demo" aria-hidden="true">
-                <div class="mini-cal">
-                  <div class="mc-head"><span>أغسطس 2026</span><span class="mc-arrows"><svg class="ic"><use href="#i-chev"/></svg><svg class="ic" style="transform:rotate(180deg)"><use href="#i-chev"/></svg></span></div>
-                  <div class="mc-grid"><span>أحد</span><span>اثنين</span><span>ثلاثاء</span><span>أربعاء</span><span>خميس</span><span>جمعة</span><span>سبت</span></div>
-                  <div class="mc-days"><span>26</span><span>27</span><span>28</span><span>29</span><span>30</span><span>31</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span class="on">26</span><span>27</span><span>28</span><span>29</span></div>
-                </div>
-              </div>
-            </article>
-
-            <article class="bcard reveal">
-              <span class="bcard-ic"><svg class="ic"><use href="#i-archive"/></svg></span>
-              <h3>أرشيف آمن</h3>
-              <p>أي مهمة تُحذف تنتقل للأرشيف بدل الفقدان — واستعدها بنقرة.</p>
-              <div class="bcard-demo" aria-hidden="true">
-                <span class="demo-chip"><svg class="ic"><use href="#i-sync"/></svg>استعادة</span>
-              </div>
-            </article>
-
-            <article class="bcard span-3 reveal">
-              <span class="bcard-ic"><svg class="ic"><use href="#i-export"/></svg></span>
-              <h3>بياناتك ملكك — صدّرها متى شئت</h3>
-              <p>تقرير PDF ليومك أو أسبوعك، مهامك بصيغة ICS لأي تقويم خارجي، ونسخة احتياطية كاملة بصيغة JSON.</p>
-              <div class="bcard-demo row" aria-hidden="true">
-                <span class="demo-chip"><svg class="ic"><use href="#i-file"/></svg>تقرير PDF</span>
-                <span class="demo-chip"><svg class="ic"><use href="#i-calendar"/></svg>تصدير ICS</span>
-                <span class="demo-chip"><svg class="ic"><use href="#i-save"/></svg>نسخة JSON</span>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <!-- ============================================================
-            تفاصيل كل مهمة — الأولوية والوقت والتكرار والتذكير...
-      ============================================================ -->
-      <section class="section" id="task-detail">
-        <div class="container">
-          <div class="sec-head reveal">
-            <h2>كل تفصيلة لمهمتك… في مكان واحد.</h2>
-            <p class="sec-lead">أولوية، نوع، وقت، مهام فرعية، ملاحظة، تذكير، تكرار وفلتر — وكلها تظهر في مودال واحد بضغطة.</p>
-          </div>
-          <div class="detail-visual reveal">
-            <div class="detail-menu">
-              <span><svg class="ic"><use href="#i-tag"/></svg> تعديل</span>
-              <span><svg class="ic"><use href="#i-file"/></svg> ملاحظة</span>
-              <span><svg class="ic"><use href="#i-clock"/></svg> الوقت</span>
-              <span><svg class="ic"><use href="#i-sub"/></svg> مهام فرعية</span>
-              <span class="on"><svg class="ic"><use href="#i-repeat"/></svg> التكرار</span>
-              <span><svg class="ic"><use href="#i-star"/></svg> الأهمية</span>
-              <span><svg class="ic"><use href="#i-bell"/></svg> تذكير</span>
-              <span class="del"><svg class="ic"><use href="#i-archive"/></svg> حذف</span>
-            </div>
-            <div class="detail-modal">
-              <div class="dm-head"><strong>تفاصيل المهمة</strong><span class="dm-close"><svg class="ic"><use href="#i-close"/></svg></span></div>
-              <div class="dm-top"><span class="dm-name">بودكاست</span><span class="dm-tag">#تطوير الذات</span></div>
-              <div class="dm-row"><span class="dm-label"><svg class="ic"><use href="#i-star"/></svg> الأهمية</span><span class="dm-val">بدون</span><span class="dm-more"><svg class="ic"><use href="#i-tag"/></svg></span></div>
-              <div class="dm-row"><span class="dm-label"><svg class="ic"><use href="#i-file"/></svg> النوع</span><span class="dm-val">مهمة</span><span class="dm-more"><svg class="ic"><use href="#i-tag"/></svg></span></div>
-              <div class="dm-row"><span class="dm-label"><svg class="ic"><use href="#i-clock"/></svg> الوقت</span><span class="dm-val muted">لم يحدد وقت</span><span class="dm-more"><svg class="ic"><use href="#i-tag"/></svg></span></div>
-              <div class="dm-row"><span class="dm-label"><svg class="ic"><use href="#i-sub"/></svg> مهام فرعية</span><span class="dm-val muted">لا توجد</span><span class="dm-btn">إضافة</span></div>
-              <div class="dm-row"><span class="dm-label"><svg class="ic"><use href="#i-file"/></svg> ملاحظة</span><span class="dm-val muted">لا توجد ملاحظة</span><span class="dm-btn">إضافة</span></div>
-            </div>
+          <div class="features-grid reveal">
+            <article class="fcard"><figure class="fcard-img"><img src="app/img/features/search.png" alt="البحث في جميع المهام" loading="lazy" decoding="async" /></figure></article>
+            <article class="fcard"><figure class="fcard-img"><img src="app/img/features/drafts.png" alt="المسودات" loading="lazy" decoding="async" /></figure></article>
+            <article class="fcard"><figure class="fcard-img"><img src="app/img/features/calendar.png" alt="التقويم" loading="lazy" decoding="async" /></figure></article>
+            <article class="fcard"><figure class="fcard-img"><img src="app/img/features/notifications.png" alt="التنبيهات" loading="lazy" decoding="async" /></figure></article>
+            <article class="fcard"><figure class="fcard-img"><img src="app/img/features/task-details.png" alt="تفاصيل المهمة" loading="lazy" decoding="async" /></figure></article>
           </div>
         </div>
       </section>
