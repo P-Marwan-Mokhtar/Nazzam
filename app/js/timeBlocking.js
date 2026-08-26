@@ -268,8 +268,8 @@ export function renderTimeBlockView(){
     const widthPct = 100 / totalCols;
     const rightPct = col * widthPct;
     blocksHtml += `
-      <div class="timeline-block ${t.done ? 'done' : ''} ${t.priority ? 'priority-' + t.priority : ''} ${isShortBlock(durationMin) ? 'short' : ''}"
-           style="top:${top}px; height:${height - BLOCK_GAP_PX}px; right:calc(${rightPct}% + 2px); width:calc(${widthPct}% - 6px);"
+      <div class="timeline-block ${t.done ? 'done' : ''} ${isShortBlock(durationMin) ? 'short' : ''}"
+           style="--blk: ${taskColorVar(t.name)}; top:${top}px; height:${height - BLOCK_GAP_PX}px; right:calc(${rightPct}% + 2px); width:calc(${widthPct}% - 6px);"
            data-id="${t.id}" data-start-min="${startMin}" data-duration-min="${durationMin}" title="${escapeAttr(t.name)}">
         <span class="timeline-block-time">${blockTimeLabel(startMin, durationMin)}</span>
         <span class="timeline-block-name">${escapeHtml(t.name)}</span>
@@ -538,8 +538,8 @@ function renderTimeBlockWeekView(){
       const widthPct = 100 / totalCols;
       const rightPct = col * widthPct;
       blocksHtml += `
-        <div class="timeline-block tbw-block ${t.done ? 'done' : ''} ${t.priority ? 'priority-' + t.priority : ''} ${isShortBlock(durationMin) ? 'short' : ''}"
-             style="top:${top}px; height:${height - BLOCK_GAP_PX}px; right:calc(${rightPct}% + 2px); width:calc(${widthPct}% - 6px);"
+        <div class="timeline-block tbw-block ${t.done ? 'done' : ''} ${isShortBlock(durationMin) ? 'short' : ''}"
+             style="--blk: ${taskColorVar(t.name)}; top:${top}px; height:${height - BLOCK_GAP_PX}px; right:calc(${rightPct}% + 2px); width:calc(${widthPct}% - 6px);"
              data-id="${t.id}" data-date="${dateStr}" data-start-min="${startMin}" data-duration-min="${durationMin}" title="${escapeAttr(t.name)}">
           <span class="timeline-block-time">${blockTimeLabel(startMin, durationMin)}</span>
           <span class="timeline-block-name">${escapeHtml(t.name)}</span>
@@ -704,6 +704,16 @@ function renderTimeBlockWeekView(){
 // ============================================================
 const TBM_MAX_EVENTS = 3; // عدد المهام المعروضة في الخلية قبل سطر "+N المزيد"
 
+// لون ثابت لكل مهمة حسب اسمها — نفس المهمة ليها نفس اللون في عرض اليوم والأسبوع والشهر
+const TBM_COLOR_COUNT = 8;
+function taskHue(name){
+  let h = 0;
+  const s = String(name || '');
+  for(let i = 0; i < s.length; i++){ h = (h * 31 + s.charCodeAt(i)) >>> 0; }
+  return h % TBM_COLOR_COUNT;
+}
+const taskColorVar = (name) => `var(--task-c${taskHue(name)})`;
+
 // ملاءمة ارتفاع شبكة الشهر للمساحة الفعلية المتبقية تحت الهيدر — قياس مباشر
 // بعد الرسم بدل الاعتماد على سلسلة الـ flex بس، عشان النتيجة مضمونة
 // في كل المقاسات والاتجاهات (RTL/LTR) وكمان على الموبايل
@@ -761,7 +771,8 @@ function renderTimeBlockMonthView(){
       let chipsHtml = '';
       scheduled.slice(0, TBM_MAX_EVENTS).forEach(({ task, startMin }) => {
         chipsHtml += `
-          <button type="button" class="tbm-event ${task.done ? 'done' : ''} ${task.priority ? 'priority-' + task.priority : ''}"
+          <button type="button" class="tbm-event ${task.done ? 'done' : ''}"
+                  style="--blk: ${taskColorVar(task.name)}"
                   data-action="tbm-open-event" data-id="${task.id}" data-date="${dateStr}" title="${escapeAttr(task.name)}">
             <span class="tbm-event-time">${formatTimeArabic(minutesToHHMM(startMin))}</span>
             <span class="tbm-event-name">${escapeHtml(task.name)}</span>
@@ -1006,7 +1017,8 @@ function openTbmMorePop(triggerBtn){
     <div class="tbm-more-head">${fmtDay(dateStr)}</div>
     ${scheduled.length === 0 ? `<div class="tbm-more-empty">${t('day.no_tasks_recorded')}</div>` : ''}
     ${scheduled.map(({ task, startMin }) => `
-      <button type="button" class="tbm-more-item ${task.done ? 'done' : ''} ${task.priority ? 'priority-' + task.priority : ''}"
+      <button type="button" class="tbm-more-item ${task.done ? 'done' : ''}"
+              style="--blk: ${taskColorVar(task.name)}"
               data-id="${task.id}" data-date="${dateStr}">
         <span class="tbm-event-time">${formatTimeArabic(minutesToHHMM(startMin))}</span>
         <span class="tbm-event-name">${escapeHtml(task.name)}</span>

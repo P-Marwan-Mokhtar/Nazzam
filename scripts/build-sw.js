@@ -39,6 +39,7 @@ const PRECACHE_URLS = [
   './icons/apple-touch-icon.png',
   './img/logo-light.png',
   './img/logo-dark.png',
+  './fonts/material-icons.woff2',
   './js/main.js',
   './js/config.js',
   './js/auth.js',

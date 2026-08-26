@@ -800,8 +800,8 @@ body.locked-view .main-col {
 }
 .timeline-block {
   position: absolute;
-  background: var(--pen-soft);
-  border-inline-start: 3px solid var(--pen);
+  background: color-mix(in srgb, var(--blk, var(--pen)) 14%, var(--card));
+  border-inline-start: 3px solid var(--blk, var(--pen));
   border-radius: 8px;
   padding: 4px 8px;
   overflow: hidden;
@@ -827,9 +827,6 @@ body.locked-view .main-col {
 .timeline-block.done .timeline-block-name {
   text-decoration: line-through;
 }
-.timeline-block.priority-high { border-inline-start-color: var(--missed); }
-.timeline-block.priority-medium { border-inline-start-color: #d98c15; }
-.timeline-block.priority-low { border-inline-start-color: var(--done); }
 .timeline-block-time {
   font-size: 0.68rem;
   color: var(--ink-soft);
@@ -953,7 +950,9 @@ body.locked-view .main-col {
 }
 .tb-full-height .tbm-body {
   flex: 1;
-  grid-auto-rows: 1fr; /* كل الأسابيع بتاخد حظ متساوي من ارتفاع الشاشة */
+  min-height: 0;
+  overflow-y: auto; /* الشاشات القصيرة: الشبكة تسكرول داخلي تحت رأس الأيام الثابت بدل ما الأسابيع تتقص */
+  grid-auto-rows: minmax(min-content, 1fr); /* كل صف على قد محتواه (مهام ما تتقصش) — ولو المساحة أكتر بيتوزع بالتساوي زي Google Calendar */
 }
 .tbm-grid-wrap {
   margin-top: 0;
@@ -1043,9 +1042,9 @@ body.locked-view .main-col {
   min-width: 0;
   padding: 2px 6px;
   border: none;
-  border-inline-start: 3px solid var(--pen);
+  border-inline-start: 3px solid var(--blk, var(--pen));
   border-radius: 6px;
-  background: var(--card);
+  background: color-mix(in srgb, var(--blk, var(--pen)) 10%, var(--card));
   color: var(--ink);
   font-family: inherit;
   font-size: 0.68rem;
@@ -1055,7 +1054,7 @@ body.locked-view .main-col {
   white-space: nowrap;
 }
 .tbm-event:hover {
-  background: var(--popup);
+  background: color-mix(in srgb, var(--blk, var(--pen)) 18%, var(--card));
 }
 .tbm-event-time {
   flex-shrink: 0;
@@ -1073,9 +1072,6 @@ body.locked-view .main-col {
 .tbm-event.done .tbm-event-name {
   text-decoration: line-through;
 }
-.tbm-event.priority-high { border-inline-start-color: var(--missed); }
-.tbm-event.priority-medium { border-inline-start-color: #d98c15; }
-.tbm-event.priority-low { border-inline-start-color: var(--done); }
 .tbm-event-more {
   font-size: 0.65rem;
   font-weight: 700;
@@ -1129,9 +1125,9 @@ body.locked-view .main-col {
   width: 100%;
   padding: 4px 8px;
   border: none;
-  border-inline-start: 3px solid var(--pen);
+  border-inline-start: 3px solid var(--blk, var(--pen));
   border-radius: 6px;
-  background: var(--card);
+  background: color-mix(in srgb, var(--blk, var(--pen)) 10%, var(--card));
   color: var(--ink);
   font-family: inherit;
   font-size: 0.7rem;
@@ -1140,7 +1136,7 @@ body.locked-view .main-col {
   margin-bottom: 2px;
 }
 .tbm-more-item:hover {
-  background: var(--paper);
+  background: color-mix(in srgb, var(--blk, var(--pen)) 18%, var(--card));
 }
 .tbm-more-item .tbm-event-time {
   flex-shrink: 0;
@@ -1159,9 +1155,6 @@ body.locked-view .main-col {
 .tbm-more-item.done .tbm-event-name {
   text-decoration: line-through;
 }
-.tbm-more-item.priority-high { border-inline-start-color: var(--missed); }
-.tbm-more-item.priority-medium { border-inline-start-color: #d98c15; }
-.tbm-more-item.priority-low { border-inline-start-color: var(--done); }
 
 @media (max-width: 900px) {
   .timeblock-layout {

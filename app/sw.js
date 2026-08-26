@@ -5,7 +5,7 @@
 // رقم الإصدار (CACHE_VERSION) بيتغيّر تلقائيًا مع أي تغيير في المحتوى.
 // ============================================================
 
-const CACHE_VERSION = 'vb50ded07b9';
+const CACHE_VERSION = 'v326ad5bb58';
 const CACHE_NAME = 'daily-tasks-shell-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -29,6 +29,7 @@ const PRECACHE_URLS = [
   "./icons/apple-touch-icon.png",
   "./img/logo-light.png",
   "./img/logo-dark.png",
+  "./fonts/material-icons.woff2",
   "./js/main.js",
   "./js/config.js",
   "./js/auth.js",

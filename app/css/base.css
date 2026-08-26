@@ -1,6 +1,29 @@
+/* ===== أيقونات Material Icons — مستضافة محليًا عشان تشتغل أوفلاين ===== */
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url(../fonts/material-icons.woff2) format('woff2');
+}
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
 :root {
-  --paper: #f5f3ec;
-  --paper-line: #dcd8c8;
+  --paper: #f9fafb;
+  --paper-line: #eff1f4;
   --ink: #22303d;
   --ink-soft: #5b6b78;
   --pen: #c5482e;
@@ -11,6 +34,15 @@
   --missed-soft: #f4dedb;
   --card: #ffffff;
   --popup: #ffffff;
+  /* ألوان المهام في الجدول الزمني — كل مهمة لون ثابت حسب اسمها في اليوم والأسبوع والشهر */
+  --task-c0: #3a6fa5;
+  --task-c1: #2f7d76;
+  --task-c2: #b4728a;
+  --task-c3: #b07a2a;
+  --task-c4: #6b5b95;
+  --task-c5: #a6565c;
+  --task-c6: #5c6672;
+  --task-c7: #8a6a4f;
   --radius: 10px;
   --shadow: 0 1px 2px rgba(34, 48, 61, 0.04), 0 4px 12px rgba(34, 48, 61, 0.03);
   --shadow-hover: 0 2px 4px rgba(34, 48, 61, 0.05), 0 8px 20px rgba(34, 48, 61, 0.07);
@@ -31,6 +63,15 @@ body.dark-mode {
   --missed-soft: #3a1c1c;
   --card: #1a2027;
   --popup: #232b34;
+  /* نسخ فاتحة من ألوان المهام عشان التباين على الخلفية الداكنة */
+  --task-c0: #6b9fc8;
+  --task-c1: #5ba6a0;
+  --task-c2: #d99eb0;
+  --task-c3: #d3a24f;
+  --task-c4: #9483c6;
+  --task-c5: #cf848a;
+  --task-c6: #a7b0bc;
+  --task-c7: #b5927a;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.16), 0 3px 10px rgba(0, 0, 0, 0.12);
   --shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.24), 0 8px 20px rgba(0, 0, 0, 0.2);
 }

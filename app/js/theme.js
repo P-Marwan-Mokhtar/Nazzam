@@ -8,7 +8,7 @@ import { t } from './i18n.js';
 // الألوان الأساسية ثابتة (نفس القيم الافتراضية الحالية) — التخصيص بيغيّر
 // اللون المميز بس (pen + pen-soft) عشان التغيير يفضل هادي ومش "فاقع".
 const BASE_LIGHT = {
-  'paper': '#f5f3ec', 'paper-line': '#dcd8c8', 'ink': '#22303d', 'ink-soft': '#5b6b78',
+  'paper': '#f9fafb', 'paper-line': '#eff1f4', 'ink': '#22303d', 'ink-soft': '#5b6b78',
   'done': '#3e7a5c', 'done-soft': '#dce9e0', 'missed': '#c5382e', 'missed-soft': '#f4dedb',
   'card': '#ffffff'
 };
