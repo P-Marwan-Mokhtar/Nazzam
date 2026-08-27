@@ -34,9 +34,9 @@
       property="og:description"
       content="بنك مهام متكرر، جدول زمني بالسحب والإفلات، مؤقّت تركيز، وإحصائيات — عربي بالكامل ويعمل دون اتصال."
     />
-    <meta property="og:image" content="app/img/og-cover.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    <meta property="og:image" content="app/img/shots/app.png" />
+    <meta property="og:image:width" content="2852" />
+    <meta property="og:image:height" content="1561" />
     <meta property="og:locale" content="ar_EG" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="نظم — رتّب يومك، وخلي الباقي عليه" />
@@ -44,7 +44,7 @@
       name="twitter:description"
       content="بنك مهام متكرر، جدول زمني بالسحب والإفلات، مؤقّت تركيز، وإحصائيات — عربي بالكامل ويعمل دون اتصال."
     />
-    <meta name="twitter:image" content="app/img/og-cover.png" />
+    <meta name="twitter:image" content="app/img/shots/app.png" />
     <meta name="theme-color" content="#F8FAFC" />
     <link rel="icon" href="app/icons/favicon.svg" type="image/svg+xml" />
     <link rel="icon" type="image/png" sizes="512x512" href="app/icons/icon-512.png" />
@@ -197,7 +197,6 @@
             <figure class="hero-shot" role="img" aria-label="لقطة حقيقية من تطبيق نظم: القائمة والمهام والمؤقتات">
               <img src="app/img/shots/app.png" alt="واجهة تطبيق نظم — القائمة وبنك المهام ومهام اليوم مع المؤقتات" width="2852" height="1561" loading="eager" decoding="async" fetchpriority="high" />
             </figure>
-            <div class="frame-shadow" aria-hidden="true"></div>
           </div>
         </div>
       </section>
@@ -455,8 +454,7 @@
 
             <div class="phone-shot" aria-hidden="true">
               <div class="phone-notch"></div>
-              <span class="ph-kicker">وضع التركيز</span>
-              <span class="ph-task"><svg class="ic"><use href="#i-book"/></svg>قراءة كتاب · هدف ٣٠ دقيقة</span>
+              <span class="ph-task"><svg class="ic"><use href="#i-palette"/></svg>قراءة كتاب</span>
               <div class="ph-digits digits">٢٤:٥٢</div>
               <div class="ph-bar"><i style="--w: 83%"></i></div>
               <div class="ph-scale"><span>الفعلي ٢٤:٥٢</span><span>الهدف ٣٠:٠٠</span></div>
@@ -491,12 +489,12 @@
       </section>
 
       <!-- ============================================================
-           تفاصيل صغيرة… تصنع فرقًا كبيرًا — مودرن ونضيف
+           تفاصيل صغيرة… تصنع فرقًا كبيرًا — Bento Grid
       ============================================================ -->
       <section class="section" id="more">
         <div class="container">
           <div class="sec-head reveal">
-<h2>تفاصيل صغيرة… تصنع فرقًا كبيرًا.</h2>
+            <h2>تفاصيل صغيرة… تصنع فرقًا كبيرًا.</h2>
             <p class="sec-lead">كل ميزة بصورة حقيقية من التطبيق — نظرة سريعة على ما ينتظرك.</p>
           </div>
 
@@ -536,22 +534,6 @@
                 <li><svg class="ic"><use href="#i-devices"/></svg>هاتف وحاسوب على نفس الصفحة</li>
               </ul>
             </div>
-            <div class="sync-visual" aria-hidden="true">
-              <div class="sync-phone">
-                <div class="sp-head">
-                  <strong>مهام اليوم</strong>
-                  <span class="sp-chip"><svg class="ic"><use href="#i-flame"/></svg>١٢</span>
-                </div>
-                <div class="sp-row done"><span class="sp-tick"><svg class="ic"><use href="#i-check"/></svg></span>مراجعة البريد</div>
-                <div class="sp-row"><span class="sp-tick"></span>مذاكرة إحصاء</div>
-                <div class="sp-row"><span class="sp-tick"></span>التمرين اليومي</div>
-                <div class="sp-progress"><i style="--w: 60%"></i></div>
-              </div>
-              <div class="sync-toast">
-                <svg class="ic"><use href="#i-check-circle"/></svg>
-                <div><strong>تمّت المزامنة</strong><small>على هاتفك وحاسوبك</small></div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -582,7 +564,7 @@
                 <li><svg class="ic"><use href="#i-check"/></svg>وضع فاتح وداكن و٨ ألوان</li>
                 <li><svg class="ic"><use href="#i-check"/></svg>يعمل دون اتصال</li>
               </ul>
-              <a href="app/" class="btn btn-ghost btn-lg price-btn">ابدأ مجانًا</a>
+              <a href="app/" class="btn btn-ghost btn-lg price-btn" id="lpPriceBtn">ابدأ مجانًا</a>
             </div>
 
             <div class="price-card spot">
@@ -683,12 +665,13 @@
           <a href="#plan">التخطيط</a>
           <a href="#focus">التركيز</a>
           <a href="#stats">الإحصائيات</a>
-          <a href="app/">تسجيل الدخول</a>
+          <a href="app/" id="lpLoginFooter">تسجيل الدخول</a>
         </nav>
         <p class="footer-copy">© <span id="lpYear">2026</span> نظم — صُنع بعناية للعربية.</p>
       </div>
     </footer>
 
+    <script src="app/js/vendor/supabase.js" defer></script>
     <script type="module" src="landing.js"></script>
   </body>
 </html>
