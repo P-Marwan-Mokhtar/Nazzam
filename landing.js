@@ -156,6 +156,37 @@ if (burger && header) {
   });
 })();
 
+// ===== تبويبات «تفاصيل صغيرة»: التبويبات يمين والصورة شمال =====
+(function initFeatureTabs() {
+  const list = document.getElementById('ftList');
+  const stage = document.getElementById('ftStage');
+  if (!list || !stage) return;
+  const img = stage.querySelector('img');
+  const tabs = list.querySelectorAll('.ft-tab');
+  let busy = false;
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      if (tab.classList.contains('on') || busy) return;
+      const src = tab.dataset.img;
+      tabs.forEach((t) => {
+        const on = t === tab;
+        t.classList.toggle('on', on);
+        t.setAttribute('aria-selected', String(on));
+      });
+      if (!img || !src) return;
+      busy = true;
+      img.classList.add('swap');
+      setTimeout(() => {
+        img.src = src;
+        img.alt = tab.dataset.alt || '';
+        img.classList.remove('swap');
+        busy = false;
+      }, 220);
+    });
+  });
+})();
+
 // ===== لو المستخدم مسجّل دخوله بنستبدل أزرار الدخول بزرار واحد =====
 (async function checkLoggedInState() {
   try {
