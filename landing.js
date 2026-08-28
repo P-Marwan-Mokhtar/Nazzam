@@ -182,7 +182,7 @@ if (burger && header) {
         img.alt = tab.dataset.alt || '';
         img.classList.remove('swap');
         busy = false;
-      }, 220);
+      }, 260);
     });
   });
 })();
