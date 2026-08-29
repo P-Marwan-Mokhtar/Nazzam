@@ -14,7 +14,6 @@ const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matc
 
 // ===== خط تقدم التمرير + الهيدر =====
 const header = document.getElementById('siteHeader');
-const progressBar = document.getElementById('scrollProgress');
 
 let scrollTicking = false;
 function onScroll() {
@@ -23,10 +22,6 @@ function onScroll() {
   requestAnimationFrame(() => {
     scrollTicking = false;
     header.classList.toggle('is-scrolled', window.scrollY > 8);
-    if (progressBar && !REDUCE_MOTION) {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      progressBar.style.width = (max > 0 ? (window.scrollY / max) * 100 : 0) + '%';
-    }
   });
 }
 window.addEventListener('scroll', onScroll, { passive: true });
@@ -34,18 +29,35 @@ onScroll();
 
 // ===== قائمة الموبايل =====
 const burger = document.getElementById('navBurger');
+function closeMenu() {
+  if (!header.classList.contains('is-open')) return;
+  header.classList.add('is-closing');
+  header.classList.remove('is-open');
+  document.body.classList.remove('menu-open');
+  burger.setAttribute('aria-expanded', 'false');
+  burger.querySelector('use').setAttribute('href', '#i-menu');
+  header.addEventListener('animationend', () => {
+    header.classList.remove('is-closing');
+  }, { once: true });
+}
 if (burger && header) {
   burger.addEventListener('click', () => {
-    const isOpen = header.classList.toggle('is-open');
-    burger.setAttribute('aria-expanded', String(isOpen));
-    burger.querySelector('use').setAttribute('href', isOpen ? '#i-close' : '#i-menu');
+    if (header.classList.contains('is-open')) {
+      closeMenu();
+    } else {
+      header.classList.add('is-open');
+      document.body.classList.add('menu-open');
+      burger.setAttribute('aria-expanded', 'true');
+      burger.querySelector('use').setAttribute('href', '#i-close');
+    }
   });
   document.querySelectorAll('#navMobile a').forEach((a) => {
-    a.addEventListener('click', () => {
-      header.classList.remove('is-open');
-      burger.setAttribute('aria-expanded', 'false');
-      burger.querySelector('use').setAttribute('href', '#i-menu');
-    });
+    a.addEventListener('click', closeMenu);
+  });
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 880 && header.classList.contains('is-open')) {
+      closeMenu();
+    }
   });
 }
 
@@ -140,11 +152,6 @@ function showLoggedInHeaderState() {
   const startBtn = document.getElementById('lpStartBtn');
   if (loginBtn) loginBtn.remove();
   if (startBtn) startBtn.outerHTML = authBtnHtml('lpStartBtn');
-
-  const loginBtnMobile = document.getElementById('lpLoginBtnMobile');
-  const startBtnMobile = document.getElementById('lpStartBtnMobile');
-  if (loginBtnMobile) loginBtnMobile.remove();
-  if (startBtnMobile) startBtnMobile.outerHTML = authBtnHtml('lpStartBtnMobile');
 
   ['heroStartBtn', 'finaleStartBtn', 'lpPriceBtn', 'lpLoginFooter'].forEach((id) => {
     const b = document.getElementById(id);

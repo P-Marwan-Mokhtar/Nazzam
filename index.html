@@ -128,7 +128,7 @@
       </defs>
     </svg>
 
-    <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
 
     <!-- ========================= الهيدر ========================= -->
     <header class="nav" id="siteHeader">
@@ -141,6 +141,9 @@
           <a href="#plan">التخطيط</a>
           <a href="#focus">التركيز</a>
           <a href="#stats">الإحصائيات</a>
+          <a href="#more">المميزات</a>
+          <a href="#pricing">الأسعار</a>
+          <a href="#faq">الأسئلة</a>
         </nav>
         <div class="nav-actions">
           <a href="app/" class="nav-login" id="lpLoginBtn">تسجيل الدخول</a>
@@ -151,12 +154,22 @@
         </div>
       </div>
       <div class="nav-mobile" id="navMobile">
-        <a href="#organize">التنظيم</a>
-        <a href="#plan">التخطيط</a>
-        <a href="#focus">التركيز</a>
-        <a href="#stats">الإحصائيات</a>
-        <a href="app/" id="lpLoginBtnMobile">تسجيل الدخول</a>
-        <a href="app/" class="btn btn-primary" id="lpStartBtnMobile">ابدأ مجانًا</a>
+        <div class="nav-mobile-group">
+          <span class="nav-mobile-label">النظام</span>
+          <a href="#organize">التنظيم</a>
+          <a href="#plan">التخطيط</a>
+          <a href="#focus">التركيز</a>
+          <a href="#stats">الإحصائيات</a>
+        </div>
+        <div class="nav-mobile-group">
+          <span class="nav-mobile-label">المنتج</span>
+          <a href="#more">المميزات</a>
+          <a href="#pricing">الأسعار</a>
+        </div>
+        <div class="nav-mobile-group">
+          <span class="nav-mobile-label">المساعدة</span>
+          <a href="#faq">الأسئلة</a>
+        </div>
       </div>
     </header>
 
@@ -277,12 +290,12 @@
 <h2>من الخطة إلى عمل حقيقي</h2>
             <p class="sec-lead">
               شغّل مؤقّتًا على مهمتك — مفتوحًا أو بمدّة محدّدة — وادخل وضع التركيز،
-              وسيُسجَّل ما عملته فعلًا على المهمة تلقائيًا ليغذّي إحصائياتك.
+              وسجّل وقتك الفعلي يدويًا ليغذّي إحصائياتك.
             </p>
             <ul class="check-points">
               <li><svg class="ic"><use href="#i-check-circle"/></svg>مؤقّت مفتوح أو مؤقّت بمدّة محدّدة لكل مهمة</li>
               <li><svg class="ic"><use href="#i-check-circle"/></svg>وضع تركيز بشاشةٍ واحدة بلا تشتيت</li>
-              <li><svg class="ic"><use href="#i-check-circle"/></svg>الوقت الفعلي يُسجَّل على المهمة تلقائيًا</li>
+              <li><svg class="ic"><use href="#i-check-circle"/></svg>الوقت الفعلي يُسجَّل يدويًا</li>
             </ul>
           </div>
 
@@ -293,8 +306,8 @@
                 <span class="mk-ic"><svg class="ic"><use href="#i-timer"/></svg></span>
               </div>
               <div class="ti-input">
-                <span class="ti-add-btn"><svg class="ic"><use href="#i-plus"/></svg></span>
                 <span class="ti-ph">اسم المهمة التي ستعمل عليها…</span>
+                <span class="ti-add-btn"><svg class="ic"><use href="#i-plus"/></svg></span>
               </div>
               <div class="timer-item">
                 <div class="ti-top"><span class="ti-dot"></span><strong>المذاكرة</strong><span class="ti-dur"><svg class="ic"><use href="#i-timer"/></svg> ١ ساعة</span></div>
@@ -334,12 +347,12 @@
             <div class="phone-shot" aria-hidden="true">
               <div class="phone-notch"></div>
               <span class="ph-task"><svg class="ic"><use href="#i-palette"/></svg>قراءة كتاب</span>
-              <div class="ph-digits digits">٢٤:٥٢</div>
-              <div class="ph-bar"><i style="--w: 83%"></i></div>
-              <div class="ph-scale"><span>الفعلي ٢٤:٥٢</span><span>الهدف ٣٠:٠٠</span></div>
+              <div class="ph-digits digits">٠٠:٢٥:٠١</div>
+              <div class="ph-bar"><i style="--w: 42%"></i></div>
+              <div class="ph-scale"><span>الوقت الفعلي ٠٠:٢٥:٠١</span><span>الهدف ٠١:٠٠:٠٠</span></div>
               <div class="ph-actions">
-                <span class="ph-btn ghost"><svg class="ic"><use href="#i-check"/></svg>إنهاء</span>
                 <span class="ph-btn main"><svg class="ic"><use href="#i-pause"/></svg></span>
+                <span class="ph-btn ghost"><svg class="ic"><use href="#i-check"/></svg>إنهاء</span>
               </div>
             </div>
           </div>
@@ -385,6 +398,7 @@
                   <span class="ft-name">البحث في جميع المهام</span>
                   <span class="ft-desc">اكتب أي كلمة وستجد فورًا كل المهام والعادات وقائمة المهام المطابق لها.</span>
                 </span>
+                <span class="ft-mobile-img"><img src="app/img/features/search.png" alt="البحث في جميع المهام" loading="lazy" decoding="async" /></span>
               </button>
               <button class="ft-tab" role="tab" aria-selected="false" data-img="app/img/features/drafts.png" data-alt="المسودات">
                 <svg class="ic" aria-hidden="true"><use href="#i-file"/></svg>
@@ -392,6 +406,7 @@
                   <span class="ft-name">المسودات</span>
                   <span class="ft-desc">كل ما تحذفه يبقى محفوظًا في قائمة المسودات وتسترجعه بضغطة واحدة.</span>
                 </span>
+                <span class="ft-mobile-img"><img src="app/img/features/drafts.png" alt="المسودات" loading="lazy" decoding="async" /></span>
               </button>
               <button class="ft-tab" role="tab" aria-selected="false" data-img="app/img/features/calendar.png" data-alt="التقويم">
                 <svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg>
@@ -399,6 +414,7 @@
                   <span class="ft-name">التقويم</span>
                   <span class="ft-desc">يومك وأسبوعك وشهرك في عرضٍ واحد، والأيام المهمة تبرز بنظرة.</span>
                 </span>
+                <span class="ft-mobile-img"><img src="app/img/features/calendar.png" alt="التقويم" loading="lazy" decoding="async" /></span>
               </button>
               <button class="ft-tab" role="tab" aria-selected="false" data-img="app/img/features/notifications.png" data-alt="التنبيهات">
                 <svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg>
@@ -406,6 +422,7 @@
                   <span class="ft-name">التنبيهات</span>
                   <span class="ft-desc">تذكيرات تصل في معادها إشعارًا حتى مع إغلاق التطبيق، أو ملخصًا صباحيًا.</span>
                 </span>
+                <span class="ft-mobile-img"><img src="app/img/features/notifications.png" alt="التنبيهات" loading="lazy" decoding="async" /></span>
               </button>
               <button class="ft-tab" role="tab" aria-selected="false" data-img="app/img/features/task-details.png" data-alt="تفاصيل المهمة">
                 <svg class="ic" aria-hidden="true"><use href="#i-list"/></svg>
@@ -413,6 +430,7 @@
                   <span class="ft-name">تفاصيل المهمة</span>
                   <span class="ft-desc">الأهمية والنوع والوقت والملاحظة والمهام الفرعية في نافذة واحدة.</span>
                 </span>
+                <span class="ft-mobile-img"><img src="app/img/features/task-details.png" alt="تفاصيل المهمة" loading="lazy" decoding="async" /></span>
               </button>
             </div>
             <div class="ft-stage" id="ftStage" aria-live="polite">
