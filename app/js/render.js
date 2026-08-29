@@ -113,17 +113,53 @@ export function render(){
   if(bankIsOpen){
     html += `<div class="bank-content ${ui.justOpenedBank ? 'animate-in' : ''} ${ui.closingBank ? 'animate-out' : ''}">`;
 
+    const addArrowPopover = `
+      <div class="add-arrow-popover ${ui.addArrowOpen ? 'open' : ''} ${ui.addArrowJustOpened ? 'just-opened' : ''}">
+        <div class="add-arrow-item">
+          <button class="add-arrow-head" data-action="toggle-add-sub" data-sub="place" type="button">
+            <span class="material-icons">place</span><span>${t('bank.add_place')}</span>
+            <span class="material-icons add-arrow-chev">chevron_left</span>
+          </button>
+          <div class="add-arrow-sub ${ui.addArrowSub === 'place' ? 'open' : ''}" data-sub="place">
+            <button class="add-arrow-opt ${ui.pendingTaskPlace === 'today' ? 'active' : ''}" data-action="set-place-today" type="button"><span class="material-icons">today</span>${t('bank.place_today')}</button>
+            <button class="add-arrow-opt ${ui.pendingTaskPlace === 'bank' ? 'active' : ''}" data-action="set-place-bank" type="button"><span class="material-icons">inventory_2</span>${t('bank.place_bank')}</button>
+            <button class="add-arrow-opt ${ui.pendingTaskPlace === 'both' ? 'active' : ''}" data-action="set-place-both" type="button"><span class="material-icons">done_all</span>${t('bank.place_both')}</button>
+          </div>
+        </div>
+        <div class="add-arrow-item">
+          <button class="add-arrow-head" data-action="toggle-add-sub" data-sub="filter" type="button">
+            <span class="material-icons">filter_alt</span><span>${t('c.filter')}</span>
+            <span class="material-icons add-arrow-chev">chevron_left</span>
+          </button>
+          <div class="add-arrow-sub ${ui.addArrowSub === 'filter' ? 'open' : ''}" data-sub="filter">
+            <button class="add-arrow-opt ${!ui.pendingTaskFilterId ? 'active' : ''}" data-action="set-pending-filter" data-filter-id="" type="button"><span class="material-icons">filter_alt_off</span>${t('c.no_filter')}</button>
+            ${state.filters.map(f => `<button class="add-arrow-opt ${ui.pendingTaskFilterId === f.id ? 'active' : ''}" data-action="set-pending-filter" data-filter-id="${escapeAttr(f.id)}" type="button"><span class="material-icons">label</span>${escapeHtml(f.name)}</button>`).join('')}
+          </div>
+        </div>
+        <div class="add-arrow-item">
+          <button class="add-arrow-head" data-action="toggle-add-sub" data-sub="type" type="button">
+            <span class="material-icons">category</span><span>${t('c.type')}</span>
+            <span class="material-icons add-arrow-chev">chevron_left</span>
+          </button>
+          <div class="add-arrow-sub ${ui.addArrowSub === 'type' ? 'open' : ''}" data-sub="type">
+            ${Object.keys(TASK_TYPES).map(tt => `
+              <button class="add-arrow-opt ${(ui.pendingTaskType || 'task') === tt ? 'active' : ''}" data-action="set-pending-type" data-type="${tt}" type="button">
+                <span class="material-icons tc-${tt}">${TASK_TYPES[tt].icon}</span>${t('task.type_' + tt)}
+              </button>`).join('')}
+          </div>
+        </div>
+      </div>
+    `;
     html += `
-      <div class="add-row-group">
-        <div class="add-row">
-          <input type="text" id="newKeywordInput" placeholder="${t('bank.add_placeholder')}" maxlength="80" />
-          ${buildFilterDropdown('newKeywordFilterCustom', '')}
-          <button class="add-btn icon-only" id="addKeywordBtn" title="${t('bank.add_title')}"><span class="material-icons">add</span></button>
+      <div class="add-row bank-add-task-row">
+        <input type="text" id="newKeywordInput" placeholder="${t('bank.add_placeholder')}" maxlength="80" value="${escapeAttr(ui.addDraft)}" />
+        <div class="add-arrow-wrap">
+          <button class="add-arrow-btn ${ui.addArrowOpen ? 'open' : ''}" data-action="toggle-add-arrow" type="button" title="${t('bank.add_options')}">
+            <span class="material-icons">expand_more</span>
+          </button>
+          ${addArrowPopover}
         </div>
-        <div class="add-row add-row-filter">
-          <input type="text" id="newFilterInput" placeholder="${t('bank.filter_placeholder')}" maxlength="40" />
-          <button class="add-btn icon-only" id="addFilterBtn" title="${t('bank.filter_add_title')}"><span class="material-icons">add</span></button>
-        </div>
+        <button class="add-btn icon-only add-keyword-btn" id="addKeywordBtn" title="${t('bank.add_title')}"><span class="material-icons">add</span></button>
       </div>
     `;
 
@@ -180,8 +216,19 @@ export function render(){
         `;
       }
     });
+    html += `
+      <div class="filter-add-chip-wrap">
+        <button class="filter-chip filter-add-chip" data-action="toggle-add-filter" title="${t('bank.filter_add_title')}"><span class="material-icons">filter_alt</span></button>
+        <div class="filter-add-popover ${ui.filterAddOpen ? 'open' : ''}">
+          <input type="text" id="newFilterInput" placeholder="${t('bank.filter_placeholder')}" maxlength="40" />
+          <button class="add-btn icon-only filter-add-submit" id="addFilterBtn" title="${t('bank.filter_add_title')}"><span class="material-icons">add</span></button>
+        </div>
+      </div>
+    `;
     html += `</div>`;
     html += `</div>`;
+
+    html += `<div class="bank-filters-divider"></div>`;
 
     const filterMatched = ui.activeFilter === 'all'
       ? state.keywords
@@ -459,6 +506,7 @@ export function render(){
   ui.justChangedFilter = false;
   ui.justChangedDay = false;
   ui.justOpenedMobileFilters = false;
+  ui.addArrowJustOpened = false;
 
   attachEvents();
   if(ui.timerPanelRenderedForDate !== ui.selectedDate){

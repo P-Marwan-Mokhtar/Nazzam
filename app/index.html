@@ -619,59 +619,6 @@
       </div>
     </div>
 
-    <!-- Modal مكان إضافة المهمة -->
-    <div class="modal-overlay" id="addChoiceOverlay">
-      <div class="modal-card" style="max-width: 440px">
-        <div class="modal-header">
-          <h2 data-i18n="modal.add_task_place">مكان إضافة المهمة</h2>
-          <button class="icon-btn" id="closeAddChoiceBtn" title="إغلاق" data-i18n-title="c.close">
-            <span class="material-icons">close</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <p
-            style="
-              color: var(--ink-soft);
-              font-size: 0.95rem;
-              margin-top: 0;
-              margin-bottom: 16px;
-              line-height: 1.5;
-            "
-          >
-            أين تريد إضافة المهمة
-            <strong
-              id="pendingTaskNameDisplay"
-              style="color: var(--pen)"
-            ></strong>
-            بالضبط؟
-          </p>
-          <div style="display: flex; flex-direction: column; gap: 10px">
-            <button class="choice-btn choice-today" id="choiceTodayBtn">
-              <span class="material-icons">today</span>
-              <div class="choice-text">
-                <strong data-i18n="modal.choice_today">مهام اليوم فقط</strong>
-                <span data-i18n="modal.choice_today_desc">تُضاف إلى جدول اليوم فقط ولن تُحفظ في البنك</span>
-              </div>
-            </button>
-            <button class="choice-btn" id="choiceBankBtn">
-              <span class="material-icons">inventory_2</span>
-              <div class="choice-text">
-                <strong data-i18n="modal.choice_bank">قائمة المهام</strong>
-                <span data-i18n="modal.choice_bank_desc">تُحفظ في القائمة حتى تتمكن من اضافتها في أي يوم لاحقًا</span>
-              </div>
-            </button>
-            <button class="choice-btn choice-both" id="choiceBothBtn">
-              <span class="material-icons">done_all</span>
-              <div class="choice-text">
-                <strong data-i18n="modal.choice_both">كلاهما معًا</strong>
-                <span data-i18n="modal.choice_both_desc">تُحفظ في البنك وتُضاف إلى جدول اليوم في الوقت نفسه</span>
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Modal مهام الأمس اللي متعملتلهاش check -->
     <div class="modal-overlay" id="missedTasksOverlay">
       <div class="modal-card" style="max-width: 420px">

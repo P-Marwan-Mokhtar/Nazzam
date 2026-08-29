@@ -149,6 +149,47 @@ const contentActions = {
       render();
     }
   },
+  'toggle-add-arrow': async () => {
+    if(ui.addArrowOpen){
+      ui.addArrowOpen = false;
+      ui.addArrowSub = null;
+    } else {
+      ui.addArrowOpen = true;
+      ui.addArrowJustOpened = true;
+      ui.addArrowSub = null;
+    }
+    render();
+  },
+  'toggle-add-sub': async (btn) => {
+    const sub = btn.dataset.sub;
+    ui.addArrowSub = ui.addArrowSub === sub ? null : sub;
+    render();
+  },
+  'set-pending-filter': async (btn) => {
+    ui.pendingTaskFilterId = btn.dataset.filterId || null;
+    ui.addArrowSub = null;
+    render();
+  },
+  'set-pending-type': async (btn) => {
+    ui.pendingTaskType = btn.dataset.type || null;
+    ui.addArrowSub = null;
+    render();
+  },
+  'set-place-today': async () => {
+    ui.pendingTaskPlace = 'today';
+    ui.addArrowSub = null;
+    render();
+  },
+  'set-place-bank': async () => {
+    ui.pendingTaskPlace = 'bank';
+    ui.addArrowSub = null;
+    render();
+  },
+  'set-place-both': async () => {
+    ui.pendingTaskPlace = 'both';
+    ui.addArrowSub = null;
+    render();
+  },
   'bank-show-more': async () => {
     ui.bankDisplayLimit += 10;
     render();
@@ -420,6 +461,15 @@ const contentActions = {
     ui.openFilterMoreId = ui.openFilterMoreId === id ? null : id;
     render();
   },
+  'toggle-add-filter': async () => {
+    ui.filterAddOpen = !ui.filterAddOpen;
+    ui.openFilterMoreId = null;
+    render();
+    if(ui.filterAddOpen){
+      const inp = document.getElementById('newFilterInput');
+      if(inp) inp.focus();
+    }
+  },
   'toggle-pin-filter': async (btn) => {
     const { id } = btn.dataset;
     const filter = state.filters.find(f => f.id === id);
@@ -582,22 +632,26 @@ export function attachEvents(){
 
   const addKeywordBtn = document.getElementById('addKeywordBtn');
   const newKeywordInput = document.getElementById('newKeywordInput');
-  const newKeywordFilter = document.getElementById('newKeywordFilterCustom');
   
   if(addKeywordBtn && newKeywordInput){
-    const handleAdd = () => {
-      const val = newKeywordInput.value.trim();
-      if(!val) return;
-      ui.pendingTaskName = val;
-      ui.pendingTaskFilterId = newKeywordFilter && newKeywordFilter.dataset.value ? newKeywordFilter.dataset.value : null;
-      
-      const displayEl = document.getElementById('pendingTaskNameDisplay');
-      if(displayEl) displayEl.textContent = `"${val}"`;
-      
-      document.getElementById('addChoiceOverlay').classList.add('open');
+    const handleAdd = async () => {
+      if(!readPendingName()) return;
+      if(ui.pendingTaskPlace === 'today'){
+        const added = addPendingTaskToDay();
+        showToast(added ? t('toast.today_only') : t('toast.exists_today'));
+      } else if(ui.pendingTaskPlace === 'both'){
+        addPendingTaskToBank();
+        addPendingTaskToDay();
+        showToast(t('toast.added_to_both'));
+      } else {
+        addPendingTaskToBank();
+        showToast(t('toast.added_to_bank'));
+      }
+      await finishAddChoice();
     };
     addKeywordBtn.onclick = handleAdd;
     newKeywordInput.onkeydown = (e) => { if(e.key === 'Enter') handleAdd(); };
+    newKeywordInput.oninput = () => { ui.addDraft = newKeywordInput.value; };
   }
 
   const addFilterBtn = document.getElementById('addFilterBtn');
@@ -668,8 +722,49 @@ export function attachEvents(){
   });
 }
 
-export function closeAddChoiceModal(){
-  document.getElementById('addChoiceOverlay').classList.remove('open');
-  ui.pendingTaskName = '';
-  ui.pendingTaskFilterId = null;
+// ============================================================
+// منطق إضافة مهمة جديدة (من صف الإضافة في البنك) — مشترك بين
+// زرار الإضافة المباشر والخيارات الموجودة في بوب السهم.
+// ============================================================
+
+// بيقرأ اسم المهمة من حقل صف الإضافة ويخزّنه في ui.pendingTaskName.
+// بيبعت toast لو الحقل فاضي؛ بيرجع false ساعتها.
+export function readPendingName(){
+  const input = document.getElementById('newKeywordInput');
+  const val = input ? input.value.trim() : '';
+  if(!val){
+    showToast(t('toast.write_name_first'));
+    return false;
+  }
+  ui.pendingTaskName = val;
+  return true;
+}
+
+// إضافة المهمة المنتظرة إلى جدول اليوم (بمراعاة النوع المختار). بيرجع true لو اتضافت، false لو موجودة من قبل.
+export function addPendingTaskToDay(){
+  if(!state.days[ui.selectedDate]) state.days[ui.selectedDate] = [];
+  const exists = state.days[ui.selectedDate].some(t => t.name === ui.pendingTaskName);
+  if(exists) return false;
+  const task = { id: uid(), name: ui.pendingTaskName, done: false };
+  if(ui.pendingTaskType) task.type = ui.pendingTaskType;
+  state.days[ui.selectedDate].push(task);
+  return true;
+}
+
+// إضافة المهمة المنتظرة إلى القائمة (بمراعاة الفلتر والنوع المختارين).
+export function addPendingTaskToBank(){
+  const kw = { id: uid(), name: ui.pendingTaskName, filterId: ui.pendingTaskFilterId || null };
+  if(ui.pendingTaskType) kw.type = ui.pendingTaskType;
+  state.keywords.push(kw);
+}
+
+// إنهاء عملية الإضافة: تفريغ الحقل + إغلاق بوب السهم + رسم + حفظ.
+export function finishAddChoice(){
+  const input = document.getElementById('newKeywordInput');
+  if(input) input.value = '';
+  ui.addDraft = '';
+  ui.addArrowOpen = false;
+  ui.addArrowSub = null;
+  render();
+  return saveData();
 }

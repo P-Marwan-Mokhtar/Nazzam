@@ -83,6 +83,12 @@ export const ui = {
   activeTaskNoteId: null,  // المهمة اللي مفتوح لها popup الملاحظة دلوقتي
   pendingTaskName: '',
   pendingTaskFilterId: null,
+  addDraft: '',  // نص مكتوب حاليًا في حقل إضافة المهمة (عشان ما يمسحش مع إعادة الرسم)
+  pendingTaskType: null,  // نوع المهمة الجديدة المنتظرة في صف الإضافة (مهمة/عادة/هواية) — بيدخل من بوب السهم
+  pendingTaskPlace: 'bank',  // مكان إضافة المهمة الجديدة المنتظرة في صف الإضافة: 'bank' (القائمة الافتراضي) | 'today' | 'both'
+  addArrowOpen: false,  // هل بوب السهم (خيارات الإضافة) في صف إضافة المهام مفتوح دلوقتي
+  addArrowSub: null,  // أي قائمة داخلية مفتوحة في بوب السهم حاليًا: 'place' | 'filter' | 'type' | null
+  addArrowJustOpened: false,  // true لمرة واحدة بس لحظة فتح بوب السهم — عشان أنيميشن الدخول يشتغل عند الفتح مش مع كل render
   pendingNewTimerName: '',  // اسم التايمر المنتظر اختيار نوعه (مفتوح / محدد)
   timerTypePopoverOpen: false,  // هل بوب أوفر اختيار نوع المؤقت (مفتوح/محدد) مفتوح من زرار +
   pickerMode: 'task',  // 'task'/'actual' لتحديد هدف المهمة, 'timer' للمؤقت
@@ -102,6 +108,7 @@ export const ui = {
   tbSideCloseTimeoutId: null,  // مؤقّت إنهاء أنيميشن الإغلاق
   tbSideExpanded: false,  // هل لوحة "مهام غير مجدولة" على الموبايل موسعّة (بتدّي كل المهام) ولا مقفولة (أول 4 بس)
   activeSubtasksTaskId: null,  // المهمة المفتوح لها نافذة المهام الفرعية
+  filterAddOpen: false,  // هل حقل إضافة فلتر جديد (اللي بيظهر بجانب آخر فلتر) مفتوح دلوقتي
   dayStatusFilter: 'all',  // فلتر حالة مهام اليوم: all | pending | done
   dayStatusFilterOpen: false,  // هل قائمة فلتر الحالة مفتوحة دلوقتي
   dayTypeFilter: 'all',  // فلتر نوع مهام اليوم: all | task | habit | hobby

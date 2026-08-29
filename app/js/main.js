@@ -2,7 +2,6 @@
 // main.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { uid } from './utils.js';
 import { showToast, state, ui } from './state.js';
 import { initLang, setLang, getLang, t, applyStaticTranslations } from './i18n.js';
 import { closeAccountModal, ensureAuth, openAccountModal, openAuthGate } from './auth.js';
@@ -10,7 +9,6 @@ import { closeCalendarModal, openCalendarModal } from './calendar.js';
 import { exportDataAsJSON, importDataFromFile, loadData, saveData, trySyncPending } from './dataStore.js';
 import { exportCalendarAsICS } from './icalExport.js';
 import { closeDraftsModal, openDraftsModal, renderDraftsModal } from './drafts.js';
-import { closeAddChoiceModal } from './events.js';
 import { closeNotificationSettingsModal, registerServiceWorker, startNotificationScheduler } from './notifications.js';
 import { hideClockChoicePopover, hideDurationPopover } from './popovers.js';
 import { closeRecurrenceModal } from './recurrence.js';
@@ -129,6 +127,15 @@ async function startApp(){
     }
     if(ui.openFilterMoreId && !e.target.closest('.filter-more-dropdown') && !e.target.closest('.filter-chip-more')){
       ui.openFilterMoreId = null;
+      render();
+    }
+    if(ui.filterAddOpen && !e.target.closest('.filter-add-popover') && !e.target.closest('.filter-add-chip')){
+      ui.filterAddOpen = false;
+      render();
+    }
+    if(ui.addArrowOpen && !e.target.closest('.add-arrow-wrap')){
+      ui.addArrowOpen = false;
+      ui.addArrowSub = null;
       render();
     }
     if(ui.dayStatusFilterOpen && !e.target.closest('.day-filter-wrap')){
@@ -390,51 +397,6 @@ async function startApp(){
     };
   }
 
-  // أحداث أزرار الاختيار في الـ Modal الجديد
-  // (منطق مشترك: إضافة المهمة لليوم المختار + تفريغ الحقل + إغلاق + رسم + حفظ)
-  const addPendingTaskToDay = () => {
-    if(!state.days[ui.selectedDate]) state.days[ui.selectedDate] = [];
-    const exists = state.days[ui.selectedDate].some(t => t.name === ui.pendingTaskName);
-    if(exists) return false;
-    state.days[ui.selectedDate].push({ id: uid(), name: ui.pendingTaskName, done: false });
-    return true;
-  };
-  const finishAddChoice = async () => {
-    const input = document.getElementById('newKeywordInput');
-    if(input) input.value = '';
-    closeAddChoiceModal();
-    render();
-    await saveData();
-  };
-
-  document.getElementById('choiceTodayBtn').onclick = async () => {
-    if(!ui.pendingTaskName) return;
-    const added = addPendingTaskToDay();
-    showToast(added ? 'تمت الإضافة إلى اليوم فقط' : 'هذه المهمة موجودة بالفعل في اليوم');
-    await finishAddChoice();
-  };
-
-  document.getElementById('choiceBankBtn').onclick = async () => {
-    if(!ui.pendingTaskName) return;
-    state.keywords.push({ id: uid(), name: ui.pendingTaskName, filterId: ui.pendingTaskFilterId });
-    showToast('تمت الإضافة إلى القائمة');
-    await finishAddChoice();
-  };
-
-  document.getElementById('choiceBothBtn').onclick = async () => {
-    if(!ui.pendingTaskName) return;
-    state.keywords.push({ id: uid(), name: ui.pendingTaskName, filterId: ui.pendingTaskFilterId });
-    addPendingTaskToDay();
-    showToast('تمت الإضافة إلى القائمة وإلى اليوم');
-    await finishAddChoice();
-  };
-
-  document.getElementById('closeAddChoiceBtn').onclick = closeAddChoiceModal;
-  const addChoiceOverlay = document.getElementById('addChoiceOverlay');
-  addChoiceOverlay.addEventListener('click', (e) => {
-    if(e.target === addChoiceOverlay) closeAddChoiceModal();
-  });
-
   const pickerOverlay = document.getElementById('durationPickerOverlay');
   document.getElementById('pickerCancelBtn').onclick = closeDurationPicker;
   document.getElementById('pickerDoneBtn').onclick = commitDurationPicker;
@@ -461,7 +423,6 @@ async function startApp(){
       if(accountOverlay.classList.contains('open')) closeAccountModal();
       if(appearanceOverlay.classList.contains('open')) closeAppearanceModal();
       if(pickerOverlay.classList.contains('open')) closeDurationPicker();
-      if(addChoiceOverlay.classList.contains('open')) closeAddChoiceModal();
       if(ui.timerTypePopoverOpen){ ui.timerTypePopoverOpen = false; renderTimerPanel(); }
       if(document.getElementById('subtasksOverlay').classList.contains('open')) closeSubtasksModal();
       if(document.getElementById('recurrenceOverlay').classList.contains('open')) closeRecurrenceModal();
@@ -479,6 +440,8 @@ async function startApp(){
       if(ui.openTaskMoreId){ ui.openTaskMoreId = null; ui.openPriorityPopoverTaskId = null; ui.openTypePopoverTaskId = null; render(); }
       if(ui.openKeywordMoreId){ ui.openKeywordMoreId = null; render(); }
       if(ui.openFilterMoreId){ ui.openFilterMoreId = null; render(); }
+      if(ui.filterAddOpen){ ui.filterAddOpen = false; render(); }
+      if(ui.addArrowOpen){ ui.addArrowOpen = false; ui.addArrowSub = null; render(); }
     }
   });
 

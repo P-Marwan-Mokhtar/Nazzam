@@ -447,7 +447,7 @@
   }
   .add-row {
     flex-wrap: wrap;
-    padding: 10px;
+    padding: 5px;
   }
   .add-row input {
     flex: 1 1 100%;

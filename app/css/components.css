@@ -1041,6 +1041,106 @@ body.dark-mode .priority-dot-medium {
 .filter-chip-wrap.active .filter-chip-label {
   color: #fff;
 }
+.filter-add-chip-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.filter-add-chip {
+  color: var(--pen);
+  border: 1px solid var(--pen);
+  background: transparent;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  justify-content: center;
+}
+.filter-add-chip .material-icons {
+  font-size: 18px;
+}
+.filter-add-chip:hover {
+  background: var(--pen-soft);
+  border-color: var(--pen);
+  color: var(--pen);
+}
+/* بوب عائم لإضافة فلتر جديد — يخرج من زر + مباشرة بأنيميشن (مثل بوب نوع المؤقت) */
+.filter-add-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline-end: 0;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  background: var(--popup);
+  border: 1px solid var(--paper-line);
+  box-shadow: var(--shadow);
+  border-radius: 12px;
+  padding: 8px 10px;
+  min-width: 240px;
+  z-index: 100;
+  animation: filterAddIn 0.18s ease;
+  transform-origin: top;
+}
+.filter-add-popover.open {
+  display: flex;
+}
+@keyframes filterAddIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+/* لما البوب مفتوح بنخلّي منطقة الفلاتر تظهر بدون قصّ للحدود */
+.filter-chips-wrap:has(.filter-add-popover.open) {
+  overflow: visible;
+  z-index: 60;
+}
+/* زر إضافة مصغّر مستدير جوه بوب إضافة الفلتر */
+.add-btn.icon-only.filter-add-submit {
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  flex: 0 0 32px;
+  border-radius: 8px !important;
+  padding: 0;
+  overflow: hidden;
+}
+.add-btn.icon-only.filter-add-submit .material-icons {
+  font-size: 18px;
+}
+.filter-add-popover input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--pen-soft);
+  background: transparent;
+  border-radius: 8px;
+  padding: 11px 10px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+.filter-add-popover input:focus {
+  border-color: var(--pen);
+}
+@media (max-width: 640px) {
+  .filter-add-popover {
+    flex-wrap: wrap;
+  }
+  .filter-add-popover input {
+    flex: 1 1 100%;
+  }
+}
+/* فاصل بين منطقة الفلاتر وقائمة مهام القائمة */
+.bank-filters-divider {
+  height: 1px;
+  background: var(--paper-line);
+  border: none;
+  margin: 0 0 18px;
+}
 .filter-chip-outer {
   position: relative;
   display: inline-flex;
@@ -1383,8 +1483,12 @@ body.dark-mode .priority-dot-medium {
   background: var(--paper);
   border: 1px solid var(--paper-line);
   border-radius: var(--radius);
-  padding: 10px;
+  padding: 5px;
   min-width: 0; /* في عنصر الـ grid، عشان يقدر يضيق مش يخرج من الكرت */
+  transition: border-color 0.12s ease;
+}
+.add-row:focus-within {
+  border-color: var(--pen);
 }
 .add-row input {
   flex: 1;
@@ -1396,9 +1500,7 @@ body.dark-mode .priority-dot-medium {
   font-family: "Almarai";
   font-size: 0.95rem;
   color: var(--ink);
-}
-.add-row input:focus {
-  border: 1.5px solid var(--pen);
+  outline: none;
 }
 .add-btn {
   background: var(--pen);
@@ -1427,56 +1529,172 @@ body.dark-mode .priority-dot-medium {
   font-size: 22px;
 }
 
-/* ===== Add Choice Popup ===== */
-.choice-btn {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background: var(--paper);
-  border: 1.5px solid var(--paper-line);
-  border-radius: 12px;
-  padding: 14px 16px;
-  cursor: pointer;
-  text-align: right;
-  color: var(--ink);
-  font-family: "Almarai", sans-serif;
-  transition: all 0.15s ease;
-  width: 100%;
-}
-.choice-btn:hover {
-  border-color: var(--pen);
-  background: var(--card);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow);
-}
-.choice-btn .material-icons {
-  font-size: 26px;
-  color: var(--pen);
+/* ===== زرار السهم (خيارات الإضافة بجانب +) ===== */
+.add-arrow-wrap {
+  position: relative;
   flex: 0 0 auto;
 }
-.choice-btn.choice-today:hover {
-  border-color: var(--pen);
+.add-arrow-btn {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--pen);
+  cursor: pointer;
+  transition: background 0.12s ease;
 }
-.choice-btn.choice-both .material-icons {
-  color: var(--done);
+.add-arrow-btn .material-icons {
+  font-size: 20px;
 }
-.choice-btn.choice-both:hover {
-  border-color: var(--done);
+.add-arrow-btn:hover,
+.add-arrow-btn.open {
+  background: var(--pen-soft);
 }
-.choice-text {
+/* حبة زرار "إضافة" (+) — شفاف بنفس أسلوب زرار السهم بدل الخلفية المتوهجة */
+.add-btn.add-keyword-btn {
+  background: transparent;
+  border: none;
+  color: var(--pen);
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+}
+.add-btn.add-keyword-btn:hover {
+  background: var(--pen-soft);
+  filter: none;
+}
+
+/* بوب السهم: خيارات إضافة المهمة (المكان / الفلتر / النوع) */
+.add-arrow-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-end: 0;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--popup);
+  border: 1px solid var(--paper-line);
+  box-shadow: var(--shadow);
+  border-radius: 12px;
+  padding: 6px;
+  width: max-content;
+  z-index: 130;
+  transform-origin: top;
+}
+.add-arrow-popover.open {
+  display: flex;
+}
+/* الأنيميشن بيشتغل مرة واحدة بس لحظة الفتح (addArrowJustOpened) مش مع كل render */
+.add-arrow-popover.just-opened {
+  animation: filterAddIn 0.18s ease;
+}
+.add-arrow-item {
+  position: relative;
+}
+.add-arrow-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 400;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+.add-arrow-head:hover {
+  background: var(--paper);
+}
+.add-arrow-head .material-icons {
+  font-size: 18px;
+  color: var(--ink-soft);
+}
+.add-arrow-chev {
+  margin-inline-start: auto;
+  font-size: 17px !important;
+}
+/* القايمة الجانبية (فروع السهم) — بتفتح على الطرف المنطقي تبع اللغة:
+   في العربي (RTL) على الشمال وفي الإنجليزي (LTR) على اليمين */
+.add-arrow-sub {
+  position: absolute;
+  top: -6px;
+  inset-inline-start: calc(100% + 8px);
+  z-index: 110;
+  background: var(--popup);
+  border: 1px solid var(--paper-line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 6px;
+  width: max-content;
+  max-height: 240px;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 3px;
+  opacity: 0;
+  transform: translateX(-6px);
+  pointer-events: none;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
-.choice-text strong {
-  font-size: 1rem;
-  font-weight: 800;
+/* قايمة الفلتر بتسكرول لو عدّت 3 عناصر */
+.add-arrow-sub[data-sub="filter"] {
+  max-height: 140px;
 }
-.choice-text span {
-  font-size: 0.8rem;
+.add-arrow-sub.open {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+html[dir="ltr"] .add-arrow-sub {
+  transform: translateX(6px);
+}
+html[dir="ltr"] .add-arrow-sub.open {
+  transform: translateX(0);
+}
+.add-arrow-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 10px;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+.add-arrow-opt:hover {
+  background: var(--paper);
+}
+.add-arrow-opt.active {
+  background: var(--pen-soft);
+  color: var(--pen);
+  font-weight: 700;
+}
+.add-arrow-opt .material-icons {
+  font-size: 18px;
   color: var(--ink-soft);
-  line-height: 1.4;
 }
+.add-arrow-opt.active .material-icons {
+  color: var(--pen);
+}
+
+/* ===== Add Choice Popup ===== */
 
 .toast {
   position: fixed;
