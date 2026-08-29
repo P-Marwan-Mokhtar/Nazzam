@@ -114,7 +114,7 @@
   right: 0;
   min-width: 160px;
   background: var(--popup);
-  border: 1px solid var(--paper-line);
+  border: 1px solid var(--popup-border);
   border-radius: 14px;
   padding: 6px;
   box-shadow: var(--shadow);

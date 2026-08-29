@@ -134,7 +134,7 @@
   top: calc(100% + 6px);
   left: 0;
   background: var(--popup);
-  border: 1px solid var(--paper-line);
+  border: 1px solid var(--popup-border);
   box-shadow: var(--shadow);
   border-radius: 10px;
   padding: 6px;
@@ -293,7 +293,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--done);
+  background: var(--pen);
   border: 2px solid var(--card);
 }
 

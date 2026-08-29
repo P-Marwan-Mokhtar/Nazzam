@@ -34,6 +34,7 @@
   --missed-soft: #f4dedb;
   --card: #ffffff;
   --popup: #ffffff;
+  --popup-border: #d9dee4;
   /* ألوان المهام في الجدول الزمني — كل مهمة لون ثابت حسب اسمها في اليوم والأسبوع والشهر */
   --task-c0: #3a6fa5;
   --task-c1: #2f7d76;
@@ -63,6 +64,7 @@ body.dark-mode {
   --missed-soft: #3a1c1c;
   --card: #1a2027;
   --popup: #232b34;
+  --popup-border: #3b4651;
   /* نسخ فاتحة من ألوان المهام عشان التباين على الخلفية الداكنة */
   --task-c0: #6b9fc8;
   --task-c1: #5ba6a0;
@@ -167,25 +169,6 @@ body {
     border-color var(--transition),
     box-shadow var(--transition);
 }
-.header-logo {
-  display: block;
-  height: 56px;
-  width: auto;
-  max-width: 90%;
-  margin: 4px auto 2px;
-  position: relative;
-  left: 50px;
-}
-.header-logo-dark {
-  display: none;
-}
-body.dark-mode .header-logo-light {
-  display: none;
-}
-body.dark-mode .header-logo-dark {
-  display: block;
-}
-
 /* Date nav */
 .date-nav {
   display: flex;

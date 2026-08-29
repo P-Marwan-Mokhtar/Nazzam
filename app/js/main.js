@@ -170,19 +170,6 @@ async function startApp(){
   };
   document.getElementById('themeBtn').onclick = () => openAppearanceModal(onAppearanceChanged);
 
-  // لوجو التطبيق في الهيدر: بدل ما يودّي للصفحة التسويقية، بيرجّع للتطبيق نفسه —
-  // يفضي أي شاشة (إحصائيات/أسبوعي/جدول زمني) عبر مسح الـ hash، ويرجع لواجهة
-  // مهام اليوم الرئيسية مع عمل refresh للصفحة.
-  document.querySelectorAll('.js-header-logo').forEach(a => {
-    a.addEventListener('click', (e) => {
-      e.preventDefault();
-      if(location.hash){
-        history.replaceState(null, '', location.pathname + location.search);
-      }
-      location.reload();
-    });
-  });
-
   const toggleStatsView = () => {
     const wasOpen = ui.statsViewOpen;
     if(wasOpen){

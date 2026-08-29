@@ -329,7 +329,7 @@ body.locked-view .main-col {
   right: 0;
   min-width: 110px;
   background: var(--popup);
-  border: 1px solid var(--paper-line);
+  border: 1px solid var(--popup-border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-hover);
   padding: 4px;
@@ -1156,7 +1156,7 @@ body.locked-view .main-col {
   max-height: 60vh;
   overflow-y: auto;
   background: var(--popup);
-  border: 1px solid var(--paper-line);
+  border: 1px solid var(--popup-border);
   border-radius: 12px;
   padding: 6px;
   box-shadow: var(--shadow-hover);

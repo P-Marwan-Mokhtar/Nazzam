@@ -18,7 +18,7 @@
   top: calc(100% + 4px);
   left: 0;
   background: var(--popup);
-  border: 1px solid var(--paper-line);
+  border: 1px solid var(--popup-border);
   box-shadow: var(--shadow);
   border-radius: 10px;
   padding: 6px;

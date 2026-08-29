@@ -518,7 +518,7 @@ body.dark-mode .task-row.priority-medium {
   position: fixed;
   z-index: 40;
   background: var(--popup);
-  border: 1px solid var(--paper-line);
+  border: 1px solid var(--popup-border);
   border-radius: 12px;
   box-shadow: var(--shadow);
   padding: 10px 14px;
@@ -599,7 +599,7 @@ body.dark-mode .task-row.priority-medium {
   right: calc(100% + 8px);
   z-index: 110;
   background: var(--popup);
-  border: 1px solid var(--paper-line);
+  border: 1px solid var(--popup-border);
   border-radius: 12px;
   box-shadow: var(--shadow);
   padding: 6px;
@@ -696,7 +696,7 @@ body.dark-mode .priority-btn.priority-medium {
   right: calc(100% + 8px);
   z-index: 110;
   background: var(--popup);
-  border: 1px solid var(--paper-line);
+  border: 1px solid var(--popup-border);
   border-radius: 12px;
   box-shadow: var(--shadow);
   padding: 6px;
@@ -1011,8 +1011,8 @@ body.dark-mode .priority-dot-medium {
   color: var(--ink);
 }
 .filter-chip.active {
-  background: var(--done);
-  border-color: var(--done);
+  background: var(--pen);
+  border-color: var(--pen);
   color: #fff;
 }
 .filter-chip-wrap {
@@ -1026,8 +1026,8 @@ body.dark-mode .priority-dot-medium {
   padding-left: 10px;
 }
 .filter-chip-wrap.active {
-  background: var(--done);
-  border-color: var(--done);
+  background: var(--pen);
+  border-color: var(--pen);
 }
 .filter-chip-label {
   border: none;
@@ -1072,7 +1072,7 @@ body.dark-mode .priority-dot-medium {
   align-items: center;
   gap: 8px;
   background: var(--popup);
-  border: 1px solid var(--paper-line);
+  border: 1px solid var(--popup-border);
   box-shadow: var(--shadow);
   border-radius: 12px;
   padding: 8px 10px;
@@ -1166,7 +1166,7 @@ body.dark-mode .priority-dot-medium {
   top: calc(100% + 4px);
   left: 0;
   background: var(--popup);
-  border: 1px solid var(--paper-line);
+  border: 1px solid var(--popup-border);
   box-shadow: var(--shadow);
   border-radius: 10px;
   padding: 6px;
@@ -1265,7 +1265,7 @@ body.dark-mode .priority-dot-medium {
   right: 0;
   left: 0;
   background: var(--popup);
-  border: 1px solid var(--paper-line);
+  border: 1px solid var(--popup-border);
   border-radius: 10px;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
   z-index: 30;
@@ -1571,7 +1571,7 @@ body.dark-mode .priority-dot-medium {
   flex-direction: column;
   gap: 2px;
   background: var(--popup);
-  border: 1px solid var(--paper-line);
+  border: 1px solid var(--popup-border);
   box-shadow: var(--shadow);
   border-radius: 12px;
   padding: 6px;
@@ -1633,7 +1633,7 @@ html[dir="ltr"] .add-arrow-chev {
   inset-inline-start: calc(100% + 8px);
   z-index: 110;
   background: var(--popup);
-  border: 1px solid var(--paper-line);
+  border: 1px solid var(--popup-border);
   border-radius: 12px;
   box-shadow: var(--shadow);
   padding: 6px;

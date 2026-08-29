@@ -116,7 +116,7 @@
   inset-inline-end: 0;
   min-width: 180px;
   background: var(--popup);
-  border: 1px solid var(--paper-line);
+  border: 1px solid var(--popup-border);
   box-shadow: var(--shadow);
   border-radius: 12px;
   padding: 6px;
@@ -376,10 +376,6 @@
   white-space: nowrap;
 }
 
-.header-logo-slot {
-  display: none;
-}
-
 /* "More" (â€¢â€¢â€¢) button â€” its own small pill, mirrors the icon pill on the other side */
 .header-actions-wrap {
   position: relative;
@@ -551,7 +547,7 @@
   flex-direction: column;
   gap: 2px;
   background: var(--popup);
-  border: 1px solid var(--paper-line);
+  border: 1px solid var(--popup-border);
   border-radius: 14px;
   padding: 6px;
   box-shadow: var(--shadow-hover);
@@ -597,7 +593,7 @@
   left: 0;
   min-width: 210px;
   background: var(--popup);
-  border: 1px solid var(--paper-line);
+  border: 1px solid var(--popup-border);
   border-radius: 14px;
   padding: 6px;
   box-shadow: var(--shadow);
