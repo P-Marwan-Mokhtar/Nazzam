@@ -1126,14 +1126,6 @@ body.dark-mode .priority-dot-medium {
 .filter-add-popover input:focus {
   border-color: var(--pen);
 }
-@media (max-width: 640px) {
-  .filter-add-popover {
-    flex-wrap: wrap;
-  }
-  .filter-add-popover input {
-    flex: 1 1 100%;
-  }
-}
 /* فاصل بين منطقة الفلاتر وقائمة مهام القائمة */
 .bank-filters-divider {
   height: 1px;
@@ -1349,7 +1341,7 @@ body.dark-mode .priority-dot-medium {
 } */
 .add-to-day-btn {
   flex: 0 0 auto;
-  background: var(--done-soft);
+  background: transparent;
   color: var(--done);
   border: none;
   width: 28px;
@@ -1359,13 +1351,14 @@ body.dark-mode .priority-dot-medium {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.12s ease;
 }
 .add-to-day-btn .material-icons {
   font-size: 18px;
 }
 .add-to-day-btn:hover {
-  background: var(--done);
-  color: #fff;
+  background: var(--done-soft);
+  color: var(--done);
 }
 .add-to-day-btn.added {
   background: transparent;
@@ -1583,6 +1576,7 @@ body.dark-mode .priority-dot-medium {
   border-radius: 12px;
   padding: 6px;
   width: max-content;
+  max-width: min(280px, calc(100vw - 24px));
   z-index: 130;
   transform-origin: top;
 }
@@ -1601,6 +1595,7 @@ body.dark-mode .priority-dot-medium {
   align-items: center;
   gap: 10px;
   width: 100%;
+  min-width: 0;
   padding: 9px 10px;
   background: transparent;
   border: none;
@@ -1610,6 +1605,9 @@ body.dark-mode .priority-dot-medium {
   font-size: 0.88rem;
   font-weight: 400;
   cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: background 0.1s ease;
 }
 .add-arrow-head:hover {
@@ -1622,6 +1620,10 @@ body.dark-mode .priority-dot-medium {
 .add-arrow-chev {
   margin-inline-start: auto;
   font-size: 17px !important;
+}
+/* ف الإنجليزي الفرع بيفتح يمين الأصل، فيتقلب السهم عشان يشاور الاتجاه الصحيح */
+html[dir="ltr"] .add-arrow-chev {
+  transform: scaleX(-1);
 }
 /* القايمة الجانبية (فروع السهم) — بتفتح على الطرف المنطقي تبع اللغة:
    في العربي (RTL) على الشمال وفي الإنجليزي (LTR) على اليمين */
@@ -1636,6 +1638,7 @@ body.dark-mode .priority-dot-medium {
   box-shadow: var(--shadow);
   padding: 6px;
   width: max-content;
+  max-width: min(220px, calc(100vw - 24px));
   max-height: 240px;
   overflow-y: auto;
   display: flex;
@@ -1668,6 +1671,7 @@ html[dir="ltr"] .add-arrow-sub.open {
   align-items: center;
   gap: 8px;
   width: 100%;
+  min-width: 0;
   background: transparent;
   border: none;
   border-radius: 8px;

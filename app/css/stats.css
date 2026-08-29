@@ -467,6 +467,20 @@
     flex: 1 1 auto;
   }
 
+  /* صف إضافة المهمة في القائمة: الزرارين يفضلوا بجانب الحقل مش سطر لوحده */
+  .bank-add-task-row {
+    flex-wrap: nowrap;
+  }
+  .bank-add-task-row input {
+    flex: 1 1 auto;
+  }
+  .bank-add-task-row .add-keyword-btn {
+    flex: 0 0 36px;
+  }
+  .bank-add-task-row .add-arrow-wrap {
+    flex: 0 0 36px;
+  }
+
   .task-list {
     flex-direction: column;
   }

@@ -23,7 +23,7 @@
 
 :root {
   --paper: #f9fafb;
-  --paper-line: #eff1f4;
+  --paper-line: #e3e7ec;
   --ink: #22303d;
   --ink-soft: #5b6b78;
   --pen: #c5482e;
@@ -52,7 +52,7 @@
 /* ===== Dark Mode Variables & Overrides ===== */
 body.dark-mode {
   --paper: #14181c;
-  --paper-line: #242b33;
+  --paper-line: #313b45;
   --ink: #e6edf3;
   --ink-soft: #8b98a5;
   --pen: #c5482e;
