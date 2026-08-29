@@ -991,6 +991,11 @@ body.dark-mode .priority-dot-medium {
   overflow: visible;
   z-index: 60;
 }
+/* لما بوب إضافة الفلتر مفتوح بنخلّي منطقة الفلاتر تظهر بدون قصّ للحدود */
+.filter-chips-wrap:has(.filter-add-popover.open) {
+  overflow: visible;
+  z-index: 60;
+}
 .filter-chips {
   display: flex;
   flex-wrap: wrap;
@@ -1044,12 +1049,13 @@ body.dark-mode .priority-dot-medium {
 .filter-add-chip-wrap {
   position: relative;
   display: inline-flex;
+  flex-shrink: 0;
 }
 .filter-add-chip {
   color: var(--pen);
   border: 1px solid var(--pen);
   background: transparent;
-  border-radius: 50%;
+  border-radius: 8px;
   width: 34px;
   height: 34px;
   padding: 0;
@@ -1067,7 +1073,7 @@ body.dark-mode .priority-dot-medium {
 .filter-add-popover {
   position: absolute;
   top: calc(100% + 6px);
-  inset-inline-end: 0;
+  inset-inline-start: 0;
   display: none;
   align-items: center;
   gap: 8px;
@@ -1093,11 +1099,6 @@ body.dark-mode .priority-dot-medium {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
-}
-/* لما البوب مفتوح بنخلّي منطقة الفلاتر تظهر بدون قصّ للحدود */
-.filter-chips-wrap:has(.filter-add-popover.open) {
-  overflow: visible;
-  z-index: 60;
 }
 /* زر إضافة مصغّر مستدير جوه بوب إضافة الفلتر */
 .add-btn.icon-only.filter-add-submit {

@@ -9,46 +9,30 @@
     left: auto;
     right: calc(100% + 8px);
   }
-  /* فروع بوب السهم في صف الإضافة: بتفتح في نص الشاشة (fixed + centering) على الموبايل
-     بدل ما تنحرف جنب الأصل فتعمل overflow بره الشاشة.
-     بسواعد html[dir="ltr"] بقوة نوعية أعلى لأن قواعد LTR ف components.css
-     ليها specificity أعلى فتتغلب هنا فتبطّل الـ replace-translate في الإنجليزي */
+/* فروع بوب السهم في صف الإضافة على الموبايل: بتفتح كـ dropdown تحت البند نفسه
+      بعرض البوب كله — مش fixed في نص الشاشة (كان بيغطي البوب الأساسي وبيكسر السكرول).
+      المرساة على النهاية المنطقية فلوّمت مع العربية والإنجليزية من غير ما يخرج بره الشاشة */
    .add-arrow-sub,
    html[dir="ltr"] .add-arrow-sub {
-     position: fixed;
-     left: 50%;
-     right: auto;
-     transform: translate(-50%, -50%);
-     max-width: min(300px, calc(100vw - 32px));
+     position: absolute;
+     top: calc(100% + 4px);
+     inset-inline: 0;
+     transform: translateY(6px);
+     width: 100%;
+     max-width: 100%;
      max-height: 45vh;
+     overflow-y: auto;
+     -webkit-overflow-scrolling: touch;
      box-shadow: var(--shadow-lg, var(--shadow));
    }
-  /* بوب مكان المهمة بيبقى أعلى شوية من نص الشاشة */
-  .add-arrow-sub[data-sub="place"],
-  html[dir="ltr"] .add-arrow-sub[data-sub="place"] {
-    top: 45%;
-  }
-  .add-arrow-sub[data-sub="filter"],
-  .add-arrow-sub[data-sub="type"],
-  html[dir="ltr"] .add-arrow-sub[data-sub="filter"],
-  html[dir="ltr"] .add-arrow-sub[data-sub="type"] {
-    top: 50%;
-  }
   .add-arrow-sub.open,
   html[dir="ltr"] .add-arrow-sub.open {
-    transform: translate(-50%, -50%);
+    transform: translateY(0);
   }
-  /* قايمة الفلتر بتسكرول أكتر على الموبايل عشان فيها عناصر كتير */
-  .add-arrow-sub[data-sub="filter"],
-  html[dir="ltr"] .add-arrow-sub[data-sub="filter"] {
-    max-height: 60vh;
-  }
-  /* بوب إضافة الفلتر: بيفتح من ناحية الزر (بداية السطر) — يمين ف العربي، شمال ف الإنجليزي
-     مش ف المنتصف. بنثبّت transform: none على منطقة الفلاتر وقت الفتح عشان أنيميشن الـ
-     ancestor (mobile-opening/الخ) ميخلّوش الموضع ينكسر ويختفي البوب */
-  .filter-chips-wrap:has(.filter-add-popover.open) {
-    transform: none !important;
-  }
+  /* قايمة الفلتر بتفضل 140px (نفس الديسكتوب) — الـ max-height الكبيرة بتعدّي
+     حدود الشاشة على الموبايل فالسكرول بيبان باطل، والسقف الصغير ده سكرول ثابت */
+  /* بوب إضافة الفلتر: زراره أول شيب في الصف (جنب «الكل» من ناحية البداية) فالبوب
+     يتثبّت على البداية المنطقية ويمتد جوه الصف في الاتنين لغة */
   .filter-add-popover,
   html[dir="ltr"] .filter-add-popover {
     position: absolute;

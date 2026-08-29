@@ -179,6 +179,15 @@ export function render(){
 
     html += `<div class="filter-chips-wrap ${!ui.mobileFiltersOpen ? 'mobile-closed' : ''} ${ui.closingMobileFilters ? 'mobile-closed-anim' : ''} ${ui.justOpenedMobileFilters ? 'mobile-opening' : ''}" id="filterChipsWrap">`;
     html += `<div class="filter-chips">`;
+    html += `
+      <div class="filter-add-chip-wrap">
+        <button class="filter-chip filter-add-chip" data-action="toggle-add-filter" title="${t('bank.filter_add_title')}"><span class="material-icons">filter_alt</span></button>
+        <div class="filter-add-popover ${ui.filterAddOpen ? 'open' : ''}">
+          <input type="text" id="newFilterInput" placeholder="${t('bank.filter_placeholder')}" maxlength="40" />
+          <button class="add-btn icon-only filter-add-submit" id="addFilterBtn" title="${t('bank.filter_add_title')}"><span class="material-icons">add</span></button>
+        </div>
+      </div>
+    `;
     html += `<button class="filter-chip ${ui.activeFilter === 'all' ? 'active' : ''}" data-action="select-filter" data-filter-id="all">${t('c.all')}</button>`;
     const sortedFilters = [...state.filters].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
     sortedFilters.forEach(f => {
@@ -216,15 +225,6 @@ export function render(){
         `;
       }
     });
-    html += `
-      <div class="filter-add-chip-wrap">
-        <button class="filter-chip filter-add-chip" data-action="toggle-add-filter" title="${t('bank.filter_add_title')}"><span class="material-icons">filter_alt</span></button>
-        <div class="filter-add-popover ${ui.filterAddOpen ? 'open' : ''}">
-          <input type="text" id="newFilterInput" placeholder="${t('bank.filter_placeholder')}" maxlength="40" />
-          <button class="add-btn icon-only filter-add-submit" id="addFilterBtn" title="${t('bank.filter_add_title')}"><span class="material-icons">add</span></button>
-        </div>
-      </div>
-    `;
     html += `</div>`;
     html += `</div>`;
 

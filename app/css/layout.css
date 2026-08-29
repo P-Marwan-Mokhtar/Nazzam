@@ -597,7 +597,7 @@
   border-radius: 14px;
   padding: 6px;
   box-shadow: var(--shadow);
-  z-index: 6;
+  z-index: 160;
   opacity: 0;
   transform: translateY(-8px);
   pointer-events: none;
