@@ -750,9 +750,9 @@ body.menu-open { overflow: hidden; }
 
 .footer-inner { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 20px; }
 
-.footer-brand { width: 44px; height: 44px; display: grid; place-items: center; background: transparent; border: none; border-radius: 12px; flex-shrink: 0; }
+.footer-brand { width: 56px; height: 56px; display: grid; place-items: center; background: transparent; border: none; border-radius: 12px; flex-shrink: 0; }
 
-.footer-brand .logo-mark { height: 28px; width: 28px; object-fit: contain; }
+.footer-brand .logo-mark { height: 40px; width: 40px; object-fit: contain; }
 
 .footer-links { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; justify-self: center; }
 
