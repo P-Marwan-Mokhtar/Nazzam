@@ -371,20 +371,20 @@ function exportStatsPDF(mode){
 
   // دقة التقدير
   const estBlock = s.estimationAccuracyPct !== null
-    ? `<div class="card"><div class="card-title">📐 ${t('pdf.accuracy_title')}</div><p class="big">${s.estimationAccuracyPct}%</p><p class="sub">${t(isDaily ? 'pdf.accuracy_subtitle_day' : 'pdf.accuracy_subtitle')}</p></div>`
+    ? `<div class="card"><div class="card-title">${t('pdf.accuracy_title')}</div><p class="big">${s.estimationAccuracyPct}%</p><p class="sub">${t(isDaily ? 'pdf.accuracy_subtitle_day' : 'pdf.accuracy_subtitle')}</p></div>`
     : '';
 
   // كارت التمييز: أفضل يوم في التقرير الأسبوعي، وأكثر مهمة وقتًا في اليومي
   let highlightCard = '';
   if(!isDaily && s.bestDay){
     highlightCard = `<div class="card">
-      <div class="card-title">🏆 ${t('pdf.best_day')}</div>
+      <div class="card-title">${t('pdf.best_day')}</div>
       <div class="big" style="font-size:1.1rem">${fmtDay(s.bestDay)}</div>
       <div class="sub">${formatHM(s.bestDayMs)} ${t('pdf.time')}</div>
     </div>`;
   } else if(isDaily && s.longestTask){
     highlightCard = `<div class="card">
-      <div class="card-title">🏆 ${t('stats.task_time_today')}</div>
+      <div class="card-title">${t('stats.task_time_today')}</div>
       <div class="big" style="font-size:1.1rem">${escapeHtml(s.longestTask.name)}</div>
       <div class="sub">${formatHM(s.longestTask.ms)} ${t('pdf.time')}</div>
     </div>`;
@@ -423,26 +423,26 @@ tr:last-child td { border-bottom: none; }
 </style>
 </head>
 <body>
-<h1>📋 ${reportTitle}</h1>
+<h1>${reportTitle}</h1>
 <div class="sub-header">${t('pdf.period')} ${periodLabel} &nbsp;|&nbsp; ${t('pdf.export_date')} ${printDate}</div>
 
 <div class="grid">
 <div class="card">
-  <div class="card-title">⏱ ${t('pdf.total_time')}</div>
+  <div class="card-title">${t('pdf.total_time')}</div>
   <div class="big">${formatHM(s.totalMs)}</div>
 </div>
 <div class="card">
-  <div class="card-title">✅ ${t('pdf.tasks_done')}</div>
+  <div class="card-title">${t('pdf.tasks_done')}</div>
   <div class="big">${s.doneCount}<span style="font-size:1rem;color:#aaa"> / ${s.totalTaskCount}</span></div>
 </div>
 <div class="card">
-  <div class="card-title">🔥 ${t('pdf.day_streak')}</div>
+  <div class="card-title">${t('pdf.day_streak')}</div>
   <div class="big">${s.streak}</div>
   <div class="sub">${t('pdf.day_streak_count')}</div>
 </div>
 ${highlightCard}
 ${s.missedCount > 0 ? `<div class="card">
-  <div class="card-title">⚠️ ${t('pdf.missed')}</div>
+  <div class="card-title">${t('pdf.missed')}</div>
   <div class="big" style="color:#c0392b">${s.missedCount}</div>
   <div class="sub">${t('pdf.missed_desc')}</div>
 </div>` : ''}
@@ -451,7 +451,7 @@ ${estBlock}
 
 <div class="grid">
 <div class="card full">
-  <div class="card-title" style="margin-bottom:12px">📅 ${t(isDaily ? 'pdf.summary_title_day' : 'pdf.summary_title')}</div>
+  <div class="card-title" style="margin-bottom:12px">${t(isDaily ? 'pdf.summary_title_day' : 'pdf.summary_title')}</div>
   <table>
     <thead><tr><th>${t('pdf.day_header')}</th><th style="text-align:center">${t('pdf.done_header')}</th><th style="text-align:center">${t('pdf.time_header')}</th><th>${t('pdf.progress_header')}</th></tr></thead>
     <tbody>${daysTableRows}</tbody>

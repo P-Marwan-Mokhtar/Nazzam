@@ -1,26 +1,28 @@
 /* ============================================================
    landing.css — صفحة «نظم»
-   الهوية: أبيض + أسود + أزرق فاتح محايد #3B82F6 كمميّز
+   الهوية: خلفية بيضاء + نصوص سوداء/رمادية، ولون الإبراز الهادئ #3B82F6
+   للـ CTA والتفاصيل الصغرى (بتدرج مخفف 10%–15% للكروت والأيقونات)
    شبكة مسافات 8pt · حركة موحّدة 200ms ease-out
    ============================================================ */
 /* ---------- 1) التوكنز ---------- */
 
 :root {
-  /* البراند — أزرق فاتح محايد + أبيض/أسود */
-  --navy: #1e293b;
-  --navy-2: #334155;
-  --blue: #3b82f6;
-  --blue-deep: #2563eb;
-  --blue-soft: #eff4ff;
-  --blue-glow: rgba(59, 130, 246, 0.28);
+  /* البراند — إبراز أزرق سماوي + أبيض/أسود */
+  --navy: #000000;
+  --navy-2: #111111;
+  --blue: #097fe8;
+  --blue-deep: #086fce;
+  --blue-soft: #e3f2fe;
+  --blue-tint: rgba(9, 127, 232, 0.12);
+  --blue-glow: rgba(9, 127, 232, 0.28);
 
   /* النيوترال — أبيض في كل حاجة */
   --bg: #ffffff;
   --surface: #ffffff;
   --line: #e2e8f0;
   --line-soft: #edf1f6;
-  --ink: #0f172b;
-  --ink-2: #5b6b7e;
+  --ink: #000000;
+  --ink-2: #414d5c;
   --ink-3: #94a3b8;
 
   /* الشريط الداكن */
@@ -45,10 +47,10 @@
   --mk-red: #dc2626;
 
   /* الخطوط */
-  --font-display: "Alexandria", "Segoe UI", Tahoma, sans-serif;
-  --font-body: "IBM Plex Sans Arabic", "Alexandria", "Segoe UI", Tahoma, sans-serif;
+  --font-display: "Cairo", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --font-body: "IBM Plex Sans Arabic", "Cairo", "Segoe UI", Tahoma, sans-serif;
   --font-mk: "Almarai", "IBM Plex Sans Arabic", Tahoma, sans-serif;
-  --font-latin: "Satoshi", "Alexandria", sans-serif;
+  --font-latin: "Satoshi", Cairo, sans-serif;
 
   /* المسافات — شبكة 8pt */
   --s1: 8px; --s2: 16px; --s3: 24px; --s4: 32px;
@@ -61,7 +63,7 @@
   --shadow-sm: 0 1px 2px rgba(15, 23, 43, 0.05);
   --shadow-md: 0 16px 40px -20px rgba(15, 23, 43, 0.22);
   --shadow-lg: 0 48px 100px -48px rgba(15, 23, 43, 0.35);
-  --shadow-blue: 0 12px 28px -10px rgba(59, 130, 246, 0.42);
+  --shadow-blue: 0 12px 28px -10px rgba(9, 127, 232, 0.42);
 
   /* الحركة */
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -130,7 +132,7 @@ button { font-family: inherit; cursor: pointer; background: none; border: none; 
 
 .btn-primary { background: var(--blue); color: #fff; box-shadow: var(--shadow-blue); }
 
-.btn-primary:hover { background: var(--blue-deep); }
+.btn-primary:hover { background: #35a0f0; }
 
 .btn-primary:active { transform: scale(0.98); }
 
@@ -271,7 +273,7 @@ body.menu-open { overflow: hidden; }
 }
 /* ---------- 5) الهيرو ---------- */
 
-.hero { position: relative; padding-top: clamp(140px, 16vh, 176px); padding-bottom: clamp(64px, 9vh, 112px); text-align: center; overflow: hidden; }
+.hero { position: relative; padding-top: clamp(140px, 16vh, 176px); padding-bottom: clamp(56px, 8vh, 96px); text-align: center; overflow: hidden; border-bottom: 1px solid var(--line); }
 
 .hero-aura { display: none; }
 
@@ -315,6 +317,19 @@ body.menu-open { overflow: hidden; }
 .hero-media-wrap { position: relative; margin-top: clamp(40px, 6vh, 64px); }
 
 .hero-media { position: relative; }
+/* ظل ملامسة ناعم تحت لقطة الهيرو — إحساس أن الصورة واقفة */
+
+.hero-media::after {
+  content: '';
+  position: absolute;
+  inset-inline: 8%;
+  bottom: -16px;
+  height: 26px;
+  background: radial-gradient(ellipse at center, rgba(15, 23, 43, 0.2) 0%, rgba(15, 23, 43, 0) 70%);
+  filter: blur(4px);
+  z-index: 1;
+  pointer-events: none;
+}
 /* لقطة الهيرو الحقيقية */
 
 .hero-shot {
@@ -370,7 +385,7 @@ body.menu-open { overflow: hidden; }
   min-height: 560px;
   padding: 80px 48px 96px;
   background: #ffffff;
-  border: 1px solid rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(9, 127, 232, 0.16);
   border-radius: 24px;
   overflow: hidden;
   display: grid;
@@ -382,8 +397,8 @@ body.menu-open { overflow: hidden; }
 .orbital-grid {
   position: absolute; inset: 0;
   background-image:
-    linear-gradient(to right, rgba(59, 130, 246, 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(59, 130, 246, 0.06) 1px, transparent 1px);
+    linear-gradient(to right, rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
   background-size: 56px 56px;
   mask-image: radial-gradient(ellipse 85% 70% at 50% 50%, #000 62%, transparent 92%);
   -webkit-mask-image: radial-gradient(ellipse 85% 70% at 50% 50%, #000 62%, transparent 92%);
@@ -404,10 +419,10 @@ body.menu-open { overflow: hidden; }
 .orbital-icon {
   width: 68px; height: 68px;
   display: grid; place-items: center;
-  background: var(--blue-soft);
-  border: 1px solid rgba(59, 130, 246, 0.14);
+  background: var(--blue-tint);
+  border: 1px solid rgba(9, 127, 232, 0.18);
   border-radius: 16px;
-  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.16);
+  box-shadow: 0 4px 14px rgba(9, 127, 232, 0.14);
 }
 .orbital-icon img { width: 40px; height: 40px; object-fit: contain; }
 
@@ -444,7 +459,7 @@ body.menu-open { overflow: hidden; }
   transition: border-color 200ms ease-out;
   cursor: pointer;
 }
-.orbital-tag:hover { border-color: rgba(59, 130, 246, 0.22); }
+.orbital-tag:hover { border-color: rgba(9, 127, 232, 0.22); }
 .orbital-tag .ic { width: 16px; height: 16px; color: var(--blue); flex-shrink: 0; }
 
 /* positions — مبعثرة حول العنوان */
@@ -473,10 +488,10 @@ body.menu-open { overflow: hidden; }
 
 .tb-tab:hover { color: var(--mk-ink); }
 
-.tb-tab.on { background: var(--blue); color: #fff; box-shadow: 0 4px 12px -4px rgba(59, 130, 246, 0.5); }
+.tb-tab.on { background: var(--blue); color: #fff; box-shadow: 0 4px 12px -4px rgba(9, 127, 232, 0.5); }
 /* تبويبات الجدول الحقيقي — منفصلة عن الصورة */
 
-.tb-real { overflow: hidden; background: #fff; max-width: 1000px; margin-inline: auto; border-radius: 10px; }
+.tb-real { overflow: hidden; background: #fff; max-width: 1100px; margin-inline: auto; border-radius: 10px; }
 
 .tb-tabs-overlay { display: flex; justify-content: center; gap: 6px; padding: 16px; background: #fff; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
 
@@ -495,7 +510,7 @@ body.menu-open { overflow: hidden; }
 .tb-shot-img img { width: 100%; height: auto; display: block; }
 
 
-.stats-shot-img { border-radius: 10px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow-sm); background: #fff; line-height: 0; max-width: 1000px; margin-inline: auto; }
+.stats-shot-img { border-radius: 10px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow-sm); background: #fff; line-height: 0; max-width: 1100px; margin-inline: auto; }
 
 .stats-shot-img img { width: 100%; height: auto; display: block; }
 
@@ -562,7 +577,7 @@ body.menu-open { overflow: hidden; }
 
 .tib.play { background: #e6f4ea; border-color: #c3e6cb; color: #1e8449; }
 
-.tib.full { background: #eef4fb; border-color: #d0dde8; color: #3a6fa5; }
+.tib.full { background: #f5f5f5; border-color: #d0d0d0; color: #111111; }
 
 .tib.trash { background: #fff; border-color: #e2e8f0; color: #94a3b8; }
 
@@ -676,7 +691,7 @@ body.menu-open { overflow: hidden; }
 
 .price-card:hover { border-color: var(--ink-3); }
 
-.price-card.featured { border-color: var(--blue); }
+.price-card.featured { border-color: var(--blue); background: var(--blue-tint); }
 
 .price-card.featured:hover { border-color: var(--blue-deep); }
 

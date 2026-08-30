@@ -70,7 +70,7 @@ function buildEventLines(dateStr, task){
     lines.push(`DTEND;VALUE=DATE:${dateOnlyStamp(addDays(dateStr, 1))}`);
   }
 
-  const summaryPrefix = task.done ? '✓ ' : '';
+  const summaryPrefix = task.done ? '[x] ' : '';
   lines.push(foldLine(`SUMMARY:${summaryPrefix}${escapeICSText(task.name)}`));
   if(task.done){
     // المهام المنجزة بتتصدر كـ COMPLETED (مع نسبة 100%) بدل CONFIRMED —

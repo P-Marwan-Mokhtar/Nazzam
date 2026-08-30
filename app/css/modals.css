@@ -3,21 +3,24 @@
    (المظهر/الحساب) بيفضل بألوان الـ pen الطينية زي ما هو */
 #accountOverlay.is-gate .account-status .material-icons,
 #accountOverlay.is-gate .account-section-title .material-icons {
-  color: var(--ink);
+  color: #000;
 }
 #accountOverlay.is-gate .account-input:focus {
-  border-color: var(--ink);
+  border-color: #000;
 }
 #accountOverlay.is-gate .account-primary-btn {
-  background: var(--ink);
+  background: #000;
   color: #fff;
 }
 #accountOverlay.is-gate .account-primary-btn:hover {
-  background: #000;
+  background: #111;
 }
 #accountOverlay.is-gate .account-switch-line button {
-  color: var(--ink);
-  text-decoration-color: var(--ink);
+  color: #000;
+  text-decoration-color: #000;
+}
+#accountOverlay.is-gate .modal-header h2 {
+  color: #000;
 }
 #accountOverlay.is-gate .account-google-btn:hover {
   background: var(--paper);
