@@ -1,21 +1,21 @@
 /* ============================================================
    landing.css — صفحة «نظم»
-   الهوية: كحلي #0F172B + أزرق #0284C7 + نيوترال slate
+   الهوية: أبيض + أسود + أزرق فاتح محايد #3B82F6 كمميّز
    شبكة مسافات 8pt · حركة موحّدة 200ms ease-out
    ============================================================ */
 /* ---------- 1) التوكنز ---------- */
 
 :root {
-  /* البراند */
-  --navy: #0f172b;
-  --navy-2: #1c2942;
-  --blue: #0284c7;
-  --blue-deep: #0369a1;
-  --blue-soft: #e0f2fe;
-  --blue-glow: rgba(2, 132, 199, 0.35);
+  /* البراند — أزرق فاتح محايد + أبيض/أسود */
+  --navy: #1e293b;
+  --navy-2: #334155;
+  --blue: #3b82f6;
+  --blue-deep: #2563eb;
+  --blue-soft: #eff4ff;
+  --blue-glow: rgba(59, 130, 246, 0.28);
 
-  /* النيوترال */
-  --bg: #f8fafc;
+  /* النيوترال — أبيض في كل حاجة */
+  --bg: #ffffff;
   --surface: #ffffff;
   --line: #e2e8f0;
   --line-soft: #edf1f6;
@@ -61,7 +61,7 @@
   --shadow-sm: 0 1px 2px rgba(15, 23, 43, 0.05);
   --shadow-md: 0 16px 40px -20px rgba(15, 23, 43, 0.22);
   --shadow-lg: 0 48px 100px -48px rgba(15, 23, 43, 0.35);
-  --shadow-blue: 0 12px 28px -10px rgba(2, 132, 199, 0.45);
+  --shadow-blue: 0 12px 28px -10px rgba(59, 130, 246, 0.42);
 
   /* الحركة */
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -164,7 +164,7 @@ body.menu-open { overflow: hidden; }
 
 .nav {
   position: fixed; inset-inline: 0; top: 0; z-index: 100;
-  background: rgba(248, 250, 252, 0.8);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid transparent;
   transition: border-color var(--t-med) ease, box-shadow var(--t-med) ease;
@@ -211,7 +211,7 @@ body.menu-open { overflow: hidden; }
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 43, 0.92);
+  background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   flex-direction: column;
@@ -223,15 +223,15 @@ body.menu-open { overflow: hidden; }
 
 .nav-mobile-group { display: flex; flex-direction: column; gap: 4px; }
 
-.nav-mobile-label { font-size: 0.75rem; font-weight: 500; color: rgba(148, 163, 184, 0.7); letter-spacing: 0.04em; text-transform: uppercase; padding-bottom: 4px; }
+.nav-mobile-label { font-size: 0.75rem; font-weight: 500; color: rgba(94, 108, 128, 0.8); letter-spacing: 0.04em; text-transform: uppercase; padding-bottom: 4px; }
 
-.nav-mobile-group a { font-size: 1.5rem; font-weight: 600; color: #fff; line-height: 1.4; padding: 6px 0; transition: color var(--t-fast) ease; }
+.nav-mobile-group a { font-size: 1.5rem; font-weight: 600; color: var(--ink); line-height: 1.4; padding: 6px 0; transition: color var(--t-fast) ease; }
 
-.nav-mobile-group a:hover { color: #93c5fd; background: none; }
+.nav-mobile-group a:hover { color: var(--blue); background: none; }
 
 .nav-burger { position: relative; z-index: 201; }
 
-.nav.is-open .nav-burger { color: #fff; }
+.nav.is-open .nav-burger { color: var(--ink); }
 
 .nav.is-open {
   inset: 0;
@@ -370,20 +370,20 @@ body.menu-open { overflow: hidden; }
   min-height: 560px;
   padding: 80px 48px 96px;
   background: #ffffff;
-  border: 1px solid rgba(2, 132, 199, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.1);
   border-radius: 24px;
   overflow: hidden;
   display: grid;
   place-items: center;
   text-align: center;
-  box-shadow: 0 1px 2px rgba(15, 23, 43, 0.04);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .orbital-grid {
   position: absolute; inset: 0;
   background-image:
-    linear-gradient(to right, rgba(2, 132, 199, 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(2, 132, 199, 0.06) 1px, transparent 1px);
+    linear-gradient(to right, rgba(59, 130, 246, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(59, 130, 246, 0.06) 1px, transparent 1px);
   background-size: 56px 56px;
   mask-image: radial-gradient(ellipse 85% 70% at 50% 50%, #000 62%, transparent 92%);
   -webkit-mask-image: radial-gradient(ellipse 85% 70% at 50% 50%, #000 62%, transparent 92%);
@@ -405,9 +405,9 @@ body.menu-open { overflow: hidden; }
   width: 68px; height: 68px;
   display: grid; place-items: center;
   background: var(--blue-soft);
-  border: 1px solid rgba(2, 132, 199, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.14);
   border-radius: 16px;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.16);
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.16);
 }
 .orbital-icon img { width: 40px; height: 40px; object-fit: contain; }
 
@@ -444,7 +444,7 @@ body.menu-open { overflow: hidden; }
   transition: border-color 200ms ease-out;
   cursor: pointer;
 }
-.orbital-tag:hover { border-color: rgba(2, 132, 199, 0.18); }
+.orbital-tag:hover { border-color: rgba(59, 130, 246, 0.22); }
 .orbital-tag .ic { width: 16px; height: 16px; color: var(--blue); flex-shrink: 0; }
 
 /* positions — مبعثرة حول العنوان */
@@ -473,7 +473,7 @@ body.menu-open { overflow: hidden; }
 
 .tb-tab:hover { color: var(--mk-ink); }
 
-.tb-tab.on { background: var(--blue); color: #fff; box-shadow: 0 4px 12px -4px rgba(2, 132, 199, 0.5); }
+.tb-tab.on { background: var(--blue); color: #fff; box-shadow: 0 4px 12px -4px rgba(59, 130, 246, 0.5); }
 /* تبويبات الجدول الحقيقي — منفصلة عن الصورة */
 
 .tb-real { overflow: hidden; background: #fff; max-width: 1000px; margin-inline: auto; border-radius: 10px; }
@@ -530,7 +530,7 @@ body.menu-open { overflow: hidden; }
 
 .ti-input { display: flex; align-items: center; justify-content: space-between; margin: 14px 20px 4px; background: var(--mk-bg); border: 1px solid var(--mk-line); border-radius: var(--r-md); padding: 10px 12px 10px 10px; }
 
-.ti-add-btn { width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0; display: grid; place-items: center; background: var(--blue-soft); color: var(--blue-deep); }
+.ti-add-btn { width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0; display: grid; place-items: center; background: #e0f2fe; color: #0369a1; }
 
 .ti-add-btn .ic { width: 18px; height: 18px; }
 
@@ -573,7 +573,7 @@ body.menu-open { overflow: hidden; }
 
 .phone-shot {
   position: relative; width: min(280px, 100%); margin-inline: auto; align-self: stretch;
-  background: var(--navy); border-radius: 34px; border: 6px solid #223052;
+  background: #0f172b; border-radius: 34px; border: 6px solid #223052;
   box-shadow: var(--shadow-sm); color: #fff; text-align: center;
   padding: 44px 22px 28px; font-family: var(--font-mk); display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 420px;
 }
@@ -588,7 +588,7 @@ body.menu-open { overflow: hidden; }
 
 .ph-bar { width: 100%; height: 6px; border-radius: 99px; background: rgba(255, 255, 255, 0.1); overflow: hidden; margin-top: 8px; align-self: stretch; }
 
-.ph-bar i { display: block; height: 100%; width: var(--w, 60%); border-radius: 99px; background: var(--blue); }
+.ph-bar i { display: block; height: 100%; width: var(--w, 60%); border-radius: 99px; background: #0284c7; }
 
 .ph-scale { width: 100%; display: flex; justify-content: space-between; font-size: 0.66rem; color: #8ba0bd; margin-top: 7px; align-self: stretch; }
 
@@ -600,7 +600,7 @@ body.menu-open { overflow: hidden; }
 
 .ph-btn.ghost { background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.18); color: #e7eef7; }
 
-.ph-btn.main { width: 46px; height: 46px; justify-content: center; padding: 0; border-radius: 50%; background: var(--blue); color: #fff; }
+.ph-btn.main { width: 46px; height: 46px; justify-content: center; padding: 0; border-radius: 50%; background: #0284c7; color: #fff; }
 /* ---------- 10) القياس ---------- */
 /* ---------- 11) Bento ---------- */
 /* توهج الحدود يتبع الماوس */
@@ -729,7 +729,7 @@ body.menu-open { overflow: hidden; }
 .faq-list details p { padding-bottom: 16px; color: var(--ink-2); font-size: 0.92rem; }
 /* ---------- 16) الختام ---------- */
 
-.finale { position: relative; text-align: center; padding-block: clamp(64px, 9vh, 96px); overflow: hidden; background: var(--dark); color: #fff; }
+.finale { position: relative; text-align: center; padding-block: clamp(64px, 9vh, 96px); overflow: hidden; background: var(--surface); color: var(--ink); border-top: 1px solid var(--line); }
 
 .finale .container { position: relative; max-width: 1180px; }
 
@@ -737,28 +737,28 @@ body.menu-open { overflow: hidden; }
 
 .finale .btn { margin-top: var(--s4); }
 
-.finale-lines { margin-top: var(--s4); display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; color: var(--dark-sub); line-height: 2.1; font-size: 0.98rem; }
+.finale-lines { margin-top: var(--s4); display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; color: var(--ink-2); line-height: 2.1; font-size: 0.98rem; }
 
 .finale-lines span { display: inline-flex; align-items: center; }
 
-.finale-lines span:not(:last-child)::after { content: "·"; margin-inline-start: 16px; color: rgba(255, 255, 255, 0.3); }
+.finale-lines span:not(:last-child)::after { content: "·"; margin-inline-start: 16px; color: var(--line); }
 
-.finale-strong { color: #fff; font-weight: 800; font-size: inherit; }
+.finale-strong { color: var(--blue); font-weight: 800; font-size: inherit; }
 /* ---------- 17) الفوتر ---------- */
 
-.footer { background: var(--navy); color: #a1a1aa; border-top: 1px solid rgba(255,255,255,0.08); padding-block: 22px; }
+.footer { background: var(--surface); color: var(--ink-2); border-top: 1px solid var(--line); padding-block: 22px; }
 
 .footer-inner { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 20px; }
 
-.footer-brand { width: 44px; height: 44px; display: grid; place-items: center; background: #ffffff; border-radius: 12px; flex-shrink: 0; }
+.footer-brand { width: 44px; height: 44px; display: grid; place-items: center; background: #ffffff; border: 1px solid var(--line); border-radius: 12px; flex-shrink: 0; }
 
 .footer-brand .logo-mark { height: 28px; width: 28px; object-fit: contain; }
 
 .footer-links { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; justify-self: center; }
 
-.footer-links a { font-size: 0.84rem; font-weight: 500; color: #a1a1aa; transition: color var(--t-fast) ease; white-space: nowrap; }
+.footer-links a { font-size: 0.84rem; font-weight: 500; color: var(--ink-2); transition: color var(--t-fast) ease; white-space: nowrap; }
 
-.footer-links a:hover { color: #ffffff; }
+.footer-links a:hover { color: var(--blue); }
 
 .footer-copy { font-size: 0.77rem; color: #71717a; white-space: nowrap; }
 /* ---------- 18) الاستجابة ---------- */
