@@ -211,7 +211,8 @@ export async function commitDurationPicker(){
       startedAt: Date.now(),
       mode: 'countdown',
       targetMs,
-      alerted: false
+      alerted: false,
+      loggedMs: 0
     });
     showToast(t('timer.started_fixed', {name}));
     ui.pendingNewTimerName = '';

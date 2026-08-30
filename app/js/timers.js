@@ -3,14 +3,74 @@
 // ============================================================
 
 import { addDays, emptyStateHtml, escapeHtml, formatElapsed, getElapsedMs, parseDurationToMinutes, todayStr, uid } from './utils.js';
-import { t, formatHM } from './i18n.js';
+import { t, formatHM, formatMinutes } from './i18n.js';
 import { MISSED_POPUP_SHOWN_KEY, TASK_TYPES, showToast, showUndoToast, state, timerPanelEl, ui } from './state.js';
 import { saveData } from './dataStore.js';
+import { render } from './render.js';
 import { openTimerDurationPicker } from './wheelPicker.js';
 
 export function getDayTimers(date){
   if(!state.timers[date]) state.timers[date] = [];
   return state.timers[date];
+}
+
+// ------------------------------------------------------------------
+// ربط المؤقت بالوقت الفعلي للمهمة (بنفس الاسم) — المنطق المركزي:
+//   • commitTimerToTask: لما المؤقت يقف (إيقاف/إنهاء/عدّاد خلص) بنضيف
+//     الجزء الجديد (اللي لسه متسجلش) للوقت الفعلي للمهمة تلقائيًا، وبنحفظ
+//     نقطة التسجيل في loggedMs عشان ميتعدش مرتين.
+//   • revertTimerFromTask: عند حذف المؤقت بنخصم اللي هو سجله فعلًا.
+//   • restoreTimerToTask: عند التراجع عن الحذف بنرجّع الوقت اللي اتخصم.
+// الفكرة: الجزء الحي (الشغال دلوقتي) مش داخل جوه actualDuration — بيظهر
+// كإجمالي منفصل في وضع التركيز، ولما يقف المؤقت بيتحجز. الحذف بيرجّع
+// المهمة لحالتها قبل تسجيل المؤقت.
+// ------------------------------------------------------------------
+function findTaskByName(name){
+  if(!name) return null;
+  const todayTasks = state.days[ui.selectedDate] || [];
+  const todayMatch = todayTasks.find(t => t.name === name && !t._dupOf);
+  if(todayMatch) return todayMatch;
+  for(const date in state.days){
+    const found = (state.days[date] || []).find(t => t.name === name && !t._dupOf);
+    if(found) return found;
+  }
+  return null;
+}
+
+function commitTimerToTask(timer, silent = false){
+  const totalMs = getElapsedMs(timer);
+  const loggedMs = Math.max(0, timer.loggedMs || 0);
+  const deltaMs = totalMs - loggedMs;
+  if(deltaMs < 30000) return; // أقل من نص دقيقة متستاهلش تسجيل
+  const task = findTaskByName(timer.name);
+  if(!task) return;
+  const addedMin = Math.round(deltaMs / 60000);
+  if(addedMin <= 0) return;
+  const curMin = parseDurationToMinutes(task.actualDuration);
+  task.actualDuration = formatMinutes(curMin + addedMin);
+  timer.loggedMs = totalMs; // بنحفظ النقطة بالمللي ثانية بالظبط عشان الجلسة الجاية تبدأ منها
+  if(!silent) showToast(t('timer.logged_to_task', { name: timer.name, time: formatMinutes(addedMin) }));
+}
+
+function revertTimerFromTask(timer){
+  const loggedMs = Math.max(0, timer.loggedMs || 0);
+  if(loggedMs < 30000) return;
+  const task = findTaskByName(timer.name);
+  if(!task) return;
+  const loggedMin = Math.round(loggedMs / 60000);
+  if(loggedMin <= 0) return;
+  const curMin = parseDurationToMinutes(task.actualDuration);
+  task.actualDuration = formatMinutes(Math.max(0, curMin - loggedMin));
+}
+
+function restoreTimerToTask(timer){
+  const loggedMs = Math.max(0, timer.loggedMs || 0);
+  if(loggedMs < 30000) return;
+  const task = findTaskByName(timer.name);
+  if(!task) return;
+  const loggedMin = Math.round(loggedMs / 60000);
+  if(loggedMin <= 0) return;
+  task.actualDuration = formatMinutes(parseDurationToMinutes(task.actualDuration) + loggedMin);
 }
 
 export function checkMissedTasksPopup(){
@@ -234,7 +294,8 @@ export function renderTimerPanel(){
         elapsedMs: 0,
         running: true,
         startedAt: Date.now(),
-        mode: 'open'
+        mode: 'open',
+        loggedMs: 0
       });
       showToast(t('timer.started_open', {name}));
       renderTimerPanel();
@@ -266,6 +327,7 @@ export function renderTimerPanel(){
       else if(action === 'toggle-timer'){
         ensureAudioContext();
         if(timer.running){
+          commitTimerToTask(timer); // وقت الجلسة يتسجل في المهمة المرتبطة تلقائيًا قبل الإيقاف
           timer.elapsedMs = getElapsedMs(timer);
           timer.running = false;
           timer.startedAt = null;
@@ -278,6 +340,7 @@ export function renderTimerPanel(){
           timer.running = true;
           timer.startedAt = Date.now();
         }
+        render();
         renderTimerPanel();
         await saveData();
       }
@@ -286,12 +349,16 @@ export function renderTimerPanel(){
         const deletedDate = ui.selectedDate;
         const removedTimer = timer;
         const removedIndex = list.indexOf(timer);
+        revertTimerFromTask(removedTimer); // بنخصم اللي سجله المؤقت من الوقت الفعلي للمهمة
         state.timers[deletedDate] = list.filter(x => x.id !== id);
+        render();
         renderTimerPanel();
         await saveData();
         showUndoToast(t('timer.deleted', {name: timer.name}), async () => {
           if(!state.timers[deletedDate]) state.timers[deletedDate] = [];
           state.timers[deletedDate].splice(Math.min(removedIndex, state.timers[deletedDate].length), 0, removedTimer);
+          restoreTimerToTask(removedTimer); // التراجع بيرجع الوقت اللي اتخصم
+          render();
           renderTimerPanel();
           await saveData();
         });
@@ -338,7 +405,8 @@ export async function startOpenTimer(name){
     elapsedMs: 0,
     running: true,
     startedAt: Date.now(),
-    mode: 'open'
+    mode: 'open',
+    loggedMs: 0
   });
   showToast(t('timer.started_open', {name}));
   renderTimerPanel();
@@ -381,6 +449,7 @@ export function tickTimers(){
         const remaining = timer.targetMs - elapsed;
         if(el) el.textContent = formatElapsed(Math.max(0, remaining));
         if(remaining <= 0 && !timer.alerted){
+          commitTimerToTask(timer, true); // العد خلص — وقت العد يتسجل في المهمة المرتبطة تلقائيًا (من غير توست، التنبيه بيكفي)
           timer.alerted = true;
           timer.running = false;
           timer.elapsedMs = timer.targetMs;
@@ -388,6 +457,7 @@ export function tickTimers(){
           timersChanged = true;
           playAlertSound();
           showToast(t('timer.ended', {name: timer.name}));
+          render();
           renderTimerPanel();
           ui.timerPanelRenderedForDate = ui.selectedDate;
         }
@@ -441,11 +511,19 @@ export function renderFocusMode(){
   if(!timer){ closeFocusMode(); return; }
 
   const elapsed = timer.running ? getElapsedMs(timer) : (timer.elapsedMs || 0);
-  const task = (state.days[ui.selectedDate] || []).find(x => x.name === timer.name);
+  const task = findTaskByName(timer.name);
   const typeInfo = task && task.type ? TASK_TYPES[task.type] : null;
   // الهدف: من المهمة لو ليها مدة، وإلا هدف المؤقت نفسه لو محدد المدة
   const goalMin = task ? parseDurationToMinutes(task.duration) : 0;
   const goalMs = goalMin > 0 ? goalMin * 60000 : (timer.mode === 'countdown' ? timer.targetMs : 0);
+
+  // إجمالي الوقت الفعلي (للشريط وتسمية «الوقت الفعلي»): الوقت الفعلي المتراكم
+  // للمهمة + الجزء الحي من المؤقت اللي لسه متسجلش (لأن الجلسة بتتحجز جوه
+  // actualDuration بس لما المؤقت يوقف). الأرقام الكبيرة بتفضل وقت التايمر نفسه.
+  const taskActualMs = task ? parseDurationToMinutes(task.actualDuration) * 60000 : 0;
+  const loggedMs = Math.max(0, timer.loggedMs || 0);
+  const liveMs = Math.max(0, elapsed - loggedMs);
+  const totalMs = taskActualMs + liveMs;
 
   const nameEl = document.getElementById('focusTaskName');
   const iconEl = document.getElementById('focusTaskIcon');
@@ -463,8 +541,8 @@ export function renderFocusMode(){
   if(goalMs > 0 && barWrap && fill){
     barWrap.style.display = '';
     if(scaleEl) scaleEl.style.display = '';
-    fill.style.width = `${Math.min(100, (elapsed / goalMs) * 100)}%`;
-    if(actualLabel) actualLabel.textContent = `${t('task.actual')} ${formatElapsed(elapsed)}`;
+    fill.style.width = `${Math.min(100, (totalMs / goalMs) * 100)}%`;
+    if(actualLabel) actualLabel.textContent = `${t('task.actual')} ${formatElapsed(totalMs)}`;
     if(goalLabel) goalLabel.textContent = `${t('task.goal')} ${formatElapsed(goalMs)}`;
   } else {
     // من غير هدف: أرقام بس — من غير شريط ولا مقياس
@@ -484,6 +562,7 @@ async function focusToggle(){
   if(!timer) return;
   ensureAudioContext();
   if(timer.running){
+    commitTimerToTask(timer); // وقف من وضع التركيز — بنسجل الجلسة في المهمة
     timer.elapsedMs = getElapsedMs(timer);
     timer.running = false;
     timer.startedAt = null;
@@ -495,6 +574,7 @@ async function focusToggle(){
     timer.running = true;
     timer.startedAt = Date.now();
   }
+  render();
   renderTimerPanel();
   renderFocusMode();
   await saveData();
@@ -504,9 +584,11 @@ async function focusFinish(){
   // «إنهاء» بيقفل المؤقت (يوقفه عند الوقت اللي وصل له) ويخرج من الوضع
   const timer = getFocusTimer();
   if(timer && timer.running){
+    commitTimerToTask(timer); // الوقت متسجل للمهمة قبل ما ننهي
     timer.elapsedMs = getElapsedMs(timer);
     timer.running = false;
     timer.startedAt = null;
+    render();
     renderTimerPanel();
     await saveData();
   }

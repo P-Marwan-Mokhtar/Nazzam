@@ -123,6 +123,8 @@ function sanitizeTimer(t){
     running: t.running === true && hasValidStartedAt,
     startedAt: hasValidStartedAt ? t.startedAt : null
   };
+  // مقدار الوقت اللي تسجل فعلًا جوه الوقت الفعلي للمهمة المرتبطة بالمؤقت
+  if(typeof t.loggedMs === 'number' && isFinite(t.loggedMs) && t.loggedMs >= 0) out.loggedMs = t.loggedMs;
   if(out.mode === 'countdown'){
     out.targetMs = (typeof t.targetMs === 'number' && isFinite(t.targetMs) && t.targetMs > 0) ? t.targetMs : 0;
     if(t.alerted === true) out.alerted = true;
