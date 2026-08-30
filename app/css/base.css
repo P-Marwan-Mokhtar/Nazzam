@@ -26,8 +26,8 @@
   --paper-line: #e3e7ec;
   --ink: #22303d;
   --ink-soft: #5b6b78;
-  --pen: #c5482e;
-  --pen-soft: #e8dcd6;
+  --pen: #3a6fa5;
+  --pen-soft: #dbe6f1;
   --done: #3e7a5c;
   --done-soft: #dce9e0;
   --missed: #c5382e;
@@ -56,8 +56,8 @@ body.dark-mode {
   --paper-line: #313b45;
   --ink: #e6edf3;
   --ink-soft: #8b98a5;
-  --pen: #c5482e;
-  --pen-soft: #38221e;
+  --pen: #6b9fc8;
+  --pen-soft: #22364c;
   --done: #489970;
   --done-soft: #1a3024;
   --missed: #ff6b5e;
