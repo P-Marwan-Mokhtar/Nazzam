@@ -611,6 +611,12 @@ function renderTimeBlockWeekView(){
           </div>
         </div>
       </div>
+      ${getWeekStart(ui.selectedDate) === getWeekStart(today) ? '' : `
+        <button class="tb-today-fab" id="tbwTodayFab" type="button" aria-label="${t('day.go_today')}" title="${t('day.go_today')}">
+          <span class="material-icons">today</span>
+          <span>${t('c.day')}</span>
+        </button>
+      `}
     </div>
   `;
 
@@ -635,6 +641,8 @@ function renderTimeBlockWeekView(){
       if(nowLine) nowLine.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
   };
+  const weekTodayFab = document.getElementById('tbwTodayFab');
+  if(weekTodayFab) weekTodayFab.onclick = () => { if(weekTodayBtn) weekTodayBtn.click(); };
 
   const dayLabelBtn = document.getElementById('tbDayLabelBtn');
   if(dayLabelBtn) dayLabelBtn.onclick = () => openCalendarModal();
@@ -852,6 +860,12 @@ function renderTimeBlockMonthView(){
           </div>
         </div>
       </div>
+      ${ui.selectedDate === today ? '' : `
+        <button class="tb-today-fab" id="tbmTodayFab" type="button" aria-label="${t('day.go_today')}" title="${t('day.go_today')}">
+          <span class="material-icons">today</span>
+          <span>${t('c.day')}</span>
+        </button>
+      `}
     </div>
   `;
 
@@ -872,6 +886,8 @@ function renderTimeBlockMonthView(){
   if(todayBtn) todayBtn.onclick = () => {
     if(ui.selectedDate !== today){ ui.selectedDate = today; render(); }
   };
+  const monthTodayFab = document.getElementById('tbmTodayFab');
+  if(monthTodayFab) monthTodayFab.onclick = () => { if(todayBtn) todayBtn.click(); };
 
   wireTbRangeDropdown();
 

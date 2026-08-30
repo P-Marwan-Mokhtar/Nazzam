@@ -1283,13 +1283,21 @@ body.locked-view .main-col {
   .tb-nav-group {
     gap: 4px;
     padding: 2px;
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
   }
   .nav-btn {
     padding: 4px;
+    flex-shrink: 0;
   }
   .tb-day-label {
     font-size: 0.82rem;
     padding: 4px 4px;
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .tb-actions-group {
     flex-shrink: 1;
