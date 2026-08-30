@@ -1,4 +1,27 @@
 /* ===== Account Modal ===== */
+/* شاشة تسجيل الدخول (Gate) بالهوية البيضاء/السوداء — الـ account modal
+   (المظهر/الحساب) بيفضل بألوان الـ pen الطينية زي ما هو */
+#accountOverlay.is-gate .account-status .material-icons,
+#accountOverlay.is-gate .account-section-title .material-icons {
+  color: var(--ink);
+}
+#accountOverlay.is-gate .account-input:focus {
+  border-color: var(--ink);
+}
+#accountOverlay.is-gate .account-primary-btn {
+  background: var(--ink);
+  color: #fff;
+}
+#accountOverlay.is-gate .account-primary-btn:hover {
+  background: #000;
+}
+#accountOverlay.is-gate .account-switch-line button {
+  color: var(--ink);
+  text-decoration-color: var(--ink);
+}
+#accountOverlay.is-gate .account-google-btn:hover {
+  background: var(--paper);
+}
 .account-status {
   display: flex;
   align-items: center;
