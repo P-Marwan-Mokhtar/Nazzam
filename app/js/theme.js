@@ -48,7 +48,7 @@ export function resolveLegacyTheme(name){
 // الباليتة الكاملة الفعلية حسب الوضع الحالي: الأساس الثابت + اللون المميز بتاع الوضع ده
 export function currentPalette(){
   const isDark = !!state.darkMode;
-  const accentId = (isDark ? state.accentDark : state.accentLight) || 'classic';
+  const accentId = (isDark ? state.accentDark : state.accentLight) || 'blue';
   const accent = ACCENT_BY_ID[accentId] || ACCENTS[0];
   return Object.assign({}, isDark ? BASE_DARK : BASE_LIGHT, accent[isDark ? 'dark' : 'light']);
 }
@@ -95,7 +95,7 @@ function renderAppearanceModal(onChanged){
   const bodyEl = document.getElementById('appearanceBody');
   if(!bodyEl) return;
   const isDark = !!state.darkMode;
-  const currentAccent = (isDark ? state.accentDark : state.accentLight) || 'classic';
+  const currentAccent = (isDark ? state.accentDark : state.accentLight) || 'blue';
 
   bodyEl.innerHTML = `
     <div class="account-section">

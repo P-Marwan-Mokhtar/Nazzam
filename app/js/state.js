@@ -30,8 +30,8 @@ export let state = {
   filters: [],
   timers: {},
   darkMode: false,
-  accentLight: 'classic', // اللون المميز في الوضع الفاتح (id في ACCENTS من theme.js)
-  accentDark: 'classic', // اللون المميز في الوضع الداكن (مستقل عن الفاتح)
+  accentLight: 'blue', // اللون المميز في الوضع الفاتح (id في ACCENTS من theme.js) — الأزرق هو الأساس للمستخدمين الجدد
+  accentDark: 'blue', // اللون المميز في الوضع الداكن (مستقل عن الفاتح)
   recurringTasks: {}, // اسم المهمة -> مصفوفة أرقام أيام الأسبوع (0=أحد..6=سبت) اللي تتكرر فيها تلقائيًا
   notificationSettings: {
     morningEnabled: false,
@@ -44,7 +44,7 @@ export let state = {
 };
 
 export function resetState(){
-  state = { lang: 'ar', keywords: [], drafts: [], notes: {}, days: {}, filters: [], timers: {}, darkMode: false, accentLight: 'classic', accentDark: 'classic', recurringTasks: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null } };
+  state = { lang: 'ar', keywords: [], drafts: [], notes: {}, days: {}, filters: [], timers: {}, darkMode: false, accentLight: 'blue', accentDark: 'blue', recurringTasks: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null } };
 }
 
 export const ui = {
