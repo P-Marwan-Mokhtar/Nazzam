@@ -8,15 +8,15 @@ import { t } from './i18n.js';
 // الألوان الأساسية ثابتة (نفس القيم الافتراضية الحالية) — التخصيص بيغيّر
 // اللون المميز بس (pen + pen-soft) عشان التغيير يفضل هادي ومش "فاقع".
 const BASE_LIGHT = {
-  'paper': '#f9fafb', 'paper-line': '#eff1f4', 'ink': '#22303d', 'ink-soft': '#5b6b78',
+  'paper': '#f4f5f7', 'paper-line': '#e2e4e8', 'ink': '#1f2328', 'ink-soft': '#6b7280',
   'done': '#3e7a5c', 'done-soft': '#dce9e0', 'missed': '#c5382e', 'missed-soft': '#f4dedb',
   'card': '#ffffff'
 };
 
 const BASE_DARK = {
-  'paper': '#14181c', 'paper-line': '#242b33', 'ink': '#e6edf3', 'ink-soft': '#8b98a5',
+  'paper': '#15171a', 'paper-line': '#2b2e34', 'ink': '#e8eaee', 'ink-soft': '#9aa1ab',
   'done': '#489970', 'done-soft': '#1a3024', 'missed': '#ff6b5e', 'missed-soft': '#3a1c1c',
-  'card': '#1a2027'
+  'card': '#1e2025'
 };
 
 // الألوان المميزة الهادية. كل لون ليه نسخة للوضع الفاتح ونسخة للوضع الداكن

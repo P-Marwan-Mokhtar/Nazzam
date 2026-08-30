@@ -22,10 +22,10 @@
 }
 
 :root {
-  --paper: #f9fafb;
-  --paper-line: #e3e7ec;
-  --ink: #22303d;
-  --ink-soft: #5b6b78;
+  --paper: #f4f5f7;
+  --paper-line: #e2e4e8;
+  --ink: #1f2328;
+  --ink-soft: #6b7280;
   --pen: #3a6fa5;
   --pen-soft: #dbe6f1;
   --done: #3e7a5c;
@@ -34,7 +34,7 @@
   --missed-soft: #f4dedb;
   --card: #ffffff;
   --popup: #ffffff;
-  --popup-border: #d9dee4;
+  --popup-border: #d5d8dd;
   /* ألوان المهام في الجدول الزمني — كل مهمة لون ثابت حسب اسمها في اليوم والأسبوع والشهر */
   --task-c0: #3a6fa5;
   --task-c1: #2f7d76;
@@ -45,26 +45,26 @@
   --task-c6: #5c6672;
   --task-c7: #8a6a4f;
   --radius: 10px;
-  --shadow: 0 1px 2px rgba(34, 48, 61, 0.04), 0 4px 12px rgba(34, 48, 61, 0.03);
-  --shadow-hover: 0 2px 4px rgba(34, 48, 61, 0.05), 0 8px 20px rgba(34, 48, 61, 0.07);
+  --shadow: 0 1px 2px rgba(15, 18, 22, 0.05), 0 4px 12px rgba(15, 18, 22, 0.04);
+  --shadow-hover: 0 2px 4px rgba(15, 18, 22, 0.06), 0 8px 20px rgba(15, 18, 22, 0.08);
   --transition: 0.2s ease;
 }
 
 /* ===== Dark Mode Variables & Overrides ===== */
 body.dark-mode {
-  --paper: #14181c;
-  --paper-line: #313b45;
-  --ink: #e6edf3;
-  --ink-soft: #8b98a5;
+  --paper: #15171a;
+  --paper-line: #2b2e34;
+  --ink: #e8eaee;
+  --ink-soft: #9aa1ab;
   --pen: #6b9fc8;
   --pen-soft: #22364c;
   --done: #489970;
   --done-soft: #1a3024;
   --missed: #ff6b5e;
   --missed-soft: #3a1c1c;
-  --card: #1a2027;
-  --popup: #232b34;
-  --popup-border: #3b4651;
+  --card: #1e2025;
+  --popup: #272a30;
+  --popup-border: #3a3e45;
   /* نسخ فاتحة من ألوان المهام عشان التباين على الخلفية الداكنة */
   --task-c0: #6b9fc8;
   --task-c1: #5ba6a0;
@@ -90,15 +90,15 @@ body.dark-mode .timer-start-btn:hover {
   color: var(--done);
 }
 body.dark-mode .toast {
-  background: #e6edf3;
-  color: #14181c;
+  background: #e8eaee;
+  color: #15171a;
 }
 body.dark-mode .modal-overlay {
   background: rgba(0, 0, 0, 0.65);
 }
 /* خلفية الصفحة (الـ body) في الوضع الداكن تكون أغمق من الـ wrap عشان الكارت يبان */
 body.dark-mode {
-  background-color: #101419;
+  background-color: #0e1013;
 }
 /* الـ wrap في الوضع الداكن يفضل بنفس لون خلفية الصفحة الأساسية */
 body.dark-mode .wrap {
