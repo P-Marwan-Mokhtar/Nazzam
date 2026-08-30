@@ -169,6 +169,8 @@ async function startApp(){
     await saveData();
   };
   document.getElementById('themeBtn').onclick = () => openAppearanceModal(onAppearanceChanged);
+  const appearanceMenuItem = document.getElementById('appearanceMenuItem');
+  if(appearanceMenuItem) appearanceMenuItem.onclick = () => openAppearanceModal(onAppearanceChanged);
 
   const toggleStatsView = () => {
     const wasOpen = ui.statsViewOpen;
@@ -203,6 +205,8 @@ async function startApp(){
   document.getElementById('calendarBtn').onclick = openCalendarModal;
   document.getElementById('closeCalendarBtn').onclick = closeCalendarModal;
   document.getElementById('weekViewBtn').onclick = toggleWeekView;
+  const weekViewMenuItem = document.getElementById('weekViewMenuItem');
+  if(weekViewMenuItem) weekViewMenuItem.onclick = toggleWeekView;
   const calendarOverlay = document.getElementById('calendarOverlay');
   calendarOverlay.addEventListener('click', (e) => {
     if(e.target === calendarOverlay) closeCalendarModal();
