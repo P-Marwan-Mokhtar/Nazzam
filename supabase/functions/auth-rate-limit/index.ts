@@ -34,6 +34,44 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")! // مفتاح الخادم — مش anon
 );
 
+// ------------------------------------------------------------
+// CORS — الفنكشن بتشتغل verify_jwt = false (من المتصفح قبل أي طلب مصادقة)،
+// فلازم نرد على الـ preflight (OPTIONS) ونضيف رأس Access-Control-Allow-Origin
+// في كل الردود. بنسمح بس للأصول اللي بنعرفها (الموقع الحي + التطوير المحلي + صفحات GitHub)
+// عشان منفتحش الباب لأي موقع تاني يستدعي الفنكشن من متصفحه.
+// ------------------------------------------------------------
+const ALLOWED_ORIGINS = [
+  "https://nazam-sass.vercel.app",
+  "https://nazzam.app",
+  "https://www.nazzam.app",
+];
+
+function corsHeaders(req: Request): { [k: string]: string } {
+  const origin = req.headers.get("origin") || "";
+  const isAllowed =
+    !origin ||
+    ALLOWED_ORIGINS.includes(origin) ||
+    origin.startsWith("http://localhost") ||
+    /^https:\/\/[a-zA-Z0-9-]+\.github\.io$/.test(origin);
+
+  const headers: { [k: string]: string } = {};
+  if (isAllowed) headers["Access-Control-Allow-Origin"] = origin || "*";
+  headers["Access-Control-Allow-Methods"] = "POST, OPTIONS";
+  headers["Access-Control-Allow-Headers"] = "Content-Type";
+  headers["Vary"] = "Origin";
+  return headers;
+}
+
+function jsonResponse(req: Request, body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "Content-Type": "application/json",
+      ...corsHeaders(req),
+    },
+  });
+}
+
 function clientIp(req: Request): string {
   const xff = req.headers.get("x-forwarded-for");
   if (xff) return xff.split(",")[0].trim();
@@ -46,11 +84,13 @@ function canonical(action: string, email?: string): string {
 }
 
 Deno.serve(async (req) => {
+  // الرد على طلب الـ preflight (OPTIONS) اللي بيبعتوه المتصفح قبل الـ POST عبر CORS
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders(req) });
+  }
+
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405,
-      headers: { "Content-Type": "application/json" },
-    });
+    return jsonResponse(req, { error: "Method not allowed" }, 405);
   }
 
   try {
@@ -82,19 +122,13 @@ Deno.serve(async (req) => {
 
     const blocked = allowed === true || ipAllowed === true;
 
-    return new Response(JSON.stringify({
+    return jsonResponse(req, {
       allowed: !blocked,
       retryAfterMin: Math.max(1, Math.ceil(limit.windowMs / 60000)),
-    }), {
-      status: blocked ? 429 : 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    }, blocked ? 429 : 200);
   } catch (e) {
     console.error("auth-rate-limit error:", e);
     // على فشل داخلي، نسمح بالمرور (fail-open) ولا نعرقل المستخدم الشرعي.
-    return new Response(JSON.stringify({ allowed: true }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return jsonResponse(req, { allowed: true }, 200);
   }
 });
