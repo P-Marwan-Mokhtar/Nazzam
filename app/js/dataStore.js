@@ -351,7 +351,15 @@ function setBackupOwner(userId){
 function saveLocalBackup(){
   try{
     localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(state));
-    setBackupOwner(currentUserId); // ختم الملكية مع كل حفظ محلي
+    // ختم الملكية مع كل حفظ محلي — بس لو فيه حساب معروف (أونلاين). أوفلاين
+    // currentUserId بيبقى null، ولو كتبنا ختم فارغ هنا هنمسح ملكية الحساب الأصلي
+    // اللي بيتصل بيها بالشبكة لما يرجّع نت. فنحافظ على (أو نرجّع) آخر ملكية حقيقية.
+    if(currentUserId){
+      setBackupOwner(currentUserId);
+    } else if(!getBackupOwner()){
+      // لأول مرة من غير حساب (مثلًا بعد تسجيل خروج) بنسجّل إنها ملك فارغة
+      setBackupOwner('');
+    }
   }catch(e){}
 }
 

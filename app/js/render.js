@@ -152,7 +152,7 @@ export function render(){
     `;
     html += `
       <div class="add-row bank-add-task-row">
-        <input type="text" id="newKeywordInput" placeholder="${t('bank.add_placeholder')}" maxlength="80" value="${escapeAttr(ui.addDraft)}" />
+        <input type="text" id="newKeywordInput" placeholder="${t('bank.add_placeholder')}" value="${escapeAttr(ui.addDraft)}" />
         <div class="add-arrow-wrap">
           <button class="add-arrow-btn ${ui.addArrowOpen ? 'open' : ''}" data-action="toggle-add-arrow" type="button" title="${t('bank.add_options')}">
             <span class="material-icons">expand_more</span>

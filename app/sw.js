@@ -5,7 +5,7 @@
 // رقم الإصدار (CACHE_VERSION) بيتغيّر تلقائيًا مع أي تغيير في المحتوى.
 // ============================================================
 
-const CACHE_VERSION = 'v43beff9e11';
+const CACHE_VERSION = 'vdac4059547';
 const CACHE_NAME = 'daily-tasks-shell-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -111,16 +111,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // طلبات التنقّل (فتح الصفحة نفسها): network-first مع fallback على النسخة المخزّنة لو مفيش نت
+  // طلبات التنقّل (فتح الصفحة نفسها): stale-while-revalidate — بنخدم النسخة
+  // المخزّنة فورًا (حتى لو مفيش نت) وبنجدّدها من الشبكة في الخلفية لما يبقى متصل.
+  // ده بيضمن إن التطبيق يفتح فورًا أوفلاين بدل ما يستنى طلب الشبكة يفشل.
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req)
-        .then((res) => {
-          const resClone = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', resClone));
-          return res;
-        })
-        .catch(() => caches.match('./index.html'))
+      caches.match('./index.html').then((cached) => {
+        const networkFetch = fetch(req)
+          .then((res) => {
+            if (res && res.status === 200) {
+              const resClone = res.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', resClone));
+            }
+            return res;
+          })
+          .catch(() => cached);
+        return cached || networkFetch;
+      })
     );
     return;
   }

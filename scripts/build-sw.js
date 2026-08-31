@@ -160,16 +160,23 @@ const swSource =
 '    return;\n' +
 '  }\n' +
 '\n' +
-'  // طلبات التنقّل (فتح الصفحة نفسها): network-first مع fallback على النسخة المخزّنة لو مفيش نت\n' +
+'  // طلبات التنقّل (فتح الصفحة نفسها): stale-while-revalidate — بنخدم النسخة\n' +
+'  // المخزّنة فورًا (حتى لو مفيش نت) وبنجدّدها من الشبكة في الخلفية لما يبقى متصل.\n' +
+'  // ده بيضمن إن التطبيق يفتح فورًا أوفلاين بدل ما يستنى طلب الشبكة يفشل.\n' +
 "  if (req.mode === 'navigate') {\n" +
 '    event.respondWith(\n' +
-'      fetch(req)\n' +
-'        .then((res) => {\n' +
-'          const resClone = res.clone();\n' +
-"          caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', resClone));\n" +
-'          return res;\n' +
-'        })\n' +
-"        .catch(() => caches.match('./index.html'))\n" +
+"      caches.match('./index.html').then((cached) => {\n" +
+'        const networkFetch = fetch(req)\n' +
+'          .then((res) => {\n' +
+'            if (res && res.status === 200) {\n' +
+'              const resClone = res.clone();\n' +
+"              caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', resClone));\n" +
+'            }\n' +
+'            return res;\n' +
+'          })\n' +
+'          .catch(() => cached);\n' +
+'        return cached || networkFetch;\n' +
+'      })\n' +
 '    );\n' +
 '    return;\n' +
 '  }\n' +
