@@ -2,7 +2,7 @@
 // auth.js — الدخول إجباري: لازم تسجيل دخول فعلي قبل استخدام التطبيق
 // ============================================================
 
-import { TURNSTILE_SITE_KEY, supabaseClient } from './config.js';
+import { AUTH_RATE_LIMIT_URL, TURNSTILE_SITE_KEY, supabaseClient } from './config.js';
 import { LOCAL_BACKUP_KEY, BACKUP_OWNER_KEY, PENDING_SYNC_KEY, showToast } from './state.js';
 import { t } from './i18n.js';
 import { escapeHtml } from './utils.js';
@@ -150,6 +150,107 @@ function handleOAuthReturnIfAny(){
 
 function isValidEmail(email){
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+// ============================================================
+// تحديد معدل المصادقة (حماية من القوة الغاشمة / credential stuffing)
+// ============================================================
+// بنسجل كل محاولة فاشلة في localStorage مع طابع زمني، وبنمنع المحاولات
+// لما المستخدم أو الإيميل يتعدى الحد في نافذة زمنية. ده طبقة دفاع عميلية
+// بسيطة فوق حماية Supabase/CAPTCHA — مش بديل عنها.
+const AUTH_RATE_LIMITS = {
+  signIn:    { max: 5, windowMs: 15 * 60 * 1000,  label: 'signIn' },
+  signUp:    { max: 3, windowMs: 60 * 60 * 1000,  label: 'signUp' },
+  forgot:    { max: 3, windowMs: 60 * 60 * 1000,  label: 'forgot' },
+};
+
+const RATE_LS_KEY = 'nazzam-auth-rate-v1';
+
+function loadRateStore(){
+  try{
+    const raw = localStorage.getItem(RATE_LS_KEY);
+    if(!raw) return {};
+    return JSON.parse(raw) || {};
+  }catch(e){ return {}; }
+}
+
+function saveRateStore(store){
+  try{ localStorage.setItem(RATE_LS_KEY, JSON.stringify(store)); }catch(e){}
+}
+
+// بيرجّع معرّف ثابت لكل نوع محاولة + إيميل (أو عام لو مفيش إيميل):
+// بنخزن بالمفتاح ده عشان نمنع محاولات متكررة لنفس الحساب.
+function rateKey(action, email){
+  const base = email ? email.toLowerCase() : 'unit';
+  return `${action}:${base}`;
+}
+
+function removeExpired(store, now){
+  for(const k of Object.keys(store)){
+    const entry = store[k];
+    if(now - entry.lastAt > entry.windowMs) delete store[k];
+  }
+}
+
+// زيد عدّاد نوع المحاولة ده، وارجع true لو المستخدم اتجاوز الحد (ممنوع).
+function recordFailedAttempt(action, email){
+  const now = Date.now();
+  const store = loadRateStore();
+  removeExpired(store, now);
+  const key = rateKey(action, email);
+  const limit = AUTH_RATE_LIMITS[action];
+  const entry = store[key] || { count: 0, lastAt: now, windowMs: limit.windowMs };
+  entry.count += 1;
+  entry.lastAt = now;
+  entry.windowMs = limit.windowMs;
+  store[key] = entry;
+  saveRateStore(store);
+  return entry.count > limit.max;
+}
+
+function isRateLimited(action, email){
+  const now = Date.now();
+  const store = loadRateStore();
+  removeExpired(store, now);
+  const key = rateKey(action, email);
+  const limit = AUTH_RATE_LIMITS[action];
+  const entry = store[key];
+  if(!entry) return false;
+  if(now - entry.lastAt > entry.windowMs) return false;
+  return entry.count > limit.max;
+}
+
+// لو اتجاوز الحد، بيرجّع عدد الدقايق الباقية للرجوع عن الحظر (لرسالة للمستخدم).
+function rateRemainingMinutes(action, email){
+  const now = Date.now();
+  const store = loadRateStore();
+  const entry = store[rateKey(action, email)];
+  if(!entry) return 0;
+  const remaining = entry.windowMs - (now - entry.lastAt);
+  return Math.max(1, Math.ceil(remaining / 60000));
+}
+
+// ------------------------------------------------------------
+// Preflight للـ Edge Function الخاصة بتحديد المعدل على مستوى الخادم.
+// بيرجّع true لو مسموح، و false لو محظور (مع رسالة)، و null لو الفنكشن
+// مش متاحة (fail-open → نكمل اعتمادًا على الحماية العميلية).
+// ------------------------------------------------------------
+async function serverRatePreflight(action, email){
+  try{
+    const res = await fetch(AUTH_RATE_LIMIT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, email }),
+    });
+    // نقرا جسم الرد دايما (حتى لو 429) عشان نعرف allowed=؟
+    let data = null;
+    try{ data = await res.json(); }catch(e){}
+    if(!data || typeof data.allowed !== 'boolean') return null; // fail-open
+    if(data.allowed === false) return typeof data.retryAfterMin === 'number' ? data.retryAfterMin : 1;
+    return true;
+  }catch(e){
+    return null; // شبكة/تعطل → fail-open
+  }
 }
 
 function mapAuthError(e){
@@ -365,8 +466,18 @@ async function signUpNewAccount(email, password, passwordConfirm){
     renderAuthGate(t('auth.passwords_match'));
     return;
   }
+  // حماية: منع إنشاء حسابات متكرر من نفس المتصفح/الإيميل.
+  if(isRateLimited('signUp', email)){
+    renderAuthGate(`${t('auth.err_rate_limit')} (${rateRemainingMinutes('signUp', email)} د)`);
+    return;
+  }
   setAccountFormBusy(true);
   try{
+    const serverOk = await serverRatePreflight('signUp', email);
+    if(typeof serverOk === 'number'){
+      renderAuthGate(`${t('auth.err_rate_limit')} (${serverOk} د)`);
+      return;
+    }
     const captcha = await getTurnstileToken();
     // لو captcha فشلت بشكل صريح (timeout/error/expired)، نمنع إرسال الطلب
     // وندّي المستخدم رسالة يعيد المحاولة بدل ما نوفر توكن فارغ.
@@ -378,7 +489,12 @@ async function signUpNewAccount(email, password, passwordConfirm){
       email, password,
       options: captcha.token ? { captchaToken: captcha.token } : undefined
     });
-    if(error) throw error;
+    if(error){
+      if(recordFailedAttempt('signUp', email)){
+        throw Object.assign(error, { __rateLimit: true });
+      }
+      throw error;
+    }
     if(data && data.session){
       window.location.reload();
     } else {
@@ -387,7 +503,10 @@ async function signUpNewAccount(email, password, passwordConfirm){
     }
   }catch(e){
     console.error('Sign up error:', e);
-    renderAuthGate(mapAuthError(e));
+    const msg = e && e.__rateLimit
+      ? `${t('auth.err_rate_limit')} (${rateRemainingMinutes('signUp', email)} د)`
+      : mapAuthError(e);
+    renderAuthGate(msg);
   }finally{
     setAccountFormBusy(false);
   }
@@ -402,8 +521,19 @@ async function signInExisting(email, password){
     renderAuthGate(t('auth.invalid_email'));
     return;
   }
+  // حماية من القوة الغاشمة: لو الموقع عدّى الحد، نمنع مبكرًا قبل إضاعة طلب للخادم.
+  if(isRateLimited('signIn', email)){
+    renderAuthGate(`${t('auth.err_rate_limit')} (${rateRemainingMinutes('signIn', email)} د)`);
+    return;
+  }
   setAccountFormBusy(true);
   try{
+    // التحقق من مستوى الخادم (اختياري، fail-open لو مش متاح)
+    const serverOk = await serverRatePreflight('signIn', email);
+    if(typeof serverOk === 'number'){
+      renderAuthGate(`${t('auth.err_rate_limit')} (${serverOk} د)`);
+      return;
+    }
     const captcha = await getTurnstileToken();
     if(captcha.reason !== 'ok'){
       renderAuthGate(t('auth.err_security'));
@@ -413,11 +543,20 @@ async function signInExisting(email, password){
       email, password,
       options: captcha.token ? { captchaToken: captcha.token } : undefined
     });
-    if(error) throw error;
+    if(error){
+      // عدّي المحاولة الفاشلة، ولو اتجاوزنا الحد نبلغ المستخدم بفترة الحظر.
+      if(recordFailedAttempt('signIn', email)){
+        throw Object.assign(error, { __rateLimit: true });
+      }
+      throw error;
+    }
     window.location.reload();
   }catch(e){
     console.error('Sign in error:', e);
-    renderAuthGate(mapAuthError(e));
+    const msg = e && e.__rateLimit
+      ? `${t('auth.err_rate_limit')} (${rateRemainingMinutes('signIn', email)} د)`
+      : mapAuthError(e);
+    renderAuthGate(msg);
   }finally{
     setAccountFormBusy(false);
   }
@@ -428,8 +567,18 @@ async function handleForgotPassword(email){
     renderAuthGate(t('auth.enter_valid_email'));
     return;
   }
+  // حماية: منع إرسال روابط إعادة تعيين متكررة (يستغل لكشف صحة الحسابات).
+  if(isRateLimited('forgot', email)){
+    renderAuthGate(`${t('auth.err_rate_limit')} (${rateRemainingMinutes('forgot', email)} د)`);
+    return;
+  }
   setAccountFormBusy(true);
   try{
+    const serverOk = await serverRatePreflight('forgot', email);
+    if(typeof serverOk === 'number'){
+      renderAuthGate(`${t('auth.err_rate_limit')} (${serverOk} د)`);
+      return;
+    }
     const captcha = await getTurnstileToken();
     if(captcha.reason !== 'ok'){
       renderAuthGate(t('auth.err_security'));
@@ -439,12 +588,20 @@ async function handleForgotPassword(email){
       redirectTo: window.location.href,
       captchaToken: captcha.token || undefined
     });
-    if(error) throw error;
+    if(error){
+      if(recordFailedAttempt('forgot', email)){
+        throw Object.assign(error, { __rateLimit: true });
+      }
+      throw error;
+    }
     gateMode = 'forgot-sent';
     renderAuthGate();
   }catch(e){
     console.error('Forgot password error:', e);
-    renderAuthGate(mapAuthError(e));
+    const msg = e && e.__rateLimit
+      ? `${t('auth.err_rate_limit')} (${rateRemainingMinutes('forgot', email)} د)`
+      : mapAuthError(e);
+    renderAuthGate(msg);
   }finally{
     setAccountFormBusy(false);
   }

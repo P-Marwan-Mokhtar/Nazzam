@@ -9,3 +9,9 @@ entrypoint = "./functions/send-digest-push/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/send-digest-push/*.html" ]
+
+[functions.auth-rate-limit]
+enabled = true
+verify_jwt = false
+import_map = "./functions/auth-rate-limit/deno.json"
+entrypoint = "./functions/auth-rate-limit/index.ts"

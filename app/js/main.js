@@ -24,8 +24,10 @@ import { toggleWeekView } from './weekView.js';
 import { closeTimelineTaskPopup, closeTbSide, toggleTimeBlockView } from './timeBlocking.js';
 import { applyHashToState, consumeShortcutViewParam } from './routing.js';
 import { applyTheme, closeAppearanceModal, openAppearanceModal } from './theme.js';
+import { initMonitoring, trackView } from './monitoring.js';
 
 (async function init(){
+  initMonitoring();
   try{
     // أول حاجة: نتأكد إن فيه مستخدم حقيقي مسجّل دخوله فعليًا قبل ما نعرض أي حاجة من التطبيق.
     // لو لأ (وده فشل حقيقي، مش بسبب النت)، بنعرض شاشة تسجيل الدخول الإجبارية ونوقف هنا؛

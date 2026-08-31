@@ -1,0 +1,70 @@
+# ============================================================
+# CI — تشغيل فحوصات الأمان والجودة عند كل push / pull request
+# ============================================================
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  syntax-and-unit-tests:
+    name: Syntax + Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: فحص صياغة كل ملفات JS في التطبيق
+        run: |
+          set -e
+          find app/js -name '*.js' -not -path 'app/js/vendor/*' -print0 | \
+            xargs -0 -n1 node --check
+
+      - name: فحص صياغة السكربتات
+        run: |
+          set -e
+          for f in scripts/*.js; do node --check "$f"; done
+
+      - name: تشغيل اختبارات الوحدة
+        run: node --test tests/
+
+  build-sw:
+    name: توليد الخدمة العاملة (SW)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: توليد app/sw.js
+        run: node scripts/build-sw.js
+
+      - name: التحقق من إنتاج app/sw.js
+        run: test -f app/sw.js && echo "SW generated OK" || (echo "app/sw.js missing" && exit 1)
+
+  verify-vercel-config:
+    name: التحقق من إعدادات Vercel
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: التحقق من JSON سليم في الإعدادات
+        run: |
+          set -e
+          node -e "JSON.parse(require('fs').readFileSync('vercel.json','utf8')); console.log('vercel.json OK')"
+          if [ -f manifest.json ] || [ -f app/manifest.json ]; then
+            node -e "JSON.parse(require('fs').readFileSync('app/manifest.json','utf8')); console.log('manifest.json OK')"
+          fi

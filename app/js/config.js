@@ -10,6 +10,11 @@ export const VAPID_PUBLIC_KEY = 'BL3YIniJb64-41-BKq-tkBuOD6ssUtfupHsjLcahvfy3u3W
 
 export const TURNSTILE_SITE_KEY = '0x4AAAAAAD-WN3zH063FV-FK';
 
+// Edge Function الخاصة بتحديد معدل المصادقة (حماية القوة الغاشمة على مستوى الخادم).
+// تبقى اختيارية: لو الفنكشن مش منشورة أو الـ secret مش مضبوط، بيتم تجاهلها
+// (fail-open) ويظل الحماية العميلية شغالة.
+export const AUTH_RATE_LIMIT_URL = `${SUPABASE_URL}/functions/v1/auth-rate-limit`;
+
 // لو مكتبة Supabase (js/vendor/supabase.js) لأي سبب متحملتش، منسيبش الخطأ ده
 // يوقف كل شجرة الـ imports بتاعة main.js (ده اللي كان بيسبب شاشة فاضية تمامًا
 // من غير أي رسالة). بدل كده supabaseClient بتبقى null، والدوال اللي بتستخدمها
