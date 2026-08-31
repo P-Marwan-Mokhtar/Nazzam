@@ -33,7 +33,9 @@ export function renderGlobalSearchResults(){
   matches.sort((a, b) => b.date.localeCompare(a.date));
 
   if(matches.length === 0){
-    listEl.innerHTML = emptyStateHtml('search_off', t('search.empty_title'), t('search.empty_hint', {query: escapeHtml(ui.globalSearchQuery.trim())}));
+    // بينمرر النص الخام (من غير escapeHtml) لأن emptyStateHtml بتهرب الـ hint
+    // تلقائيًا — كنا بنهرب قبلها فكان بيعمل ترميز مزدوج للأحرف الخاصة (& < > ...)
+    listEl.innerHTML = emptyStateHtml('search_off', t('search.empty_title'), t('search.empty_hint', {query: ui.globalSearchQuery.trim()}));
     return;
   }
 

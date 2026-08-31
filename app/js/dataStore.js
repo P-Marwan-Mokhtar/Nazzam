@@ -511,10 +511,16 @@ async function pushToServer(){
   // بنسجّل دايما منطقة الزمن الحالية للمستخدم عشان فنكشن التنبيهات على السيرفر
   // تحسب وقت التنبيه بمنطقة المستخدم نفسه بدل منطقة ثابتة
   if(state.notificationSettings) state.notificationSettings.timezone = detectTimezone();
+  // بناخد "لقطة" من الحالة ساعتها بدل ما نبعث مرجع state الحي. السبب: لو state
+  // اتعطّل (اتغيّر) وهو لسه مستني رجوع الـ upsert (async)، بيتبعت محتوى ممزوج
+  // (نص حالة قديمة ونص جديدة) — ده بيتفقده التحديثات أو يرفع حالة متآكلة فوق
+  // نسخة السيرفر. اللقطة بتضمن إن اللي بيرتاح للعملية هو ما كان موجود فعلًا لحظة
+  // بدء الرفع، وكأننا جوّدنا نسخة الرفع من التعديلات اللاحقة.
+  const snapshot = JSON.parse(JSON.stringify(state));
   const { error } = await supabaseClient
     .from('user_data')
     .upsert(
-      { user_id: currentUserId, data: state, updated_at: new Date().toISOString() },
+      { user_id: currentUserId, data: snapshot, updated_at: new Date().toISOString() },
       { onConflict: 'user_id' }
     );
   if(error) throw error;
@@ -585,6 +591,10 @@ export async function loadData(skipAuthCheck){
     if(error) throw error;
 
     if(data && data.data){
+      // بنلغي أي حفظ مؤجّل لسه معلق قبل ما نستبدل الحالة ببيانات السيرفر،
+      // عشان التعديلات اللي لسه متسجّلتش (وكانت هتترفع فوق سطر الـ upsert ده)
+      // متبقاش عالقة ترفع نسخة متآكلة؛ وبعد التطبيق بنحفظ نسخة نظيفة مطابقة.
+      cancelPendingSave();
       applyLoadedState(data.data);
       await saveLocalBackup(); // حدّث النسخة المحلية بأحدث بيانات من السيرفر
     } else {
@@ -659,4 +669,20 @@ export async function saveData(){
     saveTimer = null;
     flushPendingSave();
   }, 400);
+}
+
+// بنلغي أي حفظ مؤجّل (الـ saveTimer بتاع الـ debounce) لسه ماانطلقش.
+// بنستخدمه قبل ما نستبدل الحالة الحالية ببيانات من السيرفر في loadData،
+// عشان مفيش رفع قديم معلق يعدّي ويرفع نسخة فوق البيانات الطازجة اللي
+// جبناها (ده كان بيعمل سباق: تحميل السيرفر بيحصل وسط رفع قدام من تعديلات
+// قديمة، فتترفع الحالة المتآكلة فوق نسخة أعلى تحديثًا).
+export function cancelPendingSave(){
+  if(saveTimer !== null){
+    clearTimeout(saveTimer);
+    saveTimer = null;
+  }
+  // لو في رفع لسه قيد التنفيذ فعلًا (saveInFlight)، منلغيش طلبه الجاري —
+  // المشكلة كانت بس في الرفع المؤجّل اللي لسه ماانطلقش. التعديلات اللاحقة
+  // المعلّقة على رفع جاري بتتعاد منغير ما نلمسها.
+  savePending = false;
 }
