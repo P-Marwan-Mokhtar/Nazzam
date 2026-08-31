@@ -40,6 +40,7 @@ const PRECACHE_URLS = [
   './fonts/material-icons.woff2',
   './js/main.js',
   './js/boot-redirect.js',
+  './js/boot-sw.js',
   './js/boot-theme.js',
   './js/boot-more.js',
   './js/config.js',
