@@ -25,6 +25,50 @@
 #accountOverlay.is-gate .account-google-btn:hover {
   background: var(--paper);
 }
+
+/* ============================================================
+   شاشة تسجيل الدخول (Gate) بثيم فاتح ثابت — بتعرض بيضاء دائمًا
+   حتى لو المستخدم في الوضع الداكن (الثيم نفسه مش بيمسح بسهولة،
+   فبنثبّت كل المتغيرات بقيم فاتحة عشان الشاشة متتغيرش مع الثيم).
+   ============================================================ */
+#accountOverlay.is-gate {
+  /** الثيم الفاتح الثابت لشاشة الدخول */
+  --card: #ffffff;
+  --paper: #f4f5f7;
+  --paper-line: #e2e4e8;
+  --ink: #1f2328;
+  --ink-soft: #6b7280;
+  --done: #3e7a5c;
+  --done-soft: #dce9e0;
+  --missed: #c5382e;
+  --missed-soft: #f4dedb;
+  --pen: #c5482e;
+  --pen-soft: #e8dcd6;
+}
+#accountOverlay.is-gate .account-error {
+  background: #fdecea;
+  color: #c0392b;
+}
+#accountOverlay.is-gate .modal-card {
+  box-shadow: 0 18px 50px -12px rgba(20, 20, 20, 0.4);
+}
+/* إلغاء أي override داكن موروث من المستخدم داخل شاشة الدخول */
+.dark-mode #accountOverlay.is-gate,
+.dark-mode #accountOverlay.is-gate .account-error {
+  --card: #ffffff;
+  --paper: #f4f5f7;
+  --paper-line: #e2e4e8;
+  --ink: #1f2328;
+  --ink-soft: #6b7280;
+  --done: #3e7a5c;
+  --done-soft: #dce9e0;
+  --missed: #c5382e;
+  --missed-soft: #f4dedb;
+  --pen: #c5482e;
+  --pen-soft: #e8dcd6;
+  background: #fdecea;
+  color: #c0392b;
+}
 .account-status {
   display: flex;
   align-items: center;
