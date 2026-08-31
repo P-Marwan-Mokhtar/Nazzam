@@ -2,7 +2,7 @@
 // theme.js — تخصيص المظهر: وضع فاتح/داكن + لون مميز هادي مستقل لكل وضع
 // ============================================================
 
-import { showToast, state } from './state.js';
+import { THEME_PREF_KEY, showToast, state } from './state.js';
 import { t } from './i18n.js';
 
 // الألوان الأساسية ثابتة (نفس القيم الافتراضية الحالية) — التخصيص بيغيّر
@@ -61,6 +61,9 @@ export function applyTheme(){
   for(const [key, value] of Object.entries(palette)){
     body.style.setProperty('--' + key, value);
   }
+  // سجلّ علم الوضع الفاتح/داكن في المفتاح السريع غير المشفّر عشان الـ <head>
+  // يقراه فورًا عند الإعادة (يمنع وميض أبيض) من غير ما نستنى أول save.
+  try{ localStorage.setItem(THEME_PREF_KEY, state.darkMode ? 'dark' : 'light'); }catch(e){}
 }
 
 // تبديل وضع العرض (فاتح/داكن) + تطبيق فوري + إشعار بـ onChanged (من main.js للحفظ)

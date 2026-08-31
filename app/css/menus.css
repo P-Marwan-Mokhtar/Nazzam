@@ -2,6 +2,7 @@
 .task-more-menu-wrap {
   position: relative;
   display: flex;
+  flex-shrink: 0;
 }
 .task-more-btn {
   color: var(--ink-soft);
@@ -121,8 +122,8 @@
 .task-more-dropdown .priority-btn.priority-low .material-icons {
   color: var(--done);
 }
-body.dark-mode .task-more-dropdown .priority-btn.priority-medium,
-body.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons {
+.dark-mode .task-more-dropdown .priority-btn.priority-medium,
+.dark-mode .task-more-dropdown .priority-btn.priority-medium .material-icons {
   color: #f0ab2e;
 }
 

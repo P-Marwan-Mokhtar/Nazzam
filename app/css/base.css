@@ -51,7 +51,7 @@
 }
 
 /* ===== Dark Mode Variables & Overrides ===== */
-body.dark-mode {
+.dark-mode {
   --paper: #15171a;
   --paper-line: #2b2e34;
   --ink: #e8eaee;
@@ -77,31 +77,31 @@ body.dark-mode {
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.16), 0 3px 10px rgba(0, 0, 0, 0.12);
   --shadow-hover: 0 2px 4px rgba(0, 0, 0, 0.24), 0 8px 20px rgba(0, 0, 0, 0.2);
 }
-body.dark-mode .timer-toggle-btn.is-running {
+.dark-mode .timer-toggle-btn.is-running {
   background: #3d1f1f;
   color: #ff6b6b;
 }
-body.dark-mode .timer-delete-btn:hover {
+.dark-mode .timer-delete-btn:hover {
   background: #3d1f1f;
   color: #ff6b6b;
 }
-body.dark-mode .timer-start-btn:hover {
+.dark-mode .timer-start-btn:hover {
   background: #1a3024;
   color: var(--done);
 }
-body.dark-mode .toast {
+.dark-mode .toast {
   background: #e8eaee;
   color: #15171a;
 }
-body.dark-mode .modal-overlay {
+.dark-mode .modal-overlay {
   background: rgba(0, 0, 0, 0.65);
 }
 /* خلفية الصفحة (الـ body) في الوضع الداكن تكون أغمق من الـ wrap عشان الكارت يبان */
-body.dark-mode {
+.dark-mode {
   background-color: #0e1013;
 }
 /* الـ wrap في الوضع الداكن يفضل بنفس لون خلفية الصفحة الأساسية */
-body.dark-mode .wrap {
+.dark-mode .wrap {
   background: var(--paper);
 }
 

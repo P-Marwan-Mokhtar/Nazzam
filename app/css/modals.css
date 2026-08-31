@@ -205,7 +205,7 @@
   padding: 9px 12px;
   font-size: 0.82rem;
 }
-body.dark-mode .account-error {
+.dark-mode .account-error {
   background: #3d1f1f;
   color: #ff6b6b;
 }

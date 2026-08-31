@@ -499,8 +499,6 @@ export function render(){
 
   html += `</div>`;
 
-  contentEl.innerHTML = html;
-  
   ui.justOpenedBank = false;
   ui.justReturnedFromStats = false;
   ui.justChangedFilter = false;
@@ -508,11 +506,14 @@ export function render(){
   ui.justOpenedMobileFilters = false;
   ui.addArrowJustOpened = false;
 
-  attachEvents();
-  if(ui.timerPanelRenderedForDate !== ui.selectedDate){
-    renderTimerPanel();
-    ui.timerPanelRenderedForDate = ui.selectedDate;
-  }
+  requestAnimationFrame(() => {
+    contentEl.innerHTML = html;
+    attachEvents();
+    if(ui.timerPanelRenderedForDate !== ui.selectedDate){
+      renderTimerPanel();
+      ui.timerPanelRenderedForDate = ui.selectedDate;
+    }
+  });
 }
 
 // الشريط الجانبي: بنحط كلاس active على أيقونة الشاشة الحالية (مهام/إحصائيات/أسبوع/جدول زمني)

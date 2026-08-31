@@ -5,6 +5,7 @@
 import { TURNSTILE_SITE_KEY, supabaseClient } from './config.js';
 import { LOCAL_BACKUP_KEY, BACKUP_OWNER_KEY, PENDING_SYNC_KEY, showToast } from './state.js';
 import { t } from './i18n.js';
+import { escapeHtml } from './utils.js';
 
 let turnstileWidgetId = null;
 
@@ -90,15 +91,18 @@ function updateAccountIcon(){
 
 function getTurnstileToken(){
   return new Promise((resolve) => {
+    // لو معرفش Turnstile أصلًا أو الـ site key مش مضبوط (بيئة غير مجهّزة للـ captcha)،
+    // بنسمح بالاستمرار من غير حماية — الوضع الجوهري قبل التفعيل.
     if(typeof turnstile === 'undefined' || TURNSTILE_SITE_KEY === 'YOUR_TURNSTILE_SITE_KEY'){
-      resolve(null);
+      resolve({ ok: true, token: null, reason: 'unavailable' });
       return;
     }
     const container = document.getElementById('turnstileContainer');
-    if(!container){ resolve(null); return; }
+    if(!container){ resolve({ ok: true, token: null, reason: 'unavailable' }); return; }
 
-    // مهلة قصوى: لو ويدجت Turnstile علِق (مشكلة شبكة مثلًا) بنكمّل بدون توكن
-    // بدل ما يفضل زرار الدخول معلّق للأبد — Supabase هيرد بخطأ captcha ونعرضه للمستخدم
+    // ملاحظة: مفيش "مهلة بتسلّم null صامت" عشان مانخلّيش إرسال طلب الدخول بدون
+    // توكن captcha (اللي كان بيسمح بتجاوز آلي للدور الدفاعي). لو الـ widget علّق،
+    // بترجع نتيجة فشل صريحة والمستخدم يقدر يعيد المحاولة — مش تجاوز صامت.
     let settled = false;
     const settle = (value) => {
       if(settled) return;
@@ -107,17 +111,23 @@ function getTurnstileToken(){
       turnstileResolve = null;
       resolve(value);
     };
-    const timeoutId = setTimeout(() => settle(null), 15000);
+    // مهلة حماية فقط ضد تعليق أبدي لزرار الإرسال: بترجّع فشل صريح (مش null ناجح)
+    // والمستخدم يعيد المحاولة — مش بيسلّم توكن فارغ يستخدم في الطلب.
+    const timeoutId = setTimeout(() => {
+      settle({ ok: false, token: null, reason: 'timeout' });
+    }, 20000);
     turnstileResolve = settle;
+
+    const failWith = (reason) => settle({ ok: false, token: null, reason });
 
     if(turnstileWidgetId === null){
       turnstileWidgetId = turnstile.render(container, {
         sitekey: TURNSTILE_SITE_KEY,
         size: 'invisible',
         retry: 'auto',
-        callback: (token) => { if(turnstileResolve) turnstileResolve(token); },
-        'error-callback': () => { if(turnstileResolve) turnstileResolve(null); },
-        'expired-callback': () => { if(turnstileResolve) turnstileResolve(null); }
+        callback: (token) => settle({ ok: true, token, reason: 'ok' }),
+        'error-callback': () => failWith('error'),
+        'expired-callback': () => failWith('expired')
       });
       turnstile.execute(turnstileWidgetId);
     } else {
@@ -207,7 +217,7 @@ function renderAccountModal(){
     <div class="account-status is-linked">
       <span class="material-icons">account_circle</span>
       <div class="account-status-text">
-        <strong>${currentUserEmail || ''}</strong>
+        <strong>${escapeHtml(currentUserEmail || '')}</strong>
         <span>${t('auth.logged_in')}</span>
       </div>
     </div>
@@ -226,7 +236,7 @@ function renderAuthGate(errorMsg){
   if(!bodyEl) return;
   if(titleEl) titleEl.textContent = t('auth.login_button');
 
-  const errorHtml = errorMsg ? `<div class="account-error">${errorMsg}</div>` : '';
+  const errorHtml = errorMsg ? `<div class="account-error">${escapeHtml(errorMsg)}</div>` : '';
 
   if(gateMode === 'forgot'){
     bodyEl.innerHTML = `
@@ -357,10 +367,16 @@ async function signUpNewAccount(email, password, passwordConfirm){
   }
   setAccountFormBusy(true);
   try{
-    const captchaToken = await getTurnstileToken();
+    const captcha = await getTurnstileToken();
+    // لو captcha فشلت بشكل صريح (timeout/error/expired)، نمنع إرسال الطلب
+    // وندّي المستخدم رسالة يعيد المحاولة بدل ما نوفر توكن فارغ.
+    if(captcha.reason !== 'ok'){
+      renderAuthGate(t('auth.err_security'));
+      return;
+    }
     const { data, error } = await supabaseClient.auth.signUp({
       email, password,
-      options: captchaToken ? { captchaToken } : undefined
+      options: captcha.token ? { captchaToken: captcha.token } : undefined
     });
     if(error) throw error;
     if(data && data.session){
@@ -388,16 +404,21 @@ async function signInExisting(email, password){
   }
   setAccountFormBusy(true);
   try{
-    const captchaToken = await getTurnstileToken();
+    const captcha = await getTurnstileToken();
+    if(captcha.reason !== 'ok'){
+      renderAuthGate(t('auth.err_security'));
+      return;
+    }
     const { error } = await supabaseClient.auth.signInWithPassword({
       email, password,
-      options: captchaToken ? { captchaToken } : undefined
+      options: captcha.token ? { captchaToken: captcha.token } : undefined
     });
     if(error) throw error;
     window.location.reload();
   }catch(e){
     console.error('Sign in error:', e);
     renderAuthGate(mapAuthError(e));
+  }finally{
     setAccountFormBusy(false);
   }
 }
@@ -409,10 +430,14 @@ async function handleForgotPassword(email){
   }
   setAccountFormBusy(true);
   try{
-    const captchaToken = await getTurnstileToken();
+    const captcha = await getTurnstileToken();
+    if(captcha.reason !== 'ok'){
+      renderAuthGate(t('auth.err_security'));
+      return;
+    }
     const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
       redirectTo: window.location.href,
-      captchaToken: captchaToken || undefined
+      captchaToken: captcha.token || undefined
     });
     if(error) throw error;
     gateMode = 'forgot-sent';

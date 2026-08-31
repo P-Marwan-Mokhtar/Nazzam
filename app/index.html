@@ -5,25 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NAZZAM</title>
 
-    <script>
-      // لو فتح الموقع على /app من غير الـ slash الأخيرة (app بدل app/) بتكسر كل
-      // المسارات النسبية (js/main.js، img/...)، فالموقع بيظهر بايظ. نرجّعه فورًا
-      // للنسخة الصحيحة app/ مع الحفاظ على أي بحث أو hash في الرابط.
-      (function () {
-        try {
-          var p = window.location.pathname;
-          if (/\/app$/.test(p)) {
-            window.location.replace(
-              p + "/" + window.location.search + window.location.hash
-            );
-            return;
-          }
-          // بنعلّم إن التاب ده جوا التطبيق — عشان لو حد مسح /app/ من الرابط
-          // ووصل للجذر، اللاندينج تعرف إنه كان جوا التطبيق وترجّعه فورًا.
-          sessionStorage.setItem("nazam-in-app", "1");
-        } catch (e) {}
-      })();
-    </script>
+    <script src="js/boot-redirect.js"></script>
     <meta
       name="description"
       content="بنك مهامك الجاهز.. نظّم مهامك اليومية، تابع الوقت، وحقق أهدافك"
@@ -60,6 +42,7 @@
       href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Tajawal:wght@400;500;700;800&display=swap"
       rel="stylesheet"
     />
+    <script src="js/boot-theme.js"></script>
     <link rel="stylesheet" href="css/base.css" />
     <link rel="stylesheet" href="css/calendar.css" />
     <link rel="stylesheet" href="css/components.css" />
@@ -71,21 +54,6 @@
     <link rel="stylesheet" href="css/misc.css" />
   </head>
   <body>
-    <script>
-      (function () {
-        try {
-          var raw = localStorage.getItem("habit-data-v2");
-          if (raw) {
-            var parsed = JSON.parse(raw);
-            if (parsed && parsed.darkMode) {
-              document.body.classList.add("dark-mode");
-              var meta = document.getElementById("themeColorMeta");
-              if (meta) meta.setAttribute("content", "#14181c");
-            }
-          }
-        } catch (e) {}
-      })();
-    </script>
     <div class="sync-bar" id="syncBar"></div>
     <div class="wrap" id="app" style="display:none">
       <div class="header-card">
@@ -962,36 +930,6 @@
       defer
     ></script>
     <script type="module" src="js/main.js"></script>
-    <script>
-      // فتح/قفل قائمة "المزيد" على الموبايل — منفصل عن منطق التطبيق الأساسي
-      document.addEventListener("DOMContentLoaded", () => {
-        const moreBtn = document.getElementById("headerMoreBtn");
-        const menu = document.getElementById("headerActionsPanel");
-        if (!moreBtn || !menu) return;
-
-        const closeMenu = () => {
-          menu.classList.remove("open");
-          moreBtn.classList.remove("is-open");
-          moreBtn.setAttribute("aria-expanded", "false");
-          const dataGroup = document.getElementById("dataMenuGroup");
-          if (dataGroup) dataGroup.open = false;
-        };
-
-        moreBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const isOpen = menu.classList.toggle("open");
-          moreBtn.classList.toggle("is-open", isOpen);
-          moreBtn.setAttribute("aria-expanded", String(isOpen));
-        });
-
-        // إقفال القائمة عند الضغط على أي زرار جواها أو برّه
-        menu
-          .querySelectorAll("button")
-          .forEach((btn) => btn.addEventListener("click", closeMenu));
-        document.addEventListener("click", (e) => {
-          if (!menu.contains(e.target) && e.target !== moreBtn) closeMenu();
-        });
-      });
-    </script>
+    <script src="js/boot-more.js" defer></script>
   </body>
 </html>

@@ -4,7 +4,7 @@
 
 import { supabaseClient } from './config.js';
 import { detectTimezone, todayStr, uid } from './utils.js';
-import { LOCAL_BACKUP_KEY, BACKUP_OWNER_KEY, PENDING_SYNC_KEY, showToast, state } from './state.js';
+import { LOCAL_BACKUP_KEY, BACKUP_OWNER_KEY, PENDING_SYNC_KEY, THEME_PREF_KEY, showToast, state } from './state.js';
 import { currentUserId, ensureAuth } from './auth.js';
 import { render } from './render.js';
 import { applyTheme, isValidAccent, resolveLegacyTheme } from './theme.js';
@@ -282,7 +282,10 @@ export function importDataFromFile(file){
     }
     applyLoadedState(sanitized);
     render();
-    await saveData();
+    // حفظ محلي فوري (بالتنسيق المشفّر الحالي) + رفع فوري للسيرفر — الاستيراد
+    // بيحتاجهما حالًا ولا ينتظر debounce.
+    await saveLocalBackup();
+    await flushPendingSave();
     showToast('تم استيراد البيانات بنجاح');
   };
   reader.onerror = () => {
@@ -348,12 +351,101 @@ function setBackupOwner(userId){
   try{ localStorage.setItem(BACKUP_OWNER_KEY, userId || ''); }catch(e){}
 }
 
-function saveLocalBackup(){
+// ============================================================
+// تشفير النسخة المحلية (localStorage) بحماية "في حالة القراءة من الجهاز"
+// ============================================================
+// القيمة: أي عملية قراءة مباشرة للـ localStorage (أداة تصفّح، برنامج خبيث على
+// الجهاز، نسخ الملف) هتلاقي بيانات مشفرة صعبة القراءة بدل JSON واضح.
+//
+// المفتاح ثابت لكل مستخدم ومشتق من user_id (مع salt ثابت) عبر PBKDF2/SHA-256،
+// فيبقى صالح عبر كل reload/مزامنة. ده مش حماية ضد XSS (لأن أي سكربت جوه التطبيق
+// بيقدر يعمل نفس الاشتقاق) — بل دفاع أمامي ضد استخراج الـ localStorage من خارج
+// التطبيق نفسه.
+//
+// ملاحظة متوافقية: النسخ القديمة (JSON واضح قبل الميزة دي) بتتقري عادي وبتتترحّل
+// تلقائيًا لنسخة مشفرة عند أول حفظ بعد التحديث.
+
+const LOCAL_SALT = 'nazzam-local-v1';
+
+// الحصول على مفتاح لمُعرّف صاحب محدد — كأنه هو المستخدم الفعال.
+async function deriveLocalKeyFor(owner){
+  const material = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(owner + LOCAL_SALT),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: new TextEncoder().encode(LOCAL_SALT), iterations: 100000, hash: 'SHA-256' },
+    material,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+// هاش ثابت للمستخدم (مفتاح المشفّر الأخير) — AES key من 256 بت.
+// المستخدم الحالي دايما أولوية، ووقت الأوفلاين بنستخدم ختم الملكية المحفوظ.
+async function deriveLocalKey(){
+  return deriveLocalKeyFor(currentUserId || getBackupOwner() || '');
+}
+
+function encodeB64(buf){
+  let s = '';
+  const bytes = new Uint8Array(buf);
+  for(let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return btoa(s);
+}
+
+function decodeB64(str){
+  const bin = atob(str);
+  const bytes = new Uint8Array(bin.length);
+  for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+const ENCRYPTED_PREFIX = 'nz1:';
+
+async function saveLocalBackup(){
   try{
-    localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(state));
-    // ختم الملكية مع كل حفظ محلي — بس لو فيه حساب معروف (أونلاين). أوفلاين
-    // currentUserId بيبقى null، ولو كتبنا ختم فارغ هنا هنمسح ملكية الحساب الأصلي
-    // اللي بيتصل بيها بالشبكة لما يرجّع نت. فنحافظ على (أو نرجّع) آخر ملكية حقيقية.
+    const plaintext = JSON.stringify(state);
+    const keyOwner = currentUserId || getBackupOwner();
+    if(!keyOwner || typeof crypto === 'undefined' || !crypto.subtle){
+      // متاح دايما في http(s)/localhost، لكن لو مفيش مفتاح (أوفلاين بلا حساب)
+      // بنخزّنها واضحة. تحذير: لو فيه نسخة مشفرة سابقة (بيانات حساب مضمّنة)،
+      // منرجّعهاش لوضع عادي فوقها فنقلّص الحماية — نحافظ على الحالة المشفرة
+      // الحالية بدل ما نمسح بتاعتها ببيانات واضحة.
+      if(typeof crypto !== 'undefined' && crypto.subtle){
+        const existing = localStorage.getItem(LOCAL_BACKUP_KEY);
+        if(existing && existing.startsWith(ENCRYPTED_PREFIX)){
+          console.warn('تم رفض حفظ نسخة واضحة فوق نسخة مشفرة سابقة (بيانات الحساب)');
+          try{ localStorage.setItem(THEME_PREF_KEY, state.darkMode ? 'dark' : 'light'); }catch(_){}
+          return;
+        }
+      }
+      localStorage.setItem(LOCAL_BACKUP_KEY, plaintext);
+    } else {
+      const key = await deriveLocalKey();
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(plaintext));
+      localStorage.setItem(LOCAL_BACKUP_KEY, ENCRYPTED_PREFIX + encodeB64(iv) + '.' + encodeB64(ct));
+    }
+  }catch(e){
+    console.warn('تعذّر تشفير النسخة المحلية، سيتم الحفظ بدون تشفير:', e);
+    try{ localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(state)); }catch(_){}
+    return;
+  }
+  // علم سريع للوضع الداكن في مفتاح منفصل غير مشفّر — الـ <head> بيقراه فورًا
+  // عند الإعادة (قبل ما تخفّ بيانات الحساب وتصير جاهزة) عشان مفيش وميض أبيض.
+  // ده مجرد preferences رقيقة، مش بيانات حسّاسة فمفيش حاجة للتشفير.
+  try{
+    localStorage.setItem(THEME_PREF_KEY, state.darkMode ? 'dark' : 'light');
+  }catch(e){}
+  // ختم الملكية مع كل حفظ محلي — بس لو فيه حساب معروف (أونلاين). أوفلاين
+  // currentUserId بيبقى null، ولو كتبنا ختم فارغ هنا هنمسح ملكية الحساب الأصلي
+  // اللي بيتصل بيها بالشبكة لما يرجّع نت. فنحافظ على (أو نرجّع) آخر ملكية حقيقية.
+  try{
     if(currentUserId){
       setBackupOwner(currentUserId);
     } else if(!getBackupOwner()){
@@ -363,11 +455,43 @@ function saveLocalBackup(){
   }catch(e){}
 }
 
-function loadLocalBackup(){
+async function loadLocalBackup(){
   try{
     const res = localStorage.getItem(LOCAL_BACKUP_KEY);
-    return res ? JSON.parse(res) : null;
-  }catch(e){ return null; }
+    if(!res) return null;
+    // نسخة قديمة واضحة (مش بتتبدأ بالبادئة) — نقراها كما هي.
+    if(!res.startsWith(ENCRYPTED_PREFIX)) return JSON.parse(res);
+    // محتاج cryptograph — لو مش متوفر بنرجع null.
+    if(typeof crypto === 'undefined' || !crypto.subtle) return null;
+    const payload = res.slice(ENCRYPTED_PREFIX.length);
+    const dot = payload.indexOf('.');
+    if(dot === -1) return null;
+    const iv = decodeB64(payload.slice(0, dot));
+    const ct = decodeB64(payload.slice(dot + 1));
+
+    // نجرب فك التشفير بكل الأقفال المحتملة بالترتيب: المستخدم الحالي أولًا
+    // (نُالنسبة لأسئلة الجلسة الحيّة)، ثم ختم الملكية (يغطي حالة نسخة اتكتبت
+    // أوفلاين بمفتاح الختم قبل التسجيل). أي قفل ناجح بيحسم.
+    const candidates = [];
+    if(currentUserId) candidates.push(currentUserId);
+    if(getBackupOwner()) candidates.push(getBackupOwner());
+
+    const tried = new Set();
+    for(const owner of candidates){
+      if(tried.has(owner)) continue;
+      tried.add(owner);
+      try{
+        const key = await deriveLocalKeyFor(owner);
+        const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+        return JSON.parse(new TextDecoder().decode(pt));
+      }catch(_){ /* جرب القفل التالي */ }
+    }
+    // مفيش قفل ناجح — فك التشفير تالف بهوية مختلفة أو البيانات معطوبة.
+    return null;
+  }catch(e){
+    console.warn('تعذّر فك تشفير النسخة المحلية:', e);
+    return null;
+  }
 }
 
 // بنعلّم إن فيه تعديل محلي لسه ماوصلش للسيرفر (pending=true)، أو إننا لحقنا نرفعه (pending=false)
@@ -427,7 +551,7 @@ export async function loadData(skipAuthCheck){
     // النسخ اللي اتكتبت بعد تسجيل خروج (owner فاضي) ما نعرضهاش كبيانات حساب —
     // وإلا جلسة وهمية فاضية ممكن تتلصق فوق بيانات الحساب الحقيقي عند أول دخول بعدها.
     showToast('تعذّر الاتصال بالخادم، يعمل التطبيق حاليًا بنسخة محلية');
-    if(getBackupOwner()) applyLoadedState(loadLocalBackup());
+    if(getBackupOwner()) applyLoadedState(await loadLocalBackup());
     return;
   }
 
@@ -440,7 +564,7 @@ export async function loadData(skipAuthCheck){
   // النسخة المحلية كما هي، ونحاول نرفعها للسيرفر؛ لو نجحنا يبقى الاتنين اتزامنوا،
   // ولو فشلنا (لسه أوفلاين فعليًا) هنفضل نستخدم المحلية ونعيد المحاولة تاني بعدين.
   if(hasPendingSync()){
-    const backup = loadLocalBackup();
+    const backup = await loadLocalBackup();
     // بنرفع التعديلات المعلّقة بس لو مكتوبة باسم الحساب نفسه —
     // غير كده السيرفر هو المرجع الآمن ومنمسحش العلم ونكمل تحميل عادي
     if(backup && getBackupOwner() === currentUserId){
@@ -462,10 +586,10 @@ export async function loadData(skipAuthCheck){
 
     if(data && data.data){
       applyLoadedState(data.data);
-      saveLocalBackup(); // حدّث النسخة المحلية بأحدث بيانات من السيرفر
+      await saveLocalBackup(); // حدّث النسخة المحلية بأحدث بيانات من السيرفر
     } else {
       // أول مرة للمستخدم ده: لو عنده بيانات قديمة في localStorage، ارفعها لـ Supabase
-      const legacy = loadLocalBackup();
+      const legacy = await loadLocalBackup();
       if(legacy){
         applyLoadedState(legacy);
         await saveData();
@@ -473,7 +597,7 @@ export async function loadData(skipAuthCheck){
     }
   }catch(e){
     console.warn('تعذر التحميل من Supabase، هنستخدم النسخة المحلية:', e);
-    applyLoadedState(loadLocalBackup());
+    applyLoadedState(await loadLocalBackup());
   }
 }
 
@@ -485,26 +609,20 @@ let savePending = false;
  // مع كل عملية حفظ (كل تفاعل بيلوح توست جديد مزعج). بنصفّره لما المزامنة تنجح.
 let warnedNoServer = false;
 
-export async function saveData(){
-  saveLocalBackup(); // حفظ فوري محلي مايفوتش أي تحديث حتى لو النت وقع
-  // نعتبر التعديل ده "معلّق" لحد ما نتأكد إنه فعلًا وصل للسيرفر بنجاح تحت
-  markPendingSync(true);
+// مؤقّت الـ debounce: بيجمع كل الاستدعاءات المتتالية لـ saveData خلال فترة قصيرة
+// ويرسل آخر حالة للسيرفر مرة واحدة بس — بدل ما يبعت upsert لكل تفاعل (كتابة اسم
+// مهمة حرف بحرف مثلًا كانت بتبعت عشرات الطلبات على Supabase وتزحم الـ bandwidth).
+let saveTimer = null;
 
-  if(!currentUserId){
-    if(!warnedNoServer){
-      warnedNoServer = true;
-      showToast('تعذّر الحفظ على الخادم (لا يوجد اتصال)، تم الحفظ محليًا فقط');
-    }
-    return;
-  }
-
-  // لو في عملية حفظ شغالة، أجّل الطلب الجديد بدل ما نبعت طلبات متزاحمة
+// الدفع الفعلي لحالة очеред للسيرفر (من غير debounce). بيستخدم نفس آلية
+// saveInFlight/savePending عشان يمنع تزاحم طلبات حقيقية في حالة الاستدعاء المباشر.
+async function flushPendingSave(){
+  if(!currentUserId) return;
   if(saveInFlight){
     savePending = true;
     return;
   }
   saveInFlight = true;
-
   try{
     await pushToServer();
     warnedNoServer = false;
@@ -516,7 +634,29 @@ export async function saveData(){
     saveInFlight = false;
     if(savePending){
       savePending = false;
-      saveData();
+      flushPendingSave();
     }
   }
+}
+
+export async function saveData(){
+  await saveLocalBackup(); // حفظ فوري محلي مايفوتش أي تحديث حتى لو النت وقع
+  // نعتبر التعديل ده "معلّق" لحد ما نتأكد إنه فعلًا وصل للسيرفر بنجاح تحت
+  markPendingSync(true);
+
+  if(!currentUserId){
+    if(!warnedNoServer){
+      warnedNoServer = true;
+      showToast('تعذّر الحفظ على الخادم (لا يوجد اتصال)، تم الحفظ محليًا فقط');
+    }
+    return;
+  }
+
+  // جدولة الرفع بعد 400ms — أي saveData تاني قبلها بيلغي السابق ويأجلّها،
+  // فيصل للسيرفر آخر حالة فقط بعد ما تتوقف الكتابة.
+  if(saveTimer !== null) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveTimer = null;
+    flushPendingSave();
+  }, 400);
 }

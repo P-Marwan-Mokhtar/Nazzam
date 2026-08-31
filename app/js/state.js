@@ -15,6 +15,10 @@ export const PENDING_SYNC_KEY = 'habit-data-pending-sync-v1';
 // بيمنع تعديلات جلسة "بعد الخروج" من تلصق فوق بيانات الحساب عند أول دخول.
 export const BACKUP_OWNER_KEY = 'habit-data-backup-owner-v1';
 
+// علم سريع وغير مشفّر للوضع الداكن، بيقراه سكريبت الـ <head> في app/index.html
+// عشان يطبّق الثيم فورًا وقت الإعادة قبل ما تتفك بيانات الحساب (يمنع وميض أبيض).
+export const THEME_PREF_KEY = 'habit-data-theme-v1';
+
 export const MISSED_POPUP_SHOWN_KEY = 'nazam-missed-popup-last-shown';
 
 export const contentEl = document.getElementById('content');

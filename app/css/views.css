@@ -174,7 +174,7 @@
   transform: rotate(45deg);
 }
 /* في الوضع الداكن حدود الـ checkbox بتختفي (الـ paper-line غامقة على الكارت) — بنرفع وضوحها */
-body.dark-mode .week-task-checkbox {
+.dark-mode .week-task-checkbox {
   border-color: var(--ink-soft);
 }
 
