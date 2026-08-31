@@ -20,15 +20,24 @@ import { startOpenTimer } from './timers.js';
 // قايمة المزيد بتاع مهمة اليوم: بتفتح لتحت لو فيه مساحة كفاية تحت الزرار،
 // وبتفتح لفوق لو مفيش (عشان ميزيدش سكرول الصفحة)
 function flipTaskMoreDropdown(id){
-  const wrap = document.querySelector(`.task-more-menu-wrap[data-wrap-id="${id}"]`);
-  if(!wrap) return;
-  const btn = wrap.querySelector('.task-more-btn');
-  const dropdown = wrap.querySelector('.task-more-dropdown');
-  if(!btn || !dropdown) return;
-  const btnBottom = btn.getBoundingClientRect().bottom;
-  const spaceBelow = window.innerHeight - btnBottom;
-  ui.openTaskMoreUp = spaceBelow < dropdown.offsetHeight + 8;
-  wrap.classList.toggle('open-up', ui.openTaskMoreUp);
+  // بنحسب الاتجاه جوه requestAnimationFrame: اللحظة دي الـ DOM اكتمل جدول
+  // الـ layout بتاعه بعد الرسم، فالقياسات (offsetHeight / getBoundingClientRect)
+  // بتبقى حقيقية. لو حسبناها فورًا بعد render ممكن offsetHeight يقرا 0 (القائمة
+  // لسه متصفّدتش)، فالقايمة كانت بتفتح لتحت دايما حتى لو مفيش مكان.
+  requestAnimationFrame(() => {
+    const wrap = document.querySelector(`.task-more-menu-wrap[data-wrap-id="${id}"]`);
+    if(!wrap) return;
+    const btn = wrap.querySelector('.task-more-btn');
+    const dropdown = wrap.querySelector('.task-more-dropdown');
+    if(!btn || !dropdown) return;
+    const btnBottom = btn.getBoundingClientRect().bottom;
+    const spaceBelow = window.innerHeight - btnBottom;
+    const ddHeight = dropdown.offsetHeight;
+    // لو الـ offsetHeight لسه 0 (القايمة مش ظاهرة/مصفّدة لسه) بنعتبر إن مفيش
+    // مساحة كفاية ونفتح لفوق كقرار أأمن بدل ما تدفع القايمة بره الشاشة.
+    ui.openTaskMoreUp = (ddHeight === 0) || (spaceBelow < ddHeight + 8);
+    wrap.classList.toggle('open-up', ui.openTaskMoreUp);
+  });
 }
 
 // تذكير المهمة: بيفتح الـ time picker بتاع التطبيق (الموجود أصلًا لتنبيه الصباح/المساء)
