@@ -5,7 +5,7 @@
 // رقم الإصدار (CACHE_VERSION) بيتغيّر تلقائيًا مع أي تغيير في المحتوى.
 // ============================================================
 
-const CACHE_VERSION = 'v783113b6a2';
+const CACHE_VERSION = 'v3f598f07d7';
 const CACHE_NAME = 'daily-tasks-shell-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -35,6 +35,7 @@ const PRECACHE_URLS = [
   "./js/boot-more.js",
   "./js/config.js",
   "./js/auth.js",
+  "./js/accountMenu.js",
   "./js/state.js",
   "./js/utils.js",
   "./js/render.js",

@@ -80,9 +80,6 @@
             <button class="header-icon-btn" id="weekViewBtn" title="عرض الأسبوع" data-i18n-title="nav.week_view">
               <span class="material-icons">view_week</span>
             </button>
-            <button class="header-icon-btn" id="themeBtn" title="المظهر" data-i18n-title="nav.theme">
-              <span class="material-icons" id="themeIcon">palette</span>
-            </button>
           </div>
 
           <div class="header-actions-wrap">
@@ -136,15 +133,6 @@
               </button>
               <button
                 class="header-menu-item"
-                id="appearanceMenuItem"
-                title="المظهر"
-                data-i18n-title="nav.theme"
-              >
-                <span class="material-icons">palette</span>
-                <span class="header-btn-label" data-i18n="nav.theme">المظهر</span>
-              </button>
-              <button
-                class="header-menu-item"
                 id="weekViewMenuItem"
                 title="عرض الأسبوع"
                 data-i18n-title="nav.week_view"
@@ -162,10 +150,6 @@
                 <span class="header-btn-label" data-i18n="nav.smart_lists">القوائم الذكية</span>
               </button>
               <div class="header-menu-divider"></div>
-              <button class="header-menu-item" id="langToggleBtn">
-                <span class="material-icons">translate</span>
-                <span class="header-btn-label" id="langToggleLabel" data-i18n="nav.language_toggle">تبديل اللغة</span>
-              </button>
               <details class="header-menu-group" id="dataMenuGroup">
                 <summary class="header-menu-item header-menu-summary">
                   <span class="material-icons">import_export</span>
@@ -228,7 +212,7 @@
             <button class="side-nav-btn side-nav-collapse-btn" id="sideNavCollapseBtn" title="طي/توسيع الشريط" data-i18n-title="nav.side_nav_toggle">
               <span class="material-icons">chevron_right</span>
             </button>
-            <button class="side-nav-btn" data-side-target="accountBtn" title="الحساب" data-i18n-title="nav.account">
+            <button class="side-nav-btn" id="sideNavAccountBtn" title="الحساب" data-i18n-title="nav.account">
               <span class="material-icons">person_outline</span>
               <span class="side-nav-label" data-i18n="nav.account">الحساب</span>
             </button>
@@ -253,24 +237,6 @@
             <span class="material-icons">auto_awesome</span>
             <span class="side-nav-label" data-i18n="nav.smart_lists">القوائم الذكية</span>
           </button>
-          <button class="side-nav-btn" data-side-target="themeBtn" title="المظهر" data-i18n-title="nav.theme">
-            <span class="material-icons">palette</span>
-            <span class="side-nav-label" data-i18n="nav.theme">المظهر</span>
-          </button>
-          <div class="side-nav-data-wrap">
-            <button class="side-nav-btn" id="sideNavLangBtn" title="تبديل اللغة" data-i18n-title="nav.language_toggle">
-              <span class="material-icons">translate</span>
-              <span class="side-nav-label" data-i18n="nav.language_toggle">تبديل اللغة</span>
-            </button>
-            <div class="side-nav-popover" id="sideNavLangPopover">
-              <button class="header-menu-item" id="langArBtn">
-                <span class="header-btn-label">عربي</span>
-              </button>
-              <button class="header-menu-item" id="langEnBtn">
-                <span class="header-btn-label">English</span>
-              </button>
-            </div>
-          </div>
           <div class="side-nav-divider"></div>
           <button class="side-nav-btn" data-side-target="globalSearchBtnMobile" title="البحث في كل المهام" data-i18n-title="nav.search_all">
             <span class="material-icons">manage_search</span>
@@ -330,6 +296,11 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- لوحة الحساب المنسدلة: الحساب + المظهر + اللغة (تفتح من زر المستخدم) -->
+      <div class="account-panel" id="accountPanel" role="menu" aria-label="الحساب والإعدادات">
+        <div class="account-panel-body" id="accountPanelBody"></div>
       </div>
     </div>
 

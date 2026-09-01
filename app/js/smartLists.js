@@ -54,7 +54,7 @@ export function renderSmartLists(){
   }).join('');
 
   contentEl.innerHTML = `
-    <div class="smart-view animate-in">
+    <div class="smart-view ${ui.justReturnedFromStats ? 'animate-in' : ''}">
       <div class="view-page-head">
         <button class="nav-btn" data-action="smart-close" title="${t('smart.back')}">
           <span class="material-icons">chevron_right</span>
@@ -70,6 +70,7 @@ export function renderSmartLists(){
     const btn = e.target.closest('button[data-action]');
     handleContentAction(btn, e);
   };
+  ui.justReturnedFromStats = false;
 }
 
 function countFor(key, today){

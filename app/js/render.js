@@ -564,7 +564,7 @@ export function render(){
 // الشريط الجانبي: بنحط كلاس active على أيقونة الشاشة الحالية (مهام/إحصائيات/أسبوع/جدول زمني)
 function updateSideNavActive(){
   document.querySelectorAll('.side-nav .side-nav-btn').forEach(btn => btn.classList.remove('active'));
-  const onMainView = !ui.statsViewOpen && !ui.weekViewOpen && !ui.timeBlockViewOpen;
+  const onMainView = !ui.statsViewOpen && !ui.weekViewOpen && !ui.timeBlockViewOpen && !ui.smartListsOpen;
   const mark = (id, cond) => {
     const el = document.getElementById(id);
     if(el) el.classList.toggle('active', cond);
@@ -578,6 +578,7 @@ function updateSideNavActive(){
   mark('sideNavStatsBtn', ui.statsViewOpen);
   mark('sideNavWeekBtn', ui.weekViewOpen);
   mark('sideNavTimeBlockBtn', ui.timeBlockViewOpen);
+  mark('sideNavSmartListsBtn', ui.smartListsOpen);
   markHeader('headerTasksBtn', onMainView);
   markHeader('statsBtnTop', ui.statsViewOpen);
   markHeader('headerTimeBlockBtn', ui.timeBlockViewOpen);

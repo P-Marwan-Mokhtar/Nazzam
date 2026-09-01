@@ -2,7 +2,8 @@
 .stats-view,
 .day-view.animate-in,
 .week-view.animate-in,
-.timeblock-view.animate-in {
+.timeblock-view.animate-in,
+.smart-view.animate-in {
   animation: statsFadeIn 0.25s ease;
 }
 @keyframes statsFadeIn {

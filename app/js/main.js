@@ -3,7 +3,7 @@
 // ============================================================
 
 import { showToast, state, ui } from './state.js';
-import { initLang, setLang, getLang, t, applyStaticTranslations } from './i18n.js';
+import { initLang, getLang, applyStaticTranslations } from './i18n.js';
 import { closeAccountModal, ensureAuth, openAccountModal, openAuthGate } from './auth.js';
 import { closeCalendarModal, openCalendarModal } from './calendar.js';
 import { exportDataAsJSON, importDataFromFile, loadData, saveData, trySyncPending } from './dataStore.js';
@@ -23,10 +23,11 @@ import { closeDurationPicker, commitDurationPicker } from './wheelPicker.js';
 import { toggleWeekView } from './weekView.js';
 import { closeTimelineTaskPopup, closeTbSide, toggleTimeBlockView } from './timeBlocking.js';
 import { applyHashToState, consumeShortcutViewParam } from './routing.js';
-import { applyTheme, closeAppearanceModal, openAppearanceModal } from './theme.js';
+import { applyTheme, closeAppearanceModal } from './theme.js';
 import { initMonitoring, trackView } from './monitoring.js';
 import { closeUpgrade, gateFree } from './upgrade.js';
 import { openSmartLists } from './smartLists.js';
+import { closeAccountPanel, isAccountPanelOpen, toggleAccountPanel } from './accountMenu.js';
 
 (async function init(){
   initMonitoring();
@@ -92,6 +93,10 @@ async function startApp(){
   });
 
   document.addEventListener('click', (e) => {
+    const accountPanel = document.getElementById('accountPanel');
+    if(accountPanel && isAccountPanelOpen() && !e.target.closest('#accountPanel') && !e.target.closest('#accountBtn') && !e.target.closest('#sideNavAccountBtn')){
+      closeAccountPanel();
+    }
     document.querySelectorAll('.custom-select.open').forEach(s => s.classList.remove('open'));
     const statsDropdown = document.getElementById('statsTabDropdown');
     if(statsDropdown && !e.target.closest('.stats-tab-dropdown-wrap')){
@@ -154,10 +159,6 @@ async function startApp(){
       ui.timerTypePopoverOpen = false;
       renderTimerPanel();
     }
-    const langPop = document.getElementById('sideNavLangPopover');
-    if(langPop && langPop.classList.contains('open') && !e.target.closest('#sideNavLangBtn') && !langPop.contains(e.target)){
-      langPop.classList.remove('open');
-    }
     if(ui.tbSideOpen && !e.target.closest('.timeblock-side') && !e.target.closest('#tbToggleSideBtn')){
       closeTbSide();
     }
@@ -166,15 +167,6 @@ async function startApp(){
       rangeMenu.classList.remove('open');
     }
   });
-
-  const onAppearanceChanged = async () => {
-    if(ui.statsViewOpen) renderStatsView(); // لو قافل على الإحصائيات نعيد رسمها بألوان المظهر الجديد
-    if(ui.taskStatsName) renderTaskStatsView(ui.taskStatsName); // نفس الشيء لشاشة إحصائيات المهمة الواحدة
-    await saveData();
-  };
-  document.getElementById('themeBtn').onclick = () => openAppearanceModal(onAppearanceChanged);
-  const appearanceMenuItem = document.getElementById('appearanceMenuItem');
-  if(appearanceMenuItem) appearanceMenuItem.onclick = () => openAppearanceModal(onAppearanceChanged);
 
   const toggleStatsView = () => {
     const wasOpen = ui.statsViewOpen;
@@ -351,7 +343,16 @@ async function startApp(){
     if(e.target === draftsOverlay) closeDraftsModal();
   });
 
-  document.getElementById('accountBtn').onclick = openAccountModal;
+  const accountBtn = document.getElementById('accountBtn');
+  if(accountBtn) accountBtn.onclick = (e) => {
+    e.stopPropagation();
+    toggleAccountPanel(accountBtn);
+  };
+  const sideNavAccountBtn = document.getElementById('sideNavAccountBtn');
+  if(sideNavAccountBtn) sideNavAccountBtn.onclick = (e) => {
+    e.stopPropagation();
+    toggleAccountPanel(sideNavAccountBtn);
+  };
   document.getElementById('closeAccountBtn').onclick = closeAccountModal;
   const accountOverlay = document.getElementById('accountOverlay');
   accountOverlay.addEventListener('click', (e) => {
@@ -426,8 +427,7 @@ async function startApp(){
         sideNavDataPopover.classList.remove('open');
         sideNavDataBtn.classList.remove('is-open');
       }
-      const langPop = document.getElementById('sideNavLangPopover');
-      if(langPop && langPop.classList.contains('open')) langPop.classList.remove('open');
+      if(isAccountPanelOpen()) closeAccountPanel();
       if(ui.taskStatsName){ ui.taskStatsName = null; ui.justReturnedFromStats = true; render(); }
       if(ui.statsViewOpen){ ui.statsViewOpen = false; ui.justReturnedFromStats = true; render(); }
       if(ui.weekViewOpen){ ui.weekViewOpen = false; ui.justReturnedFromStats = true; render(); }
@@ -464,43 +464,8 @@ async function startApp(){
 
   checkMissedTasksPopup();
 
-  // تحديث عنوان الصفحة + زرار اللغة
+  // عنوان الصفحة حسب اللغة (تغيير اللغة بيحصل من لوحة الحساب في accountMenu.js)
   document.title = getLang() === 'ar' ? 'Nazzam — إدارة المهام' : 'Nazzam — Task Manager';
-  function syncLangLabel(){
-    const lbl = document.getElementById('langToggleLabel');
-    if(lbl) lbl.textContent = getLang() === 'ar' ? 'English' : 'عربي';
-    const arBtn = document.getElementById('langArBtn');
-    const enBtn = document.getElementById('langEnBtn');
-    if(arBtn) arBtn.classList.toggle('is-linked', getLang() === 'ar');
-    if(enBtn) enBtn.classList.toggle('is-linked', getLang() === 'en');
-  }
-  syncLangLabel();
-  function doToggleLang(lang){
-    if(getLang() === lang) return;
-    setLang(lang);
-    ui.timerPanelRenderedForDate = null;
-    render();
-    applyStaticTranslations();
-    document.title = lang === 'ar' ? 'Nazzam — إدارة المهام' : 'Nazzam — Task Manager';
-    syncLangLabel();
-    // إغلاق البوب أبات
-    const pop = document.getElementById('sideNavLangPopover');
-    if(pop) pop.classList.remove('open');
-  }
-  const sideLangBtn = document.getElementById('sideNavLangBtn');
-  if(sideLangBtn) sideLangBtn.onclick = () => {
-    const pop = document.getElementById('sideNavLangPopover');
-    if(pop) pop.classList.toggle('open');
-  };
-  const langArBtn = document.getElementById('langArBtn');
-  const langEnBtn = document.getElementById('langEnBtn');
-  if(langArBtn) langArBtn.onclick = () => doToggleLang('ar');
-  if(langEnBtn) langEnBtn.onclick = () => doToggleLang('en');
-  // الموبايل: toggle مباشر من القائمة المنسدلة
-  const langToggleBtn = document.getElementById('langToggleBtn');
-  if(langToggleBtn) langToggleBtn.onclick = () => {
-    doToggleLang(getLang() === 'ar' ? 'en' : 'ar');
-  };
 
   // نسجّل الـ Service Worker ونبدأ فحص التنبيهات المحلية (لو المستخدم مفعّلها أصلاً) بعد ما البيانات توصل
   await registerServiceWorker();

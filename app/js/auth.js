@@ -14,7 +14,7 @@ let turnstileResolve = null;
 
 export let currentUserId = null;
 
-let currentUserEmail = null;
+export let currentUserEmail = null;
 
 // وضع شاشة الدخول الإجبارية (تظهر لما مفيش مستخدم مسجّل دخوله فعليًا)
 let gateMode = 'signin'; // 'signin' | 'signup' | 'forgot' | 'forgot-sent' | 'confirm-sent'
@@ -641,7 +641,7 @@ async function signInWithGoogle(){
   }
 }
 
-async function signOutUser(){
+export async function signOutUser(){
   if(!confirm(t('auth.logout_confirm'))) return;
   // حماية من فقدان البيانات: لو فيه تعديلات محلية لسه ماوصلتش للسيرفر، تسجيل الخروج
   // كان بيمسح النسخة المحلية الوحيدة اللي فيها التعديلات دي — وعند الدخول التاني

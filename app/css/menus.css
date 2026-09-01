@@ -478,3 +478,237 @@
 .notif-setting-status.denied{ color: var(--missed); }
 
 /* تحت 900px (اللي بيحصل فيه تختيـط عرض واحد والأهمان بتاخد عرض كامل)، قوائم الوقت والأولوية الفرعية بتفتح للداخل (يمين) بدل ما تطلع برجه الصفحة وتعمل scroll أفقي */
+/* ============================================================
+   لوحة الحساب المنسدلة (account-panel) — تدمج الحساب + المظهر + اللغة
+   ============================================================ */
+.account-panel {
+  position: fixed;
+  top: 64px;
+  inset-inline-end: 18px;
+  width: min(320px, calc(100vw - 32px));
+  max-height: calc(100vh - 90px);
+  overflow-y: auto;
+  background: var(--popup);
+  border: 1px solid var(--popup-border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-hover);
+  z-index: 180;
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+  pointer-events: none;
+  transform-origin: top;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+.account-panel.open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+.account-panel-body {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+}
+.ap-section {
+  padding: 4px 2px 10px;
+}
+.ap-section + .ap-section {
+  border-top: 1px solid var(--paper-line);
+  padding-top: 12px;
+}
+.ap-section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+  padding-inline-start: 2px;
+}
+.ap-section-title .material-icons {
+  font-size: 16px;
+  color: var(--pen);
+}
+/* حساب */
+.ap-account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--paper);
+  border: 1px solid var(--paper-line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+.ap-account-icon {
+  color: var(--done);
+  font-size: 26px;
+  flex-shrink: 0;
+}
+.ap-account-text {
+  min-width: 0;
+  flex: 1;
+}
+.ap-account-text strong {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ap-account-text span {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+.ap-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  border-radius: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.ap-icon-btn:hover {
+  background: var(--paper-line);
+  color: var(--ink);
+}
+.ap-icon-btn .material-icons {
+  font-size: 20px;
+}
+.ap-icon-btn-danger {
+  color: var(--missed);
+}
+.ap-icon-btn-danger:hover {
+  background: color-mix(in srgb, var(--missed) 12%, transparent);
+  color: var(--missed);
+}
+.ap-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: 1px solid var(--paper-line);
+  background: var(--card);
+  color: var(--ink);
+  border-radius: 12px;
+  padding: 9px 12px;
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: start;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.ap-btn:hover {
+  background: var(--pen-soft);
+  border-color: var(--pen);
+}
+.ap-btn .material-icons {
+  font-size: 18px;
+  color: var(--pen);
+}
+.ap-btn-danger {
+  color: var(--missed);
+}
+.ap-btn-danger:hover {
+  background: color-mix(in srgb, var(--missed) 10%, transparent);
+  border-color: var(--missed);
+}
+.ap-btn-danger .material-icons {
+  color: var(--missed);
+}
+/* وضع العرض + اللغة */
+.ap-mode-row {
+  display: flex;
+  gap: 8px;
+}
+.ap-mode-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--card);
+  border: 1.5px solid var(--paper-line);
+  color: var(--ink);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.ap-mode-btn .material-icons {
+  font-size: 17px;
+}
+.ap-mode-btn.active {
+  border-color: var(--pen);
+  background: var(--pen-soft);
+  color: var(--pen);
+}
+/* الألوان المميزة */
+.ap-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.ap-swatch {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--paper-line);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease, border-color 0.15s ease;
+}
+.ap-swatch:hover {
+  transform: scale(1.08);
+}
+.ap-swatch-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--dot);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+.ap-swatch.active {
+  border-color: var(--pen);
+}
+.ap-swatch.active::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border: 2px solid var(--pen);
+  border-radius: 50%;
+  opacity: 0.4;
+}
+/* على الموبايل بتفتح كـ bottom sheet عشان مايتقطعلهاش الطول */
+@media (max-width: 640px) {
+  .account-panel {
+    top: auto;
+    bottom: 0;
+    inset-inline-end: 0;
+    inset-inline-start: 0;
+    width: 100%;
+    max-height: 78vh;
+    border-radius: 20px 20px 0 0;
+    transform: translateY(16px);
+  }
+  .account-panel.open {
+    transform: translateY(0);
+  }
+}

@@ -45,6 +45,7 @@ const PRECACHE_URLS = [
   './js/boot-more.js',
   './js/config.js',
   './js/auth.js',
+  './js/accountMenu.js',
   './js/state.js',
   './js/utils.js',
   './js/render.js',
