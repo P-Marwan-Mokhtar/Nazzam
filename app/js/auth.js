@@ -91,14 +91,15 @@ function updateAccountIcon(){
 
 function getTurnstileToken(){
   return new Promise((resolve) => {
-    // لو معرفش Turnstile أصلًا أو الـ site key مش مضبوط (بيئة غير مجهّزة للـ captcha)،
-    // بنسمح بالاستمرار من غير حماية — الوضع الجوهري قبل التفعيل.
+    // لو الـ Turnstile مش متاح أو الـ site key مش مضبوط، نرفض بشكل صريح (fail-closed)
+    // بدل ما نعدّي من غير تحدي. ده يمنع تجاوز الحماية الآلي لمجرد غلق السكربت.
+    // المستخدم هياخد رسالة "تعذّر التحقق الأمني" ويعيد المحاولة — مش دخول بدون تحقق.
     if(typeof turnstile === 'undefined' || TURNSTILE_SITE_KEY === 'YOUR_TURNSTILE_SITE_KEY'){
-      resolve({ ok: true, token: null, reason: 'unavailable' });
+      resolve({ ok: false, token: null, reason: 'unavailable' });
       return;
     }
     const container = document.getElementById('turnstileContainer');
-    if(!container){ resolve({ ok: true, token: null, reason: 'unavailable' }); return; }
+    if(!container){ resolve({ ok: false, token: null, reason: 'unavailable' }); return; }
 
     // ملاحظة: مفيش "مهلة بتسلّم null صامت" عشان مانخلّيش إرسال طلب الدخول بدون
     // توكن captcha (اللي كان بيسمح بتجاوز آلي للدور الدفاعي). لو الـ widget علّق،
@@ -234,6 +235,12 @@ function rateRemainingMinutes(action, email){
   return Math.max(1, Math.ceil(remaining / 60000));
 }
 
+// رسالة موحّدة لمعدل المحاولات — بتدمج عدد الدقايق في نص احترافي واحد
+// (بدل إضافة "(15 د)" خام بعد الرسالة في كل مكان).
+function rateLimitMessage(minutes){
+  return t('auth.err_rate_limit', { minutes });
+}
+
 // ------------------------------------------------------------
 // Preflight للـ Edge Function الخاصة بتحديد المعدل على مستوى الخادم.
 // بيرجّع true لو مسموح، و false لو محظور (مع رسالة)، و null لو الفنكشن
@@ -263,10 +270,10 @@ function mapAuthError(e){
   if(msg.includes('already registered') || msg.includes('already been registered')) return t('auth.err_exists');
   if(msg.includes('Email not confirmed')) return t('auth.err_not_confirmed');
   if(msg.includes('Password should be at least')) return t('auth.err_password_short');
-  if(msg.toLowerCase().includes('rate limit') || msg.includes('Too Many') || msg.includes('429')) return t('auth.err_rate_limit');
+  if(msg.toLowerCase().includes('rate limit') || msg.includes('Too Many') || msg.includes('429')) return t('auth.err_rate_limit_generic');
   if(msg.toLowerCase().includes('captcha')) return t('auth.err_security');
   if(msg.includes('Failed to fetch') || msg.includes('NetworkError')) return t('auth.err_network');
-  return msg || t('auth.err_generic');
+  return t('auth.err_generic');
 }
 
 function setAccountFormBusy(busy){
@@ -472,14 +479,14 @@ async function signUpNewAccount(email, password, passwordConfirm){
   }
   // حماية: منع إنشاء حسابات متكرر من نفس المتصفح/الإيميل.
   if(isRateLimited('signUp', email)){
-    renderAuthGate(`${t('auth.err_rate_limit')} (${rateRemainingMinutes('signUp', email)} د)`);
+    renderAuthGate(rateLimitMessage(rateRemainingMinutes('signUp', email)));
     return;
   }
   setAccountFormBusy(true);
   try{
     const serverOk = await serverRatePreflight('signUp', email);
     if(typeof serverOk === 'number'){
-      renderAuthGate(`${t('auth.err_rate_limit')} (${serverOk} د)`);
+      renderAuthGate(rateLimitMessage(serverOk));
       return;
     }
     const captcha = await getTurnstileToken();
@@ -508,7 +515,7 @@ async function signUpNewAccount(email, password, passwordConfirm){
   }catch(e){
     console.error('Sign up error:', e);
     const msg = e && e.__rateLimit
-      ? `${t('auth.err_rate_limit')} (${rateRemainingMinutes('signUp', email)} د)`
+      ? rateLimitMessage(rateRemainingMinutes('signUp', email))
       : mapAuthError(e);
     renderAuthGate(msg);
   }finally{
@@ -527,7 +534,7 @@ async function signInExisting(email, password){
   }
   // حماية من القوة الغاشمة: لو الموقع عدّى الحد، نمنع مبكرًا قبل إضاعة طلب للخادم.
   if(isRateLimited('signIn', email)){
-    renderAuthGate(`${t('auth.err_rate_limit')} (${rateRemainingMinutes('signIn', email)} د)`);
+    renderAuthGate(rateLimitMessage(rateRemainingMinutes('signIn', email)));
     return;
   }
   setAccountFormBusy(true);
@@ -535,7 +542,7 @@ async function signInExisting(email, password){
     // التحقق من مستوى الخادم (اختياري، fail-open لو مش متاح)
     const serverOk = await serverRatePreflight('signIn', email);
     if(typeof serverOk === 'number'){
-      renderAuthGate(`${t('auth.err_rate_limit')} (${serverOk} د)`);
+      renderAuthGate(rateLimitMessage(serverOk));
       return;
     }
     const captcha = await getTurnstileToken();
@@ -558,7 +565,7 @@ async function signInExisting(email, password){
   }catch(e){
     console.error('Sign in error:', e);
     const msg = e && e.__rateLimit
-      ? `${t('auth.err_rate_limit')} (${rateRemainingMinutes('signIn', email)} د)`
+      ? rateLimitMessage(rateRemainingMinutes('signIn', email))
       : mapAuthError(e);
     renderAuthGate(msg);
   }finally{
@@ -573,14 +580,14 @@ async function handleForgotPassword(email){
   }
   // حماية: منع إرسال روابط إعادة تعيين متكررة (يستغل لكشف صحة الحسابات).
   if(isRateLimited('forgot', email)){
-    renderAuthGate(`${t('auth.err_rate_limit')} (${rateRemainingMinutes('forgot', email)} د)`);
+    renderAuthGate(rateLimitMessage(rateRemainingMinutes('forgot', email)));
     return;
   }
   setAccountFormBusy(true);
   try{
     const serverOk = await serverRatePreflight('forgot', email);
     if(typeof serverOk === 'number'){
-      renderAuthGate(`${t('auth.err_rate_limit')} (${serverOk} د)`);
+      renderAuthGate(rateLimitMessage(serverOk));
       return;
     }
     const captcha = await getTurnstileToken();
@@ -603,7 +610,7 @@ async function handleForgotPassword(email){
   }catch(e){
     console.error('Forgot password error:', e);
     const msg = e && e.__rateLimit
-      ? `${t('auth.err_rate_limit')} (${rateRemainingMinutes('forgot', email)} د)`
+      ? rateLimitMessage(rateRemainingMinutes('forgot', email))
       : mapAuthError(e);
     renderAuthGate(msg);
   }finally{
