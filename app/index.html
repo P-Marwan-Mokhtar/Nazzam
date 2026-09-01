@@ -152,6 +152,15 @@
                 <span class="material-icons">view_week</span>
                 <span class="header-btn-label" data-i18n="nav.week_view">عرض الأسبوع</span>
               </button>
+              <button
+                class="header-menu-item"
+                id="smartListsBtn"
+                title="القوائم الذكية"
+                data-i18n-title="nav.smart_lists"
+              >
+                <span class="material-icons">auto_awesome</span>
+                <span class="header-btn-label" data-i18n="nav.smart_lists">القوائم الذكية</span>
+              </button>
               <div class="header-menu-divider"></div>
               <button class="header-menu-item" id="langToggleBtn">
                 <span class="material-icons">translate</span>
@@ -239,6 +248,10 @@
           <button class="side-nav-btn" id="sideNavWeekBtn" data-side-target="weekViewBtn" title="عرض الأسبوع" data-i18n-title="nav.week_view">
             <span class="material-icons">view_week</span>
             <span class="side-nav-label" data-i18n="nav.week_view">عرض الأسبوع</span>
+          </button>
+          <button class="side-nav-btn" id="sideNavSmartListsBtn" title="القوائم الذكية" data-i18n-title="nav.smart_lists">
+            <span class="material-icons">auto_awesome</span>
+            <span class="side-nav-label" data-i18n="nav.smart_lists">القوائم الذكية</span>
           </button>
           <button class="side-nav-btn" data-side-target="themeBtn" title="المظهر" data-i18n-title="nav.theme">
             <span class="material-icons">palette</span>
@@ -524,6 +537,19 @@
         </div>
         <div class="modal-body" id="accountBody"></div>
         <div id="turnstileContainer"></div>
+      </div>
+    </div>
+
+    <!-- Modal الترقية: عرض خطة Pro + ميزاتها (الدفع قريبًا مع Tap) -->
+    <div class="modal-overlay" id="upgradeOverlay">
+      <div class="modal-card" style="max-width: 420px">
+        <div class="modal-header">
+          <h2 data-i18n="plan.title">الخطة</h2>
+          <button class="icon-btn" id="closeUpgradeBtn" title="إغلاق" data-i18n-title="c.close">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+        <div class="modal-body" id="upgradeBody"></div>
       </div>
     </div>
 

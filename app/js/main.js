@@ -25,6 +25,8 @@ import { closeTimelineTaskPopup, closeTbSide, toggleTimeBlockView } from './time
 import { applyHashToState, consumeShortcutViewParam } from './routing.js';
 import { applyTheme, closeAppearanceModal, openAppearanceModal } from './theme.js';
 import { initMonitoring, trackView } from './monitoring.js';
+import { closeUpgrade, gateFree } from './upgrade.js';
+import { openSmartLists } from './smartLists.js';
 
 (async function init(){
   initMonitoring();
@@ -184,6 +186,7 @@ async function startApp(){
       ui.weekViewOpen = false;
       ui.timeBlockViewOpen = false;
       ui.taskStatsName = null;
+      ui.smartListsOpen = false;
     }
     render();
   };
@@ -197,6 +200,7 @@ async function startApp(){
       ui.weekViewOpen = false;
       ui.timeBlockViewOpen = false;
       ui.taskStatsName = null;
+      ui.smartListsOpen = false;
       ui.justReturnedFromStats = true;
       render();
     });
@@ -228,17 +232,22 @@ async function startApp(){
 
   document.getElementById('exportDataBtn').onclick = exportDataAsJSON;
   const exportIcsBtn = document.getElementById('exportIcsBtn');
-  if(exportIcsBtn) exportIcsBtn.onclick = exportCalendarAsICS;
+  if(exportIcsBtn) exportIcsBtn.onclick = () => {
+    if(!gateFree('icsExport')) return;
+    exportCalendarAsICS();
+  };
 
   // «تقارير PDF» في قائمة البيانات: بيوصل المستخدم لشاشة الإحصائيات —
   // مصدر زرار التصدير السياقي (يومي/أسبوعي) بدل ما نكرر منطق التصدير هنا.
   const openStatsPdfBtn = document.getElementById('openStatsPdfBtn');
   if(openStatsPdfBtn){
     openStatsPdfBtn.onclick = () => {
+      if(!gateFree('pdfExport')) return;
       ui.statsViewOpen = true;
       ui.weekViewOpen = false;
       ui.timeBlockViewOpen = false;
       ui.taskStatsName = null;
+      ui.smartListsOpen = false;
       render();
     };
   }
@@ -264,6 +273,7 @@ async function startApp(){
       ui.weekViewOpen = false;
       ui.timeBlockViewOpen = false;
       ui.taskStatsName = null;
+      ui.smartListsOpen = false;
       ui.justReturnedFromStats = true;
       render();
     });
@@ -354,6 +364,18 @@ async function startApp(){
     if(e.target === appearanceOverlay) closeAppearanceModal();
   });
 
+  // القوائم الذكية (ميزة Pro)
+  const openSmart = () => { if(gateFree('smartLists')) openSmartLists(); };
+  document.getElementById('smartListsBtn').onclick = openSmart;
+  document.getElementById('sideNavSmartListsBtn').onclick = openSmart;
+
+  // نافذة الترقية (الخطة): إغلاق يدوي + بالنقر بره
+  const upgradeOverlay = document.getElementById('upgradeOverlay');
+  document.getElementById('closeUpgradeBtn').onclick = closeUpgrade;
+  upgradeOverlay.addEventListener('click', (e) => {
+    if(e.target === upgradeOverlay) closeUpgrade();
+  });
+
   // Modal الترحيبي: تنقّل بين الشاشات وإغلاق (بيظهر لأول زيارة فقط)
   const onboardingOverlay = document.getElementById('onboardingOverlay');
   document.getElementById('closeOnboardingBtn').onclick = closeOnboarding;
@@ -410,11 +432,13 @@ async function startApp(){
       if(ui.statsViewOpen){ ui.statsViewOpen = false; ui.justReturnedFromStats = true; render(); }
       if(ui.weekViewOpen){ ui.weekViewOpen = false; ui.justReturnedFromStats = true; render(); }
       if(ui.timeBlockViewOpen){ ui.timeBlockViewOpen = false; ui.justReturnedFromStats = true; render(); }
+      if(ui.smartListsOpen){ ui.smartListsOpen = false; ui.justReturnedFromStats = true; render(); }
       if(calendarOverlay.classList.contains('open')) closeCalendarModal();
       if(missedTasksOverlay && missedTasksOverlay.classList.contains('open')) closeMissedTasksModal();
       if(draftsOverlay.classList.contains('open')) closeDraftsModal();
       if(accountOverlay.classList.contains('open')) closeAccountModal();
       if(appearanceOverlay.classList.contains('open')) closeAppearanceModal();
+      if(upgradeOverlay.classList.contains('open')) closeUpgrade();
       if(pickerOverlay.classList.contains('open')) closeDurationPicker();
       if(ui.timerTypePopoverOpen){ ui.timerTypePopoverOpen = false; renderTimerPanel(); }
       if(document.getElementById('subtasksOverlay').classList.contains('open')) closeSubtasksModal();

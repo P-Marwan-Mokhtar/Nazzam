@@ -14,6 +14,7 @@ import { renderTimerPanel } from './timers.js';
 import { formatTimeArabic } from './timePicker.js';
 import { renderWeekView } from './weekView.js';
 import { syncHashWithState } from './routing.js';
+import { renderSmartLists } from './smartLists.js';
 
 // Auto-Recurrence logic: نضيف المهام المتكررة لليوم/الأيام الجاية لو يوم الأسبوع ده من ضمن أيامها، مرة واحدة بس لكل (تاريخ + مهمة).
 // معزولة في دالة مستقلة عشان تُستخدم مع أي تاريخ (مش بس اليوم المختار)، زي أيام عرض الأسبوع.
@@ -46,13 +47,44 @@ export function ensureDayMaterialized(dateStr){
   }
 }
 
+// شريط القوالب (ميزة Pro) جوه بنك المهام: شيبس جاهزة للإضافة لأي يوم + حقل إضافة قالب
+function bankTemplatesHtml(){
+  const list = state.templates || [];
+  if(!list.length && !ui.templateAddOpen) return '';
+  const chips = list.map(tpl => `
+    <div class="template-chip">
+      <button class="template-chip-main" data-action="add-template" data-id="${escapeAttr(tpl.id)}" title="${t('template.title')}">
+        <span class="material-icons tc-${tpl.type || 'task'}">${TASK_TYPES[tpl.type || 'task'].icon}</span>
+        <span class="template-chip-name">${escapeHtml(tpl.name)}</span>
+      </button>
+      <button class="template-chip-remove" data-action="delete-template" data-id="${escapeAttr(tpl.id)}" title="${t('template.remove')}"><span class="material-icons">close</span></button>
+    </div>
+  `).join('');
+  const addField = ui.templateAddOpen ? `
+    <div class="template-add-row">
+      <input type="text" id="templateAddInput" placeholder="${t('template.name')}" maxlength="80" />
+      <button class="add-btn icon-only" data-action="confirm-template-add" title="${t('bank.add_title')}"><span class="material-icons">add</span></button>
+      <button class="add-btn icon-only" data-action="cancel-template-add" title="${t('misc.cancel')}"><span class="material-icons">close</span></button>
+    </div>` : `
+    <button class="template-add-chip" data-action="open-template-add" title="${t('template.title')}"><span class="material-icons">add</span></button>`;
+  return `
+    <div class="templates-row">
+      <span class="templates-row-label">${t('template.title')}</span>
+      <div class="template-chips">
+        ${chips}
+        ${addField}
+      </div>
+    </div>
+  `;
+}
+
 export function render(){
   hideDurationPopover();
   syncHashWithState();
   updateSideNavActive();
   const mainLayoutEl = document.querySelector('.main-layout');
-  if(mainLayoutEl) mainLayoutEl.classList.toggle('week-view-active', !!ui.weekViewOpen || !!ui.timeBlockViewOpen || !!ui.statsViewOpen || !!ui.taskStatsName);
-  document.body.classList.toggle('locked-view', !!ui.weekViewOpen || !!ui.timeBlockViewOpen || !!ui.statsViewOpen || !!ui.taskStatsName);
+  if(mainLayoutEl) mainLayoutEl.classList.toggle('week-view-active', !!ui.weekViewOpen || !!ui.timeBlockViewOpen || !!ui.statsViewOpen || !!ui.taskStatsName || !!ui.smartListsOpen);
+  document.body.classList.toggle('locked-view', !!ui.weekViewOpen || !!ui.timeBlockViewOpen || !!ui.statsViewOpen || !!ui.taskStatsName || !!ui.smartListsOpen);
   if(ui.taskStatsName){
     renderTaskStatsView(ui.taskStatsName);
     return;
@@ -69,6 +101,11 @@ export function render(){
   }
   if(ui.timeBlockViewOpen){
     renderTimeBlockView(); // جواه بيتظبط وضع طول الشاشة (بتاع عرض الشهر) لواحده
+    return;
+  }
+  if(ui.smartListsOpen){
+    setTbStretch(false);
+    renderSmartLists();
     return;
   }
   setTbStretch(false); // مهام اليوم — الوضع الطبيعي
@@ -150,6 +187,8 @@ export function render(){
         </div>
       </div>
     `;
+    html += bankTemplatesHtml();
+
     html += `
       <div class="add-row bank-add-task-row">
         <input type="text" id="newKeywordInput" placeholder="${t('bank.add_placeholder')}" value="${escapeAttr(ui.addDraft)}" />
@@ -297,6 +336,9 @@ export function render(){
                       </div>
                       <button class="tmd-btn" data-action="open-task-stats" data-name="${escapeAttr(k.name)}">
                         <span class="material-icons">insights</span><span>${t('bank.stats')}</span>
+                      </button>
+                      <button class="tmd-btn" data-action="save-as-template" data-name="${escapeAttr(k.name)}" data-type="${k.type || 'task'}">
+                        <span class="material-icons">content_copy</span><span>${t('template.save')}</span>
                       </button>
                       <button class="tmd-btn" data-action="delete-keyword" data-id="${k.id}">
                         <span class="material-icons">archive</span><span>${t('bank.draft')}</span>
@@ -485,6 +527,9 @@ export function render(){
                 </div>
                 <button class="tmd-btn ${task.remindAt ? 'active' : ''}" data-action="open-reminder" data-id="${task.id}" title="${task.remindAt ? t('task.reminder_set') : t('task.reminder_unset')}">
                   <span class="material-icons">${task.remindAt ? 'notifications_active' : 'notifications_none'}</span><span>${task.remindAt ? t('task.reminder_with', {time: formatTimeArabic(task.remindAt)}) : t('task.reminder')}</span>
+                </button>
+                <button class="tmd-btn" data-action="save-as-template" data-id="${task.id}">
+                  <span class="material-icons">content_copy</span><span>${t('template.save')}</span>
                 </button>
                 <button class="tmd-btn delete" data-action="delete-task" data-id="${task.id}">
                   <span class="material-icons">delete</span><span>${t('c.delete')}</span>

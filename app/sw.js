@@ -5,7 +5,7 @@
 // رقم الإصدار (CACHE_VERSION) بيتغيّر تلقائيًا مع أي تغيير في المحتوى.
 // ============================================================
 
-const CACHE_VERSION = 'vd72efe0c52';
+const CACHE_VERSION = 'v783113b6a2';
 const CACHE_NAME = 'daily-tasks-shell-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -43,18 +43,24 @@ const PRECACHE_URLS = [
   "./js/calendar.js",
   "./js/drafts.js",
   "./js/events.js",
+  "./js/i18n.js",
   "./js/icalExport.js",
+  "./js/monitoring.js",
   "./js/notifications.js",
+  "./js/plans.js",
   "./js/popovers.js",
   "./js/recurrence.js",
   "./js/search.js",
+  "./js/smartLists.js",
   "./js/stats.js",
   "./js/subtasks.js",
   "./js/taskDetails.js",
   "./js/taskNote.js",
+  "./js/theme.js",
   "./js/timeBlocking.js",
   "./js/timePicker.js",
   "./js/timers.js",
+  "./js/upgrade.js",
   "./js/weekView.js",
   "./js/wheelPicker.js",
   "./js/vendor/supabase.js",

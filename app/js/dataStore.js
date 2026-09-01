@@ -47,7 +47,7 @@ export function exportDataAsJSON(){
 
 function isPlausibleBackupShape(obj){
   if(!obj || typeof obj !== 'object') return false;
-  const knownKeys = ['keywords', 'drafts', 'days', 'filters', 'timers', 'darkMode', 'accentLight', 'accentDark', 'recurringTasks', 'pinnedTaskNames'];
+  const knownKeys = ['keywords', 'drafts', 'days', 'filters', 'timers', 'darkMode', 'accentLight', 'accentDark', 'recurringTasks', 'pinnedTaskNames', 'templates', 'plan'];
   return knownKeys.some(k => Object.prototype.hasOwnProperty.call(obj, k));
 }
 
@@ -79,6 +79,19 @@ function sanitizeNamedItem(x){
   const out = { id: (typeof x.id === 'string' && x.id) ? x.id : uid(), name };
   if(typeof x.filterId === 'string' && x.filterId) out.filterId = x.filterId;
   if(x.type === 'habit' || x.type === 'hobby') out.type = x.type;
+  return out;
+}
+
+// قالب مهمة (ميزة Pro): بنحتفظ بس بالحقول اللي بتصلح للاستخدام السريع { id, name, type, priority, duration, note }
+function sanitizeTemplate(x){
+  if(!isPlainObject(x)) return null;
+  const name = typeof x.name === 'string' ? x.name.trim() : '';
+  if(!name) return null;
+  const out = { id: (typeof x.id === 'string' && x.id) ? x.id : uid(), name };
+  if(x.type === 'task' || x.type === 'habit' || x.type === 'hobby') out.type = x.type;
+  if(x.priority === 'high' || x.priority === 'medium' || x.priority === 'low') out.priority = x.priority;
+  if(typeof x.duration === 'string' && x.duration.trim()) out.duration = x.duration;
+  if(typeof x.note === 'string') out.note = x.note;
   return out;
 }
 
@@ -218,6 +231,8 @@ function sanitizeLoadedState(obj){
   out.accentDark = isValidAccent(obj.accentDark) ? obj.accentDark : 'classic';
   out.recurringTasks = sanitizeRecurringTasks(obj.recurringTasks) || {};
   out.notificationSettings = sanitizeNotificationSettings(obj.notificationSettings);
+  out.templates = sanitizeList(obj.templates, sanitizeTemplate) || [];
+  if(obj.plan === 'free' || obj.plan === 'trial' || obj.plan === 'pro') out.plan = obj.plan;
   if(isPlainObject(obj.pinnedInjected)) out.pinnedInjected = obj.pinnedInjected;
   if(Array.isArray(obj.pinnedTaskNames)){
     const names = obj.pinnedTaskNames.filter(n => typeof n === 'string' && n.trim());
@@ -303,6 +318,8 @@ function applyLoadedState(parsed){
   if(parsed.filters) state.filters = parsed.filters;
   if(parsed.timers) state.timers = parsed.timers;
   if(parsed.recurringTasks) state.recurringTasks = parsed.recurringTasks;
+  if(parsed.templates) state.templates = parsed.templates;
+  if(parsed.plan && (parsed.plan === 'free' || parsed.plan === 'trial' || parsed.plan === 'pro')) state.plan = parsed.plan;
   if(parsed.notificationSettings){
     state.notificationSettings = Object.assign({}, state.notificationSettings, parsed.notificationSettings);
   }

@@ -6,6 +6,7 @@ import { AUTH_RATE_LIMIT_URL, TURNSTILE_SITE_KEY, supabaseClient } from './confi
 import { LOCAL_BACKUP_KEY, BACKUP_OWNER_KEY, PENDING_SYNC_KEY, showToast } from './state.js';
 import { t } from './i18n.js';
 import { escapeHtml } from './utils.js';
+import { openUpgrade } from './upgrade.js';
 
 let turnstileWidgetId = null;
 
@@ -148,7 +149,10 @@ function handleOAuthReturnIfAny(){
     showToast(t('auth.success_login'));
     params.delete('authreturn');
     const newSearch = params.toString();
-    const newUrl = window.location.pathname + (newSearch ? ('?' + newSearch) : '') + window.location.hash;
+    // بنمسح الـ hash (fragment) نهائيًا: فيه توكنز الدخول (بينها الـ refresh token طويل
+    // العمر) اللي جات من غوغل، ومش صح نسيبها في شريط العنوان — الرابط بيتسرب بسهولة.
+    // الجلسة أصلاً اتحفظت في localStorage بواسطة supabase-js، فالـ URL مش محتاجها أصلًا.
+    const newUrl = window.location.pathname + (newSearch ? ('?' + newSearch) : '');
     window.history.replaceState({}, '', newUrl);
   }
 }
@@ -333,10 +337,13 @@ function renderAccountModal(){
         <span>${t('auth.logged_in')}</span>
       </div>
     </div>
-    <button class="account-secondary-btn" id="signOutBtn" style="width:100%;">${t('auth.sign_out')}</button>
+    <button class="account-primary-btn" id="planUpgradeBtn" style="width:100%;">${t('plan.upgrade')}</button>
+    <button class="account-secondary-btn" id="signOutBtn" style="width:100%;margin-top:8px;">${t('auth.sign_out')}</button>
   `;
   const signOutBtn = document.getElementById('signOutBtn');
   if(signOutBtn) signOutBtn.onclick = signOutUser;
+  const planUpgradeBtn = document.getElementById('planUpgradeBtn');
+  if(planUpgradeBtn) planUpgradeBtn.onclick = () => openUpgrade();
 }
 
 // ------------------------------------------------------------

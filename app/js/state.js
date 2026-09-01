@@ -45,10 +45,12 @@ export let state = {
     lastMorningFiredDate: null,
     lastEveningFiredDate: null
   },
+  plan: 'pro', // خطة المستخدم: 'free' | 'trial' | 'pro' — حاليًا 'pro' (مرحلة البيتا قبل إطلاق الدفع مع Tap، لما الاشتراك يشتغل على السيرفر هو اللي بيحددها)
+  templates: [], // قوالب المهام: { id, name, type, priority, duration, note } — ميزة Pro
 };
 
 export function resetState(){
-  state = { lang: 'ar', keywords: [], drafts: [], notes: {}, days: {}, filters: [], timers: {}, darkMode: false, accentLight: 'blue', accentDark: 'blue', recurringTasks: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null } };
+  state = { lang: 'ar', keywords: [], drafts: [], notes: {}, days: {}, filters: [], timers: {}, darkMode: false, accentLight: 'blue', accentDark: 'blue', recurringTasks: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null }, plan: 'pro', templates: [] };
 }
 
 export const ui = {
@@ -121,6 +123,9 @@ export const ui = {
   pendingRecurrenceDays: [],  // نسخة عمل من أيام التكرار (0-6) قبل الحفظ
   pickerTaskId: null,
   emptyAnimated: false,  // true أول ما الأنيميشن يتشغل على أي empty state — بيتصفّر لما المحتوى يتغير
+  smartListsOpen: false,  // لما تبقى true، #content بيعرض القوائم الذكية بدل مهام اليوم
+  smartListKey: 'today',  // القائمة الذكية المعروضة: 'today' | 'overdue' | 'week' | 'no-time' | 'high'
+  templateAddOpen: false,  // هل حقل إضافة قالب جديد (جوه بنك المهام) مفتوح دلوقتي
 };
 
 export const timerPanelEl = document.getElementById('timerPanel');

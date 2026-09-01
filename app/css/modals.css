@@ -732,3 +732,83 @@
 .focus-finish-btn .material-icons {
   font-size: 19px;
 }
+
+/* مودال الترقية */
+.upgrade-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  padding: 4px 0 18px;
+}
+.upgrade-hero-icon {
+  font-size: 42px;
+  color: var(--pen);
+}
+.upgrade-hero-title {
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: var(--ink);
+}
+.upgrade-hero-sub {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+.upgrade-featured {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--pen-soft);
+  border: 1px solid var(--pen);
+  color: var(--ink);
+  border-radius: 12px;
+  padding: 9px 12px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+}
+.upgrade-featured-icon {
+  color: var(--pen);
+}
+.upgrade-featured-badge {
+  margin-inline-start: auto;
+  font-size: 0.66rem;
+  font-weight: 800;
+  color: var(--card);
+  background: var(--pen);
+  border-radius: 20px;
+  padding: 2px 9px;
+}
+.upgrade-list {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.upgrade-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+.upgrade-list-icon {
+  color: var(--done);
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.upgrade-limit-note {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+  margin: 0 0 4px;
+}
+.upgrade-cta {
+  margin-top: 18px;
+}
+.upgrade-cta .material-icons {
+  vertical-align: middle;
+  margin-inline-end: 4px;
+}

@@ -9,6 +9,7 @@ import { ui } from './state.js';
 const HASH_STATS = '#stats';
 const HASH_WEEK = '#week';
 const HASH_TIMEBLOCK = '#timeblock';
+const HASH_SMART = '#smartlists';
 
 // بتتنفذ مرة واحدة بس عند فتح التطبيق (قبل أول render): تقرأ الـ hash من الرابط
 // وتظبط عليه حالة الواجهة، عشان الشاشة الصح تظهر من أول لحظة من غير أي وميض (flash).
@@ -17,9 +18,10 @@ export function applyHashToState(){
   ui.statsViewOpen = hash === HASH_STATS;
   ui.weekViewOpen = hash === HASH_WEEK;
   ui.timeBlockViewOpen = hash === HASH_TIMEBLOCK;
-  // الشاشات الأربعة متعارضة مع بعضها؛ إحصائيات المهمة الواحدة مش ليها hash
-  // فبنمسحها هنا عشان الـ hash يبقى هو الفيصل دايمًا لما الرابط يتغير
-  if(ui.statsViewOpen || ui.weekViewOpen || ui.timeBlockViewOpen) ui.taskStatsName = null;
+  ui.smartListsOpen = hash === HASH_SMART;
+  // نظّف باقي المتغيرات اللي بتحدد أنواع الشاشات (HASH_HASH) في الهاش
+  // بتخصيص أكثر من شاشة واحدة (Hash) عن طريق هاش واحد
+  if(ui.statsViewOpen || ui.weekViewOpen || ui.timeBlockViewOpen || ui.smartListsOpen) ui.taskStatsName = null;
   if(ui.weekViewOpen && !ui.weekViewDate) ui.weekViewDate = ui.selectedDate;
 }
 
@@ -47,6 +49,7 @@ export function syncHashWithState(){
   if(ui.statsViewOpen) hash = HASH_STATS;
   else if(ui.weekViewOpen) hash = HASH_WEEK;
   else if(ui.timeBlockViewOpen) hash = HASH_TIMEBLOCK;
+  else if(ui.smartListsOpen) hash = HASH_SMART;
   if(location.hash === hash) return;
   const url = location.pathname + location.search + hash;
   history.replaceState(history.state, '', url);

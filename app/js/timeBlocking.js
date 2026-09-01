@@ -12,6 +12,8 @@ import { formatTimeArabic, openTimePicker } from './timePicker.js';
 import { ensureDayMaterialized, render } from './render.js';
 import { openCalendarModal } from './calendar.js';
 import { t, formatMinutes } from './i18n.js';
+import { canUse } from './plans.js';
+import { openUpgrade } from './upgrade.js';
 
 const HOUR_PX = 64;
 const SNAP_MIN = 5;
@@ -95,10 +97,16 @@ export function toggleTimeBlockView(){
     ui.timeBlockViewOpen = false;
     ui.justReturnedFromStats = true;
   } else {
+    // الجدول الزمني الكامل ميزة Pro — لو الخطة مجانية بنفتح نافذة الترقية بدل العرض
+    if(!canUse('timeBlockView')){
+      openUpgrade('timeBlockView');
+      return;
+    }
     ui.timeBlockViewOpen = true;
     ui.statsViewOpen = false;
     ui.weekViewOpen = false;
     ui.taskStatsName = null;
+    ui.smartListsOpen = false;
     ui.justReturnedFromStats = true; // أنيميشن الدخول عند فتح الجدول الزمني (زي الإحصائيات)
   }
   render();

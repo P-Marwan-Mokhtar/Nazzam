@@ -3,7 +3,7 @@
 // ============================================================
 
 import { t } from './i18n.js';
-import { addDays, reorderArrayById, todayStr, uid } from './utils.js';
+import { addDays, normalizeArabic, reorderArrayById, todayStr, uid } from './utils.js';
 import { contentEl, showToast, showUndoToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { wireCustomSelects, wireDragAndDrop } from './popovers.js';
@@ -16,6 +16,8 @@ import { closeDurationPicker, openActualDurationPicker, openDurationPicker } fro
 import { ensureNotificationPermission, currentHHMM } from './notifications.js';
 import { formatTimeArabic, openTimePicker } from './timePicker.js';
 import { startOpenTimer } from './timers.js';
+import { closeSmartLists, smartTab, smartToggleDone, smartToDay } from './smartLists.js';
+import { gateFree } from './upgrade.js';
 
 // قايمة المزيد بتاع مهمة اليوم: بتفتح لتحت لو فيه مساحة كفاية تحت الزرار،
 // وبتفتح لفوق لو مفيش (عشان ميزيدش سكرول الصفحة)
@@ -590,8 +592,119 @@ const contentActions = {
   'cancel-keyword': async () => {
     ui.editingKeywordId = null;
     render();
-  }
+  },
+  // ------------------------------------------------------------
+  // القوالب (Pro)
+  // ------------------------------------------------------------
+  'open-template-add': async () => {
+    if(!gateFree('templates')) return;
+    ui.templateAddOpen = true;
+    render();
+  },
+  'cancel-template-add': async () => {
+    ui.templateAddOpen = false;
+    render();
+  },
+  'confirm-template-add': async () => {
+    if(!gateFree('templates')) return;
+    const input = document.getElementById('templateAddInput');
+    const val = input ? input.value.trim() : '';
+    if(!val){ showToast(t('toast.write_name_first')); return; }
+    if(state.templates.some(tp => normalizeArabic(tp.name) === normalizeArabic(val))){
+      showToast(t('template.duplicate_exists'));
+      return;
+    }
+    state.templates.push({ id: uid(), name: val, type: 'task' });
+    ui.templateAddOpen = false;
+    render();
+    await saveData();
+  },
+  'add-template': async (btn) => {
+    if(!gateFree('templates')) return;
+    const tpl = state.templates.find(tp => tp.id === btn.dataset.id);
+    if(!tpl) return;
+    if(!state.days[ui.selectedDate]) state.days[ui.selectedDate] = [];
+    const newTask = { id: uid(), name: tpl.name, done: false };
+    if(tpl.type) newTask.type = tpl.type;
+    if(tpl.priority) newTask.priority = tpl.priority;
+    if(tpl.duration) newTask.duration = tpl.duration;
+    if(tpl.note) newTask.note = tpl.note;
+    state.days[ui.selectedDate].push(newTask);
+    render();
+    await saveData();
+    showToast(t('template.used_toast'));
+  },
+  'delete-template': async (btn) => {
+    if(!gateFree('templates')) return;
+    const id = btn.dataset.id;
+    state.templates = state.templates.filter(tp => tp.id !== id);
+    render();
+    await saveData();
+    showToast(t('template.removed_toast'));
+  },
+  'save-as-template': async (btn) => {
+    if(!gateFree('templates')) return;
+    let name, type, priority, duration, note;
+    if(btn.dataset.id){
+      const task = (state.days[ui.selectedDate] || []).find(t => t.id === btn.dataset.id);
+      if(!task) return;
+      ({ name, type, priority, duration, note } = task);
+    } else if(btn.dataset.name){
+      name = btn.dataset.name;
+      type = btn.dataset.type || 'task';
+      const dayTask = (state.days[ui.selectedDate] || []).find(t => t.name === name && !t._dupOf);
+      if(dayTask){ priority = dayTask.priority; duration = dayTask.duration; note = dayTask.note; }
+    } else return;
+    if(!name) return;
+    if(state.templates.some(tp => normalizeArabic(tp.name) === normalizeArabic(name))){
+      showToast(t('template.duplicate_exists'));
+      return;
+    }
+    const tpl = { id: uid(), name };
+    if(type) tpl.type = type;
+    if(priority) tpl.priority = priority;
+    if(duration) tpl.duration = duration;
+    if(note) tpl.note = note;
+    state.templates.push(tpl);
+    ui.openTaskMoreId = null;
+    ui.openKeywordMoreId = null;
+    render();
+    await saveData();
+    showToast(t('template.save_toast'));
+  },
+  // ------------------------------------------------------------
+  // القوائم الذكية (Pro)
+  // ------------------------------------------------------------
+  'smart-tab': async (btn) => {
+    if(!gateFree('smartLists')) return;
+    smartTab(btn.dataset.key);
+  },
+  'smart-close': async () => {
+    closeSmartLists();
+  },
+  'smart-toggle-done': async (btn) => {
+    smartToggleDone(btn.dataset.date, btn.dataset.id);
+  },
+  'smart-to-day': async (btn) => {
+    smartToDay(btn.dataset.date, btn.dataset.id);
+  },
 };
+
+// معالج data-action مُوحّد للقوائم الذكية (martLists) — معندهاش عناصر عرض اليوم
+// بتتفتّح الأزرار من خلالها وتستدعي نفس خريطة contentActions — أي زر تاني بـ data-action
+// أو سلوك النقر على أسماء الكلمات (keyword-name) مش بيشتغل هنا عشان العناصر دي مش موجودة.
+export async function handleContentAction(btn, e){
+  if(btn){
+    const handler = contentActions[btn.dataset.action];
+    if(handler) await handler(btn);
+    return;
+  }
+  if(e){
+    if(e.target.closest('input')) return;
+    const nameEl = e.target.closest('.keyword-name');
+    if(nameEl) nameEl.classList.toggle('expanded');
+  }
+}
 
 export function attachEvents(){
   document.getElementById('prevBtn').onclick = () => { ui.selectedDate = addDays(ui.selectedDate, -1); ui.justChangedDay = true; render(); };
@@ -602,16 +715,7 @@ export function attachEvents(){
 
   contentEl.onclick = async (e) => {
     const btn = e.target.closest('button[data-action]');
-
-    if(!btn){
-      if(e.target.closest('input')) return;
-      const nameEl = e.target.closest('.keyword-name');
-      if(nameEl) nameEl.classList.toggle('expanded');
-      return;
-    }
-
-    const handler = contentActions[btn.dataset.action];
-    if(handler) await handler(btn);
+    await handleContentAction(btn, e);
   };
 
   const bankSearchInput = document.getElementById('bankSearchInput');
