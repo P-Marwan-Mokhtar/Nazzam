@@ -329,6 +329,10 @@ const contentActions = {
           }
         });
       });
+      if(state.recurringTasks && state.recurringTasks[kw.name] && state.recurringTasks[kw.name].length > 0){
+        if(kw.type) state.recurringTasks[kw.name] = [...state.recurringTasks[kw.name]];
+        else delete state.recurringTasks[kw.name];
+      }
     }
     ui.openKeywordTypePopoverTaskId = null;
     render();

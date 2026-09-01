@@ -433,7 +433,9 @@ async function saveLocalBackup(){
       // بنخزّنها واضحة. تحذير: لو فيه نسخة مشفرة سابقة (بيانات حساب مضمّنة)،
       // منرجّعهاش لوضع عادي فوقها فنقلّص الحماية — نحافظ على الحالة المشفرة
       // الحالية بدل ما نمسح بتاعتها ببيانات واضحة.
-      if(typeof crypto !== 'undefined' && crypto.subtle){
+      // استثناء: لو مفيش أي مفتاح ملكية (keyOwner فاضي) مفيش نسخة مشفرة حالية
+      // تخص حساب حقيقي — نسمح بالكتابة واضحة لحفظ بيانات المستخدم الحالي.
+      if(typeof crypto !== 'undefined' && crypto.subtle && keyOwner){
         const existing = localStorage.getItem(LOCAL_BACKUP_KEY);
         if(existing && existing.startsWith(ENCRYPTED_PREFIX)){
           console.warn('تم رفض حفظ نسخة واضحة فوق نسخة مشفرة سابقة (بيانات الحساب)');
