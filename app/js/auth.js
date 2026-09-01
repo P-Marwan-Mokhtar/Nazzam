@@ -120,20 +120,24 @@ function getTurnstileToken(){
 
     const failWith = (reason) => settle({ ok: false, token: null, reason });
 
-    if(turnstileWidgetId === null){
-      turnstileWidgetId = turnstile.render(container, {
-        sitekey: TURNSTILE_SITE_KEY,
-        size: 'invisible',
-        retry: 'auto',
-        callback: (token) => settle({ ok: true, token, reason: 'ok' }),
-        'error-callback': () => failWith('error'),
-        'expired-callback': () => failWith('expired')
-      });
-      turnstile.execute(turnstileWidgetId);
-    } else {
-      turnstile.reset(turnstileWidgetId);
-      turnstile.execute(turnstileWidgetId);
+    // كل محاولة لازم تاخد تحدي (challenge) جديد عشان التوكن القديم بيتستهلك
+    // في أول طلب وSupabase بيقبل التوكن مرة واحدة بس. لو سيبنا الـ widget القديم
+    // وعملنا reset عليه، بيبعت توكن قديم/فاضي من غير تحدّي فعلي — وده اللي كان
+    // بيخلي المحاولة التانية تفشل بـ "فشل الأمان" دايمًا بعد أول نجاح.
+    if(turnstileWidgetId !== null){
+      try{ turnstile.remove(turnstileWidgetId); }catch(e){}
+      turnstileWidgetId = null;
     }
+
+    turnstileWidgetId = turnstile.render(container, {
+      sitekey: TURNSTILE_SITE_KEY,
+      size: 'invisible',
+      retry: 'auto',
+      callback: (token) => settle({ ok: true, token, reason: 'ok' }),
+      'error-callback': () => failWith('error'),
+      'expired-callback': () => failWith('expired')
+    });
+    turnstile.execute(turnstileWidgetId);
   });
 }
 
