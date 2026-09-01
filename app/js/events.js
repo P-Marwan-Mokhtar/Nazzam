@@ -329,10 +329,6 @@ const contentActions = {
           }
         });
       });
-      if(state.recurringTasks && state.recurringTasks[kw.name] && state.recurringTasks[kw.name].length > 0){
-        if(kw.type) state.recurringTasks[kw.name] = [...state.recurringTasks[kw.name]];
-        else delete state.recurringTasks[kw.name];
-      }
     }
     ui.openKeywordTypePopoverTaskId = null;
     render();
@@ -585,6 +581,30 @@ const contentActions = {
     if(val){
       const kw = state.keywords.find(k => k.id === ui.editingKeywordId);
       if(kw){
+        const oldName = kw.name;
+        if(val !== oldName){
+          // إعادة تسمية الكلمة = إعادة تسمية كل المهام المرتبطة بالاسم في كل مكان
+          // (نفس منطق save-task-edit): التكرار، نسخ الأيام، قرارات pinnedInjected.
+          if(state.recurringTasks && state.recurringTasks[oldName]){
+            state.recurringTasks[val] = state.recurringTasks[oldName];
+            delete state.recurringTasks[oldName];
+          }
+          Object.keys(state.days).forEach(dateStr => {
+            state.days[dateStr] = state.days[dateStr].map(t => {
+              if(t.name === oldName && !t._dupOf) return { ...t, name: val };
+              return t;
+            });
+          });
+          if(state.pinnedInjected){
+            Object.keys(state.pinnedInjected).forEach(dateStr => {
+              const dayPinned = state.pinnedInjected[dateStr];
+              if(dayPinned && dayPinned[oldName]){
+                dayPinned[val] = dayPinned[oldName];
+                delete dayPinned[oldName];
+              }
+            });
+          }
+        }
         kw.name = val;
         kw.filterId = filterSelect && filterSelect.dataset.value ? filterSelect.dataset.value : null;
       }

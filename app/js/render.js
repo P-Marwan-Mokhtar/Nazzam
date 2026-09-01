@@ -38,6 +38,15 @@ export function ensureDayMaterialized(dateStr){
         const recTask = { id: uid(), name: rName, done: false, _fromRecurrence: true };
         const rKw = state.keywords.find(k => k.name === rName);
         if(rKw && rKw.type) recTask.type = rKw.type;
+        else {
+          // مفيش كلمة بنفس الاسم (اتضافت كمهمة مباشرة) — نرث النوع من أي نسخة
+          // موجودة من التكرار (مثلاً نسخة اليوم اللي المستخدم عدّل نوعه منها)
+          // عشان التكرار ما يحيّش بنوع افتراضي غلط بعد ما المستخدم حدّده.
+          for(const dKey of Object.keys(state.days)){
+            const same = state.days[dKey].find(t => t.name === rName && t.type);
+            if(same){ recTask.type = same.type; break; }
+          }
+        }
         state.days[dateStr].push(recTask);
         recurringAdded = true;
       }

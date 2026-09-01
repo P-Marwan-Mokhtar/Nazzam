@@ -6,6 +6,25 @@ import { MONTH_NAMES, SHORT_DAY_NAMES, fromISO, toISO, todayStr } from './utils.
 import { state, ui } from './state.js';
 import { render } from './render.js';
 
+// بيحدد هل اليوم ده هيتعرض ليه مهام حاليًا أو بعد حقن المتكررة (ensureDayMaterialized)
+// — قراءة فقط من غير ما يعدّل state ولا يحفّز saveData (عشان رسم شهر كامل ميزعّلش حفظ).
+// بنكّرس نفس منطق ensureDayMaterialized العكسي: لو فيه تكرار ليوم الأسبوع ده ومش مقرر
+// مصيره (pinnedInjected) ومفيش مهمة بنفس الاسم في اليوم، يبقى هيتحقن — والنقطة تظهر.
+function dayWouldHaveTasks(dateStr){
+  const today = todayStr();
+  if(state.days[dateStr] && state.days[dateStr].some(t => !t._dupOf)) return true;
+  if(dateStr < today || !state.recurringTasks || Object.keys(state.recurringTasks).length === 0) return false;
+  const weekday = fromISO(dateStr).getDay();
+  const dayPinned = state.pinnedInjected && state.pinnedInjected[dateStr];
+  return Object.keys(state.recurringTasks).some(rName => {
+    const rDays = state.recurringTasks[rName] || [];
+    if(!rDays.includes(weekday)) return false;
+    if(dayPinned && dayPinned[rName]) return false;
+    const dayTasks = state.days[dateStr] || [];
+    return !dayTasks.some(t => t.name === rName && !t._dupOf);
+  });
+}
+
 // بيبني HTML شبكة التقويم الكاملة (رؤوس أيام الأسبوع + أيام الشهر) لشهر معيّن.
 // مستخدم في نافذة التقويم وفي تقويم العمود الجانبي — بدون تغيير المنطق.
 export function buildCalendarGridHTML(viewDateStr){
@@ -28,7 +47,7 @@ export function buildCalendarGridHTML(viewDateStr){
     const prevMonth = month === 0 ? 11 : month - 1;
     const prevYear = month === 0 ? year - 1 : year;
     const dateStr = `${prevYear}-${String(prevMonth+1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`;
-    const hasTasks = (state.days[dateStr] && state.days[dateStr].some(t => !t._dupOf));
+    const hasTasks = dayWouldHaveTasks(dateStr);
     gridHtml += `
       <button class="cal-day other-month ${dateStr === ui.selectedDate ? 'selected' : ''}" data-date="${dateStr}">
         <span>${dayNum}</span>
@@ -41,7 +60,7 @@ export function buildCalendarGridHTML(viewDateStr){
     const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     const isToday = dateStr === todayStr();
     const isSelected = dateStr === ui.selectedDate;
-    const hasTasks = (state.days[dateStr] && state.days[dateStr].some(t => !t._dupOf));
+    const hasTasks = dayWouldHaveTasks(dateStr);
     gridHtml += `
       <button class="cal-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" data-date="${dateStr}">
         <span>${day}</span>
@@ -57,7 +76,7 @@ export function buildCalendarGridHTML(viewDateStr){
     const nextMonth = month === 11 ? 0 : month + 1;
     const nextYear = month === 11 ? year + 1 : year;
     const dateStr = `${nextYear}-${String(nextMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-    const hasTasks = (state.days[dateStr] && state.days[dateStr].some(t => !t._dupOf));
+    const hasTasks = dayWouldHaveTasks(dateStr);
     gridHtml += `
       <button class="cal-day other-month ${dateStr === ui.selectedDate ? 'selected' : ''}" data-date="${dateStr}">
         <span>${day}</span>

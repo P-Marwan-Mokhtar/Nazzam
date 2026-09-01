@@ -1429,6 +1429,9 @@ async function commitTaskTime(taskId, minutesOrNull, dateStr){
       }
       if(sourceTask.priority && !existingByName.priority) existingByName.priority = sourceTask.priority;
       if(sourceTask.type && !existingByName.type) existingByName.type = sourceTask.type;
+      // منفضّلش نضيّع بيانات النسخة المنقولة (مهام فرعية/ملاحظة) عند الدمج
+      if(sourceTask.subtasks && sourceTask.subtasks.length && !existingByName.subtasks) existingByName.subtasks = sourceTask.subtasks;
+      if(sourceTask.note && !existingByName.note) existingByName.note = sourceTask.note;
       // نشيل المهمة الأصلية من يومها
       const srcIdx = state.days[sourceDayKey].findIndex(t => t.id === taskId);
       if(srcIdx !== -1) state.days[sourceDayKey].splice(srcIdx, 1);

@@ -278,10 +278,6 @@ function handleAction(el){
         }
       });
     });
-    if(state.recurringTasks && state.recurringTasks[task.name] && state.recurringTasks[task.name].length > 0){
-      if(task.type) state.recurringTasks[task.name] = [...state.recurringTasks[task.name]];
-      else delete state.recurringTasks[task.name];
-    }
     detailsTypeOpen = false;
     saveData();
     render();
