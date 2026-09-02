@@ -47,7 +47,7 @@ export function exportDataAsJSON(){
 
 function isPlausibleBackupShape(obj){
   if(!obj || typeof obj !== 'object') return false;
-  const knownKeys = ['keywords', 'drafts', 'days', 'filters', 'timers', 'darkMode', 'accentLight', 'accentDark', 'recurringTasks', 'pinnedTaskNames', 'templates', 'plan'];
+  const knownKeys = ['keywords', 'drafts', 'days', 'filters', 'timers', 'darkMode', 'accentLight', 'accentDark', 'recurringTasks', 'recurringMeta', 'pinnedTaskNames', 'templates', 'plan'];
   return knownKeys.some(k => Object.prototype.hasOwnProperty.call(obj, k));
 }
 
@@ -82,7 +82,7 @@ function sanitizeNamedItem(x){
   return out;
 }
 
-// قالب مهمة (ميزة Pro): بنحتفظ بس بالحقول اللي بتصلح للاستخدام السريع { id, name, type, priority, duration, note }
+// قالب مهمة (ميزة Pro): بنحتفظ بالحقول اللي بتصلح للاستخدام السريع { id, name, type, priority, duration, note, subtasks }
 function sanitizeTemplate(x){
   if(!isPlainObject(x)) return null;
   const name = typeof x.name === 'string' ? x.name.trim() : '';
@@ -92,6 +92,12 @@ function sanitizeTemplate(x){
   if(x.priority === 'high' || x.priority === 'medium' || x.priority === 'low') out.priority = x.priority;
   if(typeof x.duration === 'string' && x.duration.trim()) out.duration = x.duration;
   if(typeof x.note === 'string') out.note = x.note;
+  if(Array.isArray(x.subtasks)){
+    const subs = x.subtasks
+      .filter(s => isPlainObject(s) && typeof s.title === 'string' && s.title.trim())
+      .map(s => ({ id: (typeof s.id === 'string' && s.id) ? s.id : uid(), title: s.title, done: s.done === true }));
+    if(subs.length) out.subtasks = subs;
+  }
   return out;
 }
 
@@ -201,6 +207,33 @@ function sanitizeRecurringTasks(obj){
   return any ? out : null;
 }
 
+// مواصفات التكرار: اسم المهمة -> { type, priority, duration, note, subtasks } — جزء تخزيني فقط
+function sanitizeRecurringMeta(obj){
+  if(!isPlainObject(obj)) return null;
+  const out = {};
+  let any = false;
+  for(const name of Object.keys(obj)){
+    if(!isPlainObject(obj[name])) continue;
+    const meta = {};
+    const m = obj[name];
+    if(m.type === 'task' || m.type === 'habit' || m.type === 'hobby') meta.type = m.type;
+    if(m.priority === 'high' || m.priority === 'medium' || m.priority === 'low') meta.priority = m.priority;
+    if(typeof m.duration === 'string' && m.duration.trim()) meta.duration = m.duration;
+    if(typeof m.note === 'string') meta.note = m.note;
+    if(Array.isArray(m.subtasks)){
+      const subs = m.subtasks
+        .filter(s => isPlainObject(s) && typeof s.title === 'string' && s.title.trim())
+        .map(s => ({ id: (typeof s.id === 'string' && s.id) ? s.id : uid(), title: s.title, done: s.done === true }));
+      if(subs.length) meta.subtasks = subs;
+    }
+    if(Object.keys(meta).length){
+      out[name] = meta;
+      any = true;
+    }
+  }
+  return any ? out : null;
+}
+
 // إعدادات التنبيهات: بندمج فوق القيم الافتراضية ونرفض أي حقل من نوع غلط
 function sanitizeNotificationSettings(obj){
   const out = { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null };
@@ -230,6 +263,7 @@ function sanitizeLoadedState(obj){
   out.accentLight = isValidAccent(obj.accentLight) ? obj.accentLight : 'classic';
   out.accentDark = isValidAccent(obj.accentDark) ? obj.accentDark : 'classic';
   out.recurringTasks = sanitizeRecurringTasks(obj.recurringTasks) || {};
+  out.recurringMeta = sanitizeRecurringMeta(obj.recurringMeta) || {};
   out.notificationSettings = sanitizeNotificationSettings(obj.notificationSettings);
   out.templates = sanitizeList(obj.templates, sanitizeTemplate) || [];
   if(obj.plan === 'free' || obj.plan === 'trial' || obj.plan === 'pro') out.plan = obj.plan;
@@ -318,6 +352,7 @@ function applyLoadedState(parsed){
   if(parsed.filters) state.filters = parsed.filters;
   if(parsed.timers) state.timers = parsed.timers;
   if(parsed.recurringTasks) state.recurringTasks = parsed.recurringTasks;
+  if(parsed.recurringMeta) state.recurringMeta = parsed.recurringMeta;
   if(parsed.templates) state.templates = parsed.templates;
   if(parsed.plan && (parsed.plan === 'free' || parsed.plan === 'trial' || parsed.plan === 'pro')) state.plan = parsed.plan;
   if(parsed.notificationSettings){

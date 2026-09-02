@@ -86,6 +86,7 @@ export function renderTemplatesModal(){
         if(tpl.priority) newTask.priority = tpl.priority;
         if(tpl.duration) newTask.duration = tpl.duration;
         if(tpl.note) newTask.note = tpl.note;
+        if(tpl.subtasks && tpl.subtasks.length) newTask.subtasks = tpl.subtasks.map(s => ({ id: uid(), title: s.title, done: false }));
         state.days[ui.selectedDate].push(newTask);
         render();
         await saveData();
@@ -166,6 +167,8 @@ async function applyReplaceConfirm(){
       if(tpl.priority) dayTask.priority = tpl.priority; else delete dayTask.priority;
       if(tpl.duration) dayTask.duration = tpl.duration; else delete dayTask.duration;
       if(tpl.note) dayTask.note = tpl.note; else delete dayTask.note;
+      if(tpl.subtasks && tpl.subtasks.length) dayTask.subtasks = tpl.subtasks.map(s => ({ id: uid(), title: s.title, done: false }));
+      else delete dayTask.subtasks;
       render();
       await saveData();
       showToast(t('template.replaced_toast'));
@@ -174,7 +177,11 @@ async function applyReplaceConfirm(){
     // استبدال بيانات القالب القديم ببيانات المهمة اللي هيتحفظ
     const oldTpl = state.templates.find(x => x.id === conf.templateId);
     if(oldTpl){
-      Object.assign(oldTpl, conf.newData);
+      const newData = { ...conf.newData };
+      if(newData.subtasks && newData.subtasks.length){
+        newData.subtasks = newData.subtasks.map(s => ({ id: uid(), title: s.title, done: false }));
+      }
+      Object.assign(oldTpl, newData);
       await saveData();
       showToast(t('template.replaced_toast'));
     }

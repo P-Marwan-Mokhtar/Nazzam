@@ -668,22 +668,22 @@ const contentActions = {
   // ------------------------------------------------------------
   'save-as-template': async (btn) => {
     if(!gateFree('templates')) return;
-    let name, type, priority, duration, note;
+    let name, type, priority, duration, note, subtasks;
     if(btn.dataset.id){
       const task = (state.days[ui.selectedDate] || []).find(t => t.id === btn.dataset.id);
       if(!task) return;
-      ({ name, type, priority, duration, note } = task);
+      ({ name, type, priority, duration, note, subtasks } = task);
     } else if(btn.dataset.name){
       name = btn.dataset.name;
       type = btn.dataset.type || 'task';
       const dayTask = (state.days[ui.selectedDate] || []).find(t => t.name === name && !t._dupOf);
-      if(dayTask){ priority = dayTask.priority; duration = dayTask.duration; note = dayTask.note; }
+      if(dayTask){ priority = dayTask.priority; duration = dayTask.duration; note = dayTask.note; subtasks = dayTask.subtasks; }
     } else return;
     if(!name) return;
     // لو فيه قالب بنفس الاسم → افتح popup الاستبدال: يبدّل القالب القديم بالجديد ولالا
     const existing = state.templates.find(tp => normalizeArabic(tp.name) === normalizeArabic(name));
     if(existing){
-      openTemplateReplaceConfirm(existing.id, { name, type, priority, duration, note }, name);
+      openTemplateReplaceConfirm(existing.id, { name, type, priority, duration, note, subtasks }, name);
       return;
     }
     const tpl = { id: uid(), name };
@@ -691,6 +691,7 @@ const contentActions = {
     if(priority) tpl.priority = priority;
     if(duration) tpl.duration = duration;
     if(note) tpl.note = note;
+    if(subtasks && subtasks.length) tpl.subtasks = subtasks.map(s => ({ id: uid(), title: s.title, done: false }));
     state.templates.push(tpl);
     ui.openTaskMoreId = null;
     ui.openKeywordMoreId = null;

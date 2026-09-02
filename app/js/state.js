@@ -37,6 +37,7 @@ export let state = {
   accentLight: 'blue', // اللون المميز في الوضع الفاتح (id في ACCENTS من theme.js) — الأزرق هو الأساس للمستخدمين الجدد
   accentDark: 'blue', // اللون المميز في الوضع الداكن (مستقل عن الفاتح)
   recurringTasks: {}, // اسم المهمة -> مصفوفة أرقام أيام الأسبوع (0=أحد..6=سبت) اللي تتكرر فيها تلقائيًا
+  recurringMeta: {}, // اسم المهمة -> مواصفات التكرار { type, priority, duration, note, subtasks } — لتطبيقها على النسخ المتكررة
   notificationSettings: {
     morningEnabled: false,
     morningTime: '08:00',
@@ -50,7 +51,7 @@ export let state = {
 };
 
 export function resetState(){
-  state = { lang: 'ar', keywords: [], drafts: [], notes: {}, days: {}, filters: [], timers: {}, darkMode: false, accentLight: 'blue', accentDark: 'blue', recurringTasks: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null }, plan: 'pro', templates: [] };
+  state = { lang: 'ar', keywords: [], drafts: [], notes: {}, days: {}, filters: [], timers: {}, darkMode: false, accentLight: 'blue', accentDark: 'blue', recurringTasks: {}, recurringMeta: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null }, plan: 'pro', templates: [] };
 }
 
 export const ui = {

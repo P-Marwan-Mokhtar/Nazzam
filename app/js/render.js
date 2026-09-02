@@ -43,15 +43,27 @@ export function ensureDayMaterialized(dateStr){
       if(dayPinned[rName]) return; // اتقرر مصيرها قبل كده في اليوم ده (اتحطت أو المستخدم شالها بنفسه)
       if(!state.days[dateStr].some(t => t.name === rName)){
         const recTask = { id: uid(), name: rName, done: false, _fromRecurrence: true };
-        const rKw = state.keywords.find(k => k.name === rName);
-        if(rKw && rKw.type) recTask.type = rKw.type;
-        else {
-          // مفيش كلمة بنفس الاسم (اتضافت كمهمة مباشرة) — نرث النوع من أي نسخة
-          // موجودة من التكرار (مثلاً نسخة اليوم اللي المستخدم عدّل نوعه منها)
-          // عشان التكرار ما يحيّش بنوع افتراضي غلط بعد ما المستخدم حدّده.
-          for(const dKey of Object.keys(state.days)){
-            const same = state.days[dKey].find(t => t.name === rName && t.type);
-            if(same){ recTask.type = same.type; break; }
+        // المواصفات المحفوظة مع التكرار (نوع/أولوية/مدة/ملاحظة/مهام فرعية) — دي الأولوية
+        // لأنها بتعكس آخر مواصفات حطها المستخدم على المهمة وقت تفعيل التكرار.
+        const meta = state.recurringMeta && state.recurringMeta[rName];
+        if(meta){
+          if(meta.type) recTask.type = meta.type;
+          if(meta.priority) recTask.priority = meta.priority;
+          if(meta.duration) recTask.duration = meta.duration;
+          if(meta.note) recTask.note = meta.note;
+          if(meta.subtasks && meta.subtasks.length) recTask.subtasks = meta.subtasks.map(s => ({ id: uid(), title: s.title, done: false }));
+        } else {
+          // تكرار قديم من غير مواصفات محفوظة — نرث النوع من الكلمة أو من أي نسخة موجودة.
+          const rKw = state.keywords.find(k => k.name === rName);
+          if(rKw && rKw.type) recTask.type = rKw.type;
+          else {
+            // مفيش كلمة بنفس الاسم (اتضافت كمهمة مباشرة) — نرث النوع من أي نسخة
+            // موجودة من التكرار (مثلاً نسخة اليوم اللي المستخدم عدّل نوعه منها)
+            // عشان التكرار ما يحيّش بنوع افتراضي غلط بعد ما المستخدم حدّده.
+            for(const dKey of Object.keys(state.days)){
+              const same = state.days[dKey].find(t => t.name === rName && t.type);
+              if(same){ recTask.type = same.type; break; }
+            }
           }
         }
         state.days[dateStr].push(recTask);
