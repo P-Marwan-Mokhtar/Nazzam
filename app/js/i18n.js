@@ -213,6 +213,8 @@ ar: {
   'bank.already_added': 'مُضافة بالفعل اليوم',
   'bank.add_to_today': 'إضافة إلى اليوم',
   'bank.add_options': 'خيارات الإضافة',
+  'bank.add_first': 'أضف أول مهمة',
+  'bank.show_all': 'عرض الكل',
   'bank.add_place': 'مكان الإضافة',
   'bank.place_today': 'اليوم',
   'bank.place_bank': 'القائمة',
@@ -254,6 +256,8 @@ ar: {
   'day.empty_all_done_title': 'اكتملت جميع المهام',
   'day.empty_type_all': 'لا توجد {type}',
   'day.of_streak': 'من الإنجاز',
+  'day.add_task': 'أضف مهمة',
+  'day.show_all': 'إظهار الكل',
 
   // Task Actions
   'task.undo_done': 'إلغاء إنجاز المهمة',
@@ -790,6 +794,8 @@ en: {
   'bank.already_added': 'Already added today',
   'bank.add_to_today': 'Add to today',
   'bank.add_options': 'Add options',
+  'bank.add_first': 'Add your first task',
+  'bank.show_all': 'Show all',
   'bank.add_place': 'Where to add',
   'bank.place_today': 'Today',
   'bank.place_bank': 'List',
@@ -831,6 +837,8 @@ en: {
   'day.empty_all_done_title': 'All tasks completed \uD83C\uDF89',
   'day.empty_type_all': 'No {type}',
   'day.of_streak': 'of completion',
+  'day.add_task': 'Add a task',
+  'day.show_all': 'Show all',
 
   // Task Actions
   'task.undo_done': 'Undo task completion',

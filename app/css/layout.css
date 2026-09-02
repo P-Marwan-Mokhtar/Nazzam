@@ -23,24 +23,50 @@
   scroll-behavior: smooth;
 }
 
-/* ===== حالة التحميل الأولى (بيتمسح بعد أول render) ===== */
-.content-loading {
+/* ===== شاشة التحميل الأولى: صفحة blank بلوجو في النص + نقاط تحميل (زي TickTick/Todoist) =====
+   بتغطي الشاشة كلها (fixed فوق كل حاجة)، وبتتمسح من الـ DOM في main.js بعد أول render. */
+.boot-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+  color: var(--ink-soft);
+}
+.boot-splash-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 14px;
-  padding: 70px 20px;
-  color: var(--ink-soft);
-  font-size: 0.95rem;
+  gap: 22px;
 }
-.content-loading-spinner {
-  width: 34px;
-  height: 34px;
-  border: 3px solid var(--paper-line);
-  border-top-color: var(--pen);
+.boot-splash-logo {
+  width: 96px;
+  height: 96px;
+  border-radius: 26px;
+  box-shadow: var(--shadow);
+  /* خلفية بيضا دايمة عشان اللوجو أسود — في الوضع الداكن كانت بتختفي */
+  background: #ffffff;
+  padding: 8px;
+  box-sizing: border-box;
+}
+.boot-splash-dots {
+  display: flex;
+  gap: 8px;
+}
+.boot-splash-dots span {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  animation: acc-spin 0.7s linear infinite;
+  background: var(--pen);
+  animation: boot-splash-bounce 1.2s ease-in-out infinite;
+}
+.boot-splash-dots span:nth-child(2) { animation-delay: 0.15s; }
+.boot-splash-dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes boot-splash-bounce {
+  0%, 100% { transform: translateY(0); opacity: 0.35; }
+  50% { transform: translateY(-5px); opacity: 1; }
 }
 
 /* ===== Timer Panel ===== */
@@ -672,5 +698,19 @@
   gap: 2px;
   padding-inline-start: 14px;
   margin-top: 2px;
+}
+
+/* ===== Performance: content-visibility للقوائم الطويلة ===== */
+/* بيقلل_work الـ layout والـ paint للعناصر اللي بعيدة عن الشاشة (زي virtual DOM بدون إعادة كتابة الـ markup).
+   مهم: مينفعش يتحط على الحاويات اللي فيها بوب/هي dropdowns متفتحة (زي task-row/keyword-row) لأن
+   الـ paint containment اللي بيجمبه بيقصّ أي عنصر absolute زايد عن حدود الحاوية — بيخلي قائمة
+   "المزيد" تظهر متقطعة. -->
+.week-day-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 160px;
+}
+.timeblock-layout .tbw-grid {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
 }
 

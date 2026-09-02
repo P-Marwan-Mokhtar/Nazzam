@@ -174,13 +174,21 @@ export function escapeHtml(s){
 
 export function escapeAttr(s){ return escapeHtml(s); }
 
-// Empty state موحّد: أيقونة + عنوان + سطر تلميح (اختياري) — بيكسر الصفحة الفاضية بحاجة لطيفة
-export function emptyStateHtml(icon, title, hint, animate = true){
+// Empty state موحّد: أيقونة + عنوان + سطر تلميح (اختياري) + زر إجراء (اختياري).
+// action = { label, dataAction, filterId? } → بيترسم زرار بـ data-action بيتعامل معاه
+// نفس منطق أي زرار تاني في contentEl (contentActions في events.js).
+export function emptyStateHtml(icon, title, hint, animate = true, action = null){
+  const actionBtn = action ? `
+    <button type="button" class="empty-state-btn" data-action="${action.dataAction}" ${action.filterId !== undefined ? `data-filter-id="${action.filterId}"` : ''}>
+      ${action.icon ? `<span class="material-icons">${action.icon}</span>` : ''}${escapeHtml(action.label)}
+    </button>
+  ` : '';
   return `
     <div class="empty-state${animate ? ' animate-in' : ''}">
       <span class="material-icons empty-state-icon">${icon}</span>
       <div class="empty-state-title">${escapeHtml(title)}</div>
       ${hint ? `<div class="empty-state-hint">${escapeHtml(hint)}</div>` : ''}
+      ${actionBtn}
     </div>
   `;
 }

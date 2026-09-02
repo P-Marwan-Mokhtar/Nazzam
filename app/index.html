@@ -55,6 +55,14 @@
     <link rel="stylesheet" href="css/misc.css" />
   </head>
   <body>
+    <div class="boot-splash" id="bootSplash" aria-busy="true" role="status">
+      <div class="boot-splash-inner">
+        <img src="img/nazzam-logo.png" alt="نظم" class="boot-splash-logo" width="96" height="96" />
+        <div class="boot-splash-dots" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
     <div class="sync-bar" id="syncBar"></div>
     <div class="wrap" id="app" style="display:none">
       <div class="header-card">
@@ -285,10 +293,6 @@
           <div class="main-layout">
             <div class="main-col">
               <div id="content">
-                <div class="content-loading">
-                  <div class="content-loading-spinner"></div>
-                  <p data-i18n="c.loading">جارٍ تحميل بياناتك...</p>
-                </div>
               </div>
             </div>
             <div class="timer-col">

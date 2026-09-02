@@ -7,8 +7,8 @@ import { addDays, normalizeArabic, reorderArrayById, todayStr, uid } from './uti
 import { contentEl, showToast, showUndoToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { wireCustomSelects, wireDragAndDrop } from './popovers.js';
+import { afterRender, render } from './render.js';
 import { openRecurrenceModal } from './recurrence.js';
-import { render } from './render.js';
 import { openSubtasksModal } from './subtasks.js';
 import { openTaskDetails } from './taskDetails.js';
 import { openTaskNoteModal } from './taskNote.js';
@@ -209,6 +209,38 @@ const contentActions = {
     ui.bankDisplayLimit = 10;
     render();
   },
+  'focus-add-task': async () => {
+    if(!ui.bankOpen){
+      ui.bankOpen = true;
+      ui.justOpenedBank = true;
+    }
+    render();
+    afterRender(() => {
+      const input = document.getElementById('newKeywordInput');
+      if(input) input.focus();
+    });
+  },
+  'focus-add-keyword': async () => contentActions['focus-add-task'](),
+  'clear-bank-search': async () => {
+    ui.bankSearchQuery = '';
+    ui.bankDisplayLimit = 10;
+    render();
+    afterRender(() => {
+      const input = document.getElementById('bankSearchInput');
+      if(input) input.focus();
+    });
+  },
+  'show-all-filters': async () => {
+    ui.activeFilter = 'all';
+    ui.mobileFiltersOpen = true;
+    ui.justChangedFilter = true;
+    render();
+  },
+  'clear-day-filters': async () => {
+    ui.dayStatusFilter = 'all';
+    ui.dayTypeFilter = 'all';
+    render();
+  },
   'toggle-duration': async (btn) => {
     const { id } = btn.dataset;
     ui.openPriorityPopoverTaskId = null;
@@ -375,11 +407,13 @@ const contentActions = {
     ui.openTaskMoreId = null;
     ui.editingTaskId = id;
     render();
-    const inp = document.getElementById('inlineEditInput_' + id);
-    if(inp) {
-      inp.focus();
-      inp.setSelectionRange(inp.value.length, inp.value.length);
-    }
+    afterRender(() => {
+      const inp = document.getElementById('inlineEditInput_' + id);
+      if(inp) {
+        inp.focus();
+        inp.setSelectionRange(inp.value.length, inp.value.length);
+      }
+    });
   },
   'save-task-edit': async (btn) => {
     const { id } = btn.dataset;
@@ -477,8 +511,10 @@ const contentActions = {
     ui.openFilterMoreId = null;
     render();
     if(ui.filterAddOpen){
-      const inp = document.getElementById('newFilterInput');
-      if(inp) inp.focus();
+      afterRender(() => {
+        const inp = document.getElementById('newFilterInput');
+        if(inp) inp.focus();
+      });
     }
   },
   'toggle-pin-filter': async (btn) => {
@@ -497,8 +533,10 @@ const contentActions = {
     ui.editingFilterId = id;
     ui.openFilterMoreId = null;
     render();
-    const input = document.getElementById('editFilterInput');
-    if(input){ input.focus(); input.select(); }
+    afterRender(() => {
+      const input = document.getElementById('editFilterInput');
+      if(input){ input.focus(); input.select(); }
+    });
   },
   'save-filter': async (btn) => {
     const { id } = btn.dataset;
@@ -571,8 +609,10 @@ const contentActions = {
     ui.editingKeywordId = id;
     ui.openKeywordMoreId = null;
     render();
-    const input = document.getElementById('editKeywordInput');
-    if(input){ input.focus(); input.select(); }
+    afterRender(() => {
+      const input = document.getElementById('editKeywordInput');
+      if(input){ input.focus(); input.select(); }
+    });
   },
   'save-keyword': async () => {
     const input = document.getElementById('editKeywordInput');
@@ -749,11 +789,13 @@ export function attachEvents(){
       ui.bankDisplayLimit = 10;
       const cursorPos = e.target.selectionStart;
       render();
-      const newInput = document.getElementById('bankSearchInput');
-      if(newInput){
-        newInput.focus();
-        newInput.setSelectionRange(cursorPos, cursorPos);
-      }
+      afterRender(() => {
+        const newInput = document.getElementById('bankSearchInput');
+        if(newInput){
+          newInput.focus();
+          newInput.setSelectionRange(cursorPos, cursorPos);
+        }
+      });
     };
   }
   const bankSearchClear = document.getElementById('bankSearchClear');
@@ -762,8 +804,10 @@ export function attachEvents(){
       ui.bankSearchQuery = '';
       ui.bankDisplayLimit = 10;
       render();
-      const newInput = document.getElementById('bankSearchInput');
-      if(newInput) newInput.focus();
+      afterRender(() => {
+        const newInput = document.getElementById('bankSearchInput');
+        if(newInput) newInput.focus();
+      });
     };
   }
 
@@ -807,7 +851,10 @@ export function attachEvents(){
       newFilterInput.value = '';
       render();
       await saveData();
-      document.getElementById('newFilterInput').focus();
+      afterRender(() => {
+        const flt = document.getElementById('newFilterInput');
+        if(flt) flt.focus();
+      });
     };
     addFilterBtn.onclick = handleAddFilter;
     newFilterInput.onkeydown = (e) => { if(e.key === 'Enter') handleAddFilter(); };

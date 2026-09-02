@@ -2,6 +2,13 @@
 // render.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
+// بعد استدعاء render()، الـ DOM الحقيقي بيتكتب جوه requestAnimationFrame (تحت في الدالة).
+// فلو عايز تدوّر على عنصر رُسم للتو (زي input وتعمل focus)، لازم تستني لحد ما الرندر
+// يتنفذ فعليًا — والـ helper ده بيضمن الكود يتشغّل بعد الـ rAF بتاع الرندر مش قبله.
+export function afterRender(cb){
+  requestAnimationFrame(() => requestAnimationFrame(cb));
+}
+
 import { emptyStateHtml, escapeAttr, escapeHtml, fmtDay, fromISO, highlightMatch, normalizeArabic, parseDurationToMinutes, todayStr, uid } from './utils.js';
 import { t, formatHM } from './i18n.js';
 import { PRIORITY_LABELS, TASK_TYPES, contentEl, state, ui } from './state.js';
@@ -289,11 +296,11 @@ export function render(){
 
     if(visibleKeywords.length === 0){
       if(state.keywords.length === 0){
-        html += emptyStateHtml('inbox', t('bank.empty_title'), t('bank.empty_hint'), !ui.emptyAnimated);
+        html += emptyStateHtml('inbox', t('bank.empty_title'), t('bank.empty_hint'), !ui.emptyAnimated, { label: t('bank.add_first'), icon: 'add', dataAction: 'focus-add-keyword' });
       } else if(searchNormalized){
-        html += emptyStateHtml('search_off', t('bank.no_results'), t('bank.no_results_hint', {query: ui.bankSearchQuery.trim()}), !ui.emptyAnimated);
+        html += emptyStateHtml('search_off', t('bank.no_results'), t('bank.no_results_hint', {query: ui.bankSearchQuery.trim()}), !ui.emptyAnimated, { label: t('bank.search_clear'), icon: 'close', dataAction: 'clear-bank-search' });
       } else {
-        html += emptyStateHtml('filter_alt_off', t('bank.no_filter_tasks'), t('bank.no_filter_hint'), !ui.emptyAnimated);
+        html += emptyStateHtml('filter_alt_off', t('bank.no_filter_tasks'), t('bank.no_filter_hint'), !ui.emptyAnimated, { label: t('bank.show_all'), icon: 'filter_alt_off', dataAction: 'show-all-filters' });
       }
       ui.emptyAnimated = true;
     } else {
@@ -439,7 +446,8 @@ export function render(){
       'wb_sunny',
       isToday ? t('day.empty_today') : t('day.empty_past'),
       isToday ? t('day.empty_hint_today') : t('day.empty_hint_past'),
-      !wasEmptyAnimated
+      !wasEmptyAnimated,
+      isToday ? { label: t('day.add_task'), icon: 'add', dataAction: 'focus-add-task' } : null
     );
     ui.emptyAnimated = true;
   } else if(visibleDayTasks.length === 0){
@@ -450,7 +458,10 @@ export function render(){
         typeFiltered ? (TASK_TYPES[ui.dayTypeFilter] ? TASK_TYPES[ui.dayTypeFilter].icon : 'label_off') : (statusFiltered === 'done' ? 'celebration' : 'check_circle'),
         typeFiltered ? t('day.empty_type', {type: dayTypeLabels[ui.dayTypeFilter]}) : (ui.dayStatusFilter === 'done' ? t('day.empty_done_title') : t('day.empty_all_done_title')),
         typeFiltered ? t('day.empty_type_hint') : (ui.dayStatusFilter === 'done' ? t('day.empty_done_hint') : t('day.empty_pending_hint')),
-        !wasEmptyAnimated
+        !wasEmptyAnimated,
+        typeFiltered || statusFiltered === 'done'
+          ? { label: t('day.show_all'), icon: 'filter_alt_off', dataAction: 'clear-day-filters' }
+          : (isToday ? { label: t('day.add_task'), icon: 'add', dataAction: 'focus-add-task' } : null)
       );
     } else {
       html += emptyStateHtml('check_circle', t('day.empty_all_done_title'), t('day.empty_pending_hint'), !wasEmptyAnimated);

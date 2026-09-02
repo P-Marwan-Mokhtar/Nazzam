@@ -12,7 +12,7 @@ import { closeDraftsModal, openDraftsModal, renderDraftsModal } from './drafts.j
 import { closeNotificationSettingsModal, registerServiceWorker, startNotificationScheduler } from './notifications.js';
 import { hideClockChoicePopover, hideDurationPopover } from './popovers.js';
 import { closeRecurrenceModal } from './recurrence.js';
-import { render } from './render.js';
+import { afterRender, render } from './render.js';
 import { closeGlobalSearchModal, openGlobalSearchModal, renderGlobalSearchResults } from './search.js';
 import { renderStatsView, renderTaskStatsView } from './stats.js';
 import { closeSubtasksModal } from './subtasks.js';
@@ -28,6 +28,7 @@ import { initMonitoring, trackView } from './monitoring.js';
 import { closeUpgrade, gateFree } from './upgrade.js';
 import { openSmartLists } from './smartLists.js';
 import { closeAccountPanel, isAccountPanelOpen, toggleAccountPanel } from './accountMenu.js';
+import { addDays, todayStr } from './utils.js';
 
 (async function init(){
   initMonitoring();
@@ -42,6 +43,8 @@ import { closeAccountPanel, isAccountPanelOpen, toggleAccountPanel } from './acc
     // تتكفّل بجلب آخر نسخة محلية محفوظة.
     const authed = await ensureAuth();
     if(authed === false){
+      const splash = document.getElementById('bootSplash');
+      if(splash) splash.remove();
       openAuthGate();
       return;
     }
@@ -74,6 +77,13 @@ async function startApp(){
   applyHashToState(); // نظبط الشاشة الحالية (إحصائيات/أسبوعي/جدول زمني) حسب الرابط قبل أول render، عشان منعملش وميض لمهام اليوم الأول ثم نتنقل
   const shortcutView = consumeShortcutViewParam(); // Shortcuts الـ PWA (manifest.json): ?view=stats أو ?view=calendar — بنحولهم للشاشة الصح عند بدء التطبيق
 
+  // نطبق حالة طي الشريط الجانبي المحفوظة بدري (قبل تحميل البيانات) عشان أثناء
+  // شاشة التحميل ميبانش مفتوح بالكلام لو كان المستخدم مطويه قبل الـ refresh.
+  try{
+    const sideNavEl = document.querySelector('.side-nav');
+    if(sideNavEl && localStorage.getItem('nazam-side-nav') === 'collapsed') sideNavEl.classList.add('collapsed');
+  }catch(e){}
+
   // مهم: نجيب بيانات المستخدم الحقيقية الأول قبل أي render، عشان مايبقاش
   // فيه أي لحظة (ولو صغيرة) الشاشة بترسم فيها بحالة فاضية افتراضية. لو المستخدم
   // تفاعل مع التطبيق (زي إضافة مهمة) في اللحظة دي، كان بيتسجّل فوق الحالة الفاضية
@@ -83,6 +93,12 @@ async function startApp(){
   initLang(); // تهيئة اللغة المحفوظة
   applyTheme(); // نطبّق الثيم المحفوظ (themeName + darkMode) قبل أول رسم
   render();
+  // نمسح شاشة التحميل (اللوجو + النقاط) بعد ما أول render يخلص فعليًا،
+  // عشان تختفي بنفس لحظة ظهور المحتوى من غير وميض ولا تجميد للنقر عليها.
+  afterRender(() => {
+    const splash = document.getElementById('bootSplash');
+    if(splash) splash.remove();
+  });
   applyStaticTranslations(); // ترجمة عناصر HTML الثابتة
   if(shortcutView === 'calendar') openCalendarModal(); // shortcut التقويم بيشاور على modal مش view بالـ hash — بنفتحه بعد أول render
   setInterval(tickTimers, 1000);
@@ -421,6 +437,46 @@ async function startApp(){
   });
 
   document.addEventListener('keydown', (e) => {
+    // اختصارات لوحة المفاتيح (بس لو المستخدم مش بيكبّ في حقل إدخال)
+    const isTyping = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.isContentEditable;
+    if(!isTyping && !e.ctrlKey && !e.metaKey && !e.altKey){
+      if(e.key === 'n'){
+        e.preventDefault();
+        if(!ui.bankOpen){
+          ui.bankOpen = true;
+          ui.justOpenedBank = true;
+        }
+        render();
+        afterRender(() => {
+          const input = document.getElementById('newKeywordInput');
+          if(input) input.focus();
+        });
+        return;
+      }
+      if(e.key === 't'){
+        e.preventDefault();
+        if(ui.selectedDate !== todayStr()){
+          ui.selectedDate = todayStr();
+          ui.justChangedDay = true;
+          render();
+        }
+        return;
+      }
+      if(e.key === 'j'){
+        e.preventDefault();
+        ui.selectedDate = addDays(ui.selectedDate, 1);
+        ui.justChangedDay = true;
+        render();
+        return;
+      }
+      if(e.key === 'k'){
+        e.preventDefault();
+        ui.selectedDate = addDays(ui.selectedDate, -1);
+        ui.justChangedDay = true;
+        render();
+        return;
+      }
+    }
     if(e.key === 'Escape'){
       if(onboardingOverlay.classList.contains('open')){ closeOnboarding(); return; }
       if(sideNavDataPopover && sideNavDataPopover.classList.contains('open')){
