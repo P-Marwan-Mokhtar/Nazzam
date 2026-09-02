@@ -105,6 +105,25 @@
             <div class="header-actions-panel" id="headerActionsPanel">
               <button
                 class="header-menu-item"
+                id="weekViewMenuItem"
+                title="عرض الأسبوع"
+                data-i18n-title="nav.week_view"
+              >
+                <span class="material-icons">view_week</span>
+                <span class="header-btn-label" data-i18n="nav.week_view">عرض الأسبوع</span>
+              </button>
+              <button
+                class="header-menu-item"
+                id="smartListsBtn"
+                title="القوائم الذكية"
+                data-i18n-title="nav.smart_lists"
+              >
+                <span class="material-icons">auto_awesome</span>
+                <span class="header-btn-label" data-i18n="nav.smart_lists">القوائم الذكية</span>
+              </button>
+              <div class="header-menu-divider"></div>
+              <button
+                class="header-menu-item"
                 id="globalSearchBtnMobile"
                 title="البحث في كل المهام"
                 data-i18n-title="nav.search_all"
@@ -138,24 +157,6 @@
               >
                 <span class="material-icons">notifications</span>
                 <span class="header-btn-label" data-i18n="nav.notif_settings">إعدادات التنبيهات</span>
-              </button>
-              <button
-                class="header-menu-item"
-                id="weekViewMenuItem"
-                title="عرض الأسبوع"
-                data-i18n-title="nav.week_view"
-              >
-                <span class="material-icons">view_week</span>
-                <span class="header-btn-label" data-i18n="nav.week_view">عرض الأسبوع</span>
-              </button>
-              <button
-                class="header-menu-item"
-                id="smartListsBtn"
-                title="القوائم الذكية"
-                data-i18n-title="nav.smart_lists"
-              >
-                <span class="material-icons">auto_awesome</span>
-                <span class="header-btn-label" data-i18n="nav.smart_lists">القوائم الذكية</span>
               </button>
               <button
                 class="header-menu-item"
@@ -254,10 +255,6 @@
             <span class="material-icons">auto_awesome</span>
             <span class="side-nav-label" data-i18n="nav.smart_lists">القوائم الذكية</span>
           </button>
-          <button class="side-nav-btn" data-side-target="templatesBtn" title="قوالب المهام الجاهزة" data-i18n-title="nav.templates">
-            <span class="material-icons">content_copy</span>
-            <span class="side-nav-label" data-i18n="nav.templates">قوالب المهام</span>
-          </button>
           <div class="side-nav-divider"></div>
           <button class="side-nav-btn" data-side-target="globalSearchBtnMobile" title="البحث في كل المهام" data-i18n-title="nav.search_all">
             <span class="material-icons">manage_search</span>
@@ -274,6 +271,10 @@
           <button class="side-nav-btn" data-side-target="notificationSettingsBtn" title="إعدادات التنبيهات" data-i18n-title="nav.notif_settings">
             <span class="material-icons">notifications</span>
             <span class="side-nav-label" data-i18n="nav.notif_settings">إعدادات التنبيهات</span>
+          </button>
+          <button class="side-nav-btn" data-side-target="templatesBtn" title="قوالب المهام الجاهزة" data-i18n-title="nav.templates">
+            <span class="material-icons">content_copy</span>
+            <span class="side-nav-label" data-i18n="nav.templates">قوالب المهام</span>
           </button>
           <div class="side-nav-divider"></div>
           <div class="side-nav-data-wrap">

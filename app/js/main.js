@@ -330,11 +330,22 @@ async function startApp(){
       const willOpen = !sideNavDataPopover.classList.contains('open');
       sideNavDataPopover.classList.toggle('open', willOpen);
       sideNavDataBtn.classList.toggle('is-open', willOpen);
+      if(willOpen){
+        // الإفتراضي إنه يفتح لأعلى (زر البيانات في آخر الشريط) عشان يسببش سكرول للصفحة.
+        // لو مفيش مساحة فوق (الـ popover طويلة والزر عالي) نفتحه لتحت.
+        requestAnimationFrame(() => {
+          const rect = sideNavDataPopover.getBoundingClientRect();
+          sideNavDataPopover.classList.toggle('flip-up', rect.top < 0);
+        });
+      } else {
+        sideNavDataPopover.classList.remove('flip-up');
+      }
     });
     document.addEventListener('click', (e) => {
       if(!e.target.closest('.side-nav-data-wrap')){
         sideNavDataPopover.classList.remove('open');
         sideNavDataBtn.classList.remove('is-open');
+        sideNavDataPopover.classList.remove('flip-up');
       }
     });
   }

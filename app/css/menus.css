@@ -711,4 +711,9 @@
   .account-panel.open {
     transform: translateY(0);
   }
+  /* لوحة المزيد في الهيدر بتبقى قصيرة على الموبايل عشان القوائم الطويلة متطشش */
+  .header-actions-panel {
+    max-height: 76vh;
+    overflow-y: auto;
+  }
 }

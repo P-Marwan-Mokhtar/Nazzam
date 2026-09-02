@@ -553,7 +553,8 @@
 .side-nav-divider {
   width: 30px;
   height: 1px;
-  background: var(--paper-line);
+  background: var(--ink-soft);
+  opacity: 0.4;
   margin: 6px 0;
   flex: 0 0 auto;
   transition: width 0.28s ease;
@@ -568,7 +569,8 @@
 .side-nav-popover {
   position: absolute;
   right: calc(100% + 10px);
-  top: 0;
+  top: auto;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -590,6 +592,11 @@
   opacity: 1;
   transform: translateX(0);
   pointer-events: auto;
+}
+/* لو الشاشة قصيرة أو مفيش مساحة فوق، يفتح لتحت بدل ما يطلع فوق */
+.side-nav-popover.flip-up {
+  top: 0;
+  bottom: auto;
 }
 .side-nav-popover .header-menu-item {
   white-space: nowrap;
@@ -671,7 +678,8 @@
 }
 .header-menu-divider {
   height: 1px;
-  background: var(--paper-line);
+  background: var(--ink-soft);
+  opacity: 0.4;
   margin: 5px 4px;
 }
 .header-menu-group {
