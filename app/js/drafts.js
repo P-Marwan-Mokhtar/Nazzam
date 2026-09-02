@@ -8,6 +8,12 @@ import { saveData } from './dataStore.js';
 import { render } from './render.js';
 import { t } from './i18n.js';
 
+// ممنوع تكرار الأسماء في البنك حتى باختلاف الحركات (أ/إ/ا ...) — يُستخدم
+// عند استرجاع مسودة من قائمة المسودات لمنع خلق مهام مكررة بالاسم.
+function isDuplicateKeywordName(name){
+  return state.keywords.some(k => normalizeArabic(k.name) === normalizeArabic(name));
+}
+
 export function renderDraftsModal(){
   const listEl = document.getElementById('draftsModalList');
   const searchVal = normalizeArabic(ui.draftsSearchQuery.trim());
@@ -46,6 +52,10 @@ export function renderDraftsModal(){
       if(action === 'restore-draft'){
         const draftItem = state.drafts.find(x => x.id === id);
         if(draftItem){
+          if(isDuplicateKeywordName(draftItem.name)){
+            showToast(t('toast.duplicate_in_bank'));
+            return;
+          }
           state.drafts = state.drafts.filter(x => x.id !== id);
           state.keywords.push(draftItem);
           renderDraftsModal();

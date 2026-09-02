@@ -17,6 +17,7 @@ import { ensureNotificationPermission, currentHHMM } from './notifications.js';
 import { formatTimeArabic, openTimePicker } from './timePicker.js';
 import { startOpenTimer } from './timers.js';
 import { closeSmartLists, smartTab, smartToggleDone, smartToDay } from './smartLists.js';
+import { openTemplateReplaceConfirm } from './templates.js';
 import { gateFree } from './upgrade.js';
 
 // قايمة المزيد بتاع مهمة اليوم: بتفتح لتحت لو فيه مساحة كفاية تحت الزرار،
@@ -623,6 +624,11 @@ const contentActions = {
       if(kw){
         const oldName = kw.name;
         if(val !== oldName){
+          // ممنوع تكرار الأسماء في البنك حتى باختلاف الحركات (أ/إ/ا ...)
+          if(state.keywords.some(k => k.id !== kw.id && normalizeArabic(k.name) === normalizeArabic(val))){
+            showToast(t('toast.duplicate_in_bank'));
+            return;
+          }
           // إعادة تسمية الكلمة = إعادة تسمية كل المهام المرتبطة بالاسم في كل مكان
           // (نفس منطق save-task-edit): التكرار، نسخ الأيام، قرارات pinnedInjected.
           if(state.recurringTasks && state.recurringTasks[oldName]){
@@ -660,52 +666,6 @@ const contentActions = {
   // ------------------------------------------------------------
   // القوالب (Pro)
   // ------------------------------------------------------------
-  'open-template-add': async () => {
-    if(!gateFree('templates')) return;
-    ui.templateAddOpen = true;
-    render();
-  },
-  'cancel-template-add': async () => {
-    ui.templateAddOpen = false;
-    render();
-  },
-  'confirm-template-add': async () => {
-    if(!gateFree('templates')) return;
-    const input = document.getElementById('templateAddInput');
-    const val = input ? input.value.trim() : '';
-    if(!val){ showToast(t('toast.write_name_first')); return; }
-    if(state.templates.some(tp => normalizeArabic(tp.name) === normalizeArabic(val))){
-      showToast(t('template.duplicate_exists'));
-      return;
-    }
-    state.templates.push({ id: uid(), name: val, type: 'task' });
-    ui.templateAddOpen = false;
-    render();
-    await saveData();
-  },
-  'add-template': async (btn) => {
-    if(!gateFree('templates')) return;
-    const tpl = state.templates.find(tp => tp.id === btn.dataset.id);
-    if(!tpl) return;
-    if(!state.days[ui.selectedDate]) state.days[ui.selectedDate] = [];
-    const newTask = { id: uid(), name: tpl.name, done: false };
-    if(tpl.type) newTask.type = tpl.type;
-    if(tpl.priority) newTask.priority = tpl.priority;
-    if(tpl.duration) newTask.duration = tpl.duration;
-    if(tpl.note) newTask.note = tpl.note;
-    state.days[ui.selectedDate].push(newTask);
-    render();
-    await saveData();
-    showToast(t('template.used_toast'));
-  },
-  'delete-template': async (btn) => {
-    if(!gateFree('templates')) return;
-    const id = btn.dataset.id;
-    state.templates = state.templates.filter(tp => tp.id !== id);
-    render();
-    await saveData();
-    showToast(t('template.removed_toast'));
-  },
   'save-as-template': async (btn) => {
     if(!gateFree('templates')) return;
     let name, type, priority, duration, note;
@@ -720,8 +680,10 @@ const contentActions = {
       if(dayTask){ priority = dayTask.priority; duration = dayTask.duration; note = dayTask.note; }
     } else return;
     if(!name) return;
-    if(state.templates.some(tp => normalizeArabic(tp.name) === normalizeArabic(name))){
-      showToast(t('template.duplicate_exists'));
+    // لو فيه قالب بنفس الاسم → افتح popup الاستبدال: يبدّل القالب القديم بالجديد ولالا
+    const existing = state.templates.find(tp => normalizeArabic(tp.name) === normalizeArabic(name));
+    if(existing){
+      openTemplateReplaceConfirm(existing.id, { name, type, priority, duration, note }, name);
       return;
     }
     const tpl = { id: uid(), name };
@@ -821,12 +783,15 @@ export function attachEvents(){
         const added = addPendingTaskToDay();
         showToast(added ? t('toast.today_only') : t('toast.exists_today'));
       } else if(ui.pendingTaskPlace === 'both'){
-        addPendingTaskToBank();
-        addPendingTaskToDay();
-        showToast(t('toast.added_to_both'));
+        const bankAdded = addPendingTaskToBank();
+        const dayAdded = addPendingTaskToDay();
+        if(bankAdded && dayAdded) showToast(t('toast.added_to_both'));
+        else if(bankAdded) showToast(t('toast.added_to_bank'));
+        else if(dayAdded) showToast(t('toast.exists_today'));
+        else showToast(t('toast.duplicate_in_bank'));
       } else {
-        addPendingTaskToBank();
-        showToast(t('toast.added_to_bank'));
+        if(addPendingTaskToBank()) showToast(t('toast.added_to_bank'));
+        else showToast(t('toast.duplicate_in_bank'));
       }
       await finishAddChoice();
     };
@@ -936,10 +901,16 @@ export function addPendingTaskToDay(){
 }
 
 // إضافة المهمة المنتظرة إلى القائمة (بمراعاة الفلتر والنوع المختارين).
+// بيرجع false لو الاسم موجود بالفعل في البنك (التكرار ممنوع حتى باختلاف الحركات).
+function isKeywordDuplicate(name){
+  return state.keywords.some(k => normalizeArabic(k.name) === normalizeArabic(name));
+}
 export function addPendingTaskToBank(){
+  if(isKeywordDuplicate(ui.pendingTaskName)) return false;
   const kw = { id: uid(), name: ui.pendingTaskName, filterId: ui.pendingTaskFilterId || null };
   if(ui.pendingTaskType) kw.type = ui.pendingTaskType;
   state.keywords.push(kw);
+  return true;
 }
 
 // إنهاء عملية الإضافة: تفريغ الحقل + إغلاق بوب السهم + رسم + حفظ.

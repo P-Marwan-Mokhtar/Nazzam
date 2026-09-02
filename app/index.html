@@ -157,6 +157,15 @@
                 <span class="material-icons">auto_awesome</span>
                 <span class="header-btn-label" data-i18n="nav.smart_lists">القوائم الذكية</span>
               </button>
+              <button
+                class="header-menu-item"
+                id="templatesBtn"
+                title="قوالب المهام الجاهزة"
+                data-i18n-title="nav.templates"
+              >
+                <span class="material-icons">content_copy</span>
+                <span class="header-btn-label" data-i18n="nav.templates">قوالب المهام</span>
+              </button>
               <div class="header-menu-divider"></div>
               <details class="header-menu-group" id="dataMenuGroup">
                 <summary class="header-menu-item header-menu-summary">
@@ -244,6 +253,10 @@
           <button class="side-nav-btn" id="sideNavSmartListsBtn" title="القوائم الذكية" data-i18n-title="nav.smart_lists">
             <span class="material-icons">auto_awesome</span>
             <span class="side-nav-label" data-i18n="nav.smart_lists">القوائم الذكية</span>
+          </button>
+          <button class="side-nav-btn" data-side-target="templatesBtn" title="قوالب المهام الجاهزة" data-i18n-title="nav.templates">
+            <span class="material-icons">content_copy</span>
+            <span class="side-nav-label" data-i18n="nav.templates">قوالب المهام</span>
           </button>
           <div class="side-nav-divider"></div>
           <button class="side-nav-btn" data-side-target="globalSearchBtnMobile" title="البحث في كل المهام" data-i18n-title="nav.search_all">
@@ -380,6 +393,77 @@
             "
           >
             <!-- سيتم تعبئتها ديناميكياً -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal القوالب الجاهزة (ميزة Pro) -->
+    <div class="modal-overlay" id="templatesOverlay">
+      <div class="modal-card" style="max-width: 500px">
+        <div class="modal-header">
+          <h2 data-i18n="modal.templates">قوالب المهام</h2>
+          <button class="icon-btn" id="closeTemplatesBtn" title="إغلاق" data-i18n-title="c.close">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="bank-search" style="margin-top: 0; margin-bottom: 14px">
+            <span class="material-icons bank-search-icon">search</span>
+            <input
+              type="text"
+              id="templatesSearchInput"
+              placeholder="ابحث في القوالب..."
+              data-i18n-placeholder="template.search_placeholder"
+            />
+            <button
+              class="bank-search-clear"
+              id="templatesSearchClear"
+              style="display: none"
+              title="مسح البحث"
+              data-i18n-title="c.search"
+            >
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+          <div
+            id="templatesModalList"
+            style="
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+              max-height: 350px;
+              overflow-y: auto;
+            "
+          >
+            <!-- سيتم تعبئتها ديناميكياً -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal تأكيد استبدال القالب المكرر (يظهر فوق مودال القوالب) -->
+    <div class="modal-overlay" id="templatesReplaceOverlay">
+      <div class="modal-card" style="max-width: 380px">
+        <div class="modal-header">
+          <h2 data-i18n="template.replace_title">قالب بنفس الاسم موجود</h2>
+          <button class="icon-btn" id="templatesReplaceCloseBtn" title="إلغاء" data-i18n-title="c.cancel">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="replace-conflict-info">
+            <p class="replace-conflict-title" id="templatesReplaceBodyTitle"></p>
+            <p class="replace-conflict-hint" id="templatesReplaceBodyHint"></p>
+          </div>
+          <div class="replace-conflict-actions">
+            <button class="add-btn replace-confirm-btn" id="templatesReplaceConfirmBtn" type="button">
+              <span class="material-icons">swap_horiz</span>
+              <span data-i18n="template.replace_confirm">استبدال</span>
+            </button>
+            <button class="btn-secondary replace-cancel-btn" id="templatesReplaceKeepBtn" type="button" data-i18n="c.cancel">
+              إلغاء
+            </button>
           </div>
         </div>
       </div>

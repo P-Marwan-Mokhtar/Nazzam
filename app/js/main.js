@@ -18,6 +18,7 @@ import { renderStatsView, renderTaskStatsView } from './stats.js';
 import { closeSubtasksModal } from './subtasks.js';
 import { closeTaskDetails } from './taskDetails.js';
 import { closeTaskNoteModal } from './taskNote.js';
+import { closeTemplatesModal, closeReplaceDialog, openTemplatesModal, renderTemplatesModal } from './templates.js';
 import { checkMissedTasksPopup, closeMissedTasksModal, renderTimerPanel, tickTimers } from './timers.js';
 import { closeDurationPicker, commitDurationPicker } from './wheelPicker.js';
 import { toggleWeekView } from './weekView.js';
@@ -237,6 +238,33 @@ async function startApp(){
   // أحداث زر ونافذة الـ Drafts والبحث الذكي
   document.getElementById('draftsBtn').onclick = openDraftsModal;
   document.getElementById('closeDraftsBtn').onclick = closeDraftsModal;
+
+  // أحداث مودال القوالب الجاهزة (ميزة Pro): فتح/إغلاق + بحث + مسح البحث
+  document.getElementById('templatesBtn').onclick = openTemplatesModal;
+  document.getElementById('closeTemplatesBtn').onclick = closeTemplatesModal;
+  const templatesOverlay = document.getElementById('templatesOverlay');
+  templatesOverlay.addEventListener('click', (e) => {
+    if(e.target === templatesOverlay) closeTemplatesModal();
+  });
+  const templatesSearchInput = document.getElementById('templatesSearchInput');
+  const templatesSearchClear = document.getElementById('templatesSearchClear');
+  if(templatesSearchInput){
+    templatesSearchInput.oninput = (e) => {
+      ui.templatesSearchQuery = e.target.value;
+      if(ui.templatesSearchQuery) templatesSearchClear.style.display = 'flex';
+      else templatesSearchClear.style.display = 'none';
+      renderTemplatesModal();
+    };
+  }
+  if(templatesSearchClear){
+    templatesSearchClear.onclick = () => {
+      ui.templatesSearchQuery = '';
+      templatesSearchInput.value = '';
+      templatesSearchClear.style.display = 'none';
+      renderTemplatesModal();
+      templatesSearchInput.focus();
+    };
+  }
 
   document.getElementById('exportDataBtn').onclick = exportDataAsJSON;
   const exportIcsBtn = document.getElementById('exportIcsBtn');
@@ -502,6 +530,8 @@ async function startApp(){
       if(document.getElementById('taskNoteOverlay').classList.contains('open')) closeTaskNoteModal();
       if(document.getElementById('taskDetailsOverlay').classList.contains('open')) closeTaskDetails();
       if(document.getElementById('globalSearchOverlay').classList.contains('open')) closeGlobalSearchModal();
+      if(document.getElementById('templatesOverlay').classList.contains('open')) closeTemplatesModal();
+      if(document.getElementById('templatesReplaceOverlay').classList.contains('open')) closeReplaceDialog();
       if(document.getElementById('notificationSettingsOverlay').classList.contains('open')) closeNotificationSettingsModal();
       if(document.getElementById('timelineTaskOverlay').classList.contains('open')) closeTimelineTaskPopup();
       const rm = document.getElementById('tbRangeMenu');

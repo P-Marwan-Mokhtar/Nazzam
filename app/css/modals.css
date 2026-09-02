@@ -396,6 +396,10 @@
     opacity: 1;
   }
 }
+/* نافذة استبدال القالب المكرر بتظهر فوق مودال القوالب دايماً */
+#templatesReplaceOverlay {
+  z-index: 250;
+}
 @keyframes modalPopIn {
   from {
     opacity: 0;

@@ -63,37 +63,6 @@ export function ensureDayMaterialized(dateStr){
   }
 }
 
-// شريط القوالب (ميزة Pro) جوه بنك المهام: شيبس جاهزة للإضافة لأي يوم + حقل إضافة قالب
-function bankTemplatesHtml(){
-  const list = state.templates || [];
-  if(!list.length && !ui.templateAddOpen) return '';
-  const chips = list.map(tpl => `
-    <div class="template-chip">
-      <button class="template-chip-main" data-action="add-template" data-id="${escapeAttr(tpl.id)}" title="${t('template.title')}">
-        <span class="material-icons tc-${tpl.type || 'task'}">${TASK_TYPES[tpl.type || 'task'].icon}</span>
-        <span class="template-chip-name">${escapeHtml(tpl.name)}</span>
-      </button>
-      <button class="template-chip-remove" data-action="delete-template" data-id="${escapeAttr(tpl.id)}" title="${t('template.remove')}"><span class="material-icons">close</span></button>
-    </div>
-  `).join('');
-  const addField = ui.templateAddOpen ? `
-    <div class="template-add-row">
-      <input type="text" id="templateAddInput" placeholder="${t('template.name')}" maxlength="80" />
-      <button class="add-btn icon-only" data-action="confirm-template-add" title="${t('bank.add_title')}"><span class="material-icons">add</span></button>
-      <button class="add-btn icon-only" data-action="cancel-template-add" title="${t('misc.cancel')}"><span class="material-icons">close</span></button>
-    </div>` : `
-    <button class="template-add-chip" data-action="open-template-add" title="${t('template.title')}"><span class="material-icons">add</span></button>`;
-  return `
-    <div class="templates-row">
-      <span class="templates-row-label">${t('template.title')}</span>
-      <div class="template-chips">
-        ${chips}
-        ${addField}
-      </div>
-    </div>
-  `;
-}
-
 export function render(){
   hideDurationPopover();
   syncHashWithState();
@@ -203,8 +172,6 @@ export function render(){
         </div>
       </div>
     `;
-    html += bankTemplatesHtml();
-
     html += `
       <div class="add-row bank-add-task-row">
         <input type="text" id="newKeywordInput" placeholder="${t('bank.add_placeholder')}" value="${escapeAttr(ui.addDraft)}" />
@@ -352,9 +319,6 @@ export function render(){
                       </div>
                       <button class="tmd-btn" data-action="open-task-stats" data-name="${escapeAttr(k.name)}">
                         <span class="material-icons">insights</span><span>${t('bank.stats')}</span>
-                      </button>
-                      <button class="tmd-btn" data-action="save-as-template" data-name="${escapeAttr(k.name)}" data-type="${k.type || 'task'}">
-                        <span class="material-icons">content_copy</span><span>${t('template.save')}</span>
                       </button>
                       <button class="tmd-btn" data-action="delete-keyword" data-id="${k.id}">
                         <span class="material-icons">archive</span><span>${t('bank.draft')}</span>

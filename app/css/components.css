@@ -1796,108 +1796,107 @@ select:focus {
 }
 
 /* ============================================================
-   شريط القوالب (ميزة Pro) جوه بنك المهام
+   مودال القوالب الجاهزة (ميزة Pro) — قايمة القوالب + التعديل الداخلي
    ============================================================ */
-.templates-row {
+.template-modal-row {
+  background: var(--paper);
+  border: 1px solid var(--paper-line);
+  border-radius: 8px;
+  padding: 10px 14px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 2px 0 10px;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
 }
-.templates-row-label {
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: var(--ink-soft);
-  white-space: nowrap;
+.template-modal-row .material-icons {
+  font-size: 20px;
+  flex-shrink: 0;
 }
-.template-chips {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+.template-modal-name {
+  flex: 1;
   min-width: 0;
-}
-.template-chip {
-  display: inline-flex;
-  align-items: center;
-  background: var(--card);
-  border: 1.5px solid var(--paper-line);
-  border-radius: 20px;
-  overflow: hidden;
-}
-.template-chip-main {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  border: none;
-  background: transparent;
+  font-size: 0.92rem;
+  font-weight: 700;
   color: var(--ink);
-  font-family: inherit;
-  font-size: 0.8rem;
-  font-weight: 600;
-  padding: 4px 4px 4px 10px;
-  cursor: pointer;
-  border-radius: 20px;
-}
-.template-chip-main .material-icons {
-  font-size: 15px;
-}
-.template-chip-name {
-  max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.template-chip-remove {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: transparent;
-  color: var(--ink-soft);
-  cursor: pointer;
-  padding: 4px 5px;
-  border-radius: 50%;
-}
-.template-chip-remove:hover {
-  color: var(--missed);
-  background: var(--missed-soft);
-}
-.template-chip-remove .material-icons {
-  font-size: 14px;
-}
-.template-add-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border: 1.5px dashed var(--paper-line);
-  background: transparent;
-  color: var(--ink-soft);
-  border-radius: 50%;
-  cursor: pointer;
-}
-.template-add-chip:hover {
-  color: var(--pen);
-  border-color: var(--pen);
-}
-.template-add-chip .material-icons {
-  font-size: 16px;
-}
-.template-add-row {
-  display: inline-flex;
+.template-modal-actions {
+  display: flex;
   align-items: center;
   gap: 4px;
+  flex-shrink: 0;
 }
-.template-add-row input {
-  width: 130px;
-  border: 1.5px solid var(--paper-line);
-  background: var(--card);
+.template-modal-row.editing {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.template-edit-input {
+  width: 100%;
+}
+.template-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* نافذة استبدال القالب المكرر (نموذج تراكي فوق مودال القوالب) */
+.replace-conflict-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 2px 12px;
+  text-align: center;
+}
+.replace-conflict-title {
+  font-size: 0.98rem;
+  font-weight: 700;
   color: var(--ink);
-  border-radius: 20px;
-  padding: 5px 12px;
-  font-size: 0.8rem;
+}
+.replace-conflict-hint {
+  font-size: 0.86rem;
+  color: var(--ink-soft);
+  line-height: 1.7;
+}
+.replace-conflict-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  padding-top: 10px;
+}
+.replace-confirm-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 42px;
+}
+.replace-cancel-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 42px;
+}
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--paper-line);
+  background: var(--paper);
+  color: var(--ink);
   font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.btn-secondary:hover {
+  border-color: var(--pen);
+  color: var(--pen);
 }

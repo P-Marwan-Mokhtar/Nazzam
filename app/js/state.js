@@ -126,6 +126,9 @@ export const ui = {
   smartListsOpen: false,  // لما تبقى true، #content بيعرض القوائم الذكية بدل مهام اليوم
   smartListKey: 'today',  // القائمة الذكية المعروضة: 'today' | 'overdue' | 'week' | 'no-time' | 'high'
   templateAddOpen: false,  // هل حقل إضافة قالب جديد (جوه بنك المهام) مفتوح دلوقتي
+  templatesSearchQuery: '',  // نص البحث الحالي في مودال القوالب الجاهزة
+  editingTemplateId: null,  // معرّف القالب اللي بيتعمله edit في المودال
+  replaceConfirm: null,  // بيانات popup التأكيد عند استبدال قالب مكرر — null | { kind, name, templateId }
 };
 
 export const timerPanelEl = document.getElementById('timerPanel');
