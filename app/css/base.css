@@ -265,7 +265,6 @@ html[dir="ltr"] .task-name,
 html[dir="ltr"] .stat-list-name,
 html[dir="ltr"] .notif-setting-title,
 html[dir="ltr"] .notif-setting-desc,
-html[dir="ltr"] .side-nav-popover .header-btn-label,
 html[dir="ltr"] .filter-more-label,
 html[dir="ltr"] .timer-name {
   text-align: start;
@@ -288,14 +287,6 @@ html[dir="ltr"] .header-actions-panel {
     left: auto;
     right: 0;
   }
-}
-
-/* === Side nav popover opens to the left in LTR === */
-html[dir="ltr"] .side-nav-popover {
-  right: auto;
-  left: 100%;
-  margin-right: 0;
-  margin-left: 6px;
 }
 
 /* === Calendar chevron icons flip in LTR === */

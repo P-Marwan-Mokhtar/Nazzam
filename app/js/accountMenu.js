@@ -6,12 +6,13 @@
 import { ACCENTS, setAccent, setDarkMode } from './theme.js';
 import { getLang, setLang, t, applyStaticTranslations } from './i18n.js';
 import { showToast, state, ui } from './state.js';
-import { saveData } from './dataStore.js';
+import { saveData, exportDataAsJSON } from './dataStore.js';
 import { render } from './render.js';
 import { escapeHtml } from './utils.js';
 import { currentUserEmail, signOutUser } from './auth.js';
 import { renderStatsView, renderTaskStatsView } from './stats.js';
-import { openUpgrade } from './upgrade.js';
+import { openUpgrade, gateFree } from './upgrade.js';
+import { exportCalendarAsICS } from './icalExport.js';
 
 let isOpen = false;
 
@@ -131,7 +132,32 @@ function renderAccountBody(){
     </div>
   `;
 
-  body.innerHTML = accountBlock + appearanceBlock + langBlock;
+  // ---- قسم البيانات ----
+  const dataBlock = `
+    <div class="ap-section">
+      <div class="ap-section-title"><span class="material-icons">import_export</span> ${t('nav.data')}</div>
+      <div class="ap-data-grid">
+        <button type="button" class="ap-data-card" data-ap="import-data" title="${t('nav.import_title')}">
+          <span class="material-icons ap-data-icon">file_upload</span>
+          <span class="ap-data-label">${t('nav.import_data')}</span>
+        </button>
+        <button type="button" class="ap-data-card" data-ap="export-data" title="${t('nav.export_title')}">
+          <span class="material-icons ap-data-icon">file_download</span>
+          <span class="ap-data-label">${t('nav.export_data')}</span>
+        </button>
+        <button type="button" class="ap-data-card" data-ap="export-ics" title="${t('nav.export_ics_title')}">
+          <span class="material-icons ap-data-icon">event</span>
+          <span class="ap-data-label">${t('nav.export_calendar')}</span>
+        </button>
+        <button type="button" class="ap-data-card" data-ap="export-pdf" title="${t('nav.export_pdf_title')}">
+          <span class="material-icons ap-data-icon">picture_as_pdf</span>
+          <span class="ap-data-label">${t('nav.export_pdf')}</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  body.innerHTML = accountBlock + appearanceBlock + langBlock + dataBlock;
   body.querySelectorAll('[data-ap]').forEach(btn => {
     btn.onclick = () => handleAction(btn);
   });
@@ -161,6 +187,25 @@ function handleAction(btn){
     render();
     document.title = lang === 'ar' ? 'Nazzam — إدارة المهام' : 'Nazzam — Task Manager';
     renderAccountPanelAfterChange();
+  } else if(ap === 'import-data'){
+    closeAccountPanel();
+    const fileInput = document.getElementById('importDataInput');
+    if(fileInput) fileInput.click();
+  } else if(ap === 'export-data'){
+    closeAccountPanel();
+    exportDataAsJSON();
+  } else if(ap === 'export-ics'){
+    closeAccountPanel();
+    if(gateFree('icsExport')) exportCalendarAsICS();
+  } else if(ap === 'export-pdf'){
+    closeAccountPanel();
+    if(!gateFree('pdfExport')) return;
+    ui.statsViewOpen = true;
+    ui.weekViewOpen = false;
+    ui.timeBlockViewOpen = false;
+    ui.taskStatsName = null;
+    ui.smartListsOpen = false;
+    render();
   }
 }
 

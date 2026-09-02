@@ -167,58 +167,6 @@
                 <span class="material-icons">content_copy</span>
                 <span class="header-btn-label" data-i18n="nav.templates">قوالب المهام</span>
               </button>
-              <div class="header-menu-divider"></div>
-              <details class="header-menu-group" id="dataMenuGroup">
-                <summary class="header-menu-item header-menu-summary">
-                  <span class="material-icons">import_export</span>
-                  <span class="header-btn-label" data-i18n="nav.data">البيانات</span>
-                  <span class="material-icons header-menu-chevron">expand_more</span>
-                </summary>
-                <div class="header-menu-subitems">
-                  <button
-                    class="header-menu-item"
-                    id="importDataBtn"
-                    title="استيراد نسخة احتياطية (JSON)"
-                    data-i18n-title="nav.import_title"
-                  >
-                    <span class="material-icons">file_upload</span>
-                    <span class="header-btn-label" data-i18n="nav.import_data">استيراد البيانات</span>
-                  </button>
-                  <button
-                    class="header-menu-item"
-                    id="exportDataBtn"
-                    title="تصدير نسخة احتياطية (JSON)"
-                    data-i18n-title="nav.export_title"
-                  >
-                    <span class="material-icons">file_download</span>
-                    <span class="header-btn-label" data-i18n="nav.export_data">تصدير البيانات</span>
-                  </button>
-                  <button
-                    class="header-menu-item"
-                    id="exportIcsBtn"
-                    title="تصدير المهام (من اليوم فصاعدًا) كملف تقويم لاستيرادها في Google/Apple Calendar"
-                    data-i18n-title="nav.export_ics_title"
-                  >
-                    <span class="material-icons">event</span>
-                    <span class="header-btn-label" data-i18n="nav.export_calendar">تصدير للتقويم</span>
-                  </button>
-                  <button
-                    class="header-menu-item"
-                    id="openStatsPdfBtn"
-                    title="فتح شاشة الإحصائيات لتصدير تقرير يومي أو أسبوعي (PDF)"
-                    data-i18n-title="nav.export_pdf_title"
-                  >
-                    <span class="material-icons">picture_as_pdf</span>
-                    <span class="header-btn-label" data-i18n="nav.export_pdf">تقارير PDF</span>
-                  </button>
-                </div>
-              </details>
-              <input
-                type="file"
-                id="importDataInput"
-                accept=".json,application/json"
-                style="display: none"
-              />
             </div>
           </div>
         </div>
@@ -276,31 +224,6 @@
             <span class="material-icons">content_copy</span>
             <span class="side-nav-label" data-i18n="nav.templates">قوالب المهام</span>
           </button>
-          <div class="side-nav-divider"></div>
-          <div class="side-nav-data-wrap">
-            <button class="side-nav-btn" id="sideNavDataBtn" title="البيانات" data-i18n-title="nav.data">
-              <span class="material-icons">import_export</span>
-              <span class="side-nav-label" data-i18n="nav.data">البيانات</span>
-            </button>
-            <div class="side-nav-popover" id="sideNavDataPopover">
-              <button class="header-menu-item" data-side-target="importDataBtn" title="استيراد نسخة احتياطية (JSON)" data-i18n-title="nav.import_title">
-                <span class="material-icons">file_upload</span>
-                <span class="header-btn-label" data-i18n="nav.import_data">استيراد البيانات</span>
-              </button>
-              <button class="header-menu-item" data-side-target="exportDataBtn" title="تصدير نسخة احتياطية (JSON)" data-i18n-title="nav.export_title">
-                <span class="material-icons">file_download</span>
-                <span class="header-btn-label" data-i18n="nav.export_data">تصدير البيانات</span>
-              </button>
-              <button class="header-menu-item" data-side-target="exportIcsBtn" title="تصدير المهام كملف تقويم" data-i18n-title="nav.export_ics_short">
-                <span class="material-icons">event</span>
-                <span class="header-btn-label" data-i18n="nav.export_calendar">تصدير للتقويم</span>
-              </button>
-              <button class="header-menu-item" data-side-target="openStatsPdfBtn" title="فتح شاشة الإحصائيات لتصدير تقرير يومي أو أسبوعي (PDF)" data-i18n-title="nav.export_pdf_title">
-                <span class="material-icons">picture_as_pdf</span>
-                <span class="header-btn-label" data-i18n="nav.export_pdf">تقارير PDF</span>
-              </button>
-            </div>
-          </div>
         </aside>
 
         <div class="app-main">
@@ -316,10 +239,11 @@
         </div>
       </div>
 
-      <!-- لوحة الحساب المنسدلة: الحساب + المظهر + اللغة (تفتح من زر المستخدم) -->
+      <!-- لوحة الحساب المنسدلة: الحساب + المظهر + اللغة + البيانات (تفتح من زر المستخدم) -->
       <div class="account-panel" id="accountPanel" role="menu" aria-label="الحساب والإعدادات">
         <div class="account-panel-body" id="accountPanelBody"></div>
       </div>
+      <input type="file" id="importDataInput" accept=".json,application/json" style="display:none" />
     </div>
 
     <div class="modal-overlay" id="calendarOverlay">

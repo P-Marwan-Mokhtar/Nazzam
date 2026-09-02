@@ -8,8 +8,6 @@ document.addEventListener("DOMContentLoaded", () => {
     menu.classList.remove("open");
     moreBtn.classList.remove("is-open");
     moreBtn.setAttribute("aria-expanded", "false");
-    const dataGroup = document.getElementById("dataMenuGroup");
-    if (dataGroup) dataGroup.open = false;
   };
 
   moreBtn.addEventListener("click", (e) => {

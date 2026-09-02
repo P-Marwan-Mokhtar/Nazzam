@@ -6,8 +6,7 @@ import { showToast, state, ui } from './state.js';
 import { initLang, getLang, applyStaticTranslations } from './i18n.js';
 import { closeAccountModal, ensureAuth, openAccountModal, openAuthGate } from './auth.js';
 import { closeCalendarModal, openCalendarModal } from './calendar.js';
-import { exportDataAsJSON, importDataFromFile, loadData, saveData, trySyncPending } from './dataStore.js';
-import { exportCalendarAsICS } from './icalExport.js';
+import { importDataFromFile, loadData, saveData, trySyncPending } from './dataStore.js';
 import { closeDraftsModal, openDraftsModal, renderDraftsModal } from './drafts.js';
 import { closeNotificationSettingsModal, registerServiceWorker, startNotificationScheduler } from './notifications.js';
 import { hideClockChoicePopover, hideDurationPopover } from './popovers.js';
@@ -266,32 +265,8 @@ async function startApp(){
     };
   }
 
-  document.getElementById('exportDataBtn').onclick = exportDataAsJSON;
-  const exportIcsBtn = document.getElementById('exportIcsBtn');
-  if(exportIcsBtn) exportIcsBtn.onclick = () => {
-    if(!gateFree('icsExport')) return;
-    exportCalendarAsICS();
-  };
-
-  // «تقارير PDF» في قائمة البيانات: بيوصل المستخدم لشاشة الإحصائيات —
-  // مصدر زرار التصدير السياقي (يومي/أسبوعي) بدل ما نكرر منطق التصدير هنا.
-  const openStatsPdfBtn = document.getElementById('openStatsPdfBtn');
-  if(openStatsPdfBtn){
-    openStatsPdfBtn.onclick = () => {
-      if(!gateFree('pdfExport')) return;
-      ui.statsViewOpen = true;
-      ui.weekViewOpen = false;
-      ui.timeBlockViewOpen = false;
-      ui.taskStatsName = null;
-      ui.smartListsOpen = false;
-      render();
-    };
-  }
-
-  const importDataBtn = document.getElementById('importDataBtn');
   const importDataInput = document.getElementById('importDataInput');
-  if(importDataBtn && importDataInput){
-    importDataBtn.onclick = () => importDataInput.click();
+  if(importDataInput){
     importDataInput.onchange = (e) => {
       const file = e.target.files && e.target.files[0];
       importDataFromFile(file);
@@ -300,8 +275,6 @@ async function startApp(){
   }
 
   // الشريط الجانبي (Sidebar) على الشاشات الكبيرة: أزراره بتشغّل نفس أزرار الهيدر المخفي
-  const sideNavDataBtn = document.getElementById('sideNavDataBtn');
-  const sideNavDataPopover = document.getElementById('sideNavDataPopover');
   const sideNavTasksBtn = document.getElementById('sideNavTasksBtn');
   if(sideNavTasksBtn){
     sideNavTasksBtn.addEventListener('click', () => {
@@ -314,41 +287,14 @@ async function startApp(){
       render();
     });
   }
+
+  // أزرار الشريط الجانبي: كل زر بيشغّل الزرار المقابل في الهيدر (نفس الوظيفة)
   document.querySelectorAll('.side-nav [data-side-target]').forEach(btn => {
     btn.addEventListener('click', () => {
       const target = document.getElementById(btn.dataset.sideTarget);
       if(target) target.click();
-      if(btn.closest('.side-nav-popover')){
-        sideNavDataPopover.classList.remove('open');
-        sideNavDataBtn.classList.remove('is-open');
-      }
     });
   });
-  if(sideNavDataBtn && sideNavDataPopover){
-    sideNavDataBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const willOpen = !sideNavDataPopover.classList.contains('open');
-      sideNavDataPopover.classList.toggle('open', willOpen);
-      sideNavDataBtn.classList.toggle('is-open', willOpen);
-      if(willOpen){
-        // الإفتراضي إنه يفتح لأعلى (زر البيانات في آخر الشريط) عشان يسببش سكرول للصفحة.
-        // لو مفيش مساحة فوق (الـ popover طويلة والزر عالي) نفتحه لتحت.
-        requestAnimationFrame(() => {
-          const rect = sideNavDataPopover.getBoundingClientRect();
-          sideNavDataPopover.classList.toggle('flip-up', rect.top < 0);
-        });
-      } else {
-        sideNavDataPopover.classList.remove('flip-up');
-      }
-    });
-    document.addEventListener('click', (e) => {
-      if(!e.target.closest('.side-nav-data-wrap')){
-        sideNavDataPopover.classList.remove('open');
-        sideNavDataBtn.classList.remove('is-open');
-        sideNavDataPopover.classList.remove('flip-up');
-      }
-    });
-  }
 
   // طي/توسيع أسماء الشريط الجانبي — الاختيار محفوظ في localStorage،
   // والتوسع التلقائي للأسماء بيحصل من 1350px عبر CSS
@@ -518,10 +464,6 @@ async function startApp(){
     }
     if(e.key === 'Escape'){
       if(onboardingOverlay.classList.contains('open')){ closeOnboarding(); return; }
-      if(sideNavDataPopover && sideNavDataPopover.classList.contains('open')){
-        sideNavDataPopover.classList.remove('open');
-        sideNavDataBtn.classList.remove('is-open');
-      }
       if(isAccountPanelOpen()) closeAccountPanel();
       if(ui.taskStatsName){ ui.taskStatsName = null; ui.justReturnedFromStats = true; render(); }
       if(ui.statsViewOpen){ ui.statsViewOpen = false; ui.justReturnedFromStats = true; render(); }

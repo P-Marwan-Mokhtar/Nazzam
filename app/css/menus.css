@@ -696,6 +696,39 @@
   border-radius: 50%;
   opacity: 0.4;
 }
+/* قسم البيانات */
+.ap-data-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.ap-data-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  background: var(--card);
+  border: 1.5px solid var(--paper-line);
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.ap-data-card:hover {
+  background: var(--pen-soft);
+  border-color: var(--pen);
+}
+.ap-data-icon {
+  font-size: 20px;
+  color: var(--pen);
+}
+.ap-data-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: center;
+}
 /* على الموبايل بتفتح كـ bottom sheet عشان مايتقطعلهاش الطول */
 @media (max-width: 640px) {
   .account-panel {
@@ -710,6 +743,53 @@
   }
   .account-panel.open {
     transform: translateY(0);
+  }
+  /* تصغير المقاسات والمسافات على الموبايل عشان اللوحة كلها تبان من غير scroll */
+  .account-panel-body {
+    padding: 6px;
+  }
+  .ap-section {
+    padding-bottom: 7px;
+  }
+  .ap-section + .ap-section {
+    padding-top: 8px;
+  }
+  .ap-section-title {
+    font-size: 0.72rem;
+    margin-bottom: 6px;
+  }
+  .ap-account {
+    padding: 7px 10px;
+    margin-bottom: 6px;
+  }
+  .ap-btn {
+    padding: 7px 10px;
+    font-size: 0.8rem;
+  }
+  .ap-mode-btn {
+    padding: 6px 8px;
+    font-size: 0.78rem;
+  }
+  .ap-swatches {
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .ap-swatch {
+    width: 26px;
+    height: 26px;
+  }
+  .ap-data-grid {
+    gap: 6px;
+  }
+  .ap-data-card {
+    padding: 8px 6px;
+    gap: 4px;
+  }
+  .ap-data-icon {
+    font-size: 18px;
+  }
+  .ap-data-label {
+    font-size: 0.72rem;
   }
   /* لوحة المزيد في الهيدر بتبقى قصيرة على الموبايل عشان القوائم الطويلة متطشش */
   .header-actions-panel {
