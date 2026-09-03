@@ -44,7 +44,6 @@ async function saveRecurrence(){
   if(!ui.activeRecurrenceTaskId) return;
   const task = (state.days[ui.selectedDate] || []).find(x => x.id === ui.activeRecurrenceTaskId);
   if(!task){ closeRecurrenceModal(); return; }
-  console.log('[nazzam-recur] المهمة قبل الحفظ', JSON.stringify(task));
   if(!state.recurringTasks) state.recurringTasks = {};
   const taskName = task.name;
   const newDays = [...ui.pendingRecurrenceDays].sort((a,b) => a-b);
@@ -68,7 +67,6 @@ async function saveRecurrence(){
     // لو فيه مواصفات بيتم تخزينها جنب الأيام (خاصية specs) عشان ensureDayMaterialized يطبقها
     if(!state.recurringMeta) state.recurringMeta = {};
     state.recurringMeta[taskName] = recPreset;
-    console.log('[nazzam-recur] تم حفظ التكرار', taskName, JSON.stringify(recPreset));
     showToast('تم حفظ تكرار المهمة');
   }
 

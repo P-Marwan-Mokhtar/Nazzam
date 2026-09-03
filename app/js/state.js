@@ -92,7 +92,7 @@ export const ui = {
   pendingTaskFilterId: null,
   addDraft: '',  // نص مكتوب حاليًا في حقل إضافة المهمة (عشان ما يمسحش مع إعادة الرسم)
   pendingTaskType: null,  // نوع المهمة الجديدة المنتظرة في صف الإضافة (مهمة/عادة/هواية) — بيدخل من بوب السهم
-  pendingTaskPlace: 'bank',  // مكان إضافة المهمة الجديدة المنتظرة في صف الإضافة: 'bank' (القائمة الافتراضي) | 'today' | 'both'
+  pendingTaskPlace: 'today',  // مكان إضافة المهمة الجديدة المنتظرة في صف الإضافة: 'today' (اليوم الافتراضي) | 'bank' | 'both'
   addArrowOpen: false,  // هل بوب السهم (خيارات الإضافة) في صف إضافة المهام مفتوح دلوقتي
   addArrowSub: null,  // أي قائمة داخلية مفتوحة في بوب السهم حاليًا: 'place' | 'filter' | 'type' | null
   addArrowJustOpened: false,  // true لمرة واحدة بس لحظة فتح بوب السهم — عشان أنيميشن الدخول يشتغل عند الفتح مش مع كل render
