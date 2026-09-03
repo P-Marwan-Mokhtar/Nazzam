@@ -53,17 +53,24 @@ export function ensureDayMaterialized(dateStr){
           if(meta.note) recTask.note = meta.note;
           if(meta.subtasks && meta.subtasks.length) recTask.subtasks = meta.subtasks.map(s => ({ id: uid(), title: s.title, done: false }));
         } else {
-          // تكرار قديم من غير مواصفات محفوظة — نرث النوع من الكلمة أو من أي نسخة موجودة.
-          const rKw = state.keywords.find(k => k.name === rName);
-          if(rKw && rKw.type) recTask.type = rKw.type;
-          else {
-            // مفيش كلمة بنفس الاسم (اتضافت كمهمة مباشرة) — نرث النوع من أي نسخة
-            // موجودة من التكرار (مثلاً نسخة اليوم اللي المستخدم عدّل نوعه منها)
-            // عشان التكرار ما يحيّش بنوع افتراضي غلط بعد ما المستخدم حدّده.
-            for(const dKey of Object.keys(state.days)){
-              const same = state.days[dKey].find(t => t.name === rName && t.type);
-              if(same){ recTask.type = same.type; break; }
-            }
+          // تكرار من غير مواصفات محفوظة في recurringMeta — بننسخ المواصفات كاملة من
+          // النسخة الحية الموجود منها نسخة (أقرب يوم للماضي) عشان ما يحيّش مهمة فاضية.
+          let found = null;
+          const relevantDays = Object.keys(state.days).sort();
+          for(let i = relevantDays.length - 1; i >= 0; i--){
+            const same = state.days[relevantDays[i]].find(t => t.name === rName && !t._dupOf);
+            if(same){ found = same; break; }
+          }
+          if(found){
+            if(found.type) recTask.type = found.type;
+            if(found.priority) recTask.priority = found.priority;
+            if(found.duration) recTask.duration = found.duration;
+            if(found.note) recTask.note = found.note;
+            if(found.subtasks && found.subtasks.length) recTask.subtasks = found.subtasks.map(s => ({ id: uid(), title: s.title, done: false }));
+          } else {
+            // مفيش نسخة حية متاحة — نرث النوع من الكلمة لو موجودة
+            const rKw = state.keywords.find(k => k.name === rName);
+            if(rKw && rKw.type) recTask.type = rKw.type;
           }
         }
         state.days[dateStr].push(recTask);
