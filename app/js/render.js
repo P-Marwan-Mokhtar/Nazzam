@@ -41,7 +41,7 @@ export function ensureDayMaterialized(dateStr){
       const rDays = state.recurringTasks[rName] || [];
       if(!rDays.includes(weekday)) return; // مش من أيام تكرارها أصلاً، مفيش قرار نسجله
       if(dayPinned[rName]) return; // اتقرر مصيرها قبل كده في اليوم ده (اتحطت أو المستخدم شالها بنفسه)
-      if(!state.days[dateStr].some(t => t.name === rName)){
+      if(!state.days[dateStr].some(t => t.name === rName && !t._fromRecurrence)){
         const recTask = { id: uid(), name: rName, done: false, _fromRecurrence: true };
         // المواصفات المحفوظة مع التكرار (نوع/أولوية/مدة/ملاحظة/مهام فرعية) — دي الأولوية
         // لأنها بتعكس آخر مواصفات حطها المستخدم على المهمة وقت تفعيل التكرار.
@@ -73,7 +73,14 @@ export function ensureDayMaterialized(dateStr){
             if(rKw && rKw.type) recTask.type = rKw.type;
           }
         }
-        state.days[dateStr].push(recTask);
+        // لو فيه نسخة متكررة قديمة فاضية (من غير نوع) محقونة سابقًا من قبل التحديث،
+        // نستبدلها بالنسخة الجديدة ذات المواصفات بدل ما تفضل مهمة فاضية.
+        const existingIdx = state.days[dateStr].findIndex(t => t.name === rName && t._fromRecurrence);
+        if(existingIdx >= 0){
+          state.days[dateStr].splice(existingIdx, 1, recTask);
+        } else {
+          state.days[dateStr].push(recTask);
+        }
         recurringAdded = true;
       }
       dayPinned[rName] = true;
