@@ -46,6 +46,7 @@ export function ensureDayMaterialized(dateStr){
         // المواصفات المحفوظة مع التكرار (نوع/أولوية/مدة/ملاحظة/مهام فرعية) — دي الأولوية
         // لأنها بتعكس آخر مواصفات حطها المستخدم على المهمة وقت تفعيل التكرار.
         const meta = state.recurringMeta && state.recurringMeta[rName];
+        console.log('[nazzam-recur] حقن نسخة', rName, 'يوم', dateStr, 'meta=', JSON.stringify(meta), 'all=', JSON.stringify(state.recurringMeta));
         if(meta){
           if(meta.type) recTask.type = meta.type;
           if(meta.priority) recTask.priority = meta.priority;
