@@ -407,6 +407,10 @@ body.locked-view .main-col {
   border-radius: 12px;
   overflow-x: auto;
 }
+/* زرار «اليوم» العائم للموبايل بس — مخفي على الديسكتوب (بيظهر جوه الميديا كويري تحت) */
+.tb-today-fab {
+  display: none;
+}
 /* نسخة عمود واحد (عرض اليوم): نفس تصميم الأسبوع بالظبط بس من غير أسماء الأيام */
 .tbw-grid.tbw-single {
   grid-template-columns: minmax(0, 1fr) 56px;
