@@ -188,6 +188,11 @@ body.locked-view .main-col {
 @media (max-width: 640px) {
   body.locked-view .wrap {
     height: 100vh;
+    /* الـ padding-bottom بتاع الشريط السفلي (78px) كان بيتجمع فوق الـ 100vh
+       بنظام content-box، فالصفحة نفسها بتسكرول 78px زيادة — سكرول خارجي طويل
+       جنب الداخلي. مع border-box الـ padding بيتحسب جوه الطول والسكرول
+       الخارجي بيختفي */
+    box-sizing: border-box;
   }
   body.locked-view .app-shell {
     display: flex;
