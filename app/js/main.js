@@ -26,6 +26,7 @@ import { applyHashToState, consumeShortcutViewParam } from './routing.js';
 import { applyTheme, closeAppearanceModal } from './theme.js';
 import { initMonitoring, trackView } from './monitoring.js';
 import { closeUpgrade, gateFree } from './upgrade.js';
+import { isWideListScroll, positionTaskMoreFixed } from './events.js';
 import { openSmartLists } from './smartLists.js';
 import { closeAccountPanel, isAccountPanelOpen, toggleAccountPanel } from './accountMenu.js';
 import { addDays, todayStr } from './utils.js';
@@ -137,6 +138,7 @@ async function startApp(){
     if(ui.openTaskMoreId && !e.target.closest('.task-more-dropdown') && !e.target.closest('.task-more-btn')){
       ui.openTaskMoreId = null;
       ui.openTaskMoreUp = false;
+      ui.openTaskMorePos = null;
       ui.openPriorityPopoverTaskId = null;
       ui.openTypePopoverTaskId = null;
       render();
@@ -195,6 +197,41 @@ async function startApp(){
       rangeMenu.classList.remove('open');
     }
   });
+
+  // وضع السكرول الداخلي (العريض بس): القايمة المفتوحة fixed فبنتابع أي سكرول/ريسايز —
+  // بنحرّكها مع الزرار، ولو الزرار خرج بره الشاشة بنقفلها.
+  // على الضيق القايمة مطلقة مع الصفحة فبننضف أي إحداثيات fixed قديمة.
+  let taskMoreFollowQueued = false;
+  const followTaskMoreDropdown = () => {
+    taskMoreFollowQueued = false;
+    if(!ui.openTaskMoreId) return;
+    if(!isWideListScroll()){
+      if(ui.openTaskMorePos){
+        ui.openTaskMorePos = null;
+        const stale = document.querySelector('.task-more-dropdown.open');
+        if(stale) stale.removeAttribute('style');
+      }
+      return;
+    }
+    const btn = document.querySelector(`.task-more-menu-wrap[data-wrap-id="${ui.openTaskMoreId}"] .task-more-btn`);
+    if(!btn){ ui.openTaskMoreId = null; ui.openTaskMorePos = null; render(); return; }
+    const r = btn.getBoundingClientRect();
+    if(r.bottom < 0 || r.top > window.innerHeight){
+      ui.openTaskMoreId = null;
+      ui.openTaskMorePos = null;
+      ui.openTaskMoreUp = false;
+      render();
+      return;
+    }
+    positionTaskMoreFixed(ui.openTaskMoreId);
+  };
+  const queueTaskMoreFollow = () => {
+    if(taskMoreFollowQueued) return;
+    taskMoreFollowQueued = true;
+    requestAnimationFrame(followTaskMoreDropdown);
+  };
+  document.addEventListener('scroll', queueTaskMoreFollow, true);
+  window.addEventListener('resize', queueTaskMoreFollow);
 
   const toggleStatsView = () => {
     const wasOpen = ui.statsViewOpen;

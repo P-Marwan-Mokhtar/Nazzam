@@ -6,7 +6,7 @@ import { t } from './i18n.js';
 import { addDays, normalizeArabic, reorderArrayById, todayStr, uid } from './utils.js';
 import { contentEl, getDaySortMode, setDaySortMode, showToast, showUndoToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
-import { wireCustomSelects, wireDragAndDrop } from './popovers.js';
+import { hideDurationPopover, showDurationPopover, wireCustomSelects, wireDragAndDrop } from './popovers.js';
 import { afterRender, render } from './render.js';
 import { openRecurrenceModal } from './recurrence.js';
 import { openSubtasksModal } from './subtasks.js';
@@ -28,6 +28,8 @@ function flipTaskMoreDropdown(id){
   // بتبقى حقيقية. لو حسبناها فورًا بعد render ممكن offsetHeight يقرا 0 (القائمة
   // لسه متصفّدتش)، فالقايمة كانت بتفتح لتحت دايما حتى لو مفيش مكان.
   requestAnimationFrame(() => {
+    // في السكرول الداخلي القايمة fixed بإحداثيات محسوبة بدل نظام لفوق/لتحت المطلق
+    if(isWideListScroll()){ positionTaskMoreFixed(id); return; }
     const wrap = document.querySelector(`.task-more-menu-wrap[data-wrap-id="${id}"]`);
     if(!wrap) return;
     const btn = wrap.querySelector('.task-more-btn');
@@ -41,6 +43,35 @@ function flipTaskMoreDropdown(id){
     ui.openTaskMoreUp = (ddHeight === 0) || (spaceBelow < ddHeight + 8);
     wrap.classList.toggle('open-up', ui.openTaskMoreUp);
   });
+}
+
+// هل السكرول الداخلي شغال فعلًا؟ الكلاس لوحده مش كفاية — قواعد الـ CSS
+// بتطبق على العريض بس (min-width:1237px، نفس breakpoint لوحة المؤقتات).
+export function isWideListScroll(){
+  return document.body.classList.contains('list-scroll') && window.innerWidth >= 1237;
+}
+
+// تموضع قايمة المزيد كـ fixed في وضع السكرول الداخلي (list-scroll): القايمة
+// جوّه حاوية overflow بتقصّ أي dropdown مطلق، فبنثبّتها بإحداثيات الـ viewport
+// عشان تهرب من القصّ — والبوب أبات الفرعية جواها absolute فبتهرب معاها.
+// بترجع false لو العناصر مش في الـ DOM.
+export function positionTaskMoreFixed(id){
+  const wrap = document.querySelector(`.task-more-menu-wrap[data-wrap-id="${id}"]`);
+  const btn = wrap ? wrap.querySelector('.task-more-btn') : null;
+  const dropdown = wrap ? wrap.querySelector('.task-more-dropdown.open') : null;
+  if(!wrap || !btn || !dropdown) return false;
+  const r = btn.getBoundingClientRect();
+  const ddW = dropdown.offsetWidth || 160;
+  const ddH = dropdown.offsetHeight || 0;
+  const up = (ddH === 0) || ((window.innerHeight - r.bottom) < ddH + 8);
+  const left = Math.max(8, Math.min(r.left, window.innerWidth - ddW - 8));
+  const top = up ? Math.max(8, r.top - ddH - 4) : r.bottom + 4;
+  ui.openTaskMorePos = { top: Math.round(top), left: Math.round(left) };
+  dropdown.style.top = ui.openTaskMorePos.top + 'px';
+  dropdown.style.left = ui.openTaskMorePos.left + 'px';
+  ui.openTaskMoreUp = up;
+  wrap.classList.toggle('open-up', up);
+  return true;
 }
 
 // تذكير المهمة: بيفتح الـ time picker بتاع التطبيق (الموجود أصلًا لتنبيه الصباح/المساء)
@@ -253,6 +284,19 @@ const contentActions = {
     ui.dayTypeFilterOpen = false;
     render();
   },
+  'toggle-duration-popover': async (btn) => {
+    const { id } = btn.dataset;
+    if(ui.openDurationPopoverTaskId === id){ hideDurationPopover(); return; }
+    ui.openTaskMoreId = null;
+    ui.openTaskMorePos = null;
+    ui.openPriorityPopoverTaskId = null;
+    ui.openClockChoiceTaskId = null;
+    render();
+    afterRender(() => {
+      const badge = document.querySelector(`.task-inline-meta [data-action="toggle-duration-popover"][data-id="${id}"]`);
+      if(badge) showDurationPopover(id, badge);
+    });
+  },
   'toggle-duration': async (btn) => {
     const { id } = btn.dataset;
     ui.openPriorityPopoverTaskId = null;
@@ -334,11 +378,12 @@ const contentActions = {
   'toggle-task-more': async (btn) => {
     const { id } = btn.dataset;
     const willOpen = ui.openTaskMoreId !== id;
+    hideDurationPopover();
     ui.openTaskMoreId = willOpen ? id : null;
     ui.openKeywordMoreId = null;
     ui.openPriorityPopoverTaskId = null;
     ui.openClockChoiceTaskId = null;
-    if(!willOpen) ui.openTaskMoreUp = false;
+    if(!willOpen){ ui.openTaskMoreUp = false; ui.openTaskMorePos = null; }
     render();
     if(willOpen) flipTaskMoreDropdown(id);
   },

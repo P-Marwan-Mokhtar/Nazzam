@@ -109,7 +109,7 @@ function collectTasks(key, today, limited = true){
     if(key === 'overdue') return !task.done;
     if(key === 'week') return !task.done;
     if(key === 'no-time') return !task.done && !task.startTime;
-    if(key === 'high') return !task.done && task.priority === 'high' && !task.startTime;
+    if(key === 'high') return !task.done && task.priority === 'high';
     return true;
   }).sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, limited ? SMART_LIST_LIMIT : undefined);

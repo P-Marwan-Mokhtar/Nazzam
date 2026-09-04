@@ -757,4 +757,81 @@
   content-visibility: auto;
   contain-intrinsic-size: auto 600px;
 }
+
+/* ===== عرض السطر: السكرول الداخلي (ديسكتوب عريض بس) =====
+   لما dayViewMode === 'list' السكرول بيتقيد جوه .task-list بدل مستوى الصفحة.
+   مقصود على الشاشات العريضة بس (min-width:1237px) — نفس breakpoint اللي عنده
+   لوحة المؤقتات جنب المهام. الشاشات الأضيق بتستخدم سكرول الصفحة الطبيعي
+   (اللوحة بتنزل تحت، وتجميد الارتفاع هناك كان بيخنق المحتوى).
+   ملحوظة: نفس الـ breakpoint مستخدم في isWideListScroll() في events.js. */
+@media (min-width: 1237px) {
+  body.list-scroll .wrap {
+    height: calc(100vh - 20px);
+    overflow: hidden;
+  }
+  body.list-scroll .app-main {
+    min-height: 0;
+  }
+  body.list-scroll .main-layout {
+    min-height: 0;
+  }
+  body.list-scroll .main-col {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  body.list-scroll #content {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  body.list-scroll .day-view {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  body.list-scroll .task-list.view-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* القايمة المفتوحة: fixed بإحداثيات من الـ JS عشان تهرب من قصّ حاوية
+     السكرول — الإحداثيات بتيجي inline من ui.openTaskMorePos */
+  body.list-scroll .task-more-menu-wrap .task-more-dropdown.open {
+    position: fixed;
+    top: auto;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    margin: 0;
+    z-index: 200;
+  }
+  /* السكرول مخفي افتراضيًا وبيظهر بس على hover */
+  @media (hover: hover) {
+    body.list-scroll .task-list.view-list {
+      scrollbar-color: transparent transparent;
+    }
+    body.list-scroll .task-list.view-list:hover {
+      scrollbar-color: color-mix(in srgb, var(--ink-soft) 45%, transparent) transparent;
+    }
+    body.list-scroll .task-list.view-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    body.list-scroll .task-list.view-list::-webkit-scrollbar-thumb {
+      background: transparent;
+    }
+    body.list-scroll .task-list.view-list:hover::-webkit-scrollbar-thumb {
+      background: color-mix(in srgb, var(--ink-soft) 45%, transparent);
+    }
+    body.list-scroll .task-list.view-list:hover::-webkit-scrollbar-thumb:hover {
+      background: color-mix(in srgb, var(--ink-soft) 75%, transparent);
+    }
+  }
+}
 

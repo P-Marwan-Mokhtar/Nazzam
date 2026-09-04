@@ -13,7 +13,7 @@ import { emptyStateHtml, escapeAttr, escapeHtml, fmtDay, fromISO, highlightMatch
 import { t, formatHM } from './i18n.js';
 import { PRIORITY_LABELS, TASK_TYPES, contentEl, getDaySortMode, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
-import { attachEvents } from './events.js';
+import { attachEvents, isWideListScroll, positionTaskMoreFixed } from './events.js';
 import { buildFilterDropdown, hideDurationPopover } from './popovers.js';
 import { computeTaskStreak, renderStatsView, renderTaskStatsView } from './stats.js';
 import { renderTimeBlockView, setTbStretch } from './timeBlocking.js';
@@ -96,6 +96,13 @@ export function render(){
   const mainLayoutEl = document.querySelector('.main-layout');
   if(mainLayoutEl) mainLayoutEl.classList.toggle('week-view-active', !!ui.weekViewOpen || !!ui.timeBlockViewOpen || !!ui.statsViewOpen || !!ui.taskStatsName || !!ui.smartListsOpen);
   document.body.classList.toggle('locked-view', !!ui.weekViewOpen || !!ui.timeBlockViewOpen || !!ui.statsViewOpen || !!ui.taskStatsName || !!ui.smartListsOpen);
+  // في الوضع العادي (مهام اليوم) بس — مش في الشاشات الكاملة
+  const isFullView = !!ui.weekViewOpen || !!ui.timeBlockViewOpen || !!ui.statsViewOpen || !!ui.taskStatsName || !!ui.smartListsOpen;
+  const listScrollActive = !isFullView && ui.dayViewMode === 'list';
+  document.body.classList.toggle('list-scroll', listScrollActive);
+  // إحداثيات الـ fixed صالحة مع السكرول الداخلي (العريض) بس — غير كده بتتنضف
+  // عشان القايمة المطلقة ماتاخدش top/left قديمة
+  if(!isWideListScroll()) ui.openTaskMorePos = null;
   if(ui.taskStatsName){
     renderTaskStatsView(ui.taskStatsName);
     return;
@@ -515,6 +522,26 @@ export function render(){
               <span class="task-name">${escapeHtml(task.name)}</span>
             </button>
           `}
+          ${ui.dayViewMode === 'list' ? `
+            <span class="task-inline-meta">
+              ${task.startTime || task.duration || task.actualDuration ? `
+                <button type="button" class="task-inline-chip duration-badge" data-action="toggle-duration-popover" data-id="${task.id}" title="${t('task.duration')}">
+                  <span class="material-icons">schedule</span>
+                </button>
+              ` : ``}
+              ${task.subtasks && task.subtasks.length ? `
+                <button type="button" class="task-inline-chip" data-action="open-subtasks" data-id="${task.id}" title="${t('task.subtasks')}">
+                  <span class="material-icons">account_tree</span>
+                  <span dir="ltr">${task.subtasks.filter(s => s.done).length}/${task.subtasks.length}</span>
+                </button>
+              ` : ``}
+              ${task.note ? `
+                <button type="button" class="task-inline-chip" data-action="open-task-note" data-id="${task.id}" title="${t('task.note_tooltip_has')}">
+                  <span class="material-icons">sticky_note_2</span>
+                </button>
+              ` : ``}
+            </span>
+          ` : ``}
           ${task.remindAt ? `
             <button class="clock-btn reminder-row-btn" data-action="open-reminder" data-id="${task.id}" title="${t('task.reminder_with', {time: formatTimeArabic(task.remindAt)})} — ${t('task.reminder_set')}">
               <span class="material-icons">notifications_active</span>
@@ -524,7 +551,7 @@ export function render(){
               <button class="icon-btn task-more-btn" data-action="toggle-task-more" data-id="${task.id}" title="${t('c.more')}">
                 <span class="material-icons">more_vert</span>
               </button>
-              <div class="task-more-dropdown ${ui.openTaskMoreId === task.id ? 'open' : ''}">
+              <div class="task-more-dropdown ${ui.openTaskMoreId === task.id ? 'open' : ''}"${ui.openTaskMoreId === task.id && listScrollActive && ui.openTaskMorePos ? ` style="top:${ui.openTaskMorePos.top}px;left:${ui.openTaskMorePos.left}px;"` : ''}>
                 <button class="tmd-btn" data-action="edit-task-today" data-id="${task.id}">
                   <span class="material-icons">edit</span><span>${t('c.edit')}</span>
                 </button>
@@ -602,6 +629,8 @@ export function render(){
   requestAnimationFrame(() => {
     contentEl.innerHTML = html;
     attachEvents();
+    // القايمة اتفتحت من غير إحداثيات (زي التبديل من chips لـ list والقايمة مفتوحة) — نحسبها بعد الرسم
+    if(isWideListScroll() && ui.openTaskMoreId && !ui.openTaskMorePos) positionTaskMoreFixed(ui.openTaskMoreId);
     if(ui.timerPanelRenderedForDate !== ui.selectedDate){
       renderTimerPanel();
       ui.timerPanelRenderedForDate = ui.selectedDate;
