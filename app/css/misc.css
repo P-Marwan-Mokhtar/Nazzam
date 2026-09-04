@@ -156,6 +156,15 @@
   .task-more-dropdown {
     max-width: calc(100vw - 24px);
   }
+  /* قائمة المزيد بتفتح لتحت دايمًا على الموبايل بدل الحساب التلقائي لفوق */
+  .task-more-menu-wrap.open-up .task-more-dropdown {
+    top: calc(100% + 4px);
+    bottom: auto;
+    transform: translateY(-5px);
+  }
+  .task-more-menu-wrap.open-up .task-more-dropdown.open {
+    transform: translateY(0);
+  }
   .task-more-dropdown .priority-popover.open,
   .task-more-dropdown .clock-choice-popover.open,
   .task-more-dropdown .type-popover.open {

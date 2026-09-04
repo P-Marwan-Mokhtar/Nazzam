@@ -1765,6 +1765,15 @@ html[dir="ltr"] .add-arrow-sub.open {
   background: rgba(255, 255, 255, 0.12);
 }
 
+/* الموبايل: التوست فوق الشريط السفلي الثابت (z60) بدل ما يستخبى تحته */
+@media (max-width: 640px) {
+  .toast {
+    bottom: calc(96px + env(safe-area-inset-bottom));
+    z-index: 80;
+    max-width: calc(100vw - 24px);
+  }
+}
+
 :focus-visible {
   outline: 2px solid var(--pen);
   outline-offset: 2px;

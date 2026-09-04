@@ -170,6 +170,9 @@
 /* ===== السكرول الداخلي =====
    لما الشاشة الكاملة (إحصائيات / الجدول الزمني / عرض الأسبوع / إحصائيات المهمة الواحدة)
    تكون مفتوحة، السكرول بيبقى جوه المحتوى مش على مستوى الصفحة */
+body.locked-view {
+  overflow: hidden;
+}
 body.locked-view .wrap {
   height: calc(100vh - 20px);
 }
@@ -1270,7 +1273,8 @@ body.locked-view .main-col.tb-stretch {
     width: 100%;
     max-height: 70vh;
     border-radius: 16px 16px 0 0;
-    z-index: 50;
+    /* فوق الشريط السفلي الثابت (z60) — كانت بتطلع من تحته */
+    z-index: 70;
     transform: translateY(100%);
     visibility: hidden;
     opacity: 0;
