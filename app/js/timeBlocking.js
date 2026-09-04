@@ -215,6 +215,31 @@ export function setTbStretch(on){
   if(content) content.classList.toggle('tb-stretch', !!on);
 }
 
+// حفظ/استعادة موضع السكرول الداخلي للجدول الزمني عبر إعادة الرسم:
+// commitTaskTime/commitTaskDuration بينادوا render() اللي بيبني الـ DOM من جديد،
+// فعنصر السكرول (.timeblock-calendar-col / .tbm-body) بيتبدل وscrollTop بيتصفّر —
+// بنحفظه قبل الكتابة وبنرجّعه بعدها عشان السكرول ميرجعش للأول مع كل سحبة
+function captureTbScroll(){
+  const calCol = contentEl.querySelector('.timeblock-calendar-col');
+  const grid = contentEl.querySelector('.tbw-grid');
+  const monthBody = contentEl.querySelector('.tbm-body');
+  return {
+    top: calCol ? calCol.scrollTop : 0,
+    left: grid ? grid.scrollLeft : 0,
+    monthTop: monthBody ? monthBody.scrollTop : 0
+  };
+}
+
+function restoreTbScroll(saved){
+  if(!saved) return;
+  const calCol = contentEl.querySelector('.timeblock-calendar-col');
+  if(calCol && saved.top) calCol.scrollTop = saved.top;
+  const grid = contentEl.querySelector('.tbw-grid');
+  if(grid && saved.left) grid.scrollLeft = saved.left;
+  const monthBody = contentEl.querySelector('.tbm-body');
+  if(monthBody && saved.monthTop) monthBody.scrollTop = saved.monthTop;
+}
+
 export function renderTimeBlockView(){
   // كل أوضاع الجدول الزمني (يوم/أسبوع/شهر) بتمدّ سلسلة الحاويات لطول الشاشة
   // عشان السكرول يبقى جوه عمود التقويم مش على مستوى الصفحة
@@ -222,6 +247,7 @@ export function renderTimeBlockView(){
   if(ui.tbRangeMode === 'week'){ renderTimeBlockWeekView(); return; }
   if(ui.tbRangeMode === 'month'){ renderTimeBlockMonthView(); return; }
   if(ui.justChangedDay) ui.tbSideExpanded = false; // نعيد توسيع اللوحة لما نغيّر اليوم
+  const savedScroll = captureTbScroll();
   ensureDayMaterialized(ui.selectedDate);
   const dayTasks = state.days[ui.selectedDate] || [];
   const today = todayStr();
@@ -367,6 +393,7 @@ export function renderTimeBlockView(){
   ui.tbSideJustOpened = false;
 
   attachTimeBlockEvents();
+  restoreTbScroll(savedScroll);
 }
 
 function attachTimeBlockEvents(){
@@ -450,6 +477,7 @@ function attachTimeBlockEvents(){
 // حدود الساعات بتبقى موحدة عبر الأسبوع من أول مهمة لأخرها عشان المقارنة واضحة.
 function renderTimeBlockWeekView(){
   setTbStretch(true);
+  const savedScroll = captureTbScroll();
   const weekStart = getWeekStart(ui.selectedDate);
   const today = todayStr();
   const isCurrentWeek = weekStart === getWeekStart(today);
@@ -713,6 +741,8 @@ function renderTimeBlockWeekView(){
       startSideItemDrag(e, itemEl);
     });
   });
+
+  restoreTbScroll(savedScroll);
 }
 
 // ============================================================
@@ -755,6 +785,7 @@ function bindTbmResize(){
 }
 
 function renderTimeBlockMonthView(){
+  const savedScroll = captureTbScroll();
   const today = todayStr();
   const grid = getMonthGrid(ui.selectedDate);
   const d0 = fromISO(ui.selectedDate);
@@ -951,6 +982,7 @@ function renderTimeBlockMonthView(){
 
   bindTbmResize();
   requestAnimationFrame(fitTbmHeight);
+  restoreTbScroll(savedScroll);
 }
 
 // ============================================================

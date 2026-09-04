@@ -498,7 +498,10 @@ body.locked-view .main-col {
 }
 .timeline-block.tbw-block {
   cursor: pointer;
-  touch-action: auto;
+  /* نفس عرض اليوم: touch-action:none عشان سحب البلوك والريسايز باللمس يوصلوا
+     للـ JS بدل ما المتصفح يخطف الإيماءة للسكرول — السكرول بيفضل شغال من
+     الأماكن الفاضية في العمود وعمود الساعات والعناوين */
+  touch-action: none;
 }
 
 /* بوب إضافة مهمة مجدولة من عرض الأسبوع */
@@ -900,6 +903,17 @@ body.locked-view .main-col {
   border-radius: 2px;
   background: rgba(0, 0, 0, 0.15);
 }
+/* الشاشات اللمس: مقبض الريسايز بيكبر عشان الصباع يلقطه بسهولة */
+@media (pointer: coarse) {
+  .timeline-block-resize-handle {
+    height: 20px;
+  }
+  .timeline-block-resize-handle::after {
+    width: 44px;
+    height: 5px;
+    bottom: 7px;
+  }
+}
 .timeline-drop-preview {
   position: absolute;
   left: 0;
@@ -983,8 +997,10 @@ body.locked-view .main-col {
 }
 /* عرض اليوم/الأسبوع: السكرول جوه عمود التقويم مش على مستوى الصفحة —
    الـ tb-stretch بيمدّ الحاويات لطول الشاشة، وهنا بنقفل سكرول الـ main-col
-   الخارجي ونفتح سكرول داخلي في عمود التقويم نفسه */
-.main-col.tb-stretch {
+   الخارجي ونفتح سكرول داخلي في عمود التقويم نفسه.
+   ملحوظة: الأسبقية لازم تكسب `body.locked-view .main-col` (عنصر + كلاسين)
+   عشان تشتغل على كل الشاشات مش الموبايل بس */
+body.locked-view .main-col.tb-stretch {
   overflow: hidden;
 }
 .tb-full-height .tb-date-nav {
@@ -993,7 +1009,12 @@ body.locked-view .main-col {
 .tb-full-height .timeblock-layout:not(.timeblock-layout-month) {
   flex: 1;
   display: flex;
+  /* لازم stretch مش flex-start (القيمة الأصلية): مع flex-start العمود بياخد طول
+     المحتوى كله (1472px) وبيتقص من غير أي سكرول، ومع stretch بيتحصر في ارتفاع
+     الشاشة والسكرول الداخلي بيشتغل */
+  align-items: stretch;
   min-height: 0;
+  overflow: hidden;
 }
 .tb-full-height .timeblock-calendar-col {
   flex: 1 1 auto;
