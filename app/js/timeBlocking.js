@@ -20,7 +20,7 @@ const SNAP_MIN = 5;
 const DEFAULT_DURATION_MIN = 30;
 const MIN_DURATION_MIN = 10;
 const DEFAULT_START_HOUR = 1;
-const DEFAULT_END_HOUR = 23;
+const DEFAULT_END_HOUR = 24;
 const BLOCK_GAP_PX = 3; // المسافة الرأسية بين البلوكات المتتالية (بتتنقص من ارتفاع كل بلوك)
 const TB_MOBILE_VISIBLE_COUNT = 4; // عدد المهام اللي بتظهر في لوحة "مهام غير مجدولة" على الموبايل قبل زرار "المزيد"
 
@@ -216,8 +216,9 @@ export function setTbStretch(on){
 }
 
 export function renderTimeBlockView(){
-  // عرض الشهر بس هو اللي بيمدّ سلسلة الحاويات لطول الشاشة — الباقي بيرجع للوضع الطبيعي
-  setTbStretch(ui.tbRangeMode === 'month');
+  // كل أوضاع الجدول الزمني (يوم/أسبوع/شهر) بتمدّ سلسلة الحاويات لطول الشاشة
+  // عشان السكرول يبقى جوه عمود التقويم مش على مستوى الصفحة
+  setTbStretch(true);
   if(ui.tbRangeMode === 'week'){ renderTimeBlockWeekView(); return; }
   if(ui.tbRangeMode === 'month'){ renderTimeBlockMonthView(); return; }
   if(ui.justChangedDay) ui.tbSideExpanded = false; // نعيد توسيع اللوحة لما نغيّر اليوم
@@ -254,7 +255,7 @@ export function renderTimeBlockView(){
   for(let h = startHour; h <= endHour; h++){
     const top = (h - startHour) * HOUR_PX;
     hoursHtml += `<div class="tbw-hour-line" style="top:${Math.min(top, trackHeight - 1)}px"></div>`;
-    hourLabelsHtml += `<span class="tbw-hour-label" style="top:${Math.min(top - 7, trackHeight - 18)}px">${formatTimeArabic(String(h).padStart(2, '0') + ':00')}</span>`;
+    hourLabelsHtml += `<span class="tbw-hour-label" style="top:${Math.min(top - 7, trackHeight - 18)}px">${formatTimeArabic(String(h % 24).padStart(2, '0') + ':00')}</span>`;
   }
 
   let nowLineHtml = '';
@@ -301,7 +302,7 @@ export function renderTimeBlockView(){
 
   const dayName = DAY_NAMES[fromISO(ui.selectedDate).getDay()];
   const html = `
-    <div class="timeblock-view ${(ui.justReturnedFromStats || ui.justChangedTbRange) ? 'animate-in' : ''}">
+    <div class="timeblock-view tb-full-height ${(ui.justReturnedFromStats || ui.justChangedTbRange) ? 'animate-in' : ''}">
       <div class="date-nav tb-date-nav">
         ${buildTbRangeDropdown()}
         <div class="tb-nav-group">
@@ -448,6 +449,7 @@ function attachTimeBlockEvents(){
 // مرتبة حسب وقتها (وفيها النسخ المكررة الم مجدولة في الجدول، زي عرض اليوم).
 // حدود الساعات بتبقى موحدة عبر الأسبوع من أول مهمة لأخرها عشان المقارنة واضحة.
 function renderTimeBlockWeekView(){
+  setTbStretch(true);
   const weekStart = getWeekStart(ui.selectedDate);
   const today = todayStr();
   const isCurrentWeek = weekStart === getWeekStart(today);
@@ -509,7 +511,7 @@ function renderTimeBlockWeekView(){
   for(let h = startHour; h <= endHour; h++){
     const top = (h - startHour) * HOUR_PX;
     hoursHtml += `<div class="tbw-hour-line" style="top:${Math.min(top, trackHeight - 1)}px"></div>`;
-    hourLabelsHtml += `<span class="tbw-hour-label" style="top:${Math.min(top - 7, trackHeight - 18)}px">${formatTimeArabic(String(h).padStart(2, '0') + ':00')}</span>`;
+    hourLabelsHtml += `<span class="tbw-hour-label" style="top:${Math.min(top - 7, trackHeight - 18)}px">${formatTimeArabic(String(h % 24).padStart(2, '0') + ':00')}</span>`;
   }
 
   let colsHtml = '';
@@ -580,7 +582,7 @@ function renderTimeBlockWeekView(){
     : `${MONTH_NAMES[d0.getMonth()]} - ${MONTH_NAMES[d6.getMonth()]}`;
 
   const html = `
-    <div class="timeblock-view ${(ui.justReturnedFromStats || ui.justChangedTbRange) ? 'animate-in' : ''}">
+    <div class="timeblock-view tb-full-height ${(ui.justReturnedFromStats || ui.justChangedTbRange) ? 'animate-in' : ''}">
       <div class="date-nav tb-date-nav">
         ${buildTbRangeDropdown()}
         <div class="tb-nav-group">

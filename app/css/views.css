@@ -981,6 +981,34 @@ body.locked-view .main-col {
   overflow-y: auto; /* الشاشات القصيرة: الشبكة تسكرول داخلي تحت رأس الأيام الثابت بدل ما الأسابيع تتقص */
   grid-auto-rows: minmax(min-content, 1fr); /* كل صف على قد محتواه (مهام ما تتقصش) — ولو المساحة أكتر بيتوزع بالتساوي زي Google Calendar */
 }
+/* عرض اليوم/الأسبوع: السكرول جوه عمود التقويم مش على مستوى الصفحة —
+   الـ tb-stretch بيمدّ الحاويات لطول الشاشة، وهنا بنقفل سكرول الـ main-col
+   الخارجي ونفتح سكرول داخلي في عمود التقويم نفسه */
+.main-col.tb-stretch {
+  overflow: hidden;
+}
+.tb-full-height .tb-date-nav {
+  flex-shrink: 0;
+}
+.tb-full-height .timeblock-layout:not(.timeblock-layout-month) {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+.tb-full-height .timeblock-calendar-col {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+/* رأس الأعمدة بيثبت فوق أثناء السكرول الداخلي */
+.tb-full-height .timeblock-calendar-col .tbw-col-head,
+.tb-full-height .timeblock-calendar-col .tbw-hours-head {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+}
 .tbm-grid-wrap {
   margin-top: 0;
   background: var(--card);
@@ -1296,7 +1324,7 @@ body.locked-view .main-col {
     align-items: center;
     gap: 7px;
     position: fixed;
-    bottom: 18px;
+    bottom: calc(96px + env(safe-area-inset-bottom));
     inset-inline-start: 18px;
     z-index: 60;
     background: var(--pen);
