@@ -36,22 +36,6 @@
   }
   /* قايمة الفلتر بتفضل 140px (نفس الديسكتوب) — الـ max-height الكبيرة بتعدّي
      حدود الشاشة على الموبايل فالسكرول بيبان باطل، والسقف الصغير ده سكرول ثابت */
-  /* بوب إضافة الفلتر: زراره أول شيب في الصف (جنب «الكل» من ناحية البداية) فالبوب
-     يتثبّت على البداية المنطقية ويمتد جوه الصف في الاتنين لغة */
-  .filter-add-popover,
-  html[dir="ltr"] .filter-add-popover {
-    position: absolute;
-    top: calc(100% + 6px);
-    inset-inline-start: 0;
-    inset-inline-end: auto;
-    transform: none;
-    max-width: min(280px, calc(100vw - 24px));
-    animation: none;
-  }
-  .filter-add-popover.open,
-  html[dir="ltr"] .filter-add-popover.open {
-    transform: none;
-  }
 }
 
 /* ===== عرض الأسبوع ===== */
@@ -265,7 +249,7 @@ body.locked-view .main-col {
   padding: 2px;
 }
 .tb-day-label {
-  font-family: "Tajawal", sans-serif;
+  font-family: "Almarai", sans-serif;
   font-size: 1rem;
   font-weight: 600;
   color: var(--pen);

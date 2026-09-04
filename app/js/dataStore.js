@@ -107,6 +107,7 @@ function sanitizeTask(t){
   const name = typeof t.name === 'string' ? t.name.trim() : '';
   if(!name) return null;
   const out = { id: (typeof t.id === 'string' && t.id) ? t.id : uid(), name, done: t.done === true };
+  if(typeof t.createdAt === 'number' && isFinite(t.createdAt) && t.createdAt >= 0) out.createdAt = Math.floor(t.createdAt);
   if(t.priority === 'high' || t.priority === 'medium' || t.priority === 'low') out.priority = t.priority;
   if(t.type === 'task' || t.type === 'habit' || t.type === 'hobby') out.type = t.type;
   if(isHHMM(t.remindAt)) out.remindAt = t.remindAt;
@@ -274,6 +275,18 @@ function sanitizeLoadedState(obj){
   }
   if(isPlainObject(obj._sortPriority)) out._sortPriority = obj._sortPriority;
   if(isPlainObject(obj._taskOrderCache)) out._taskOrderCache = obj._taskOrderCache;
+  // أوضاع الترتيب لكل يوم: none | priority | title | created — القيم الغريبة بتتشال
+  if(isPlainObject(obj._sortMode)){
+    const sm = {};
+    let any = false;
+    for(const key of Object.keys(obj._sortMode)){
+      if(isDateStr(key) && (obj._sortMode[key] === 'none' || obj._sortMode[key] === 'priority' || obj._sortMode[key] === 'title' || obj._sortMode[key] === 'created')){
+        sm[key] = obj._sortMode[key];
+        any = true;
+      }
+    }
+    if(any) out._sortMode = sm;
+  }
   return out;
 }
 
@@ -362,6 +375,8 @@ function applyLoadedState(parsed){
   else state._sortPriority = {};
   if(parsed._taskOrderCache) state._taskOrderCache = parsed._taskOrderCache;
   else state._taskOrderCache = {};
+  if(parsed._sortMode) state._sortMode = parsed._sortMode;
+  else state._sortMode = {};
   // قرارات تثبيت/حذف نسخ التكرار لكل يوم (pinnedInjected) لازم تترجّع برضو:
   // لو المستخدم مسح نسخة تكرار من يوم مستقبلي، القرار ده كان بيتخزن في state
   // وبيترفع للسيرفر، لكن كان بيتهمل عند التحميل => بعد أي reload المهمة كانت

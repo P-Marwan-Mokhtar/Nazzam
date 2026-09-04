@@ -6,6 +6,15 @@
   gap: 10px;
   margin-bottom: 16px;
 }
+/* عرض السطر: مهمة واحدة في كل صف (اختياري من زر طريقة العرض) — الـ chips يفضل الافتراضي */
+.task-list.view-list {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+.task-list.view-list .task-row {
+  flex: 1 1 auto;
+  width: 100%;
+}
 .task-row {
   background: var(--card);
   border-radius: var(--radius);
@@ -999,11 +1008,6 @@
   overflow: visible;
   z-index: 60;
 }
-/* لما بوب إضافة الفلتر مفتوح بنخلّي منطقة الفلاتر تظهر بدون قصّ للحدود */
-.filter-chips-wrap:has(.filter-add-popover.open) {
-  overflow: visible;
-  z-index: 60;
-}
 .filter-chips {
   display: flex;
   flex-wrap: wrap;
@@ -1054,86 +1058,63 @@
 .filter-chip-wrap.active .filter-chip-label {
   color: #fff;
 }
-.filter-add-chip-wrap {
+/* لوحة زرار الفلاتر جنب السيرش: إضافة فلتر + إظهار/إخفاء في مكان واحد */
+.bank-filters-panel-wrap {
   position: relative;
-  display: inline-flex;
   flex-shrink: 0;
 }
-.filter-add-chip {
-  color: var(--pen);
-  border: 1px solid var(--pen);
-  background: transparent;
-  border-radius: 8px;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  justify-content: center;
-}
-.filter-add-chip .material-icons {
-  font-size: 18px;
-}
-.filter-add-chip:hover {
-  background: var(--pen-soft);
-  border-color: var(--pen);
-  color: var(--pen);
-}
-/* بوب عائم لإضافة فلتر جديد — يخرج من زر + مباشرة بأنيميشن (مثل بوب نوع المؤقت) */
-.filter-add-popover {
+.bank-filters-panel {
+  display: none;
   position: absolute;
   top: calc(100% + 6px);
-  inset-inline-start: 0;
+  inset-inline-end: 0;
+  z-index: 120;
+  flex-direction: column;
+  gap: 4px;
+  width: 140px;
+  background: var(--popup);
+  border: 1px solid var(--popup-border);
+  box-shadow: var(--shadow);
+  border-radius: 14px;
+  padding: 8px;
+}
+.bank-filters-panel.open {
+  display: flex;
+}
+/* بوب الإضافة الفرعي — عائم تحت زراره جوه اللوحة */
+.bank-filter-add-wrap {
+  position: relative;
+}
+.filter-add-popover {
   display: none;
-  align-items: center;
-  gap: 8px;
+  position: absolute;
+  top: calc(100% + 4px);
+  inset-inline-end: 0;
+  inset-inline-start: auto;
+  width: 200px;
+  z-index: 130;
   background: var(--popup);
   border: 1px solid var(--popup-border);
   box-shadow: var(--shadow);
   border-radius: 12px;
-  padding: 8px 10px;
-  min-width: 240px;
-  z-index: 100;
-  animation: filterAddIn 0.18s ease;
-  transform-origin: top;
+  padding: 8px;
 }
 .filter-add-popover.open {
-  display: flex;
-}
-@keyframes filterAddIn {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-/* زر إضافة مصغّر مستدير جوه بوب إضافة الفلتر */
-.add-btn.icon-only.filter-add-submit {
-  width: 32px;
-  height: 32px;
-  min-height: 32px;
-  flex: 0 0 32px;
-  border-radius: 8px !important;
-  padding: 0;
-  overflow: hidden;
-}
-.add-btn.icon-only.filter-add-submit .material-icons {
-  font-size: 18px;
+  display: block;
 }
 .filter-add-popover input {
-  flex: 1;
-  min-width: 0;
-  border: 1px solid var(--pen-soft);
-  background: transparent;
+  width: 100%;
+  border: 1px solid var(--paper-line);
+  background: var(--paper);
   border-radius: 8px;
-  padding: 11px 10px;
+  padding: 9px 10px;
   font-family: inherit;
   font-size: 0.9rem;
   color: var(--ink);
 }
 .filter-add-popover input:focus {
   border-color: var(--pen);
+  outline: none;
 }
 /* فاصل بين منطقة الفلاتر وقائمة مهام القائمة */
 .bank-filters-divider {
@@ -1619,6 +1600,16 @@
   display: flex;
 }
 /* الأنيميشن بيشتغل مرة واحدة بس لحظة الفتح (addArrowJustOpened) مش مع كل render */
+@keyframes filterAddIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
 .add-arrow-popover.just-opened {
   animation: filterAddIn 0.18s ease;
 }

@@ -387,6 +387,10 @@
 .header-icon-btn:active {
   transform: scale(0.92);
 }
+/* توحيد الحجم البصري: الدائرة المليانة بتبان أكبر من النقط — نصغرها سنة */
+#accountBtn .material-icons {
+  font-size: 22px;
+}
 .header-icon-btn.is-linked {
   color: var(--done);
 }
@@ -394,7 +398,7 @@
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  font-family: 'Almarai', 'Tajawal', sans-serif;
+  font-family: 'Almarai', sans-serif;
 }
 .header-btn-label {
   font-size: 0.85rem;
@@ -408,17 +412,17 @@
   flex-shrink: 0;
 }
 .header-more-btn {
-  background: var(--paper);
-  border-radius: 14px;
+  background: transparent;
+  border-radius: 8px;
   color: var(--ink-soft);
 }
 .header-more-btn.is-open {
-  background: var(--done);
-  color: #fff;
+  background: transparent;
+  color: var(--pen);
 }
 .header-more-btn.is-open:hover {
-  background: var(--done);
-  color: #fff;
+  background: var(--paper);
+  color: var(--pen);
 }
 
 /* ===== App shell: الشريط الجانبي (Sidebar) + المحتوى ===== */
@@ -450,7 +454,7 @@
   border: none;
   border-radius: 12px;
   background: transparent;
-  color: var(--pen);
+  color: var(--ink-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -461,20 +465,21 @@
     transform 0.1s ease;
 }
 .side-nav-btn:hover {
-  background: var(--done-soft);
-  color: var(--done);
+  background: var(--paper);
+  color: var(--ink);
 }
 .side-nav-btn:active {
   transform: scale(0.92);
 }
+/* النشط ستايل TickTick: الأيقونة ملونة فقط من غير خلفية */
 .side-nav-btn.active {
-  background: var(--pen);
-  color: #fff;
-  box-shadow: 0 2px 6px color-mix(in srgb, var(--pen) 35%, transparent);
+  background: transparent;
+  color: var(--pen);
+  box-shadow: none;
 }
 .side-nav-btn.active:hover {
-  background: var(--pen);
-  color: #fff;
+  background: var(--paper);
+  color: var(--pen);
 }
 .side-nav-btn .material-icons {
   font-size: 22px;
@@ -567,11 +572,11 @@
   padding: 0;
 }
 
-/* الهيدر القديم بيظهر على الموبايل بس، والشريط الجانبي على الشاشات الكبيرة */
-@media (min-width: 641px) {
-  .header-card {
-    display: none;
-  }
+/* الهيدر اتشال من التصميم — الشريط السفلي هو التنقل الوحيد على الموبايل
+   والشريط الجانبي على الشاشات الكبيرة. الأزرار بتفضل في الـ DOM كـ hubs
+   (الشريطان بيشغّلوها) لكن مخفية دائمًا. */
+.header-card {
+  display: none;
 }
 
 /* Dropdown menu panel */
@@ -664,6 +669,79 @@
   gap: 2px;
   padding-inline-start: 14px;
   margin-top: 2px;
+}
+
+/* ===== الشريط السفلي للموبايل (Bottom Tab Bar) — معيار Todoist/TickTick =====
+   مخفي على الشاشات الكبيرة (الشريط الجانبي هو التنقل)، وظاهر على الموبايل
+   بدل تكديس أيقونات الهيدر العلوي. */
+.bottom-tabbar {
+  display: none;
+}
+@media (max-width: 640px) {
+  .wrap {
+    padding-bottom: 78px;
+  }
+  .bottom-tabbar {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    position: fixed;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    left: 12px;
+    right: 12px;
+    z-index: 60;
+    background: var(--paper);
+    border: 1px solid var(--paper-line);
+    border-radius: 20px;
+    box-shadow: var(--shadow-hover);
+    padding: 6px 4px;
+  }
+  .bottom-tabbar-btn {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 48px;
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    font-family: inherit;
+    cursor: pointer;
+    border-radius: 10px;
+  }
+  .bottom-tabbar-btn .material-icons {
+    font-size: 22px;
+  }
+  .bottom-tabbar-btn.active {
+    color: var(--pen);
+  }
+  /* زرار المزيد ساكن في الشريط — بنفس مقاس باقي الأزرار */
+  .bottom-tabbar .header-actions-wrap {
+    position: relative;
+    flex: 1 1 0;
+    display: flex;
+  }
+  .bottom-tabbar .header-more-btn {
+    flex: 1 1 0;
+    min-height: 48px;
+  }
+  /* لوحة المزيد بتفتح لفوق كورقة عائمة فوق الشريط */
+  .bottom-tabbar .header-actions-panel {
+    position: fixed;
+    top: auto;
+    bottom: 92px;
+    left: 12px;
+    right: 12px;
+    min-width: 0;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  html[dir="ltr"] .bottom-tabbar .header-actions-panel {
+    left: 12px;
+    right: 12px;
+  }
 }
 
 /* ===== Performance: content-visibility للقوائم الطويلة ===== */

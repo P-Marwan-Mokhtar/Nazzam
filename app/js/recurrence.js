@@ -2,10 +2,62 @@
 // recurrence.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { SHORT_DAY_NAMES, fromISO, todayStr, uid } from './utils.js';
+import { SHORT_DAY_NAMES, addDays, fromISO, todayStr, uid } from './utils.js';
+import { t } from './i18n.js';
 import { showToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
+import { openCalendarModal } from './calendar.js';
+
+// نقل نسخة واحدة من مهمة (بالـ id) من يوم المصدر إلى تاريخ هدف — قص مش نسخ.
+// منفصل تمامًا عن قاعدة التكرار (recurringTasks): القاعدة بتفضل كما هي،
+// والمنقول هو occurrence واحدة فقط. بيحافظ على كل الحقول (نوع/أولوية/وقت/
+// تذكير/ملاحظة/مهام فرعية) وبيصفّر reminded عشان التذكير يضرب في اليوم الجديد.
+export async function moveSingleTask(taskId, fromDateStr, targetDateStr){
+  if(!taskId || !fromDateStr || !targetDateStr) return false;
+  if(fromDateStr === targetDateStr) return false;
+  const srcList = state.days[fromDateStr] || [];
+  const idx = srcList.findIndex(x => x.id === taskId);
+  if(idx === -1) return false;
+  if(!state.days[targetDateStr]) state.days[targetDateStr] = [];
+  const targetList = state.days[targetDateStr];
+  const moving = srcList[idx];
+  // ممنوع التكرار بالاسم في اليوم الهدف (نفس قاعدة add-to-day)
+  if(targetList.some(x => x.name === moving.name && !x._dupOf)) return 'exists';
+  const [removed] = srcList.splice(idx, 1);
+  // نسخ الجدول الزمني المرتبطة (_dupOf) بتتنقل مع أصلها عشان متفضلش يتيمة
+  const movedDups = [];
+  for(let i = srcList.length - 1; i >= 0; i--){
+    if(srcList[i]._dupOf === taskId){
+      movedDups.push(srcList.splice(i, 1)[0]);
+    }
+  }
+  removed.reminded = false;
+  targetList.push(removed);
+  movedDups.reverse().forEach(d => targetList.push(d));
+  // لو اليوم الهدف مستقبلي والاسم ليه قاعدة تكرار، بنعلّم القرار عشان
+  // ensureDayMaterialized ما يحقنش نسخة مكررة جنب المنقولة
+  if(!state.pinnedInjected) state.pinnedInjected = {};
+  if(!state.pinnedInjected[targetDateStr]) state.pinnedInjected[targetDateStr] = {};
+  state.pinnedInjected[targetDateStr][removed.name] = true;
+  ui.pendingMoveTaskId = null;
+  ui.openTaskMoreId = null;
+  render();
+  await saveData();
+  showUndoToast(`تم نقل "${removed.name}"`, async () => {
+    const tIdx = (state.days[targetDateStr] || []).findIndex(x => x.id === taskId);
+    if(tIdx !== -1) state.days[targetDateStr].splice(tIdx, 1);
+    for(let i = (state.days[targetDateStr] || []).length - 1; i >= 0; i--){
+      if(state.days[targetDateStr][i]._dupOf === taskId) state.days[targetDateStr].splice(i, 1);
+    }
+    if(!state.days[fromDateStr]) state.days[fromDateStr] = [];
+    state.days[fromDateStr].splice(Math.min(idx, state.days[fromDateStr].length), 0, removed);
+    movedDups.forEach(d => state.days[fromDateStr].push(d));
+    render();
+    await saveData();
+  });
+  return true;
+}
 
 export function openRecurrenceModal(taskId){
   const task = (state.days[ui.selectedDate] || []).find(x => x.id === taskId);
@@ -108,6 +160,25 @@ document.getElementById('saveRecurrenceBtn').onclick = saveRecurrence;
 document.getElementById('recurrenceSelectAllBtn').onclick = () => {
   ui.pendingRecurrenceDays = [0,1,2,3,4,5,6];
   renderRecurrenceDaysGrid();
+};
+
+// قسم النقل لمرة واحدة جوه مودال التكرار — نفس الدالة المركزية moveSingleTask،
+// والتكرار الدائم بيفضل مستقل عنها تمامًا
+document.getElementById('recurrenceMoveTomorrowBtn').onclick = async () => {
+  if(!ui.activeRecurrenceTaskId) return;
+  const taskId = ui.activeRecurrenceTaskId;
+  const fromDate = ui.selectedDate;
+  closeRecurrenceModal();
+  const res = await moveSingleTask(taskId, fromDate, addDays(fromDate, 1));
+  if(res === 'exists') showToast(t('toast.exists_today'));
+};
+
+document.getElementById('recurrenceMovePickBtn').onclick = () => {
+  if(!ui.activeRecurrenceTaskId) return;
+  // وضع النقل عبر التقويم الحالي — الاختيار بيتم في calendar.js
+  ui.pendingMoveTaskId = ui.activeRecurrenceTaskId;
+  document.getElementById('calendarOverlay').classList.add('above');
+  openCalendarModal();
 };
 
 document.getElementById('recurrenceClearBtn').onclick = () => {

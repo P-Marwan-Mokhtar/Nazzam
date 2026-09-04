@@ -40,7 +40,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Tajawal:wght@400;500;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&display=swap"
       rel="stylesheet"
     />
     <script src="js/boot-theme.js"></script>
@@ -88,86 +88,6 @@
             <button class="header-icon-btn" id="weekViewBtn" title="عرض الأسبوع" data-i18n-title="nav.week_view">
               <span class="material-icons">view_week</span>
             </button>
-          </div>
-
-          <div class="header-actions-wrap">
-            <button
-              class="header-icon-btn header-more-btn"
-              id="headerMoreBtn"
-              title="المزيد"
-              aria-label="المزيد من الخيارات"
-              aria-expanded="false"
-              data-i18n-title="c.more"
-              data-i18n-aria="nav.more_label"
-            >
-              <span class="material-icons">more_horiz</span>
-            </button>
-            <div class="header-actions-panel" id="headerActionsPanel">
-              <button
-                class="header-menu-item"
-                id="weekViewMenuItem"
-                title="عرض الأسبوع"
-                data-i18n-title="nav.week_view"
-              >
-                <span class="material-icons">view_week</span>
-                <span class="header-btn-label" data-i18n="nav.week_view">عرض الأسبوع</span>
-              </button>
-              <button
-                class="header-menu-item"
-                id="smartListsBtn"
-                title="القوائم الذكية"
-                data-i18n-title="nav.smart_lists"
-              >
-                <span class="material-icons">auto_awesome</span>
-                <span class="header-btn-label" data-i18n="nav.smart_lists">القوائم الذكية</span>
-              </button>
-              <div class="header-menu-divider"></div>
-              <button
-                class="header-menu-item"
-                id="globalSearchBtnMobile"
-                title="البحث في كل المهام"
-                data-i18n-title="nav.search_all"
-              >
-                <span class="material-icons">manage_search</span>
-                <span class="header-btn-label" data-i18n="nav.search_all">البحث في جميع المهام</span>
-              </button>
-              <button
-                class="header-menu-item"
-                id="draftsBtn"
-                title="المهام المؤرشفة"
-                data-i18n-title="nav.archived"
-              >
-                <span class="material-icons">drafts</span>
-                <span class="header-btn-label" data-i18n="nav.archived">المهام المؤرشفة</span>
-              </button>
-              <button
-                class="header-menu-item"
-                id="calendarBtn"
-                title="التقويم"
-                data-i18n-title="nav.calendar"
-              >
-                <span class="material-icons">calendar_today</span>
-                <span class="header-btn-label" data-i18n="nav.calendar">التقويم</span>
-              </button>
-              <button
-                class="header-menu-item"
-                id="notificationSettingsBtn"
-                title="إعدادات التنبيهات"
-                data-i18n-title="nav.notif_settings"
-              >
-                <span class="material-icons">notifications</span>
-                <span class="header-btn-label" data-i18n="nav.notif_settings">إعدادات التنبيهات</span>
-              </button>
-              <button
-                class="header-menu-item"
-                id="templatesBtn"
-                title="قوالب المهام الجاهزة"
-                data-i18n-title="nav.templates"
-              >
-                <span class="material-icons">content_copy</span>
-                <span class="header-btn-label" data-i18n="nav.templates">قوالب المهام</span>
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -238,6 +158,111 @@
           </div>
         </div>
       </div>
+
+      <!-- الشريط السفلي: التنقل الوحيد على الموبايل — بروفايل / مهام / جدول / إحصائيات / المزيد -->
+      <nav class="bottom-tabbar" aria-label="التنقل الرئيسي">
+        <button class="bottom-tabbar-btn" id="bottomProfileBtn" title="الحساب" data-i18n-title="nav.account" aria-label="الحساب">
+          <span class="material-icons">person_outline</span>
+        </button>
+        <button class="bottom-tabbar-btn" id="bottomTasksBtn" data-bottom-target="headerTasksBtn" title="مهام اليوم" data-i18n-title="nav.tasks_today">
+          <span class="material-icons">checklist</span>
+        </button>
+        <button class="bottom-tabbar-btn" id="bottomScheduleBtn" data-bottom-target="headerTimeBlockBtn" title="الجدول الزمني" data-i18n-title="nav.schedule">
+          <span class="material-icons">event_note</span>
+        </button>
+        <button class="bottom-tabbar-btn" id="bottomStatsBtn" data-bottom-target="statsBtnTop" title="الإحصائيات" data-i18n-title="nav.stats">
+          <span class="material-icons">insights</span>
+        </button>
+        <div class="header-actions-wrap">
+          <button
+            class="bottom-tabbar-btn header-more-btn"
+            id="headerMoreBtn"
+            title="المزيد"
+            aria-label="المزيد من الخيارات"
+            aria-expanded="false"
+            data-i18n-title="c.more"
+            data-i18n-aria="nav.more_label"
+          >
+            <span class="material-icons">more_horiz</span>
+          </button>
+          <div class="header-actions-panel" id="headerActionsPanel">
+            <button
+              class="header-menu-item"
+              id="quickAddMenuItem"
+              title="إضافة مهمة"
+              data-i18n-title="bank.add_title"
+            >
+              <span class="material-icons">add</span>
+              <span class="header-btn-label" data-i18n="bank.add_title">إضافة مهمة</span>
+            </button>
+            <div class="header-menu-divider"></div>
+            <button
+              class="header-menu-item"
+              id="weekViewMenuItem"
+              title="عرض الأسبوع"
+              data-i18n-title="nav.week_view"
+            >
+              <span class="material-icons">view_week</span>
+              <span class="header-btn-label" data-i18n="nav.week_view">عرض الأسبوع</span>
+            </button>
+            <button
+              class="header-menu-item"
+              id="smartListsBtn"
+              title="القوائم الذكية"
+              data-i18n-title="nav.smart_lists"
+            >
+              <span class="material-icons">auto_awesome</span>
+              <span class="header-btn-label" data-i18n="nav.smart_lists">القوائم الذكية</span>
+            </button>
+            <div class="header-menu-divider"></div>
+            <button
+              class="header-menu-item"
+              id="globalSearchBtnMobile"
+              title="البحث في كل المهام"
+              data-i18n-title="nav.search_all"
+            >
+              <span class="material-icons">manage_search</span>
+              <span class="header-btn-label" data-i18n="nav.search_all">البحث في جميع المهام</span>
+            </button>
+            <button
+              class="header-menu-item"
+              id="draftsBtn"
+              title="المهام المؤرشفة"
+              data-i18n-title="nav.archived"
+            >
+              <span class="material-icons">drafts</span>
+              <span class="header-btn-label" data-i18n="nav.archived">المهام المؤرشفة</span>
+            </button>
+            <button
+              class="header-menu-item"
+              id="calendarBtn"
+              title="التقويم"
+              data-i18n-title="nav.calendar"
+            >
+              <span class="material-icons">calendar_today</span>
+              <span class="header-btn-label" data-i18n="nav.calendar">التقويم</span>
+            </button>
+            <button
+              class="header-menu-item"
+              id="notificationSettingsBtn"
+              title="إعدادات التنبيهات"
+              data-i18n-title="nav.notif_settings"
+            >
+              <span class="material-icons">notifications</span>
+              <span class="header-btn-label" data-i18n="nav.notif_settings">إعدادات التنبيهات</span>
+            </button>
+            <button
+              class="header-menu-item"
+              id="templatesBtn"
+              title="قوالب المهام الجاهزة"
+              data-i18n-title="nav.templates"
+            >
+              <span class="material-icons">content_copy</span>
+              <span class="header-btn-label" data-i18n="nav.templates">قوالب المهام</span>
+            </button>
+          </div>
+        </div>
+      </nav>
 
       <!-- لوحة الحساب المنسدلة: الحساب + المظهر + اللغة + البيانات (تفتح من زر المستخدم) -->
       <div class="account-panel" id="accountPanel" role="menu" aria-label="الحساب والإعدادات">
@@ -682,6 +707,21 @@
           >
             حفظ
           </button>
+          <div class="recurrence-move-divider"></div>
+          <p class="recurrence-move-title">
+            <span class="material-icons">event_upcoming</span>
+            <span data-i18n="task.move_to">نقل إلى</span>
+          </p>
+          <div class="recurrence-move-actions">
+            <button type="button" class="recurrence-move-btn" id="recurrenceMoveTomorrowBtn">
+              <span class="material-icons">wb_sunny</span>
+              <span data-i18n="task.move_tomorrow">غدًا</span>
+            </button>
+            <button type="button" class="recurrence-move-btn" id="recurrenceMovePickBtn">
+              <span class="material-icons">calendar_month</span>
+              <span data-i18n="task.move_pick_date">اختيار يوم...</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

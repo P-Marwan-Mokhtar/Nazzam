@@ -11,7 +11,7 @@
   margin-bottom: 12px;
 }
 .calendar-month-title {
-  font-family: "Tajawal", sans-serif;
+  font-family: "Almarai", sans-serif;
   font-size: 1.15rem;
   color: var(--ink);
 }
@@ -89,12 +89,6 @@
   background: var(--pen);
   border-radius: 4px;
 }
-.section-title-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-inline-start: auto;
-}
 .day-filter-wrap {
   position: relative;
   display: flex;
@@ -153,6 +147,101 @@
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
+}
+
+/* ===== خيارات اليوم: زرارين جنب بعض (العرض + الـ 3 فلاتر) على كل الشاشات ===== */
+.day-actions-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: auto;
+}
+.day-actions-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  position: relative;
+  padding: 4px;
+}
+.day-actions-toggle .material-icons {
+  font-size: 20px;
+}
+.day-actions-toggle:hover {
+  color: var(--pen);
+}
+.day-actions-toggle.open {
+  background: transparent;
+  border-color: transparent;
+  color: var(--pen);
+}
+.day-actions-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-end: 0;
+  z-index: 120;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  min-width: 200px;
+  background: var(--popup);
+  border: 1px solid var(--popup-border);
+  box-shadow: var(--shadow);
+  border-radius: 14px;
+  padding: 8px;
+}
+.day-actions-panel.open {
+  display: flex;
+}
+/* صفوف زي خيارات Todoist: أيقونة + اسم + القيمة الحالية + سهم */
+.day-actions-panel > .day-filter-wrap {
+  display: block;
+  width: 100%;
+}
+.day-actions-panel .day-filter-btn {
+  width: 100%;
+  justify-content: flex-start;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+}
+.day-actions-panel .day-filter-btn:hover {
+  background: var(--paper);
+}
+.day-actions-panel .day-opt-name {
+  display: inline;
+  font-weight: 700;
+  color: var(--ink);
+}
+.day-actions-panel .day-filter-btn-label {
+  margin-inline-start: auto;
+  color: var(--ink-soft);
+}
+.day-actions-panel .day-opt-chev {
+  display: inline-flex;
+  font-size: 18px;
+  color: var(--ink-soft);
+}
+/* الخيارات الداخلية subpopup عائم فوق المحتوى (مش expanding list) */
+.day-actions-panel .day-filter-dropdown:not(.open) {
+  display: none;
+}
+.day-actions-panel .day-filter-dropdown.open {
+  position: absolute;
+  top: calc(100% + 4px);
+  inset-inline: 0;
+  z-index: 130;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  min-width: 0;
 }
 
 .bank-wrap {

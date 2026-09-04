@@ -110,7 +110,7 @@ async function startApp(){
 
   document.addEventListener('click', (e) => {
     const accountPanel = document.getElementById('accountPanel');
-    if(accountPanel && isAccountPanelOpen() && !e.target.closest('#accountPanel') && !e.target.closest('#accountBtn') && !e.target.closest('#sideNavAccountBtn')){
+    if(accountPanel && isAccountPanelOpen() && !e.target.closest('#accountPanel') && !e.target.closest('#accountBtn') && !e.target.closest('#bottomProfileBtn') && !e.target.closest('#sideNavAccountBtn')){
       closeAccountPanel();
     }
     document.querySelectorAll('.custom-select.open').forEach(s => s.classList.remove('open'));
@@ -154,8 +154,9 @@ async function startApp(){
       ui.openFilterMoreId = null;
       render();
     }
-    if(ui.filterAddOpen && !e.target.closest('.filter-add-popover') && !e.target.closest('.filter-add-chip')){
-      ui.filterAddOpen = false;
+    if(ui.bankFiltersPanelOpen && !e.target.closest('.bank-filters-panel-wrap')){
+      ui.bankFiltersPanelOpen = false;
+      ui.bankFilterInputOpen = false;
       render();
     }
     if(ui.addArrowOpen && !e.target.closest('.add-arrow-wrap')){
@@ -169,6 +170,17 @@ async function startApp(){
     }
     if(ui.dayTypeFilterOpen && !e.target.closest('.day-filter-wrap')){
       ui.dayTypeFilterOpen = false;
+      render();
+    }
+    if(ui.daySortMenuOpen && !e.target.closest('.day-filter-wrap')){
+      ui.daySortMenuOpen = false;
+      render();
+    }
+    if(ui.dayActionsOpen && !e.target.closest('.day-actions-wrap')){
+      ui.dayActionsOpen = false;
+      ui.dayStatusFilterOpen = false;
+      ui.dayTypeFilterOpen = false;
+      ui.daySortMenuOpen = false;
       render();
     }
     if(ui.timerTypePopoverOpen && !e.target.closest('.timer-type-popover') && !e.target.closest('#addTimerBtn')){
@@ -295,6 +307,48 @@ async function startApp(){
       if(target) target.click();
     });
   });
+
+  // الشريط السفلي للموبايل: نفس الفكرة — كل زر بيشغّل الزرار المقابل
+  document.querySelectorAll('.bottom-tabbar [data-bottom-target]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.bottomTarget);
+      if(target) target.click();
+    });
+  });
+
+  // زر البروفايل في الشريط السفلي: نفس سلوك زر الحساب (يفتح لوحة الحساب)
+  const bottomProfileBtn = document.getElementById('bottomProfileBtn');
+  if(bottomProfileBtn){
+    bottomProfileBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleAccountPanel(bottomProfileBtn);
+    });
+  }
+
+  // الإضافة السريعة من قائمة المزيد في الشريط السفلي: ترجع لمهام اليوم
+  // وتفتح القائمة وتركّز على حقل الإضافة
+  const quickAddMenuItem = document.getElementById('quickAddMenuItem');
+  if(quickAddMenuItem){
+    quickAddMenuItem.addEventListener('click', () => {
+      ui.statsViewOpen = false;
+      ui.weekViewOpen = false;
+      ui.timeBlockViewOpen = false;
+      ui.taskStatsName = null;
+      ui.smartListsOpen = false;
+      if(!ui.bankOpen){
+        ui.bankOpen = true;
+        ui.justOpenedBank = true;
+      }
+      render();
+      afterRender(() => {
+        const input = document.getElementById('newKeywordInput');
+        if(input){
+          input.focus();
+          input.scrollIntoView({ block: 'center' });
+        }
+      });
+    });
+  }
 
   // طي/توسيع أسماء الشريط الجانبي — الاختيار محفوظ في localStorage،
   // والتوسع التلقائي للأسماء بيحصل من 1350px عبر CSS
@@ -491,12 +545,13 @@ async function startApp(){
       if(rm && rm.classList.contains('open')) rm.classList.remove('open');
       if(ui.openDurationPopoverTaskId) hideDurationPopover();
       if(ui.openClockChoiceTaskId) hideClockChoicePopover();
+      if(ui.dayActionsOpen){ ui.dayActionsOpen = false; ui.dayStatusFilterOpen = false; ui.dayTypeFilterOpen = false; ui.daySortMenuOpen = false; render(); }
       if(ui.openPriorityPopoverTaskId){ ui.openPriorityPopoverTaskId = null; render(); }
       if(ui.openTypePopoverTaskId){ ui.openTypePopoverTaskId = null; render(); }
       if(ui.openTaskMoreId){ ui.openTaskMoreId = null; ui.openPriorityPopoverTaskId = null; ui.openTypePopoverTaskId = null; render(); }
       if(ui.openKeywordMoreId){ ui.openKeywordMoreId = null; render(); }
       if(ui.openFilterMoreId){ ui.openFilterMoreId = null; render(); }
-      if(ui.filterAddOpen){ ui.filterAddOpen = false; render(); }
+      if(ui.bankFiltersPanelOpen){ ui.bankFiltersPanelOpen = false; ui.bankFilterInputOpen = false; render(); }
       if(ui.addArrowOpen){ ui.addArrowOpen = false; ui.addArrowSub = null; render(); }
     }
   });

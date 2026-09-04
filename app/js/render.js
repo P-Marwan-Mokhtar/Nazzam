@@ -11,7 +11,7 @@ export function afterRender(cb){
 
 import { emptyStateHtml, escapeAttr, escapeHtml, fmtDay, fromISO, highlightMatch, normalizeArabic, parseDurationToMinutes, todayStr, uid } from './utils.js';
 import { t, formatHM } from './i18n.js';
-import { PRIORITY_LABELS, TASK_TYPES, contentEl, state, ui } from './state.js';
+import { PRIORITY_LABELS, TASK_TYPES, contentEl, getDaySortMode, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { attachEvents } from './events.js';
 import { buildFilterDropdown, hideDurationPopover } from './popovers.js';
@@ -42,7 +42,7 @@ export function ensureDayMaterialized(dateStr){
       if(!rDays.includes(weekday)) return; // مش من أيام تكرارها أصلاً، مفيش قرار نسجله
       if(dayPinned[rName]) return; // اتقرر مصيرها قبل كده في اليوم ده (اتحطت أو المستخدم شالها بنفسه)
       if(!state.days[dateStr].some(t => t.name === rName && !t._fromRecurrence)){
-        const recTask = { id: uid(), name: rName, done: false, _fromRecurrence: true };
+        const recTask = { id: uid(), name: rName, done: false, createdAt: Date.now(), _fromRecurrence: true };
         // المواصفات المحفوظة مع التكرار (نوع/أولوية/مدة/ملاحظة/مهام فرعية) — دي الأولوية
         // لأنها بتعكس آخر مواصفات حطها المستخدم على المهمة وقت تفعيل التكرار.
         const meta = state.recurringMeta && state.recurringMeta[rName];
@@ -219,23 +219,29 @@ export function render(){
           <input type="text" id="bankSearchInput" placeholder="${t('bank.search_placeholder')}" value="${escapeAttr(ui.bankSearchQuery)}" />
           ${ui.bankSearchQuery ? `<button class="bank-search-clear" id="bankSearchClear" title="${t('bank.search_clear')}"><span class="material-icons">close</span></button>` : ``}
         </div>
-        <button class="bank-filters-toggle ${ui.mobileFiltersOpen ? 'open' : ''} ${hasActiveFilter ? 'has-active' : ''}" id="bankFiltersToggleBtn" data-action="toggle-mobile-filters" type="button" title="${t('bank.filters')}">
-          <span class="material-icons">tune</span>
-        </button>
+        <div class="bank-filters-panel-wrap">
+          <button class="bank-filters-toggle ${ui.bankFiltersPanelOpen ? 'open' : ''} ${hasActiveFilter ? 'has-active' : ''}" id="bankFiltersToggleBtn" data-action="toggle-bank-filters-panel" type="button" title="${t('bank.filters')}">
+            <span class="material-icons">filter_alt</span>
+          </button>
+          <div class="bank-filters-panel ${ui.bankFiltersPanelOpen ? 'open' : ''}">
+            <div class="bank-filter-add-wrap">
+              <button class="tmd-btn" data-action="toggle-bank-filter-input" type="button">
+                <span class="material-icons">add</span><span>${t('bank.filter_add_title')}</span>
+              </button>
+              <div class="filter-add-popover ${ui.bankFilterInputOpen ? 'open' : ''}">
+                <input type="text" id="newFilterInput" placeholder="${t('bank.filter_placeholder')}" maxlength="40" />
+              </div>
+            </div>
+            <button class="tmd-btn" data-action="toggle-mobile-filters" type="button">
+              <span class="material-icons">${ui.mobileFiltersOpen ? 'visibility_off' : 'visibility'}</span><span>${ui.mobileFiltersOpen ? t('bank.hide_filters') : t('bank.show_filters')}</span>
+            </button>
+          </div>
+        </div>
       </div>
     `;
 
     html += `<div class="filter-chips-wrap ${!ui.mobileFiltersOpen ? 'mobile-closed' : ''} ${ui.closingMobileFilters ? 'mobile-closed-anim' : ''} ${ui.justOpenedMobileFilters ? 'mobile-opening' : ''}" id="filterChipsWrap">`;
     html += `<div class="filter-chips">`;
-    html += `
-      <div class="filter-add-chip-wrap">
-        <button class="filter-chip filter-add-chip" data-action="toggle-add-filter" title="${t('bank.filter_add_title')}"><span class="material-icons">filter_alt</span></button>
-        <div class="filter-add-popover ${ui.filterAddOpen ? 'open' : ''}">
-          <input type="text" id="newFilterInput" placeholder="${t('bank.filter_placeholder')}" maxlength="40" />
-          <button class="add-btn icon-only filter-add-submit" id="addFilterBtn" title="${t('bank.filter_add_title')}"><span class="material-icons">add</span></button>
-        </div>
-      </div>
-    `;
     html += `<button class="filter-chip ${ui.activeFilter === 'all' ? 'active' : ''}" data-action="select-filter" data-filter-id="all">${t('c.all')}</button>`;
     const sortedFilters = [...state.filters].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
     sortedFilters.forEach(f => {
@@ -378,18 +384,25 @@ export function render(){
   // Daily Tasks Section
   const dayFilterLabels = { all: t('day.filter_all'), pending: t('day.filter_pending'), done: t('day.filter_done') };
   const dayTypeLabels = { all: t('day.filter_all'), task: t('day.tasks'), habit: t('day.habits'), hobby: t('day.hobbies') };
+  const daySortMode = getDaySortMode(ui.selectedDate);
+  const daySortLabels = { none: t('c.none'), priority: t('day.sort_on'), title: t('day.sort_title'), created: t('day.sort_created') };
   html += `
     <div class="section-title" >
       <span>${t('day.title')}</span>
-      <div class="section-title-actions">
-        <button class="day-filter-btn ${state._sortPriority && state._sortPriority[ui.selectedDate] ? 'active' : ''}" data-action="sort-by-priority" title="${t('day.sort_priority')}">
-          <span class="material-icons">sort</span>
-          <span class="day-filter-btn-label">${t('day.sort')}</span>
-        </button>
+      <div class="day-actions-wrap">
+      <button class="day-actions-toggle ${ui.dayViewMode === 'list' ? 'open' : ''}" data-action="toggle-day-view" type="button" title="${t('day.view_mode_title')}">
+        <span class="material-icons">${ui.dayViewMode === 'list' ? 'view_list' : 'view_module'}</span>
+      </button>
+      <button class="day-actions-toggle ${ui.dayActionsOpen ? 'open' : ''}" data-action="toggle-day-actions" type="button" title="${t('day.filters_title')}">
+        <span class="material-icons">grid_view</span>
+      </button>
+      <div class="day-actions-panel ${ui.dayActionsOpen ? 'open' : ''}">
         <div class="day-filter-wrap">
         <button class="day-filter-btn ${ui.dayTypeFilter !== 'all' ? 'active' : ''}" data-action="toggle-day-type-filter" title="${t('day.filter_type')}">
           <span class="material-icons">label</span>
+          <span class="day-opt-name">${t('day.row_type')}</span>
           <span class="day-filter-btn-label">${dayTypeLabels[ui.dayTypeFilter]}</span>
+          <span class="material-icons day-opt-chev">chevron_left</span>
         </button>
         <div class="day-filter-dropdown ${ui.dayTypeFilterOpen ? 'open' : ''}">
           <button class="tmd-btn ${ui.dayTypeFilter === 'all' ? 'active' : ''}" data-action="select-day-type-filter" data-value="all">
@@ -409,7 +422,9 @@ export function render(){
         <div class="day-filter-wrap">
         <button class="day-filter-btn ${ui.dayStatusFilter !== 'all' ? 'active' : ''}" data-action="toggle-day-status-filter" title="${t('day.filter_status')}">
           <span class="material-icons">filter_list</span>
+          <span class="day-opt-name">${t('day.row_status')}</span>
           <span class="day-filter-btn-label">${dayFilterLabels[ui.dayStatusFilter]}</span>
+          <span class="material-icons day-opt-chev">chevron_left</span>
         </button>
         <div class="day-filter-dropdown ${ui.dayStatusFilterOpen ? 'open' : ''}">
           <button class="tmd-btn ${ui.dayStatusFilter === 'all' ? 'active' : ''}" data-action="select-day-status-filter" data-value="all">
@@ -422,6 +437,29 @@ export function render(){
             <span class="material-icons">check_circle</span><span>${t('day.filter_done')}</span>
           </button>
         </div>
+      </div>
+        <div class="day-filter-wrap">
+        <button class="day-filter-btn ${daySortMode !== 'none' ? 'active' : ''}" data-action="toggle-day-sort-menu" title="${t('day.sort_priority')}">
+          <span class="material-icons">sort</span>
+          <span class="day-opt-name">${t('day.row_sort')}</span>
+          <span class="day-filter-btn-label">${daySortLabels[daySortMode]}</span>
+          <span class="material-icons day-opt-chev">chevron_left</span>
+        </button>
+        <div class="day-filter-dropdown ${ui.daySortMenuOpen ? 'open' : ''}">
+          <button class="tmd-btn ${daySortMode === 'none' ? 'active' : ''}" data-action="set-day-sort" data-value="none">
+            <span class="material-icons">list</span><span>${t('day.sort_none')}</span>
+          </button>
+          <button class="tmd-btn ${daySortMode === 'priority' ? 'active' : ''}" data-action="set-day-sort" data-value="priority">
+            <span class="material-icons">flag</span><span>${t('day.sort_on')}</span>
+          </button>
+          <button class="tmd-btn ${daySortMode === 'title' ? 'active' : ''}" data-action="set-day-sort" data-value="title">
+            <span class="material-icons">sort_by_alpha</span><span>${t('day.sort_title')}</span>
+          </button>
+          <button class="tmd-btn ${daySortMode === 'created' ? 'active' : ''}" data-action="set-day-sort" data-value="created">
+            <span class="material-icons">history</span><span>${t('day.sort_created')}</span>
+          </button>
+        </div>
+      </div>
       </div>
       </div>
     </div>
@@ -458,7 +496,7 @@ export function render(){
     }
     ui.emptyAnimated = true;
   } else {
-    html += `<div class="task-list">`;
+    html += `<div class="task-list view-${ui.dayViewMode === 'list' ? 'list' : 'chips'}">`;
     visibleDayTasks.forEach((task, idx) => {
       html += `
         <div class="task-row ${task.done?'done':''} ${(!task.done && isPastDay)?'missed':''} ${task.priority ? 'priority-' + task.priority : ''} ${entrance ? 'task-in' : ''}" ${entrance ? `style="--task-order:${idx}"` : ''} draggable="true" data-drag-id="${task.id}">
@@ -514,7 +552,7 @@ export function render(){
                 </button>
                 <button class="tmd-btn ${(state.recurringTasks && state.recurringTasks[task.name] && state.recurringTasks[task.name].length) ? 'active' : ''}" data-action="open-recurrence" data-id="${task.id}">
                   <span class="material-icons">event_repeat</span>
-                  <span>${t('task.recurrence')}</span>
+                  <span>${t('task.recurrence_move')}</span>
                 </button>
                 <div class="priority-submenu-wrap">
                   <button class="tmd-btn priority-btn ${task.priority ? 'priority-' + task.priority : ''}" data-action="toggle-priority-popover" data-id="${task.id}" title="${task.priority ? t('task.priority_label', {level: t('task.priority_' + task.priority)}) : t('task.priority_unset')}">
@@ -593,4 +631,8 @@ function updateSideNavActive(){
   markHeader('statsBtnTop', ui.statsViewOpen);
   markHeader('headerTimeBlockBtn', ui.timeBlockViewOpen);
   markHeader('weekViewBtn', ui.weekViewOpen);
+  // الشريط السفلي للموبايل — نفس تمييز الأقسام (مهام/إحصائيات/جدول)
+  mark('bottomTasksBtn', onMainView);
+  mark('bottomStatsBtn', ui.statsViewOpen);
+  mark('bottomScheduleBtn', ui.timeBlockViewOpen);
 }

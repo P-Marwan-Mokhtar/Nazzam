@@ -4,7 +4,7 @@
 
 import { t } from './i18n.js';
 import { addDays, normalizeArabic, reorderArrayById, todayStr, uid } from './utils.js';
-import { contentEl, showToast, showUndoToast, state, ui } from './state.js';
+import { contentEl, getDaySortMode, setDaySortMode, showToast, showUndoToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { wireCustomSelects, wireDragAndDrop } from './popovers.js';
 import { afterRender, render } from './render.js';
@@ -242,6 +242,17 @@ const contentActions = {
     ui.dayTypeFilter = 'all';
     render();
   },
+  'toggle-day-view': async () => {
+    ui.dayViewMode = ui.dayViewMode === 'list' ? 'chips' : 'list';
+    try{ localStorage.setItem('nazam-day-view-mode', ui.dayViewMode); }catch(e){}
+    render();
+  },
+  'toggle-day-sort-menu': async () => {
+    ui.daySortMenuOpen = !ui.daySortMenuOpen;
+    ui.dayStatusFilterOpen = false;
+    ui.dayTypeFilterOpen = false;
+    render();
+  },
   'toggle-duration': async (btn) => {
     const { id } = btn.dataset;
     ui.openPriorityPopoverTaskId = null;
@@ -276,6 +287,7 @@ const contentActions = {
   'toggle-day-status-filter': async () => {
     ui.dayStatusFilterOpen = !ui.dayStatusFilterOpen;
     ui.dayTypeFilterOpen = false;
+    ui.daySortMenuOpen = false;
     render();
   },
   'select-day-status-filter': async (btn) => {
@@ -283,9 +295,17 @@ const contentActions = {
     ui.dayStatusFilterOpen = false;
     render();
   },
+  'toggle-day-actions': async () => {
+    ui.dayActionsOpen = !ui.dayActionsOpen;
+    ui.dayStatusFilterOpen = false;
+    ui.dayTypeFilterOpen = false;
+    ui.daySortMenuOpen = false;
+    render();
+  },
   'toggle-day-type-filter': async () => {
     ui.dayTypeFilterOpen = !ui.dayTypeFilterOpen;
     ui.dayStatusFilterOpen = false;
+    ui.daySortMenuOpen = false;
     render();
   },
   'select-day-type-filter': async (btn) => {
@@ -296,28 +316,18 @@ const contentActions = {
   'sort-by-priority': async () => {
     const list = state.days[ui.selectedDate] || [];
     if(list.length <= 1) return;
-    if(state._sortPriority && state._sortPriority[ui.selectedDate]){
-      if(state._taskOrderCache && state._taskOrderCache[ui.selectedDate]){
-        const cached = state._taskOrderCache[ui.selectedDate];
-        const map = {};
-        list.forEach(t => { map[t.id] = t; });
-        const restored = cached.map(tid => map[tid]).filter(Boolean);
-        // أي مهمة اتضافت وهي في وضع الترتيب مش موجودة في الـ cache القديم — نضيفها في الآخر بدل ما تتشال
-        const restoredIds = new Set(restored.map(t => t.id));
-        const newlyAdded = list.filter(t => !restoredIds.has(t.id));
-        state.days[ui.selectedDate] = restored.concat(newlyAdded);
-      }
-      state._sortPriority[ui.selectedDate] = false;
-      showToast(t('toast.priority_cleared'));
-    } else {
-      if(!state._sortPriority) state._sortPriority = {};
-      if(!state._taskOrderCache) state._taskOrderCache = {};
-      state._taskOrderCache[ui.selectedDate] = list.map(t => t.id);
-      const priorityOrder = { high: 0, medium: 1, low: 2 };
-      list.sort((a, b) => (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3));
-      state._sortPriority[ui.selectedDate] = true;
-      showToast(t('toast.priority_sorted'));
-    }
+    const next = getDaySortMode(ui.selectedDate) === 'priority' ? 'none' : 'priority';
+    setDaySortMode(ui.selectedDate, next);
+    showToast(next === 'none' ? t('toast.priority_cleared') : t('toast.priority_sorted'));
+    render();
+    await saveData();
+  },
+  'set-day-sort': async (btn) => {
+    const mode = btn.dataset.value;
+    if(mode !== 'none' && mode !== 'priority' && mode !== 'title' && mode !== 'created') return;
+    setDaySortMode(ui.selectedDate, mode);
+    ui.daySortMenuOpen = false;
+    showToast(mode === 'none' ? t('toast.priority_cleared') : t('toast.priority_sorted'));
     render();
     await saveData();
   },
@@ -488,7 +498,7 @@ const contentActions = {
       return;
     }
     const kw = state.keywords.find(k => k.name === name);
-    const newTask = { id: uid(), name, done: false };
+    const newTask = { id: uid(), name, done: false, createdAt: Date.now() };
     if(kw && kw.type) newTask.type = kw.type;
     state.days[ui.selectedDate].push(newTask);
     render();
@@ -507,11 +517,15 @@ const contentActions = {
     ui.openFilterMoreId = ui.openFilterMoreId === id ? null : id;
     render();
   },
-  'toggle-add-filter': async () => {
-    ui.filterAddOpen = !ui.filterAddOpen;
-    ui.openFilterMoreId = null;
+  'toggle-bank-filters-panel': async () => {
+    ui.bankFiltersPanelOpen = !ui.bankFiltersPanelOpen;
+    if(!ui.bankFiltersPanelOpen) ui.bankFilterInputOpen = false;
     render();
-    if(ui.filterAddOpen){
+  },
+  'toggle-bank-filter-input': async () => {
+    ui.bankFilterInputOpen = !ui.bankFilterInputOpen;
+    render();
+    if(ui.bankFilterInputOpen){
       afterRender(() => {
         const inp = document.getElementById('newFilterInput');
         if(inp) inp.focus();
@@ -801,10 +815,10 @@ export function attachEvents(){
     newKeywordInput.oninput = () => { ui.addDraft = newKeywordInput.value; };
   }
 
-  const addFilterBtn = document.getElementById('addFilterBtn');
+  // إضافة الفلتر بزر Enter من الكيبورد (زرار الإضافة اتشال من البوب)
   const newFilterInput = document.getElementById('newFilterInput');
 
-  if(addFilterBtn && newFilterInput){
+  if(newFilterInput){
     const handleAddFilter = async () => {
       const val = newFilterInput.value.trim();
       if(!val) return;
@@ -822,7 +836,6 @@ export function attachEvents(){
         if(flt) flt.focus();
       });
     };
-    addFilterBtn.onclick = handleAddFilter;
     newFilterInput.onkeydown = (e) => { if(e.key === 'Enter') handleAddFilter(); };
   }
   
@@ -895,7 +908,7 @@ export function addPendingTaskToDay(){
   if(!state.days[ui.selectedDate]) state.days[ui.selectedDate] = [];
   const exists = state.days[ui.selectedDate].some(t => t.name === ui.pendingTaskName);
   if(exists) return false;
-  const task = { id: uid(), name: ui.pendingTaskName, done: false };
+  const task = { id: uid(), name: ui.pendingTaskName, done: false, createdAt: Date.now() };
   if(ui.pendingTaskType) task.type = ui.pendingTaskType;
   state.days[ui.selectedDate].push(task);
   return true;

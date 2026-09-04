@@ -171,7 +171,7 @@ export function smartToDay(dateStr, id){
   if(!src) return;
   if(!state.days[ui.selectedDate]) state.days[ui.selectedDate] = [];
   if(state.days[ui.selectedDate].some(t => t.id === id)) return;
-  const copy = Object.assign({}, src, { id: uid(), done: false });
+  const copy = Object.assign({}, src, { id: uid(), done: false, createdAt: Date.now() });
   delete copy._dupOf;
   delete copy._fromRecurrence;
   state.days[ui.selectedDate].push(copy);

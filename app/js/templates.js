@@ -81,7 +81,7 @@ export function renderTemplatesModal(){
           });
           return;
         }
-        const newTask = { id: uid(), name: tpl.name, done: false };
+        const newTask = { id: uid(), name: tpl.name, done: false, createdAt: Date.now() };
         if(tpl.type) newTask.type = tpl.type;
         if(tpl.priority) newTask.priority = tpl.priority;
         if(tpl.duration) newTask.duration = tpl.duration;

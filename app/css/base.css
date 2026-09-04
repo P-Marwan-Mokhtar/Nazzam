@@ -137,12 +137,18 @@ body {
   background-size: 22px 22px;
   background-color: var(--paper);
   font-family: "Almarai", sans-serif;
+  line-height: 1.7;
   color: var(--ink);
   min-height: 100vh;
   padding: 10px;
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
+}
+/* حلقة تركيز مرئية موحدة للكيبورد (WCAG 2.4.7) — غير مزعجة للفأرة */
+:focus-visible {
+  outline: 2px solid var(--pen);
+  outline-offset: 2px;
 }
 .wrap {
   max-width: 100%;
@@ -207,7 +213,7 @@ body {
   flex: 1;
 }
 .date-display .day-name {
-  font-family: "Tajawal", sans-serif;
+  font-family: "Almarai", sans-serif;
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--pen);
@@ -369,6 +375,11 @@ html[dir="ltr"] .modal-card p {
 /* === Day view nav arrows === */
 html[dir="ltr"] #prevBtn .material-icons,
 html[dir="ltr"] #nextBtn .material-icons {
+  transform: scaleX(-1);
+}
+
+/* === Day options submenu chevron === */
+html[dir="ltr"] .day-opt-chev {
   transform: scaleX(-1);
 }
 

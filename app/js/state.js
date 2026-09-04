@@ -115,13 +115,18 @@ export const ui = {
   tbSideCloseTimeoutId: null,  // مؤقّت إنهاء أنيميشن الإغلاق
   tbSideExpanded: false,  // هل لوحة "مهام غير مجدولة" على الموبايل موسعّة (بتدّي كل المهام) ولا مقفولة (أول 4 بس)
   activeSubtasksTaskId: null,  // المهمة المفتوح لها نافذة المهام الفرعية
-  filterAddOpen: false,  // هل حقل إضافة فلتر جديد (اللي بيظهر بجانب آخر فلتر) مفتوح دلوقتي
+  bankFiltersPanelOpen: false,  // هل لوحة زرار الفلاتر (إضافة + إظهار/إخفاء) مفتوحة دلوقتي
+  bankFilterInputOpen: false,  // هل حقل إضافة فلتر جديد ظاهر جوه اللوحة دلوقتي
   dayStatusFilter: 'all',  // فلتر حالة مهام اليوم: all | pending | done
   dayStatusFilterOpen: false,  // هل قائمة فلتر الحالة مفتوحة دلوقتي
+  dayViewMode: (() => { try { return localStorage.getItem('nazam-day-view-mode') === 'list' ? 'list' : 'chips'; } catch(e){ return 'chips'; } })(),  // عرض مهام اليوم: chips (الافتراضي المدمج) | list (سطر كامل لكل مهمة)
   dayTypeFilter: 'all',  // فلتر نوع مهام اليوم: all | task | habit | hobby
   dayTypeFilterOpen: false,  // هل قائمة فلتر النوع مفتوحة دلوقتي
+  dayActionsOpen: false,  // هل لوحة خيارات اليوم (الـ 3 فلاتر في زرار واحد) مفتوحة دلوقتي
+  daySortMenuOpen: false,  // هل subpopup اختيار الترتيب مفتوح دلوقتي
   activeRecurrenceTaskId: null,  // المهمة المفتوح لها نافذة تحديد أيام التكرار دلوقتي
   pendingRecurrenceDays: [],  // نسخة عمل من أيام التكرار (0-6) قبل الحفظ
+  pendingMoveTaskId: null,  // نقل معلّق بانتظار اختيار اليوم من التقويم (من مودال التكرار)
   pickerTaskId: null,
   emptyAnimated: false,  // true أول ما الأنيميشن يتشغل على أي empty state — بيتصفّر لما المحتوى يتغير
   smartListsOpen: false,  // لما تبقى true، #content بيعرض القوائم الذكية بدل مهام اليوم
@@ -181,5 +186,55 @@ export const PRIORITY_LABELS = { high: 'عالية', medium: 'متوسطة', low
 export const TASK_TYPES = {
   task:   { icon: 'assignment',   label: 'مهمة' },
   habit:  { icon: 'loop',          label: 'عادة' },
-  hobby:  { icon: 'palette',       label: 'هواية' },
+  hobby:  { icon: 'palette',       label: 'هواية' }
 };
+
+export const DAY_SORT_MODES = ['none', 'priority', 'title', 'created'];
+
+// وضع ترتيب مهام يوم معيّن — مع توافق رجعي: الترتيب القديم كان boolean
+// (_sortPriority) بمعنى priority/none، فلو مفيش _sortMode بنقراه منه
+export function getDaySortMode(dateStr){
+  const m = state._sortMode && state._sortMode[dateStr];
+  if(m === 'priority' || m === 'title' || m === 'created' || m === 'none') return m;
+  if(state._sortPriority && state._sortPriority[dateStr]) return 'priority';
+  return 'none';
+}
+
+// تطبيق وضع ترتيب على يوم — دالة مركزية وحيدة (ممنوع تكرار منطق الترتيب).
+// بترجع دايمًا للترتيب الأصلي المحفوظ (_taskOrderCache) قبل الفرز عشان
+// التبديل بين الأوضاع ميكومش فرز فوق فرز. الـ _sortPriority بيتزامن معاها
+// (true لما الوضع priority) لتوافق النسخ القديمة.
+export function setDaySortMode(dateStr, mode){
+  if(!DAY_SORT_MODES.includes(mode)) return false;
+  if(!state.days[dateStr]) state.days[dateStr] = [];
+  if(!state._sortMode) state._sortMode = {};
+  if(!state._taskOrderCache) state._taskOrderCache = {};
+  if(!state._sortPriority) state._sortPriority = {};
+  let list = state.days[dateStr];
+  if(list.length > 1){
+    if(!state._taskOrderCache[dateStr]){
+      state._taskOrderCache[dateStr] = list.map(t => t.id);
+    } else {
+      // استعادة الأصلي الأول (مع إلحاق أي مهام اتضافت بعد التخزين)
+      const map = {};
+      list.forEach(t => { map[t.id] = t; });
+      const restored = state._taskOrderCache[dateStr].map(tid => map[tid]).filter(Boolean);
+      const restoredIds = new Set(restored.map(t => t.id));
+      const newlyAdded = list.filter(t => !restoredIds.has(t.id));
+      state.days[dateStr] = restored.concat(newlyAdded);
+      list = state.days[dateStr];
+    }
+    if(mode === 'priority'){
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      list.sort((a, b) => (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3));
+    } else if(mode === 'title'){
+      list.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ar'));
+    } else if(mode === 'created'){
+      // اللي ملهاش createdAt (مهام قديمة) بتاخد 0 فبتفضل بترتيبها الأصلي (stable sort)
+      list.sort((a, b) => ((a.createdAt || 0) - (b.createdAt || 0)));
+    }
+  }
+  state._sortMode[dateStr] = mode;
+  state._sortPriority[dateStr] = (mode === 'priority');
+  return true;
+}

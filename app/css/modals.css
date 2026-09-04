@@ -400,6 +400,10 @@
 #templatesReplaceOverlay {
   z-index: 250;
 }
+/* التقويم لما يتفتح في وضع النقل من مودال التكرار — لازم يبقى فوقه */
+#calendarOverlay.above {
+  z-index: 250;
+}
 @keyframes modalPopIn {
   from {
     opacity: 0;
@@ -433,7 +437,7 @@
   flex: 0 0 auto;
 }
 .modal-header h2 {
-  font-family: "Tajawal", sans-serif;
+  font-family: "Almarai", sans-serif;
   font-size: 1.3rem;
   margin: 0;
   color: var(--ink);

@@ -61,7 +61,7 @@
   font-size: 42px;
 }
 .onboarding-step-title {
-  font-family: "Tajawal", sans-serif;
+  font-family: "Almarai", sans-serif;
   font-size: 1.25rem;
   margin: 0;
   color: var(--ink);
@@ -147,4 +147,29 @@
   box-shadow: none;
   border: 1px solid var(--paper-line);
   background-color: var(--paper);
+}
+
+/* ===== البوب أبات الفرعية كـ bottom-sheet على الموبايل (معيار Todoist/TickTick) =====
+   الفتح الجانبي (calc(100%+8px)) بيطلع بره الشاشة على الموبايل — القائمة الرئيسية
+   (task-more-dropdown) بتفضل anchored مكانها، والفرعية بتنزل كورقة سفلية. */
+@media (max-width: 640px) {
+  .task-more-dropdown {
+    max-width: calc(100vw - 24px);
+  }
+  .task-more-dropdown .priority-popover.open,
+  .task-more-dropdown .clock-choice-popover.open,
+  .task-more-dropdown .type-popover.open {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    min-width: 0;
+    max-height: 60vh;
+    overflow-y: auto;
+    border-radius: 16px 16px 0 0;
+    padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+    transform: none;
+    z-index: 220;
+  }
 }

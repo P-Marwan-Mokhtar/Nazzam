@@ -1167,6 +1167,7 @@ function wireAddTimelineTaskPopup(){
       id: uid(),
       name: name,
       done: false,
+      createdAt: Date.now(),
       startTime: minutesToHHMM(addTaskStartMin),
       duration: formatMinutes(addTaskDurationMin),
     };

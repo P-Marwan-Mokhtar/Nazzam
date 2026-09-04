@@ -27,7 +27,7 @@
   margin-bottom: 14px;
 }
 .stats-view-header h2 {
-  font-family: "Tajawal", sans-serif;
+  font-family: "Almarai", sans-serif;
   font-size: 1.25rem;
   margin: 0;
   color: var(--ink);
@@ -387,8 +387,9 @@
   .side-nav {
     display: none;
   }
+  /* الهيدر مخفي دائمًا (layout.css) — الشريط السفلي هو التنقل على الموبايل */
   .header-card {
-    display: block;
+    display: none;
   }
 
   .header-card {

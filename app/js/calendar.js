@@ -5,6 +5,7 @@
 import { MONTH_NAMES, SHORT_DAY_NAMES, fromISO, toISO, todayStr } from './utils.js';
 import { state, ui } from './state.js';
 import { render } from './render.js';
+import { closeRecurrenceModal, moveSingleTask } from './recurrence.js';
 
 // بيحدد هل اليوم ده هيتعرض ليه مهام حاليًا أو بعد حقن المتكررة (ensureDayMaterialized)
 // — قراءة فقط من غير ما يعدّل state ولا يحفّز saveData (عشان رسم شهر كامل ميزعّلش حفظ).
@@ -128,6 +129,17 @@ function renderCalendarModal(){
   }
 
   wireCalendarDayClicks(gridEl, (dateStr) => {
+    // وضع النقل: التقويم اتفتح من مودال التكرار — الاختيار بينفذ
+    // النقل بدل ما يغيّر اليوم المعروض، والمودال بيتقفل معاه
+    if(ui.pendingMoveTaskId){
+      const pendingId = ui.pendingMoveTaskId;
+      const fromDate = ui.selectedDate;
+      closeCalendarModal();
+      closeRecurrenceModal();
+      if(dateStr !== fromDate) moveSingleTask(pendingId, fromDate, dateStr);
+      else { ui.pendingMoveTaskId = null; render(); }
+      return;
+    }
     ui.selectedDate = dateStr;
     ui.calendarViewDate = dateStr;
     ui.justChangedDay = true;
@@ -144,5 +156,10 @@ export function openCalendarModal(){
 }
 
 export function closeCalendarModal(){
-  document.getElementById('calendarOverlay').classList.remove('open');
+  document.getElementById('calendarOverlay').classList.remove('open', 'above');
+  // لو اتقفل من غير اختيار (X أو بره) وكان مفتوح في وضع النقل، بنصفّر الـ pending
+  // عشان أول فتحة تقويم عادية بعدها متتفسرش غلط كنقل
+  if(ui.pendingMoveTaskId){
+    ui.pendingMoveTaskId = null;
+  }
 }
