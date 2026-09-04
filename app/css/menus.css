@@ -133,14 +133,15 @@
   gap: 6px;
 }
 .recurrence-day-chip {
-  background: var(--paper);
+  background: transparent;
   border: 1.5px solid var(--paper-line);
-  color: var(--ink);
-  border-radius: 10px;
-  padding: 10px 2px;
+  color: var(--ink-soft);
+  border-radius: 12px;
+  padding: 12px 2px;
+  min-height: 46px;
   font-family: "Almarai";
   font-weight: 700;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   cursor: pointer;
   transition:
     background 0.15s ease,
@@ -149,33 +150,66 @@
 }
 .recurrence-day-chip:hover {
   border-color: var(--pen);
+  color: var(--ink);
 }
 .recurrence-day-chip.active {
   background: var(--pen);
   border-color: var(--pen);
   color: #fff;
 }
-.recurrence-quick-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 12px;
-}
-.recurrence-quick-btn {
-  flex: 1;
-  background: transparent;
-  border: none;
+/* سطر اسم المهمة + presets الجاهزة */
+.recurrence-task-line {
   color: var(--ink-soft);
+  font-size: 0.85rem;
+  margin: 0 0 12px;
+  line-height: 1.7;
+}
+.recurrence-presets {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.recurrence-preset {
+  flex: 1 1 auto;
+  background: transparent;
+  border: 1.5px solid var(--paper-line);
+  color: var(--ink-soft);
+  border-radius: 999px;
+  padding: 8px 6px;
   font-family: "Almarai";
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   cursor: pointer;
-  padding: 6px;
-  border-radius: 8px;
-  text-decoration: underline;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
-.recurrence-quick-btn:hover {
+.recurrence-preset:hover {
+  border-color: var(--pen);
+  color: var(--ink);
+}
+.recurrence-preset.active {
+  background: var(--pen-soft);
+  border-color: var(--pen);
   color: var(--pen);
-  background: var(--paper);
+}
+/* فوتر ثابت: إلغاء + حفظ بعرض متساوٍ */
+.recurrence-footer {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.recurrence-footer .btn-secondary {
+  flex: 1;
+  padding: 12px;
+  justify-content: center;
+}
+.recurrence-save-btn {
+  flex: 1;
+  padding: 12px;
 }
 
 /* ===== قسم النقل لمرة واحدة جوه مودال التكرار ===== */
@@ -184,49 +218,12 @@
   background: var(--paper-line);
   margin: 18px 0 14px;
 }
-.recurrence-move-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+/* عنوان قسم النقل — label صغير هادي */
+.recurrence-move-label {
   margin: 0 0 10px;
-  font-size: 0.9rem;
-  font-weight: 800;
-  color: var(--ink);
-}
-.recurrence-move-title .material-icons {
-  font-size: 18px;
-  color: var(--pen);
-}
-.recurrence-move-actions {
-  display: flex;
-  gap: 8px;
-}
-.recurrence-move-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  background: var(--paper);
-  border: 1px solid var(--paper-line);
-  border-radius: 10px;
-  padding: 10px;
-  font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: var(--ink);
-  cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    background 0.15s ease;
-}
-.recurrence-move-btn:hover {
-  border-color: var(--pen);
-  background: var(--pen-soft);
-}
-.recurrence-move-btn .material-icons {
-  font-size: 18px;
-  color: var(--pen);
+  color: var(--ink-soft);
 }
 
 /* ===== Task Inline Edit ===== */

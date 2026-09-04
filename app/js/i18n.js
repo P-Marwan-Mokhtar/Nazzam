@@ -296,6 +296,7 @@ ar: {
   'task.recurrence_move': 'التكرار والنقل',
   'task.move_to': 'نقل إلى',
   'task.move_tomorrow': 'غدًا',
+  'task.move_day_after': 'بعد غد',
   'task.move_pick_date': 'اختيار يوم...',
   'task.priority_label': 'الأهمية: {level}',
   'task.priority_unset': 'حدد مستوى الأهمية',
@@ -626,6 +627,9 @@ ar: {
   'modal.recurrence_desc_prefix': 'اختر الأيام التي ترغب',
   'modal.recurrence_desc_suffix': 'تتكرر فيها تلقائيًا كل أسبوع:',
   'modal.recurrence_all': 'كل يوم',
+  'modal.recurrence_once': 'مرة واحدة',
+  'modal.recurrence_workdays': 'أيام العمل',
+  'modal.recurrence_weekend': 'العطلة',
   'modal.recurrence_none': 'إلغاء التكرار',
   'modal.note': 'ملاحظة المهمة',
   'modal.note_for': 'ملاحظة لـ',
@@ -676,6 +680,8 @@ ar: {
   'toast.subtask_restored': 'تمت استعادة المهمة إلى القائمة',
   'toast.subtask_deleted_permanent': 'تم حذف المسودة نهائيًا',
   'toast.write_name_first': 'اكتب اسم المهمة الأول',
+  'toast.move_failed': 'تعذّر نقل المهمة، حاول مجددًا',
+  'toast.move_same_day': 'المهمة في هذا اليوم بالفعل',
 
   // نظام الخطط والترقية
   'plan.title': 'الخطة',
@@ -910,6 +916,7 @@ en: {
   'task.recurrence_move': 'Repeat & move',
   'task.move_to': 'Move to',
   'task.move_tomorrow': 'Tomorrow',
+  'task.move_day_after': 'Day after tomorrow',
   'task.move_pick_date': 'Pick a date...',
   'task.priority_label': 'Priority: {level}',
   'task.priority_unset': 'Set priority level',
@@ -1240,6 +1247,9 @@ en: {
   'modal.recurrence_desc_prefix': 'Choose the days you want',
   'modal.recurrence_desc_suffix': 'to repeat every week:',
   'modal.recurrence_all': 'Every day',
+  'modal.recurrence_once': 'Just once',
+  'modal.recurrence_workdays': 'Workdays',
+  'modal.recurrence_weekend': 'Weekend',
   'modal.recurrence_none': 'Stop recurring',
   'modal.note': 'Task Note',
   'modal.note_for': 'Note for',
@@ -1290,6 +1300,8 @@ en: {
   'toast.subtask_restored': 'Task restored to list',
   'toast.subtask_deleted_permanent': 'Draft deleted permanently',
   'toast.write_name_first': 'Type the task name first',
+  'toast.move_failed': "Couldn't move the task, try again",
+  'toast.move_same_day': 'The task is already on this day',
 
   // Plans & upgrade
   'plan.title': 'Plan',

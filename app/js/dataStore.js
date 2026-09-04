@@ -393,7 +393,6 @@ function applyLoadedState(parsed){
   }
   if(parsed.darkMode !== undefined){
     state.darkMode = parsed.darkMode;
-    document.body.classList.toggle('dark-mode', state.darkMode);
   }
   // الألوان المميزة لكل وضع (مستقلة)، مع ترقية تلقائية من الثيمات القديمة لو موجودة
   if(isValidAccent(parsed.accentLight)) state.accentLight = parsed.accentLight;

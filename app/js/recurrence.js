@@ -43,7 +43,7 @@ export async function moveSingleTask(taskId, fromDateStr, targetDateStr){
   ui.pendingMoveTaskId = null;
   ui.openTaskMoreId = null;
   render();
-  await saveData();
+  // التوست فورًا قبل الحفظ — الحفظ فيه debounce ورفع شبكة بيأخروه
   showUndoToast(`تم نقل "${removed.name}"`, async () => {
     const tIdx = (state.days[targetDateStr] || []).findIndex(x => x.id === taskId);
     if(tIdx !== -1) state.days[targetDateStr].splice(tIdx, 1);
@@ -56,6 +56,7 @@ export async function moveSingleTask(taskId, fromDateStr, targetDateStr){
     render();
     await saveData();
   });
+  await saveData();
   return true;
 }
 
@@ -66,6 +67,7 @@ export function openRecurrenceModal(taskId){
   ui.pendingRecurrenceDays = (state.recurringTasks && state.recurringTasks[task.name]) ? [...state.recurringTasks[task.name]] : [];
   const nameDisplay = document.getElementById('recurrenceTaskNameDisplay');
   if(nameDisplay) nameDisplay.textContent = task.name;
+  syncRecurrencePresets();
   renderRecurrenceDaysGrid();
   document.getElementById('recurrenceOverlay').classList.add('open');
 }
@@ -87,8 +89,26 @@ function renderRecurrenceDaysGrid(){
       const d = Number(chip.dataset.day);
       if(ui.pendingRecurrenceDays.includes(d)) ui.pendingRecurrenceDays = ui.pendingRecurrenceDays.filter(x => x !== d);
       else ui.pendingRecurrenceDays.push(d);
+      syncRecurrencePresets();
       renderRecurrenceDaysGrid();
     };
+  });
+}
+
+// تمييز البريست المطابق للأيام المختارة (يومي/عمل/عطلة/مرة واحدة) — أي تعديل
+// يدوي على الشبكة بيوقع التمييز لأنه بقى مخصص
+const RECURRENCE_PRESETS = {
+  once: [],
+  daily: [0,1,2,3,4,5,6],
+  workdays: [0,1,2,3,4],
+  weekend: [5,6]
+};
+
+function syncRecurrencePresets(){
+  const sorted = [...ui.pendingRecurrenceDays].sort((a,b) => a-b).join(',');
+  document.querySelectorAll('#recurrencePresets [data-preset]').forEach(b => {
+    const preset = RECURRENCE_PRESETS[b.dataset.preset] || [];
+    b.classList.toggle('active', preset.join(',') === sorted);
   });
 }
 
@@ -151,27 +171,33 @@ function removeStaleRecurringInstances(taskName, currentDays){
 
 document.getElementById('closeRecurrenceBtn').onclick = closeRecurrenceModal;
 
+document.getElementById('recurrenceCancelBtn').onclick = closeRecurrenceModal;
+
 document.getElementById('recurrenceOverlay').onclick = (e) => {
   if(e.target.id === 'recurrenceOverlay') closeRecurrenceModal();
 };
 
 document.getElementById('saveRecurrenceBtn').onclick = saveRecurrence;
 
-document.getElementById('recurrenceSelectAllBtn').onclick = () => {
-  ui.pendingRecurrenceDays = [0,1,2,3,4,5,6];
-  renderRecurrenceDaysGrid();
-};
+document.querySelectorAll('#recurrencePresets [data-preset]').forEach(btn => {
+  btn.onclick = () => {
+    ui.pendingRecurrenceDays = [...(RECURRENCE_PRESETS[btn.dataset.preset] || [])];
+    syncRecurrencePresets();
+    renderRecurrenceDaysGrid();
+  };
+});
 
-// قسم النقل لمرة واحدة جوه مودال التكرار — نفس الدالة المركزية moveSingleTask،
-// والتكرار الدائم بيفضل مستقل عنها تمامًا
-document.getElementById('recurrenceMoveTomorrowBtn').onclick = async () => {
-  if(!ui.activeRecurrenceTaskId) return;
-  const taskId = ui.activeRecurrenceTaskId;
-  const fromDate = ui.selectedDate;
-  closeRecurrenceModal();
-  const res = await moveSingleTask(taskId, fromDate, addDays(fromDate, 1));
-  if(res === 'exists') showToast(t('toast.exists_today'));
-};
+// خيارات النقل السريعة (غدًا/بعد غد) — نفس الدالة المركزية moveSingleTask
+document.querySelectorAll('.recurrence-move-chips [data-movedays]').forEach(btn => {
+  btn.onclick = async () => {
+    if(!ui.activeRecurrenceTaskId) return;
+    const taskId = ui.activeRecurrenceTaskId;
+    const fromDate = ui.selectedDate;
+    closeRecurrenceModal();
+    const res = await moveSingleTask(taskId, fromDate, addDays(fromDate, Number(btn.dataset.movedays)));
+    if(res === 'exists') showToast(t('toast.exists_today'));
+  };
+});
 
 document.getElementById('recurrenceMovePickBtn').onclick = () => {
   if(!ui.activeRecurrenceTaskId) return;
@@ -179,9 +205,4 @@ document.getElementById('recurrenceMovePickBtn').onclick = () => {
   ui.pendingMoveTaskId = ui.activeRecurrenceTaskId;
   document.getElementById('calendarOverlay').classList.add('above');
   openCalendarModal();
-};
-
-document.getElementById('recurrenceClearBtn').onclick = () => {
-  ui.pendingRecurrenceDays = [];
-  renderRecurrenceDaysGrid();
 };

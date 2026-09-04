@@ -336,6 +336,7 @@ html[dir="ltr"] .timeline-block {
 html[dir="ltr"] .task-more-dropdown {
   left: 0;
   right: auto;
+  min-width: 165px;
 }
 html[dir="ltr"] .task-more-dropdown.task-more-up {
   left: 0;

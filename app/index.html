@@ -663,15 +663,7 @@
           </button>
         </div>
         <div class="modal-body">
-          <p
-            style="
-              color: var(--ink-soft);
-              font-size: 0.95rem;
-              margin-top: 0;
-              margin-bottom: 14px;
-              line-height: 1.5;
-            "
-          >
+          <p class="recurrence-task-line">
             <span data-i18n="modal.recurrence_desc_prefix">اختر الأيام التي ترغب</span>
             <strong
               id="recurrenceTaskNameDisplay"
@@ -679,47 +671,72 @@
             ></strong>
             <span data-i18n="modal.recurrence_desc_suffix">تتكرر فيها تلقائيًا كل أسبوع:</span>
           </p>
-          <div class="recurrence-days-grid" id="recurrenceDaysGrid"></div>
-          <div class="recurrence-quick-actions">
+          <div class="recurrence-presets" id="recurrencePresets">
             <button
               type="button"
-              class="recurrence-quick-btn"
-              id="recurrenceSelectAllBtn"
+              class="recurrence-preset"
+              data-preset="once"
+              data-i18n="modal.recurrence_once"
+            >
+              مرة واحدة
+            </button>
+            <button
+              type="button"
+              class="recurrence-preset"
+              data-preset="daily"
               data-i18n="modal.recurrence_all"
             >
               كل يوم
             </button>
             <button
               type="button"
-              class="recurrence-quick-btn"
-              id="recurrenceClearBtn"
-              data-i18n="modal.recurrence_none"
+              class="recurrence-preset"
+              data-preset="workdays"
+              data-i18n="modal.recurrence_workdays"
             >
-              إلغاء التكرار
+              أيام العمل
+            </button>
+            <button
+              type="button"
+              class="recurrence-preset"
+              data-preset="weekend"
+              data-i18n="modal.recurrence_weekend"
+            >
+              العطلة
             </button>
           </div>
-          <button
-            type="button"
-            class="add-btn"
-            id="saveRecurrenceBtn"
-            style="width: 100%; margin-top: 18px; padding: 12px"
-            data-i18n="c.save"
-          >
-            حفظ
-          </button>
+          <div class="recurrence-days-grid" id="recurrenceDaysGrid"></div>
           <div class="recurrence-move-divider"></div>
-          <p class="recurrence-move-title">
-            <span class="material-icons">event_upcoming</span>
+          <p class="recurrence-move-label">
             <span data-i18n="task.move_to">نقل إلى</span>
           </p>
-          <div class="recurrence-move-actions">
-            <button type="button" class="recurrence-move-btn" id="recurrenceMoveTomorrowBtn">
-              <span class="material-icons">wb_sunny</span>
+          <div class="recurrence-presets recurrence-move-chips">
+            <button type="button" class="recurrence-preset" data-movedays="1">
               <span data-i18n="task.move_tomorrow">غدًا</span>
             </button>
-            <button type="button" class="recurrence-move-btn" id="recurrenceMovePickBtn">
-              <span class="material-icons">calendar_month</span>
+            <button type="button" class="recurrence-preset" data-movedays="2">
+              <span data-i18n="task.move_day_after">بعد غد</span>
+            </button>
+            <button type="button" class="recurrence-preset" id="recurrenceMovePickBtn">
               <span data-i18n="task.move_pick_date">اختيار يوم...</span>
+            </button>
+          </div>
+          <div class="recurrence-footer">
+            <button
+              type="button"
+              class="btn-secondary"
+              id="recurrenceCancelBtn"
+              data-i18n="c.cancel"
+            >
+              إلغاء
+            </button>
+            <button
+              type="button"
+              class="add-btn recurrence-save-btn"
+              id="saveRecurrenceBtn"
+              data-i18n="c.save"
+            >
+              حفظ
             </button>
           </div>
         </div>

@@ -61,6 +61,13 @@ export function applyTheme(){
   for(const [key, value] of Object.entries(palette)){
     body.style.setProperty('--' + key, value);
   }
+  // توحيد كلاس الوضع على body و <html> معًا من هنا فقط — سكريبت البداية
+  // (boot-theme.js) بيحط الكلاس على <html> قبل وجود body، ولو اتساب هناك بعد
+  // التحويل للفاتح، متغيرات .dark-mode اللي مش في الباليتة (زي --popup)
+  // بتتورث لكل العناصر والبوب أبات بتفضل داكنة
+  const dark = !!state.darkMode;
+  body.classList.toggle('dark-mode', dark);
+  document.documentElement.classList.toggle('dark-mode', dark);
   // سجلّ علم الوضع الفاتح/داكن في المفتاح السريع غير المشفّر عشان الـ <head>
   // يقراه فورًا عند الإعادة (يمنع وميض أبيض) من غير ما نستنى أول save.
   try{ localStorage.setItem(THEME_PREF_KEY, state.darkMode ? 'dark' : 'light'); }catch(e){}
@@ -70,8 +77,7 @@ export function applyTheme(){
 export function setDarkMode(dark, onChanged){
   if(state.darkMode === dark) return;
   state.darkMode = dark;
-  document.body.classList.toggle('dark-mode', dark);
-  applyTheme();
+  applyTheme(); // بيظبط الكلاس على body و <html> مع الباليتة
   if(onChanged) onChanged();
 }
 

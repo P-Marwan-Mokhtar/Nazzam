@@ -3,7 +3,8 @@
 // ============================================================
 
 import { MONTH_NAMES, SHORT_DAY_NAMES, fromISO, toISO, todayStr } from './utils.js';
-import { state, ui } from './state.js';
+import { t } from './i18n.js';
+import { showToast, state, ui } from './state.js';
 import { render } from './render.js';
 import { closeRecurrenceModal, moveSingleTask } from './recurrence.js';
 
@@ -128,7 +129,7 @@ function renderCalendarModal(){
     };
   }
 
-  wireCalendarDayClicks(gridEl, (dateStr) => {
+  wireCalendarDayClicks(gridEl, async (dateStr) => {
     // وضع النقل: التقويم اتفتح من مودال التكرار — الاختيار بينفذ
     // النقل بدل ما يغيّر اليوم المعروض، والمودال بيتقفل معاه
     if(ui.pendingMoveTaskId){
@@ -136,8 +137,17 @@ function renderCalendarModal(){
       const fromDate = ui.selectedDate;
       closeCalendarModal();
       closeRecurrenceModal();
-      if(dateStr !== fromDate) moveSingleTask(pendingId, fromDate, dateStr);
-      else { ui.pendingMoveTaskId = null; render(); }
+      if(dateStr !== fromDate){
+        const res = await moveSingleTask(pendingId, fromDate, dateStr);
+        if(res === 'exists') showToast(t('toast.exists_today'));
+        else if(res !== true) showToast(t('toast.move_failed'));
+      }
+      else {
+        // اختيار نفس اليوم — لا شيء يتنقل، لكن لازم رد فعل بدل الصمت
+        ui.pendingMoveTaskId = null;
+        showToast(t('toast.move_same_day'));
+        render();
+      }
       return;
     }
     ui.selectedDate = dateStr;
