@@ -191,11 +191,13 @@ body.locked-view .main-col {
 @media (max-width: 640px) {
   body.locked-view .wrap {
     height: 100vh;
-    /* الـ padding-bottom بتاع الشريط السفلي (78px) كان بيتجمع فوق الـ 100vh
-       بنظام content-box، فالصفحة نفسها بتسكرول 78px زيادة — سكرول خارجي طويل
-       جنب الداخلي. مع border-box الـ padding بيتحسب جوه الطول والسكرول
-       الخارجي بيختفي */
+    /* min-height:0 ضروري — base.css فيه min-height:calc(100vh-20px)
+       وده مش متأثر بـ box-sizing (دايما content-box)، فالنتيجة:
+       محتوى أدنى = 100vh-20px + padding 78px = 100vh+58px > الشاشة.
+       min-height:0 بيلغي القيمة دي وبيسيّب height:100vh مع border-box يتحكّم. */
+    min-height: 0;
     box-sizing: border-box;
+    overflow: hidden;
   }
   body.locked-view .app-shell {
     display: flex;
