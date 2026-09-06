@@ -192,8 +192,8 @@ body.locked-view .main-col {
   body.locked-view .wrap {
     height: 100vh;
     /* min-height:0 ضروري — base.css فيه min-height:calc(100vh-20px)
-       وده مش متأثر بـ box-sizing (دايما content-box)، فالنتيجة:
-       محتوى أدنى = 100vh-20px + padding 78px = 100vh+58px > الشاشة.
+       وده مش متأثر بـ box-sizing (دايما content-box)، فالنتيجة كانت محتوى أدنى
+       أطول من الشاشة (الـ padding بتاع التاببار بيتجمع فوقه).
        min-height:0 بيلغي القيمة دي وبيسيّب height:100vh مع border-box يتحكّم. */
     min-height: 0;
     box-sizing: border-box;

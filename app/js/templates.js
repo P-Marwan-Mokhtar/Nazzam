@@ -38,7 +38,7 @@ export function renderTemplatesModal(){
         <div class="template-modal-row editing">
           <input type="text" class="edit-input template-edit-input" id="templateEditNameInput" value="${escapeHtml(tp.name)}" maxlength="80" />
           <div class="template-edit-actions">
-            <button class="add-btn" id="templateEditSaveBtn" type="button"><span class="material-icons">check</span>${t('c.save')}</button>
+            <button class="icon-btn" id="templateEditSaveBtn" type="button" title="${t('c.save')}"><span class="material-icons">check</span></button>
             <button class="icon-btn" id="templateEditCancelBtn" type="button" title="${t('c.cancel')}"><span class="material-icons">close</span></button>
           </div>
         </div>

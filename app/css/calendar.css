@@ -180,6 +180,12 @@
   border-color: transparent;
   color: var(--pen);
 }
+/* الموبايل: إخفاء زرار تبديل العرض (سطر/شيبس) — زرار الفلاتر بيفضل ظاهر */
+@media (max-width: 640px) {
+  .day-actions-toggle[data-action="toggle-day-view"] {
+    display: none;
+  }
+}
 .day-actions-panel {
   display: none;
   position: absolute;

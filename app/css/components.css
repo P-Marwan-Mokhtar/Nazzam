@@ -1867,17 +1867,18 @@ select:focus {
   flex-shrink: 0;
 }
 .template-modal-row.editing {
-  flex-direction: column;
-  align-items: stretch;
+  align-items: center;
   gap: 8px;
 }
 .template-edit-input {
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .template-edit-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
+  flex: 0 0 auto;
 }
 /* نافذة استبدال القالب المكرر (نموذج تراكي فوق مودال القوالب) */
 .replace-conflict-info {

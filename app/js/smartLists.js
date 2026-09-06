@@ -170,7 +170,12 @@ export function smartToDay(dateStr, id){
   const src = (state.days[dateStr] || []).find(t => t.id === id);
   if(!src) return;
   if(!state.days[ui.selectedDate]) state.days[ui.selectedDate] = [];
-  if(state.days[ui.selectedDate].some(t => t.id === id)) return;
+  // المنع بالاسم مش بالـ id بس: النسخة المضافة بتاخد id جديد فالفحص القديم
+  // كان بيفوت والضغط المتكرر (أو نفس الاسم من يوم تاني) كان بيكرر المهمة
+  if(state.days[ui.selectedDate].some(t => t.id === id || t.name === src.name)){
+    showToast(t('toast.exists_today'));
+    return;
+  }
   const copy = Object.assign({}, src, { id: uid(), done: false, createdAt: Date.now() });
   delete copy._dupOf;
   delete copy._fromRecurrence;

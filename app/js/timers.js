@@ -335,6 +335,7 @@ export function renderTimerPanel(){
           if(timer.mode === 'countdown' && timer.elapsedMs >= timer.targetMs){
             // التايمر خلص بالفعل، إعادة تشغيله تبدأ العد من الأول
             timer.elapsedMs = 0;
+            timer.loggedMs = 0; // نقطة التسجيل بتتصفّر مع العد — وإلا الجلسة الجديدة مش هتتسجل (الفرق هيطلع صفر)
             timer.alerted = false;
           }
           timer.running = true;
@@ -425,6 +426,7 @@ export async function resumeExistingTimer(name, mode){
   } else {
     if(existing.mode === 'countdown' && existing.elapsedMs >= existing.targetMs){
       existing.elapsedMs = 0;
+      existing.loggedMs = 0; // نفس تصفير نقطة التسجيل — عشان الجلسة الجديدة تتراكم فوق القديم
       existing.alerted = false;
     }
     existing.running = true;
@@ -569,6 +571,7 @@ async function focusToggle(){
   } else {
     if(timer.mode === 'countdown' && timer.elapsedMs >= timer.targetMs){
       timer.elapsedMs = 0;
+      timer.loggedMs = 0; // تصفير نقطة التسجيل مع إعادة العد من وضع التركيز
       timer.alerted = false;
     }
     timer.running = true;

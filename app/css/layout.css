@@ -92,45 +92,49 @@
 }
 .timer-add-row {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 4px;
   margin-bottom: 16px;
+  background: var(--paper);
+  border: 1px solid var(--paper-line);
+  border-radius: var(--radius);
+  padding: 5px;
+  transition: border-color 0.12s ease;
+}
+.timer-add-row:focus-within {
+  border-color: var(--pen);
 }
 .timer-add-row input {
   flex: 1;
   min-width: 0;
-  border: 1px solid var(--paper-line);
-  border-radius: 10px;
+  border: none;
+  border-radius: 8px;
   padding: 10px 12px;
   font-family: inherit;
   font-size: 0.9rem;
-  background: var(--card);
+  background: transparent;
   color: var(--ink);
-}
-.timer-add-row input:focus {
-  border-color: var(--pen);
+  outline: none;
 }
 .timer-add-btn {
-  flex: 0 0 auto;
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   border: none;
-  background: var(--pen);
-  color: #fff;
+  background: transparent;
+  color: var(--pen);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition:
-    transform 0.15s ease,
-    filter 0.15s ease;
+  transition: background 0.12s ease;
 }
 .timer-add-btn:hover {
-  filter: brightness(1.15);
-  transform: scale(1.05);
+  background: var(--pen-soft);
 }
 .timer-add-btn .material-icons {
-  font-size: 22px;
+  font-size: 20px;
 }
 .timer-add-wrap {
   position: relative;
@@ -225,6 +229,8 @@
   gap: 8px;
 }
 .timer-name {
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 0.92rem;
   font-weight: 700;
   color: var(--ink);
@@ -679,7 +685,9 @@
 }
 @media (max-width: 640px) {
   .wrap {
-    padding-bottom: 78px;
+    /* حجز مكان التاببار العائم (قمته ~74px + الـ safe-area) — من غير الـ safe-area
+       المحتوى كان بيزحف تحت التاببار على الموبايلات اللي فيها نوتش */
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
   }
   .bottom-tabbar {
     display: flex;
