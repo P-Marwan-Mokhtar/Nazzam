@@ -842,14 +842,4 @@
     }
   }
 }
-
-/* ===== TEMP-DIAG: إخفاء التاببار مؤقتًا لاختبار سكرول الموبايل — يتشال بعد التشخيص ===== */
-@media (max-width: 640px) {
-  .bottom-tabbar {
-    display: none !important;
-  }
-  .wrap {
-    padding-bottom: 0 !important;
-  }
-}
 
