@@ -1076,6 +1076,11 @@ body.locked-view .main-col.tb-stretch {
   }
   body.tb-page-scroll .timeblock-calendar-col .tbw-grid {
     scrollbar-width: none;
+    /* overflow-x:auto بس في القاعدة الأساسية بيخلي overflow-y يتحسب auto
+       تلقائيًا — فيبقى السحب العمودي يتلخبط مع سكرول الصفحة (التأثير اتخبّى
+       لكنه موجود). هنا بنقفل المحور العمودي صراحةً ونخلي الأفقي يشتغل باللمس. */
+    overflow-x: auto;
+    overflow-y: hidden;
   }
   body.tb-page-scroll .timeblock-calendar-col .tbw-grid::-webkit-scrollbar {
     display: none;
