@@ -927,6 +927,13 @@ body.locked-view .main-col {
     height: 5px;
     bottom: 7px;
   }
+  /* السحبة العادية سكرول أصلي (pan-y) — السحب نفسه بالضغطة المطولة (JS).
+     من غير كده البلوك بيخطف كل اللمسات واليوم المشغول مفيهوش حتة تسكرول منها */
+  .timeline-block {
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
 }
 .timeline-drop-preview {
   position: absolute;

@@ -1216,7 +1216,67 @@ function wireAddTimelineTaskPopup(){
   };
 }
 
-function startBlockMove(e, blockEl){
+const TOUCH_BLOCK_LONG_PRESS_MS = 350; // مدة الضغطة المطولة اللي بتبدأ سحب البلوك باللمس
+const TOUCH_BLOCK_SLOP_PX = 12; // حركة قبل المدة = سكرول أصلي مش سحب
+
+// بوابة سحب البلوك باللمس: السحبة العادية لازم تفضل سكرول أصلي — لو البلوك
+// خطف اللمسة فورًا (touch-action:none + preventDefault)، اليوم المشغول مفيهوش
+// حتة فاضية والسكرول بيموت. الضغطة المطولة بس هي اللي بتفعّل السحب.
+function armTouchBlockDrag(downEvent, blockEl){
+  const pid = downEvent.pointerId;
+  const startX = downEvent.clientX, startY = downEvent.clientY;
+  let resolved = false; // اتحسمت: سحب أو إلغاء
+  let dragging = false; // السحب اتفعل بالضغطة المطولة
+
+  // مانع السكرول الأصلي بيشتغل بس بعد التفعيل — قبله أي preventDefault ممنوع.
+  // لازم {passive:false} وإلا المتصفح بيتجاهل المنع.
+  const scrollBlocker = (ev) => { if(dragging) ev.preventDefault(); };
+  document.addEventListener('touchmove', scrollBlocker, { passive: false });
+  const releaseBlocker = () => document.removeEventListener('touchmove', scrollBlocker);
+  document.addEventListener('pointerup', releaseBlocker, { once: true });
+  document.addEventListener('pointercancel', releaseBlocker, { once: true });
+
+  const pressTimer = setTimeout(() => {
+    if(resolved) return;
+    resolved = true;
+    dragging = true;
+    document.removeEventListener('pointermove', onGateMove);
+    document.removeEventListener('pointerup', onGateUp);
+    document.removeEventListener('pointercancel', onGateUp);
+    try{ if(navigator.vibrate) navigator.vibrate(25); }catch(err){}
+    // بنكمل بنفس مسار السحب العادي — بس بعد ما سيبنا السكرول حر الأول
+    startBlockMove(downEvent, blockEl, true);
+  }, TOUCH_BLOCK_LONG_PRESS_MS);
+
+  function onGateMove(ev){
+    if(resolved || ev.pointerId !== pid) return;
+    if(Math.abs(ev.clientX - startX) > TOUCH_BLOCK_SLOP_PX || Math.abs(ev.clientY - startY) > TOUCH_BLOCK_SLOP_PX){
+      disarm(); // اتحرك قبل المدة — دي سكرول أصلي، بنسيبها
+    }
+  }
+  function onGateUp(ev){
+    if(ev.pointerId !== pid) return;
+    disarm(); // اتشال قبل المدة — ضغطة عادية (click يكمل طبيعي)
+  }
+  function disarm(){
+    if(resolved) return;
+    resolved = true;
+    clearTimeout(pressTimer);
+    releaseBlocker();
+    document.removeEventListener('pointermove', onGateMove);
+    document.removeEventListener('pointerup', onGateUp);
+    document.removeEventListener('pointercancel', onGateUp);
+  }
+  document.addEventListener('pointermove', onGateMove);
+  document.addEventListener('pointerup', onGateUp);
+  document.addEventListener('pointercancel', onGateUp);
+}
+
+function startBlockMove(e, blockEl, fromLongPress = false){
+  if(e.pointerType === 'touch' && !fromLongPress){
+    armTouchBlockDrag(e, blockEl);
+    return;
+  }
   e.preventDefault();
   const taskId = blockEl.dataset.id;
   const durationMin = Number(blockEl.dataset.durationMin);
