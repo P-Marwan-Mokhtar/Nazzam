@@ -1051,6 +1051,37 @@ body.locked-view .main-col.tb-stretch {
   top: 0;
   z-index: 6;
 }
+/* ===== سكرول الصفحة الطبيعي لليوم/الأسبوع على الموبايل =====
+   الكلاس body.tb-page-scroll بيترفع من timeBlocking.js على عرض اليوم/الأسبوع
+   (في الموبايل بس — الـ media query هو اللي بيفعّل التحويل ده):
+   كان الجدول بيستخدم سكرول داخلي متداخل على عمود التقويم جنب سكرول الشبكة
+   الأفقي في الأسبوع — فبيبانوا شريطين متزاحمين بيشتغلوا ضد بعض على اللمس.
+   هنا بينتقلا لسكرول الصفحة الواحد (الـ main-col) والشريط الأفقي للأسبوع
+   بيشتغل باللمس من غير ما يبان.
+   الشهر مستثنى عشان محافظ على سكروله الداخلي (سلوكه شغال كويس). */
+@media (max-width: 900px) {
+  body.tb-page-scroll .main-col.tb-stretch {
+    overflow-y: auto;
+  }
+  body.tb-page-scroll .timeblock-view {
+    flex: none;
+    min-height: 0;
+  }
+  body.tb-page-scroll .timeblock-layout:not(.timeblock-layout-month) {
+    flex: none;
+    overflow: visible;
+  }
+  body.tb-page-scroll .timeblock-calendar-col {
+    overflow: visible;
+  }
+  body.tb-page-scroll .timeblock-calendar-col .tbw-grid {
+    scrollbar-width: none;
+  }
+  body.tb-page-scroll .timeblock-calendar-col .tbw-grid::-webkit-scrollbar {
+    display: none;
+    height: 0;
+  }
+}
 .tbm-grid-wrap {
   margin-top: 0;
   background: var(--card);

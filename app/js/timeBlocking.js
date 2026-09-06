@@ -213,6 +213,9 @@ export function setTbStretch(on){
   if(mainLayout) mainLayout.classList.toggle('tb-stretch', !!on);
   if(mainCol) mainCol.classList.toggle('tb-stretch', !!on);
   if(content) content.classList.toggle('tb-stretch', !!on);
+  // اليوم/الأسبوع على الموبايل بيسكرول مع الصفحة (سكروبلا واحد) بدل السكرول
+  // الداخلي المتداخل — الكلاس بيترفع في renderTimeBlockView ويختفي مع الطفّي
+  if(!on) document.body.classList.remove('tb-page-scroll');
 }
 
 // حفظ/استعادة موضع السكرول الداخلي للجدول الزمني عبر إعادة الرسم:
@@ -244,6 +247,9 @@ export function renderTimeBlockView(){
   // كل أوضاع الجدول الزمني (يوم/أسبوع/شهر) بتمدّ سلسلة الحاويات لطول الشاشة
   // عشان السكرول يبقى جوه عمود التقويم مش على مستوى الصفحة
   setTbStretch(true);
+  // الشهر بيخلي السكرول الداخلي بتاعه زي ما هو؛ اليوم/الأسبوع بس هما اللي
+  // بينتقلوا لسكرول الصفحة على الموبايل (بيتحكم فيهم CSS في views.css)
+  document.body.classList.toggle('tb-page-scroll', ui.tbRangeMode !== 'month');
   if(ui.tbRangeMode === 'week'){ renderTimeBlockWeekView(); return; }
   if(ui.tbRangeMode === 'month'){ renderTimeBlockMonthView(); return; }
   if(ui.justChangedDay) ui.tbSideExpanded = false; // نعيد توسيع اللوحة لما نغيّر اليوم
