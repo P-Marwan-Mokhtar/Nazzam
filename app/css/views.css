@@ -1257,7 +1257,8 @@ body.locked-view .main-col.tb-stretch {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.4);
-    z-index: 49;
+    /* فوق التاببار (120) وتحت الشيت — الشيت المفتوح يغطي التاببار */
+    z-index: 125;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.25s ease, visibility 0.25s ease;
@@ -1275,8 +1276,8 @@ body.locked-view .main-col.tb-stretch {
     width: 100%;
     max-height: 70vh;
     border-radius: 16px 16px 0 0;
-    /* فوق الشريط السفلي الثابت (z60) — كانت بتطلع من تحته */
-    z-index: 70;
+    /* فوق الشريط السفلي (z120) — كانت بتطلع من تحته والسكرول جواها بيخبط فيه */
+    z-index: 130;
     transform: translateY(100%);
     visibility: hidden;
     opacity: 0;
