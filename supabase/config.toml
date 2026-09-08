@@ -15,3 +15,9 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/auth-rate-limit/deno.json"
 entrypoint = "./functions/auth-rate-limit/index.ts"
+
+[functions.delete-account]
+enabled = true
+verify_jwt = false
+import_map = "./functions/delete-account/deno.json"
+entrypoint = "./functions/delete-account/index.ts"

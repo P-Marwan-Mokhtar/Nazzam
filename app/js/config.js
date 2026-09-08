@@ -15,6 +15,10 @@ export const TURNSTILE_SITE_KEY = '0x4AAAAAAD-WN3zH063FV-FK';
 // (fail-open) ويظل الحماية العميلية شغالة.
 export const AUTH_RATE_LIMIT_URL = `${SUPABASE_URL}/functions/v1/auth-rate-limit`;
 
+// Edge Function الخاصة بمسح الحساب نهائيًا (تُستدعى بتوكن المستخدم نفسه،
+// والدالة تمسح صفه واشتراكاته ثم مستخدم المصادقة — لا يقبل user_id إطلاقًا).
+export const DELETE_ACCOUNT_URL = `${SUPABASE_URL}/functions/v1/delete-account`;
+
 // لو مكتبة Supabase (js/vendor/supabase.js) لأي سبب متحملتش، منسيبش الخطأ ده
 // يوقف كل شجرة الـ imports بتاعة main.js (ده اللي كان بيسبب شاشة فاضية تمامًا
 // من غير أي رسالة). بدل كده supabaseClient بتبقى null، والدوال اللي بتستخدمها

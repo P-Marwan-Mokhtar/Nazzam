@@ -324,26 +324,94 @@ function googleBlockHtml(){
 // ------------------------------------------------------------
 // شاشة الحساب لمستخدم مسجّل دخوله بالفعل (زر الحساب في الهيدر): بيانات + تسجيل خروج فقط
 // ------------------------------------------------------------
-function renderAccountModal(){
+// إظهار نموذج تغيير كلمة المرور داخل مودال الحساب (يُصفَّر مع كل فتح)
+// pwOnlyMode: المودال للباسوورد فقط (من زر اللوحة) — بلا حالة حساب ولا ترقية ولا خروج
+let showPwForm = false;
+let pwOnlyMode = false;
+
+function renderAccountModal(pwError){
   const bodyEl = document.getElementById('accountBody');
   const titleEl = document.getElementById('accountModalTitle');
   if(!bodyEl) return;
   if(titleEl) titleEl.textContent = t('auth.account');
+  const errorHtml = pwError ? `<div class="account-error">${escapeHtml(pwError)}</div>` : '';
+  const pwFormHtml = `
+    <div class="account-form" id="pwForm">
+      ${errorHtml}
+      <input type="password" class="account-input" id="newPwInput" placeholder="${t('account.new_password')}" autocomplete="new-password" />
+      <input type="password" class="account-input" id="confirmPwInput" placeholder="${t('account.confirm_new')}" autocomplete="new-password" />
+      <button class="account-primary-btn" id="savePwBtn" style="width:100%;">${t('account.save_password')}</button>
+    </div>
+  `;
+  // وضع الباسوورد فقط: لا شيء غير النموذج
+  if(pwOnlyMode){
+    bodyEl.innerHTML = pwFormHtml;
+    const savePwBtn = document.getElementById('savePwBtn');
+    if(savePwBtn) savePwBtn.onclick = saveNewPassword;
+    return;
+  }
   bodyEl.innerHTML = `
     <div class="account-status is-linked">
       <span class="material-icons">account_circle</span>
       <div class="account-status-text">
         <strong>${escapeHtml(currentUserEmail || '')}</strong>
-        <span>${t('auth.logged_in')}</span>
       </div>
     </div>
     <button class="account-primary-btn" id="planUpgradeBtn" style="width:100%;">${t('plan.upgrade')}</button>
+    ${showPwForm ? pwFormHtml : `
+      <button class="account-secondary-btn" id="changePwBtn" style="width:100%;margin-top:8px;">${t('account.change_password')}</button>
+    `}
     <button class="account-secondary-btn" id="signOutBtn" style="width:100%;margin-top:8px;">${t('auth.sign_out')}</button>
   `;
   const signOutBtn = document.getElementById('signOutBtn');
   if(signOutBtn) signOutBtn.onclick = signOutUser;
   const planUpgradeBtn = document.getElementById('planUpgradeBtn');
   if(planUpgradeBtn) planUpgradeBtn.onclick = () => openUpgrade();
+  const changePwBtn = document.getElementById('changePwBtn');
+  if(changePwBtn) changePwBtn.onclick = () => { showPwForm = true; renderAccountModal(); };
+  const savePwBtn = document.getElementById('savePwBtn');
+  if(savePwBtn) savePwBtn.onclick = saveNewPassword;
+}
+
+// حفظ كلمة المرور الجديدة للمستخدم الحالي (يعمل لمستخدمي البريد وغوغل معًا —
+// لصاحب حساب غوغل يضيف دخولًا بالبريد/كلمة المرور بجانب غوغل).
+async function saveNewPassword(){
+  const pwInput = document.getElementById('newPwInput');
+  const confirmInput = document.getElementById('confirmPwInput');
+  const saveBtn = document.getElementById('savePwBtn');
+  const pw = pwInput ? pwInput.value : '';
+  const confirm = confirmInput ? confirmInput.value : '';
+  if(!pw || pw.length < 6){
+    renderAccountModal(t('auth.password_short'));
+    return;
+  }
+  if(pw !== confirm){
+    renderAccountModal(t('auth.passwords_match'));
+    return;
+  }
+  if(saveBtn) saveBtn.disabled = true;
+  try{
+    const { error } = await supabaseClient.auth.updateUser({ password: pw });
+    if(error) throw error;
+    showPwForm = false;
+    // في وضع الباسوورد فقط نُغلق المودال بعد النجاح (لا شيء بعده)؛
+    // أما المودال الكامل فيُعاد رسمه بدون النموذج.
+    if(pwOnlyMode){
+      pwOnlyMode = false;
+      closeAccountModal();
+    } else {
+      renderAccountModal();
+    }
+    showToast(t('account.password_updated'));
+  }catch(e){
+    console.error('Password update error:', e);
+    const msg = (e && e.message) || '';
+    renderAccountModal(
+      msg.toLowerCase().includes('different')
+        ? t('account.password_same')
+        : mapAuthError(e)
+    );
+  }
 }
 
 // ------------------------------------------------------------
@@ -673,6 +741,19 @@ export async function signOutUser(){
 // دوال مفتوحة للاستخدام من main.js
 // ------------------------------------------------------------
 export function openAccountModal(){
+  showPwForm = false;
+  pwOnlyMode = false;
+  renderAccountModal();
+  const overlay = document.getElementById('accountOverlay');
+  overlay.classList.remove('is-gate');
+  overlay.classList.add('open');
+}
+
+// فتح مودال الحساب مباشرة على نموذج تغيير كلمة المرور فقط
+// (يُستخدم من زر لوحة الحساب المنسدلة).
+export function openPasswordChange(){
+  showPwForm = true;
+  pwOnlyMode = true;
   renderAccountModal();
   const overlay = document.getElementById('accountOverlay');
   overlay.classList.remove('is-gate');

@@ -510,7 +510,6 @@ ar: {
 
   // Auth
   'auth.account': 'الحساب',
-  'auth.logged_in': 'حسابك متزامن ومتاح من أي جهاز',
   'auth.sign_out': 'تسجيل الخروج',
   'auth.or': 'أو',
   'auth.google_continue': 'المتابعة عبر Google',
@@ -555,6 +554,17 @@ ar: {
   'auth.logout_error': 'حدث خطأ أثناء تسجيل الخروج',
   'auth.logout_pending': 'عندك تعديلات لسه ما اترفعتش للخادم — استنى الاتصال يرجع لحد ما تتم المزامنة قبل تسجيل الخروج، عشان ماتضيعش أي تعديلات',
   'auth.success_login': 'تم تسجيل الدخول بنجاح عبر Google',
+  'account.delete_account': 'مسح حسابي',
+  'account.delete_confirm1': 'سيتم مسح حسابك نهائيًا: بريدك وكل بياناتك على كل الأجهزة، ولا يمكن التراجع. متابعة؟',
+  'account.delete_confirm2': 'تأكيد أخير: اضغط موافق لمسح الحساب نهائيًا.',
+  'account.deleting': 'جارٍ مسح الحساب…',
+  'account.delete_failed': 'تعذّر مسح الحساب — حاول مجددًا',
+  'account.change_password': 'تغيير كلمة المرور',
+  'account.new_password': 'كلمة المرور الجديدة',
+  'account.confirm_new': 'تأكيد الجديدة',
+  'account.save_password': 'حفظ كلمة المرور',
+  'account.password_updated': 'تم تحديث كلمة المرور بنجاح',
+  'account.password_same': 'كلمة المرور الجديدة مطابقة للقديمة',
 
   // Notifications
   'notif.morning': 'تنبيه الصباح',
@@ -1171,7 +1181,6 @@ en: {
 
   // Auth
   'auth.account': 'Account',
-  'auth.logged_in': 'Your account is synced and available on any device',
   'auth.sign_out': 'Sign Out',
   'auth.or': 'or',
   'auth.google_continue': 'Continue with Google',
@@ -1216,6 +1225,19 @@ en: {
   'auth.logout_error': 'An error occurred during sign out',
   'auth.logout_pending': 'You have unsaved changes that have not been uploaded to the server yet — wait for the connection to be restored so they sync before signing out, so nothing is lost',
   'auth.success_login': 'Successfully signed in with Google',
+  'account.wipe_data': 'Delete my data',
+  'account.wipe_confirm': 'All your tasks and data will be permanently deleted (your plan, language and theme are kept). Are you sure?',
+  'account.delete_account': 'Delete my account',
+  'account.delete_confirm1': 'Your account will be permanently deleted: your email and all your data on all devices. This cannot be undone. Continue?',
+  'account.delete_confirm2': 'Final confirmation: press OK to permanently delete the account.',
+  'account.deleting': 'Deleting account…',
+  'account.delete_failed': 'Could not delete the account — try again',
+  'account.change_password': 'Change password',
+  'account.new_password': 'New password',
+  'account.confirm_new': 'Confirm new password',
+  'account.save_password': 'Save password',
+  'account.password_updated': 'Password updated successfully',
+  'account.password_same': 'New password matches the old one',
 
   // Notifications
   'notif.morning': 'Morning Alert',

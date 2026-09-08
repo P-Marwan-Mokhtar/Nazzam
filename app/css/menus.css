@@ -581,13 +581,18 @@
 /* حساب */
 .ap-account {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 10px;
   background: var(--paper);
   border: 1px solid var(--paper-line);
   border-radius: 12px;
   padding: 10px 12px;
   margin-bottom: 8px;
+}
+.ap-account-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 .ap-account-icon {
   color: var(--done);
@@ -605,10 +610,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-.ap-account-text span {
-  font-size: 0.72rem;
-  color: var(--ink-soft);
 }
 .ap-icon-btn {
   display: flex;
@@ -671,6 +672,78 @@
 }
 .ap-btn-danger .material-icons {
   color: var(--missed);
+}
+/* زر اللغة الواحد — يعرض البديلة ويقلب بالضغط */
+.lang-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.lang-row .ap-section-title {
+  margin: 0;
+  flex-shrink: 0;
+}
+.lang-switch-btn {
+  margin-inline-start: auto;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid var(--paper-line);
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.lang-switch-btn:hover {
+  background: var(--pen-soft);
+  border-color: var(--pen);
+}
+.lang-switch-btn .material-icons {
+  font-size: 16px;
+  color: var(--pen);
+}
+/* صف أزرار البيانات الأربعة — أيقونات فقط جنب بعض */
+.ap-data-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.ap-data-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--paper-line);
+  background: var(--card);
+  color: var(--pen);
+  border-radius: 12px;
+  padding: 10px 0;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.ap-data-icon-btn:hover {
+  background: var(--pen-soft);
+  border-color: var(--pen);
+}
+.ap-data-icon-btn .material-icons {
+  font-size: 22px;
+}
+/* زرا الباسوورد والمسح — كل واحد في سطر لوحده داخل بطاقة الحساب */
+.ap-account-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+.ap-account-actions .ap-btn {
+  padding: 8px 10px;
+  font-size: 0.8rem;
 }
 /* وضع العرض + اللغة */
 .ap-mode-row {
@@ -745,38 +818,6 @@
   opacity: 0.4;
 }
 /* قسم البيانات */
-.ap-data-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-.ap-data-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 12px 8px;
-  background: var(--card);
-  border: 1.5px solid var(--paper-line);
-  border-radius: 12px;
-  cursor: pointer;
-  font-family: inherit;
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-.ap-data-card:hover {
-  background: var(--pen-soft);
-  border-color: var(--pen);
-}
-.ap-data-icon {
-  font-size: 20px;
-  color: var(--pen);
-}
-.ap-data-label {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--ink);
-  text-align: center;
-}
 /* على الموبايل بتفتح كـ bottom sheet عشان مايتقطعلهاش الطول */
 @media (max-width: 640px) {
   .account-panel {
@@ -825,19 +866,6 @@
   .ap-swatch {
     width: 26px;
     height: 26px;
-  }
-  .ap-data-grid {
-    gap: 6px;
-  }
-  .ap-data-card {
-    padding: 8px 6px;
-    gap: 4px;
-  }
-  .ap-data-icon {
-    font-size: 18px;
-  }
-  .ap-data-label {
-    font-size: 0.72rem;
   }
   /* لوحة المزيد في الهيدر بتبقى قصيرة على الموبايل عشان القوائم الطويلة متطشش */
   .header-actions-panel {

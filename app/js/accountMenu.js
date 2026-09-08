@@ -6,10 +6,11 @@
 import { ACCENTS, setAccent, setDarkMode } from './theme.js';
 import { getLang, setLang, t, applyStaticTranslations } from './i18n.js';
 import { showToast, state, ui } from './state.js';
+import { DELETE_ACCOUNT_URL, supabaseClient } from './config.js';
 import { saveData, exportDataAsJSON } from './dataStore.js';
 import { render } from './render.js';
 import { escapeHtml } from './utils.js';
-import { currentUserEmail, signOutUser } from './auth.js';
+import { currentUserEmail, signOutUser, openPasswordChange } from './auth.js';
 import { renderStatsView, renderTaskStatsView } from './stats.js';
 import { openUpgrade, gateFree } from './upgrade.js';
 import { exportCalendarAsICS } from './icalExport.js';
@@ -79,14 +80,25 @@ function renderAccountBody(){
   const accountBlock = `
     <div class="ap-section">
       <div class="ap-account">
-        <span class="material-icons ap-account-icon">account_circle</span>
-        <div class="ap-account-text">
-          <strong>${escapeHtml(currentUserEmail || '')}</strong>
-          <span>${t('auth.logged_in')}</span>
+        <div class="ap-account-top">
+          <span class="material-icons ap-account-icon">account_circle</span>
+          <div class="ap-account-text">
+            <strong>${escapeHtml(currentUserEmail || '')}</strong>
+          </div>
+          <button type="button" class="ap-icon-btn ap-icon-btn-danger" data-ap="logout" title="${t('auth.logout')}">
+            <span class="material-icons">logout</span>
+          </button>
         </div>
-        <button type="button" class="ap-icon-btn ap-icon-btn-danger" data-ap="logout" title="${t('auth.logout')}">
-          <span class="material-icons">logout</span>
-        </button>
+        <div class="ap-account-actions">
+          <button type="button" class="ap-btn" data-ap="change-password">
+            <span class="material-icons">lock_reset</span>
+            <span>${t('account.change_password')}</span>
+          </button>
+          <button type="button" class="ap-btn ap-btn-danger" data-ap="delete-account">
+            <span class="material-icons">delete_forever</span>
+            <span>${t('account.delete_account')}</span>
+          </button>
+        </div>
       </div>
       <button type="button" class="ap-btn" data-ap="upgrade">
         <span class="material-icons">workspace_premium</span>
@@ -121,13 +133,15 @@ function renderAccountBody(){
     </div>
   `;
 
-  // ---- قسم اللغة ----
+  // ---- قسم اللغة: سطر واحد — الاسم وزر واحد للغة البديلة ----
   const langBlock = `
     <div class="ap-section">
-      <div class="ap-section-title"><span class="material-icons">translate</span> ${t('nav.language_toggle')}</div>
-      <div class="ap-mode-row">
-        <button type="button" class="ap-mode-btn ${lang === 'ar' ? 'active' : ''}" data-ap="lang" data-lang="ar">عربي</button>
-        <button type="button" class="ap-mode-btn ${lang === 'en' ? 'active' : ''}" data-ap="lang" data-lang="en">English</button>
+      <div class="lang-row">
+        <div class="ap-section-title"><span class="material-icons">translate</span> ${t('nav.language_toggle')}</div>
+        <button type="button" class="lang-switch-btn" data-ap="lang-toggle" title="${t('nav.language_toggle')}">
+          <span class="material-icons">language</span>
+          <span>${lang === 'ar' ? 'English' : 'عربي'}</span>
+        </button>
       </div>
     </div>
   `;
@@ -136,22 +150,18 @@ function renderAccountBody(){
   const dataBlock = `
     <div class="ap-section">
       <div class="ap-section-title"><span class="material-icons">import_export</span> ${t('nav.data')}</div>
-      <div class="ap-data-grid">
-        <button type="button" class="ap-data-card" data-ap="import-data" title="${t('nav.import_title')}">
-          <span class="material-icons ap-data-icon">file_upload</span>
-          <span class="ap-data-label">${t('nav.import_data')}</span>
+      <div class="ap-data-row">
+        <button type="button" class="ap-data-icon-btn" data-ap="import-data" title="${t('nav.import_title')}" aria-label="${t('nav.import_data')}">
+          <span class="material-icons">file_upload</span>
         </button>
-        <button type="button" class="ap-data-card" data-ap="export-data" title="${t('nav.export_title')}">
-          <span class="material-icons ap-data-icon">file_download</span>
-          <span class="ap-data-label">${t('nav.export_data')}</span>
+        <button type="button" class="ap-data-icon-btn" data-ap="export-data" title="${t('nav.export_title')}" aria-label="${t('nav.export_data')}">
+          <span class="material-icons">file_download</span>
         </button>
-        <button type="button" class="ap-data-card" data-ap="export-ics" title="${t('nav.export_ics_title')}">
-          <span class="material-icons ap-data-icon">event</span>
-          <span class="ap-data-label">${t('nav.export_calendar')}</span>
+        <button type="button" class="ap-data-icon-btn" data-ap="export-ics" title="${t('nav.export_ics_title')}" aria-label="${t('nav.export_calendar')}">
+          <span class="material-icons">event</span>
         </button>
-        <button type="button" class="ap-data-card" data-ap="export-pdf" title="${t('nav.export_pdf_title')}">
-          <span class="material-icons ap-data-icon">picture_as_pdf</span>
-          <span class="ap-data-label">${t('nav.export_pdf')}</span>
+        <button type="button" class="ap-data-icon-btn" data-ap="export-pdf" title="${t('nav.export_pdf_title')}" aria-label="${t('nav.export_pdf')}">
+          <span class="material-icons">picture_as_pdf</span>
         </button>
       </div>
     </div>
@@ -171,6 +181,9 @@ function handleAction(btn){
   } else if(ap === 'upgrade'){
     closeAccountPanel();
     openUpgrade();
+  } else if(ap === 'change-password'){
+    closeAccountPanel();
+    openPasswordChange();
   } else if(ap === 'mode'){
     setDarkMode(btn.dataset.mode === 'dark', onAppearanceChanged);
     renderAccountPanelAfterChange();
@@ -178,14 +191,13 @@ function handleAction(btn){
     setAccent(btn.dataset.accent, onAppearanceChanged);
     showToast(t('theme.accent_selected', { name: t('theme.accent_' + btn.dataset.accent) }));
     renderAccountPanelAfterChange();
-  } else if(ap === 'lang'){
-    const lang = btn.dataset.lang;
-    if(getLang() === lang) { closeAccountPanel(); return; }
-    setLang(lang);
+  } else if(ap === 'lang-toggle'){
+    const next = getLang() === 'ar' ? 'en' : 'ar';
+    setLang(next);
     ui.timerPanelRenderedForDate = null;
     applyStaticTranslations();
     render();
-    document.title = lang === 'ar' ? 'Nazzam — إدارة المهام' : 'Nazzam — Task Manager';
+    document.title = next === 'ar' ? 'Nazzam — إدارة المهام' : 'Nazzam — Task Manager';
     renderAccountPanelAfterChange();
   } else if(ap === 'import-data'){
     closeAccountPanel();
@@ -206,6 +218,35 @@ function handleAction(btn){
     ui.taskStatsName = null;
     ui.smartListsOpen = false;
     render();
+  } else if(ap === 'delete-account'){
+    closeAccountPanel();
+    deleteMyAccount();
+  }
+}
+
+// مسح الحساب نهائيًا (مثل TickTick): تأكيد مزدوج → دالة السيرفر تمسح
+// الصف والاشتراكات والمستخدم → تنظيف الجهاز → خروج وإعادة تحميل.
+// لا تراجع هنا عمدًا (الحذف نهائي ولا رجعة) — لذلك تأكيدان متتاليان.
+async function deleteMyAccount(){
+  if(!confirm(t('account.delete_confirm1'))) return;
+  if(!confirm(t('account.delete_confirm2'))) return;
+  try{
+    showToast(t('account.deleting'));
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const token = session && session.access_token;
+    if(!token) throw new Error('no-session');
+    const res = await fetch(DELETE_ACCOUNT_URL, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    if(!res.ok) throw new Error('failed');
+    // نجح المسح على السيرفر — نظّف الجهاز كاملًا (حساب محذوف، فلا تفضيلات تُحفظ)
+    try{ localStorage.clear(); }catch(e){}
+    try{ await supabaseClient.auth.signOut({ scope: 'local' }); }catch(e){}
+    window.location.reload();
+  }catch(e){
+    console.error('Delete account error:', e);
+    showToast(t('account.delete_failed'));
   }
 }
 
