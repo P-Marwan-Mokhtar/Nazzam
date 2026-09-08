@@ -564,6 +564,10 @@
   border-top: 1px solid var(--paper-line);
   padding-top: 12px;
 }
+/* في الداكن فقط: لون الفاصل ثابت حسب الطلب */
+.dark-mode .ap-section + .ap-section {
+  border-top-color: #535863;
+}
 .ap-section-title {
   display: flex;
   align-items: center;
