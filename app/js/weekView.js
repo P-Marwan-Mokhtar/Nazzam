@@ -3,7 +3,7 @@
 // تحديد المهام كمنجزة أو الانتقال لأي يوم مباشرة.
 // ============================================================
 
-import { MONTH_NAMES, SHORT_DAY_NAMES, addDays, escapeHtml, fromISO, getWeekStart, todayStr } from './utils.js';
+import { MONTH_NAMES, SHORT_DAY_NAMES, addDays, escapeAttr, escapeHtml, fromISO, getWeekStart, todayStr } from './utils.js';
 import { contentEl, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { ensureDayMaterialized, render } from './render.js';
@@ -79,7 +79,7 @@ export function renderWeekView(){
         <div class="week-day-tasks">
           ${visibleTasks.map(t => `
             <label class="week-task-row ${t.done ? 'done' : ''}">
-              <input type="checkbox" class="week-task-checkbox" data-date="${dateStr}" data-id="${t.id}" ${t.done ? 'checked' : ''} />
+              <input type="checkbox" class="week-task-checkbox" data-date="${dateStr}" data-id="${escapeAttr(t.id)}" ${t.done ? 'checked' : ''} />
               <span class="week-task-name">${escapeHtml(t.name)}</span>
             </label>
           `).join('')}

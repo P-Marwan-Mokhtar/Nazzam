@@ -25,7 +25,8 @@ import { closeTimelineTaskPopup, closeTbSide, toggleTimeBlockView } from './time
 import { applyHashToState, consumeShortcutViewParam } from './routing.js';
 import { applyTheme, closeAppearanceModal } from './theme.js';
 import { initMonitoring, trackView } from './monitoring.js';
-import { closeUpgrade, gateFree } from './upgrade.js';
+import { closeUpgrade, gateFree, maybeShowTrialNudge } from './upgrade.js';
+import { wireOnboarding, checkOnboarding } from './onboarding.js';
 import { isWideListScroll, positionTaskMoreFixed } from './events.js';
 import { openSmartLists } from './smartLists.js';
 import { closeAccountPanel, isAccountPanelOpen, toggleAccountPanel } from './accountMenu.js';
@@ -101,6 +102,9 @@ async function startApp(){
     if(splash) splash.remove();
   });
   applyStaticTranslations(); // ترجمة عناصر HTML الثابتة
+  // تنبيه نهاية التجربة (مرة واحدة): قبل يوم من الانتهاء أو لحظة الانتهاء —
+  // بعد استقرار الواجهة عشان المودال يفتح فوق محتوى جاهز.
+  maybeShowTrialNudge();
   if(shortcutView === 'calendar') openCalendarModal(); // shortcut التقويم بيشاور على modal مش view بالـ hash — بنفتحه بعد أول render
   setInterval(tickTimers, 1000);
 
@@ -469,20 +473,8 @@ async function startApp(){
     if(e.target === upgradeOverlay) closeUpgrade();
   });
 
-  // Modal الترحيبي: تنقّل بين الشاشات وإغلاق (بيظهر لأول زيارة فقط)
-  const onboardingOverlay = document.getElementById('onboardingOverlay');
-  document.getElementById('closeOnboardingBtn').onclick = closeOnboarding;
-  document.getElementById('onboardingNextBtn').onclick = () => {
-    if(onboardingStep >= 2){ closeOnboarding(); return; }
-    goOnboardingStep(onboardingStep + 1);
-  };
-  document.getElementById('onboardingSkipBtn').onclick = () => {
-    if(onboardingStep > 0){ goOnboardingStep(onboardingStep - 1); return; }
-    closeOnboarding();
-  };
-  onboardingOverlay.addEventListener('click', (e) => {
-    if(e.target === onboardingOverlay) closeOnboarding();
-  });
+  // Modal الترحيبي الاحترافي (onboarding.js): يظهر لأول زيارة فقط
+  wireOnboarding();
   checkOnboarding();
 
   const draftsSearchInput = document.getElementById('draftsSearchInput');
@@ -610,41 +602,4 @@ async function startApp(){
       window.location.reload();
     });
   }
-}
-
-// ============================================================
-// Modal الترحيبي (Onboarding) — شاشة تعارف قصيرة لأول زيارة فقط
-// ============================================================
-const ONBOARDING_SEEN_KEY = 'nazzam_onboarding_seen_v1';
-let onboardingStep = 0;
-
-function openOnboarding(){
-  onboardingStep = 0;
-  renderOnboardingStep(0);
-  document.getElementById('onboardingOverlay').classList.add('open');
-}
-
-function closeOnboarding(){
-  document.getElementById('onboardingOverlay').classList.remove('open');
-  localStorage.setItem(ONBOARDING_SEEN_KEY, '1');
-}
-
-function goOnboardingStep(step){
-  onboardingStep = step;
-  renderOnboardingStep(step);
-}
-
-function renderOnboardingStep(step){
-  document.querySelectorAll('.onboarding-step').forEach((el) => {
-    el.classList.toggle('active', Number(el.dataset.step) === step);
-  });
-  document.querySelectorAll('.onboarding-dot').forEach((el) => {
-    el.classList.toggle('active', Number(el.dataset.dot) === step);
-  });
-  document.getElementById('onboardingSkipBtn').textContent = step > 0 ? 'رجوع' : 'تخطي';
-  document.getElementById('onboardingNextLabel').textContent = step === 2 ? 'ابدأ الآن' : 'التالي';
-}
-
-function checkOnboarding(){
-  if(!localStorage.getItem(ONBOARDING_SEEN_KEY)) openOnboarding();
 }

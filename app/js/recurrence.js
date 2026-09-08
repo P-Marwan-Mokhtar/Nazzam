@@ -162,9 +162,13 @@ function removeStaleRecurringInstances(taskName, currentDays){
   const today = todayStr();
   Object.keys(state.days).forEach(dateStr => {
     if(dateStr <= today) return;
-    if(state.pinnedInjected && state.pinnedInjected[dateStr]) delete state.pinnedInjected[dateStr][taskName];
     const weekday = fromISO(dateStr).getDay();
+    // اليوم لسه من أيام التكرار الجديدة — بنحافظ على قرارات المستخدم فيه
+    // (مثلًا: مسح نسخة يدويًا) ومنلمسهاش، عشان متتصحّاش تاني من جديد.
     if(currentDays.includes(weekday)) return;
+    // اليوم خرج من أيام التكرار — بنصفّر قراره القديم (عشان لو التكرار رجع
+    // تاني يتقيّم من جديد) ونشيل النسخ المحقونة غير المنجزة.
+    if(state.pinnedInjected && state.pinnedInjected[dateStr]) delete state.pinnedInjected[dateStr][taskName];
     state.days[dateStr] = state.days[dateStr].filter(t => !(t.name === taskName && t._fromRecurrence && !t.done));
   });
 }

@@ -7,6 +7,8 @@ import { contentEl, showToast, state, ui } from './state.js';
 import { render } from './render.js';
 import { currentPalette } from './theme.js';
 import { t, pl, formatHM, formatMinutes } from './i18n.js';
+import { canUse } from './plans.js';
+import { openUpgrade } from './upgrade.js';
 
 // محور الوقت بيظهر كأرقام ساعات صحيحة (1، 2، 3...) والتفاصيل بالدقايق في التلميح
 function fmtAxisHours(v){
@@ -697,11 +699,13 @@ function wireStatsTabDropdown(){
   });
 }
 
-// شريط التبديل بين "اليوم" و"الأسبوع"، مشترك بين الشاشات الفرعية
+// شريط التبديل بين "اليوم" و"الأسبوع"، مشترك بين الشاشات الفرعية.
+// قاعدة المنتج: عرض الأسبوع مجاني للكل، وعرض اليوم ضمن statsFull (Pro).
 function renderStatsRangeToggle(mode){
+  const dayLocked = !canUse('statsFull');
   return `
     <div class="stats-range-toggle" role="tablist">
-      <button class="stats-range-btn ${mode === 'day' ? 'active' : ''}" id="statsRangeDayBtn" data-range="day">${t('stats.day')}</button>
+      <button class="stats-range-btn ${mode === 'day' ? 'active' : ''}" id="statsRangeDayBtn" data-range="day">${dayLocked ? '<span class="material-icons stats-lock-icon">lock</span>' : ''}${t('stats.day')}</button>
       <button class="stats-range-btn ${mode === 'week' ? 'active' : ''}" id="statsRangeWeekBtn" data-range="week">${t('stats.week')}</button>
     </div>
   `;
@@ -710,13 +714,18 @@ function renderStatsRangeToggle(mode){
 function wireStatsRangeToggle(){
   const dayBtn = document.getElementById('statsRangeDayBtn');
   const weekBtn = document.getElementById('statsRangeWeekBtn');
-  if(dayBtn) dayBtn.onclick = () => { ui.statsRangeMode = 'day'; render(); };
+  if(dayBtn) dayBtn.onclick = () => {
+    if(!canUse('statsFull')){ openUpgrade('statsFull'); return; }
+    ui.statsRangeMode = 'day'; render();
+  };
   if(weekBtn) weekBtn.onclick = () => { ui.statsRangeMode = 'week'; render(); };
 }
 
-// شاشة إحصائيات نوع واحد (مهام/عادة/هواية/الكل) — يوم أوسبوع
+// شاشة إحصائيات نوع واحد (مهام/عادة/هواية/الكل) — يوم أوسبوع.
+// دفاع عمقي: لو الوضع يوم والمستخدم مجاني (مثلًا حالة قديمة)، نعرض الأسبوع بدل كسر القاعدة.
 function renderTypeStatsView(type, mode){
   const typeFilter = type === 'all' ? null : type;
+  if(mode === 'day' && !canUse('statsFull')) return renderWeekStatsView(typeFilter);
   if(mode === 'day') renderDayStatsView(ui.selectedDate || todayStr(), typeFilter);
   else renderWeekStatsView(typeFilter);
 }

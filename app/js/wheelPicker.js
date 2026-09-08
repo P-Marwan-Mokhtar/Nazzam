@@ -8,6 +8,8 @@ import { WHEEL_ITEM_H, showToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
 import { ensureAudioContext, getDayTimers, renderTimerPanel, resumeExistingTimer } from './timers.js';
+import { openUpgrade, enforceTimerNameLimit } from './upgrade.js';
+import { limitFor } from './plans.js';
 
 function buildWheelList(listEl, count, labels, loop){
   let html = '';
@@ -202,6 +204,15 @@ export async function commitDurationPicker(){
     const name = ui.pendingNewTimerName;
     if(!name){ closeDurationPicker(); return; }
     if(await resumeExistingTimer(name, 'countdown')){ closeDurationPicker(); return; }
+    // حد المؤقتات المحفوظة للمجانية (الأسماء الموجودة تمر)
+    if(!enforceTimerNameLimit(name)) return;
+    // سقف مدة العدّاد للمجانية — نُبقي المنتقي مفتوحًا ليعدّل المستخدم المدة
+    const maxMin = limitFor('countdownMaxMin');
+    if(maxMin !== null && (h * 60 + m) > maxMin){
+      showToast(t('plan.limit_reached'));
+      openUpgrade();
+      return;
+    }
     ensureAudioContext();
     getDayTimers(ui.selectedDate).push({
       id: uid(),

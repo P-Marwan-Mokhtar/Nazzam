@@ -750,10 +750,6 @@
   text-align: center;
   padding: 4px 0 18px;
 }
-.upgrade-hero-icon {
-  font-size: 42px;
-  color: var(--pen);
-}
 .upgrade-hero-title {
   font-weight: 800;
   font-size: 1.2rem;
@@ -819,4 +815,143 @@
 .upgrade-cta .material-icons {
   vertical-align: middle;
   margin-inline-end: 4px;
+}
+
+/* سطر حالة التجربة المدمج في مودال الترقية */
+.trial-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--pen);
+  background: var(--pen-soft);
+  border-radius: 10px;
+  padding: 7px 10px;
+  margin-bottom: 12px;
+}
+.trial-line .material-icons {
+  font-size: 18px;
+}
+
+/* Dropdown دورة الدفع (شهري/سنوي) */
+.bill-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 2px 0 6px;
+}
+.bill-dropdown-wrap {
+  position: relative;
+  margin-bottom: 12px;
+}
+.bill-dropdown-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--popup);
+  border: 1.5px solid var(--pen-soft);
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  color: var(--ink);
+}
+.bill-dropdown-main {
+  flex: 1;
+}
+.bill-dropdown-chev {
+  color: var(--ink-soft);
+}
+/* القائمة المفتوحة: ثابتة في التدفق (تدفع زر الاشتراك لأسفل) وتعرض الخيارين معًا */
+.bill-dropdown-menu.is-open {
+  position: static;
+  background: var(--popup);
+  border: 1.5px solid var(--pen-soft);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+.bill-dropdown-opt {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--pen-soft);
+  padding: 10px 12px;
+  cursor: pointer;
+  color: var(--ink);
+  text-align: start;
+}
+.bill-dropdown-opt:last-child {
+  border-bottom: 0;
+}
+.bill-dropdown-opt.active {
+  background: var(--pen-soft);
+}
+.bill-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.bill-option-text strong {
+  font-size: 0.9rem;
+}
+.bill-option-price {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.bill-option-price small {
+  font-weight: 400;
+}
+.bill-option-pending {
+  color: var(--done);
+}
+.bill-option-pending .material-icons {
+  font-size: 20px;
+}
+.bill-option-check {
+  color: var(--pen);
+}
+.bill-option-check .material-icons {
+  font-size: 20px;
+}
+.bill-save-mini {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--pen);
+  background: var(--pen-soft);
+  border-radius: 12px;
+  padding: 1px 8px;
+  margin-inline-start: 4px;
+  vertical-align: 2px;
+}
+
+/* زر الاشتراك الرئيسي + الشروط */
+.upg-cta-btn {
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  padding: 13px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  background: var(--pen);
+  color: var(--card);
+  cursor: pointer;
+}
+.upg-cta-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.upg-terms {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  text-align: center;
+  margin: 8px 0 0;
 }

@@ -13,7 +13,7 @@ import { ensureDayMaterialized, render } from './render.js';
 import { openCalendarModal } from './calendar.js';
 import { t, formatMinutes } from './i18n.js';
 import { canUse } from './plans.js';
-import { openUpgrade } from './upgrade.js';
+import { openUpgrade, enforceTaskNameLimit } from './upgrade.js';
 
 const HOUR_PX = 64;
 const SNAP_MIN = 5;
@@ -311,10 +311,10 @@ export function renderTimeBlockView(){
     blocksHtml += `
       <div class="timeline-block ${t.done ? 'done' : ''} ${isShortBlock(durationMin) ? 'short' : ''}"
            style="--blk: ${taskColorVar(t.name)}; top:${top}px; height:${height - BLOCK_GAP_PX}px; right:calc(${rightPct}% + 2px); width:calc(${widthPct}% - 6px);"
-           data-id="${t.id}" data-start-min="${startMin}" data-duration-min="${durationMin}" title="${escapeAttr(t.name)}">
+           data-id="${escapeAttr(t.id)}" data-start-min="${startMin}" data-duration-min="${durationMin}" title="${escapeAttr(t.name)}">
         <span class="timeline-block-time">${blockTimeLabel(startMin, durationMin)}</span>
         <span class="timeline-block-name">${escapeHtml(t.name)}</span>
-        <div class="timeline-block-resize-handle" data-id="${t.id}"></div>
+        <div class="timeline-block-resize-handle" data-id="${escapeAttr(t.id)}"></div>
       </div>
     `;
   });
@@ -328,7 +328,7 @@ export function renderTimeBlockView(){
     sideHtml = `<div class="timeblock-side-empty">${dayTasks.length === 0 ? t('schedule.empty_title') : t('schedule.empty_all_done')}</div>`;
   } else {
     visibleTasks.forEach(t => {
-      sideHtml += `<div class="timeblock-side-item" data-id="${t.id}" data-name="${escapeAttr(t.name)}">${escapeHtml(t.name)}</div>`;
+      sideHtml += `<div class="timeblock-side-item" data-id="${escapeAttr(t.id)}" data-name="${escapeAttr(t.name)}">${escapeHtml(t.name)}</div>`;
     });
   }
 
@@ -532,7 +532,7 @@ function renderTimeBlockWeekView(){
     weekSideHtml = `<div class="timeblock-side-empty">${t('schedule.no_unscheduled_recurring')}</div>`;
   } else {
     weekVisibleTasks.forEach(t => {
-      weekSideHtml += `<div class="timeblock-side-item" data-id="${t.id}" data-name="${escapeAttr(t.name)}">${escapeHtml(t.name)}</div>`;
+      weekSideHtml += `<div class="timeblock-side-item" data-id="${escapeAttr(t.id)}" data-name="${escapeAttr(t.name)}">${escapeHtml(t.name)}</div>`;
     });
   }
 
@@ -584,10 +584,10 @@ function renderTimeBlockWeekView(){
       blocksHtml += `
         <div class="timeline-block tbw-block ${t.done ? 'done' : ''} ${isShortBlock(durationMin) ? 'short' : ''}"
              style="--blk: ${taskColorVar(t.name)}; top:${top}px; height:${height - BLOCK_GAP_PX}px; right:calc(${rightPct}% + 2px); width:calc(${widthPct}% - 6px);"
-             data-id="${t.id}" data-date="${dateStr}" data-start-min="${startMin}" data-duration-min="${durationMin}" title="${escapeAttr(t.name)}">
+             data-id="${escapeAttr(t.id)}" data-date="${dateStr}" data-start-min="${startMin}" data-duration-min="${durationMin}" title="${escapeAttr(t.name)}">
           <span class="timeline-block-time">${blockTimeLabel(startMin, durationMin)}</span>
           <span class="timeline-block-name">${escapeHtml(t.name)}</span>
-          <div class="timeline-block-resize-handle" data-id="${t.id}"></div>
+          <div class="timeline-block-resize-handle" data-id="${escapeAttr(t.id)}"></div>
         </div>
       `;
     });
@@ -828,7 +828,7 @@ function renderTimeBlockMonthView(){
         chipsHtml += `
           <button type="button" class="tbm-event ${task.done ? 'done' : ''}"
                   style="--blk: ${taskColorVar(task.name)}"
-                  data-action="tbm-open-event" data-id="${task.id}" data-date="${dateStr}" title="${escapeAttr(task.name)}">
+                  data-action="tbm-open-event" data-id="${escapeAttr(task.id)}" data-date="${dateStr}" title="${escapeAttr(task.name)}">
             <span class="tbm-event-time">${formatTimeArabic(minutesToHHMM(startMin))}</span>
             <span class="tbm-event-name">${escapeHtml(task.name)}</span>
           </button>
@@ -867,7 +867,7 @@ function renderTimeBlockMonthView(){
     monthSideHtml = `<div class="timeblock-side-empty">${t('schedule.no_unscheduled_recurring')}</div>`;
   } else {
     monthVisibleTasks.forEach(task => {
-      monthSideHtml += `<div class="timeblock-side-item" data-id="${task.id}" data-name="${escapeAttr(task.name)}">${escapeHtml(task.name)}</div>`;
+      monthSideHtml += `<div class="timeblock-side-item" data-id="${escapeAttr(task.id)}" data-name="${escapeAttr(task.name)}">${escapeHtml(task.name)}</div>`;
     });
   }
 
@@ -1083,7 +1083,7 @@ function openTbmMorePop(triggerBtn){
     ${scheduled.map(({ task, startMin }) => `
       <button type="button" class="tbm-more-item ${task.done ? 'done' : ''}"
               style="--blk: ${taskColorVar(task.name)}"
-              data-id="${task.id}" data-date="${dateStr}">
+              data-id="${escapeAttr(task.id)}" data-date="${dateStr}">
         <span class="tbm-event-time">${formatTimeArabic(minutesToHHMM(startMin))}</span>
         <span class="tbm-event-name">${escapeHtml(task.name)}</span>
       </button>
@@ -1202,6 +1202,8 @@ function wireAddTimelineTaskPopup(){
       nameInput.focus();
       return;
     }
+    // مهمة الجدول قد تدخل اسمًا جديدًا — حد المهام الفريدة للمجانية
+    if(!enforceTaskNameLimit(name)) return;
     if(!state.days[addTaskDate]) state.days[addTaskDate] = [];
     const task = {
       id: uid(),

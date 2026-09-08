@@ -4,10 +4,11 @@
 
 import { supabaseClient } from './config.js';
 import { detectTimezone, todayStr, uid } from './utils.js';
-import { LOCAL_BACKUP_KEY, BACKUP_OWNER_KEY, PENDING_SYNC_KEY, THEME_PREF_KEY, showToast, state } from './state.js';
+import { LOCAL_BACKUP_KEY, BACKUP_OWNER_KEY, PENDING_SYNC_KEY, THEME_PREF_KEY, showToast, state, ui } from './state.js';
 import { currentUserId, ensureAuth } from './auth.js';
 import { render } from './render.js';
 import { applyTheme, isValidAccent, resolveLegacyTheme } from './theme.js';
+import { settlePlan } from './plans.js';
 
 const MAX_IMPORT_SIZE = 10 * 1024 * 1024; // حد أقصى لحجم ملف الاستيراد (10 ميجابايت)
 const EXPORT_MARKER = 'nazzam-backup-v1'; // بصمة النسخة الاحتياطية المصدّرة من التطبيق
@@ -71,12 +72,20 @@ function isDayIndex(x){
   return typeof x === 'number' && Number.isInteger(x) && x >= 0 && x <= 6;
 }
 
+// معرّف آمن: حروف/أرقام/`-`/`_` فقط وبطول محدود — أي id جاي من ملف استيراد
+// خارجي وفيه رموز HTML أو اقتباسات بيترفض وبيتولد بداله uid جديد.
+// ده بيمنع كسر الـ attributes (`data-id="..."`) وحقن كود عبر ملف JSON ملعوب فيه.
+// ملحوظة: الـ uid المولّد محليًا (`id_...`) مطابق للنمط ده فبيعدّي عادي.
+function sanitizeId(v){
+  return (typeof v === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(v)) ? v : null;
+}
+
 // عنصر من بنك المهام/المسودات: { id, name, filterId?, type? }
 function sanitizeNamedItem(x){
   if(!isPlainObject(x)) return null;
   const name = typeof x.name === 'string' ? x.name.trim() : '';
   if(!name) return null;
-  const out = { id: (typeof x.id === 'string' && x.id) ? x.id : uid(), name };
+  const out = { id: sanitizeId(x.id) || uid(), name };
   if(typeof x.filterId === 'string' && x.filterId) out.filterId = x.filterId;
   if(x.type === 'habit' || x.type === 'hobby') out.type = x.type;
   return out;
@@ -87,7 +96,7 @@ function sanitizeTemplate(x){
   if(!isPlainObject(x)) return null;
   const name = typeof x.name === 'string' ? x.name.trim() : '';
   if(!name) return null;
-  const out = { id: (typeof x.id === 'string' && x.id) ? x.id : uid(), name };
+  const out = { id: sanitizeId(x.id) || uid(), name };
   if(x.type === 'task' || x.type === 'habit' || x.type === 'hobby') out.type = x.type;
   if(x.priority === 'high' || x.priority === 'medium' || x.priority === 'low') out.priority = x.priority;
   if(typeof x.duration === 'string' && x.duration.trim()) out.duration = x.duration;
@@ -95,7 +104,7 @@ function sanitizeTemplate(x){
   if(Array.isArray(x.subtasks)){
     const subs = x.subtasks
       .filter(s => isPlainObject(s) && typeof s.title === 'string' && s.title.trim())
-      .map(s => ({ id: (typeof s.id === 'string' && s.id) ? s.id : uid(), title: s.title, done: s.done === true }));
+      .map(s => ({ id: sanitizeId(s.id) || uid(), title: s.title, done: s.done === true }));
     if(subs.length) out.subtasks = subs;
   }
   return out;
@@ -106,7 +115,7 @@ function sanitizeTask(t){
   if(!isPlainObject(t)) return null;
   const name = typeof t.name === 'string' ? t.name.trim() : '';
   if(!name) return null;
-  const out = { id: (typeof t.id === 'string' && t.id) ? t.id : uid(), name, done: t.done === true };
+  const out = { id: sanitizeId(t.id) || uid(), name, done: t.done === true };
   if(typeof t.createdAt === 'number' && isFinite(t.createdAt) && t.createdAt >= 0) out.createdAt = Math.floor(t.createdAt);
   if(t.priority === 'high' || t.priority === 'medium' || t.priority === 'low') out.priority = t.priority;
   if(t.type === 'task' || t.type === 'habit' || t.type === 'hobby') out.type = t.type;
@@ -121,7 +130,7 @@ function sanitizeTask(t){
   if(Array.isArray(t.subtasks)){
     const subs = t.subtasks
       .filter(s => isPlainObject(s) && typeof s.title === 'string' && s.title.trim())
-      .map(s => ({ id: (typeof s.id === 'string' && s.id) ? s.id : uid(), title: s.title, done: s.done === true }));
+      .map(s => ({ id: sanitizeId(s.id) || uid(), title: s.title, done: s.done === true }));
     if(subs.length) out.subtasks = subs;
   }
   return out;
@@ -134,7 +143,7 @@ function sanitizeTimer(t){
   if(!name) return null;
   const hasValidStartedAt = (typeof t.startedAt === 'number' && isFinite(t.startedAt));
   const out = {
-    id: (typeof t.id === 'string' && t.id) ? t.id : uid(),
+    id: sanitizeId(t.id) || uid(),
     name,
     mode: t.mode === 'countdown' ? 'countdown' : 'open',
     elapsedMs: (typeof t.elapsedMs === 'number' && isFinite(t.elapsedMs) && t.elapsedMs >= 0) ? t.elapsedMs : 0,
@@ -156,7 +165,7 @@ function sanitizeFilterItem(x){
   if(!isPlainObject(x)) return null;
   const name = typeof x.name === 'string' ? x.name.trim() : '';
   if(!name) return null;
-  return { id: (typeof x.id === 'string' && x.id) ? x.id : uid(), name, pinned: x.pinned === true };
+  return { id: sanitizeId(x.id) || uid(), name, pinned: x.pinned === true };
 }
 
 // مصفوفة عناصر بنمرر كل عنصر على sanitize ونحذف اللي مش صالح
@@ -224,7 +233,7 @@ function sanitizeRecurringMeta(obj){
     if(Array.isArray(m.subtasks)){
       const subs = m.subtasks
         .filter(s => isPlainObject(s) && typeof s.title === 'string' && s.title.trim())
-        .map(s => ({ id: (typeof s.id === 'string' && s.id) ? s.id : uid(), title: s.title, done: s.done === true }));
+        .map(s => ({ id: sanitizeId(s.id) || uid(), title: s.title, done: s.done === true }));
       if(subs.length) meta.subtasks = subs;
     }
     if(Object.keys(meta).length){
@@ -268,6 +277,11 @@ function sanitizeLoadedState(obj){
   out.notificationSettings = sanitizeNotificationSettings(obj.notificationSettings);
   out.templates = sanitizeList(obj.templates, sanitizeTemplate) || [];
   if(obj.plan === 'free' || obj.plan === 'trial' || obj.plan === 'pro') out.plan = obj.plan;
+  // حقول الاشتراك: طابع التجربة رقم موجب فقط، والدورات من قيم معروفة فقط —
+  // أي قيمة غريبة من ملف مستورد تُرفض بدل ما تتلزق في الحالة.
+  if(typeof obj.trialStartedAt === 'number' && isFinite(obj.trialStartedAt) && obj.trialStartedAt >= 0) out.trialStartedAt = Math.floor(obj.trialStartedAt);
+  if(obj.planCycle === 'monthly' || obj.planCycle === 'yearly') out.planCycle = obj.planCycle;
+  if(obj.planPendingCycle === 'monthly' || obj.planPendingCycle === 'yearly') out.planPendingCycle = obj.planPendingCycle;
   if(isPlainObject(obj.pinnedInjected)) out.pinnedInjected = obj.pinnedInjected;
   if(Array.isArray(obj.pinnedTaskNames)){
     const names = obj.pinnedTaskNames.filter(n => typeof n === 'string' && n.trim());
@@ -343,10 +357,18 @@ export function importDataFromFile(file){
       return;
     }
     applyLoadedState(sanitized);
+    // تسوية الخطة على البيانات المستوردة (تجربة منتهية في الملف تسقط لـ free)
+    // قبل الرسم والحفظ عشان الواجهة والمزامنة يشوفوا الخطة النهائية.
+    // markExpired=false: الاستيراد منتصف الجلسة، فلا علَم إقلاع هنا.
+    await settlePlanAfterLoad(false);
     render();
     // حفظ محلي فوري (بالتنسيق المشفّر الحالي) + رفع فوري للسيرفر — الاستيراد
     // بيحتاجهما حالًا ولا ينتظر debounce.
     await saveLocalBackup();
+    // الاستيراد تعديل يستحق المزامنة: أوفلاين flushPendingSave بترجع فورًا من غير
+    // رفع، فبنعلّم pending عشان trySyncPending ترفعه تلقائيًا أول ما النت يرجع.
+    // (من غير السطر ده الاستيراد الأوفلاين كان بيفضل محليًا للأبد.)
+    markPendingSync(true);
     await flushPendingSave();
     showToast('تم استيراد البيانات بنجاح');
   };
@@ -368,6 +390,11 @@ function applyLoadedState(parsed){
   if(parsed.recurringMeta) state.recurringMeta = parsed.recurringMeta;
   if(parsed.templates) state.templates = parsed.templates;
   if(parsed.plan && (parsed.plan === 'free' || parsed.plan === 'trial' || parsed.plan === 'pro')) state.plan = parsed.plan;
+  // حقول الاشتراك: الغائب يُصفّر صراحةً عشان بيانات قديمة/ملف مستورد من غيرها
+  // مايورّثش قيم جلسة سابقة (وإلا تجربة قديمة تمنع تجربة جديدة والعكس).
+  state.trialStartedAt = (typeof parsed.trialStartedAt === 'number') ? parsed.trialStartedAt : null;
+  state.planCycle = (parsed.planCycle === 'monthly' || parsed.planCycle === 'yearly') ? parsed.planCycle : null;
+  state.planPendingCycle = (parsed.planPendingCycle === 'monthly' || parsed.planPendingCycle === 'yearly') ? parsed.planPendingCycle : null;
   if(parsed.notificationSettings){
     state.notificationSettings = Object.assign({}, state.notificationSettings, parsed.notificationSettings);
   }
@@ -562,6 +589,25 @@ async function loadLocalBackup(){
   }
 }
 
+// تسوية الخطة بعد أي تحميل/استيراد (تجربة تلقائية للجدد + سقوط المنتهية).
+// تُستدعى من loadData (كل مساراتها) ومن importDataFromFile — مكان واحد فقط.
+// trialJustExpired يُضبط فقط في مسار الإقلاع (loadData) — أما الاستيراد
+// في منتصف الجلسة فيمرر markExpired=false عشان علَم قديم مايفتحش المودال
+// في إقلاع لاحق لسبب عفا عليه الزمن.
+async function settlePlanAfterLoad(markExpired = true){
+  const res = settlePlan();
+  // علَم لمرة واحدة يلتقطه main.js بعد الإقلاع ليفتح الترقية تلقائيًا
+  // في لحظة الانتهاء (أهم لحظة تحويل) — ثم يُصفَّر هناك.
+  ui.trialJustExpired = markExpired && res.expired;
+  if(res.expired) showToast('انتهت فترتك التجريبية — انتقلت إلى الخطة المجانية');
+  else if(res.trialJustStarted) showToast('بدأت تجربتك المجانية — كل المميزات مفتوحة لمدة ٧ أيام');
+  if(res.changed){
+    await saveLocalBackup();
+    markPendingSync(true);
+    await flushPendingSave();
+  }
+}
+
 // بنعلّم إن فيه تعديل محلي لسه ماوصلش للسيرفر (pending=true)، أو إننا لحقنا نرفعه (pending=false)
 function markPendingSync(pending){
   try{
@@ -626,6 +672,7 @@ export async function loadData(skipAuthCheck){
     // وإلا جلسة وهمية فاضية ممكن تتلصق فوق بيانات الحساب الحقيقي عند أول دخول بعدها.
     showToast('تعذّر الاتصال بالخادم، يعمل التطبيق حاليًا بنسخة محلية');
     if(getBackupOwner()) applyLoadedState(await loadLocalBackup());
+    await settlePlanAfterLoad();
     return;
   }
 
@@ -644,6 +691,7 @@ export async function loadData(skipAuthCheck){
     if(backup && getBackupOwner() === currentUserId){
       applyLoadedState(backup);
       await trySyncPending();
+      await settlePlanAfterLoad();
       return;
     }
     markPendingSync(false);
@@ -677,6 +725,7 @@ export async function loadData(skipAuthCheck){
     console.warn('تعذر التحميل من Supabase، هنستخدم النسخة المحلية:', e);
     applyLoadedState(await loadLocalBackup());
   }
+  await settlePlanAfterLoad();
 }
 
 let saveInFlight = false;

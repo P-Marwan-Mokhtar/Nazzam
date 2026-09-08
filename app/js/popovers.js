@@ -2,7 +2,7 @@
 // popovers.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { escapeHtml, parseDurationToMinutes } from './utils.js';
+import { escapeAttr, escapeHtml, parseDurationToMinutes } from './utils.js';
 import { formatHM } from './i18n.js';
 import { state, ui } from './state.js';
 import { render } from './render.js';
@@ -12,13 +12,13 @@ export function buildFilterDropdown(id, selectedId){
   const options = [{ id: '', name: t('c.no_filter') }, ...state.filters];
   const current = options.find(o => o.id === (selectedId || '')) || options[0];
   return `
-    <div class="custom-select" id="${id}" data-value="${selectedId || ''}">
+    <div class="custom-select" id="${id}" data-value="${escapeAttr(selectedId || '')}">
       <button type="button" class="custom-select-trigger">
         <span class="custom-select-label">${escapeHtml(current.name)}</span>
         <span class="material-icons custom-select-caret">expand_more</span>
       </button>
       <div class="custom-select-menu">
-        ${options.map(o => `<div class="custom-select-option ${o.id === (selectedId || '') ? 'active' : ''}" data-value="${o.id}">${escapeHtml(o.name)}</div>`).join('')}
+        ${options.map(o => `<div class="custom-select-option ${o.id === (selectedId || '') ? 'active' : ''}" data-value="${escapeAttr(o.id)}">${escapeHtml(o.name)}</div>`).join('')}
       </div>
     </div>
   `;

@@ -187,13 +187,13 @@ async function checkAndFireTaskReminders(){
   if(tasks.length === 0) return;
   const nowHM = currentHHMM();
   let changed = false;
-  tasks.forEach(t => {
-    if(nowHM >= t.remindAt){
-      fireLocalNotification(t('notif.reminder_title'), t('notif.reminder_body', {name: t.name}));
+  tasks.forEach(task => {
+    if(nowHM >= task.remindAt){
+      fireLocalNotification(t('notif.reminder_title'), t('notif.reminder_body', {name: task.name}));
       // التذكير خلص شغله — بنشيله من المهمة عشان جرس التذكير يقفل أوتوماتيك
       // وميستنىش المستخدم يشيله يدويًا.
-      delete t.remindAt;
-      delete t.reminded;
+      delete task.remindAt;
+      delete task.reminded;
       changed = true;
     }
   });

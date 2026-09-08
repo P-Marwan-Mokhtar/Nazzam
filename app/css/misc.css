@@ -126,6 +126,66 @@
 .onboarding-next-btn:hover {
   filter: brightness(1.08);
 }
+.onboarding-step-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+/* رقائق الأهداف (خطوة التخصيص) */
+.goal-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  width: 100%;
+}
+.goal-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1.5px solid var(--paper-line);
+  border-radius: 999px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.goal-chip .material-icons {
+  font-size: 19px;
+  color: var(--ink-soft);
+}
+.goal-chip .goal-chip-check {
+  display: none;
+  font-size: 18px;
+  color: var(--pen);
+}
+.goal-chip.active {
+  border-color: var(--pen);
+  background: var(--pen-soft);
+}
+.goal-chip.active .material-icons:first-child {
+  color: var(--pen);
+}
+.goal-chip.active .goal-chip-check {
+  display: inline;
+}
+
+/* أزرار خطوة التنبيهات */
+.notify-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  width: 100%;
+}
+.notify-actions .onboarding-next-btn {
+  width: 100%;
+}
 
 /* ===== تخطيط موحّد: خلفية واحدة (نقاط) والـ components أقسام فوقها ===== */
 .header-card,

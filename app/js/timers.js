@@ -2,12 +2,13 @@
 // timers.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { addDays, emptyStateHtml, escapeHtml, formatElapsed, getElapsedMs, parseDurationToMinutes, todayStr, uid } from './utils.js';
+import { addDays, emptyStateHtml, escapeAttr, escapeHtml, formatElapsed, getElapsedMs, parseDurationToMinutes, todayStr, uid } from './utils.js';
 import { t, formatHM, formatMinutes } from './i18n.js';
 import { MISSED_POPUP_SHOWN_KEY, TASK_TYPES, showToast, showUndoToast, state, timerPanelEl, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
 import { openTimerDurationPicker } from './wheelPicker.js';
+import { enforceTimerNameLimit } from './upgrade.js';
 
 export function getDayTimers(date){
   if(!state.timers[date]) state.timers[date] = [];
@@ -100,22 +101,22 @@ function buildTimerItemHtml(timer){
   const remainingMs = isCountdown ? Math.max(0, timer.targetMs - getElapsedMs(timer)) : getElapsedMs(timer);
   const ended = isCountdown && remainingMs <= 0;
   return `
-    <div class="timer-item ${timer.running ? 'running' : ''} ${ended ? 'countdown-ended' : ''}" data-timer-id="${timer.id}">
+    <div class="timer-item ${timer.running ? 'running' : ''} ${ended ? 'countdown-ended' : ''}" data-timer-id="${escapeAttr(timer.id)}">
       <div class="timer-item-top">
         <span class="timer-name">${escapeHtml(timer.name)}</span>
         ${isCountdown ? `<span class="timer-target-label"><span class="material-icons">hourglass_bottom</span>${formatHM(timer.targetMs)}</span>` : ``}
         <span class="timer-status-dot"></span>
       </div>
       <div class="timer-item-bottom">
-        <span class="timer-clock" id="timerClock_${timer.id}">${formatElapsed(remainingMs)}</span>
+        <span class="timer-clock" id="timerClock_${escapeAttr(timer.id)}">${formatElapsed(remainingMs)}</span>
         <div class="timer-controls">
-          <button class="timer-btn timer-focus-btn" data-action="focus-timer" data-id="${timer.id}" title="${t('focusmode.open')}">
+          <button class="timer-btn timer-focus-btn" data-action="focus-timer" data-id="${escapeAttr(timer.id)}" title="${t('focusmode.open')}">
             <span class="material-icons">center_focus_strong</span>
           </button>
-          <button class="timer-btn timer-toggle-btn ${timer.running ? 'is-running' : ''}" data-action="toggle-timer" data-id="${timer.id}" title="${timer.running ? t('timer.toggle_pause') : t('timer.toggle_play')}">
+          <button class="timer-btn timer-toggle-btn ${timer.running ? 'is-running' : ''}" data-action="toggle-timer" data-id="${escapeAttr(timer.id)}" title="${timer.running ? t('timer.toggle_pause') : t('timer.toggle_play')}">
             <span class="material-icons">${timer.running ? 'pause' : 'play_arrow'}</span>
           </button>
-          <button class="timer-btn timer-delete-btn" data-action="delete-timer" data-id="${timer.id}" title="${t('timer.delete')}">
+          <button class="timer-btn timer-delete-btn" data-action="delete-timer" data-id="${escapeAttr(timer.id)}" title="${t('timer.delete')}">
             <span class="material-icons">delete</span>
           </button>
         </div>
@@ -287,6 +288,8 @@ export function renderTimerPanel(){
     newInput.value = '';
     if(kind === 'open'){
       if(await resumeExistingTimer(name, 'open')) return;
+      // مؤقت جديد باسم جديد — حد المؤقتات المحفوظة للمجانية
+      if(!enforceTimerNameLimit(name)) return;
       ensureAudioContext();
       getDayTimers(ui.selectedDate).push({
         id: uid(),

@@ -18,7 +18,7 @@ import { formatTimeArabic, openTimePicker } from './timePicker.js';
 import { startOpenTimer } from './timers.js';
 import { closeSmartLists, smartTab, smartToggleDone, smartToDay } from './smartLists.js';
 import { openTemplateReplaceConfirm } from './templates.js';
-import { gateFree } from './upgrade.js';
+import { gateFree, enforceLimit, enforceTaskNameLimit } from './upgrade.js';
 
 // قايمة المزيد بتاع مهمة اليوم: بتفتح لتحت لو فيه مساحة كفاية تحت الزرار،
 // وبتفتح لفوق لو مفيش (عشان ميزيدش سكرول الصفحة)
@@ -90,6 +90,8 @@ export function openReminderPicker(taskId){
         showToast(t('notif.permission_toast'));
         return;
       }
+      // تذكير جديد (إعادة ضبط الموجود لا تستهلك حدًا) — حد التذكيرات النشطة للمجانية
+      if(!task.remindAt && !enforceLimit('activeReminders')) return;
       task.remindAt = hhmm;
       task.reminded = false;
       await saveData();
@@ -293,7 +295,7 @@ const contentActions = {
     ui.openClockChoiceTaskId = null;
     render();
     afterRender(() => {
-      const badge = document.querySelector(`.task-inline-meta [data-action="toggle-duration-popover"][data-id="${id}"]`);
+      const badge = document.querySelector(`.task-inline-meta [data-action="toggle-duration-popover"][data-id="${CSS.escape(id)}"]`);
       if(badge) showDurationPopover(id, badge);
     });
   },
@@ -423,6 +425,8 @@ const contentActions = {
     await saveData();
   },
   'open-task-stats': async (btn) => {
+    // تفاصيل المهمة جزء من statsFull — الأسبوع وحده هو المجاني
+    if(!gateFree('statsFull')) return;
     const name = btn.dataset.name;
     if(!name) return;
     ui.openKeywordMoreId = null;
@@ -483,6 +487,12 @@ const contentActions = {
         if(state.recurringTasks && state.recurringTasks[oldName]){
           state.recurringTasks[newName] = state.recurringTasks[oldName];
           delete state.recurringTasks[oldName];
+        }
+        // مواصفات التكرار (نوع/أولوية/مدة/ملاحظة/مهام فرعية) بتترحّل مع الاسم
+        // الجديد — من غير كده النسخ المتكررة الجاية كانت بتتولد فاضية.
+        if(state.recurringMeta && state.recurringMeta[oldName]){
+          state.recurringMeta[newName] = state.recurringMeta[oldName];
+          delete state.recurringMeta[oldName];
         }
         // بنعيد التسمية على كل نسخ المهمة عبر كل الأيام (غير نسخ الجدول الزمني المكررة)
         // عشان النسخ اللي اتحقنت تلقائيًا في الأيام الجاية بالاسم القديم ميتسابش ليها
@@ -694,6 +704,11 @@ const contentActions = {
             state.recurringTasks[val] = state.recurringTasks[oldName];
             delete state.recurringTasks[oldName];
           }
+          // مواصفات التكرار بتترحّل مع الاسم الجديد (نفس منطق save-task-edit).
+          if(state.recurringMeta && state.recurringMeta[oldName]){
+            state.recurringMeta[val] = state.recurringMeta[oldName];
+            delete state.recurringMeta[oldName];
+          }
           Object.keys(state.days).forEach(dateStr => {
             state.days[dateStr] = state.days[dateStr].map(t => {
               if(t.name === oldName && !t._dupOf) return { ...t, name: val };
@@ -839,6 +854,8 @@ export function attachEvents(){
   if(addKeywordBtn && newKeywordInput){
     const handleAdd = async () => {
       if(!readPendingName()) return;
+      // حد المهام الفريدة للخطة المجانية — الأسماء الموجودة تمر دائمًا
+      if(!enforceTaskNameLimit(ui.pendingTaskName)) return;
       if(ui.pendingTaskPlace === 'today'){
         const added = addPendingTaskToDay();
         showToast(added ? t('toast.today_only') : t('toast.exists_today'));
@@ -872,6 +889,8 @@ export function attachEvents(){
         showToast(t('toast.filter_exists'));
         return;
       }
+      // حد الأقسام للخطة المجانية
+      if(!enforceLimit('filters')) return;
       state.filters.push({ id: uid(), name: val, pinned: false });
       newFilterInput.value = '';
       render();
@@ -907,11 +926,11 @@ export function attachEvents(){
     if (inp) {
       inp.onkeydown = (e) => {
         if (e.key === 'Enter') {
-          const btn = document.querySelector(`button[data-action="save-task-edit"][data-id="${ui.editingTaskId}"]`);
+          const btn = document.querySelector(`button[data-action="save-task-edit"][data-id="${CSS.escape(ui.editingTaskId)}"]`);
           if (btn) btn.click();
         }
         if (e.key === 'Escape') {
-          const btn = document.querySelector(`button[data-action="cancel-task-edit"][data-id="${ui.editingTaskId}"]`);
+          const btn = document.querySelector(`button[data-action="cancel-task-edit"][data-id="${CSS.escape(ui.editingTaskId)}"]`);
           if (btn) btn.click();
         }
       };

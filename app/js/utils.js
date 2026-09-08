@@ -16,7 +16,9 @@ export function toISO(d){
 }
 
 export function fromISO(s){
+  if(typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return new Date(NaN);
   const [y,m,d] = s.split('-').map(Number);
+  if(m < 1 || m > 12 || d < 1 || d > 31) return new Date(NaN);
   return new Date(y, m-1, d);
 }
 
@@ -78,7 +80,8 @@ export function parseDurationToMinutes(str){
 }
 
 export function timeStrToMinutes(hhmm){
-  if(!hhmm) return null;
+  if(typeof hhmm !== 'string') return null;
+  if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(hhmm)) return null;
   const [h, m] = hhmm.split(':').map(Number);
   if(Number.isNaN(h) || Number.isNaN(m)) return null;
   return h * 60 + m;
@@ -149,13 +152,14 @@ export function normalizeArabic(str){
 }
 
 export function highlightMatch(name, query){
-  const q = query.trim();
-  if(!q) return escapeHtml(name);
-  const idx = name.toLowerCase().indexOf(q.toLowerCase());
-  if(idx === -1) return escapeHtml(name);
-  const before = escapeHtml(name.slice(0, idx));
-  const match = escapeHtml(name.slice(idx, idx + q.length));
-  const after = escapeHtml(name.slice(idx + q.length));
+  const n = String(name ?? '');
+  const q = String(query ?? '').trim();
+  if(!q) return escapeHtml(n);
+  const idx = n.toLowerCase().indexOf(q.toLowerCase());
+  if(idx === -1) return escapeHtml(n);
+  const before = escapeHtml(n.slice(0, idx));
+  const match = escapeHtml(n.slice(idx, idx + q.length));
+  const after = escapeHtml(n.slice(idx + q.length));
   return `${before}<mark class="search-highlight">${match}</mark>${after}`;
 }
 
@@ -169,7 +173,7 @@ export function reorderArrayById(arr, draggedId, targetId){
 }
 
 export function escapeHtml(s){
-  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 export function escapeAttr(s){ return escapeHtml(s); }
@@ -179,7 +183,7 @@ export function escapeAttr(s){ return escapeHtml(s); }
 // نفس منطق أي زرار تاني في contentEl (contentActions في events.js).
 export function emptyStateHtml(icon, title, hint, animate = true, action = null){
   const actionBtn = action ? `
-    <button type="button" class="empty-state-btn" data-action="${action.dataAction}" ${action.filterId !== undefined ? `data-filter-id="${action.filterId}"` : ''}>
+    <button type="button" class="empty-state-btn" data-action="${action.dataAction}" ${action.filterId !== undefined ? `data-filter-id="${escapeAttr(action.filterId)}"` : ''}>
       ${action.icon ? `<span class="material-icons">${action.icon}</span>` : ''}${escapeHtml(action.label)}
     </button>
   ` : '';

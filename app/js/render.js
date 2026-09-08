@@ -82,8 +82,14 @@ export function ensureDayMaterialized(dateStr){
           state.days[dateStr].push(recTask);
         }
         recurringAdded = true;
+        dayPinned[rName] = true;
+      } else if(state.days[dateStr].some(t => t.name === rName && t._fromRecurrence)){
+        // نسخة متكررة موجودة فعلًا جنب مهمة يدوية بنفس الاسم — القرار محسوم،
+        // بنعلّم عشان التقييم ميتكررش مع كل render.
+        dayPinned[rName] = true;
       }
-      dayPinned[rName] = true;
+      // لو فيه مهمة يدوية بس (من غير نسخة متكررة)، بنسيب اليوم من غير قرار عمدًا:
+      // لو المستخدم مسح اليدوية بعدين، التكرار يتحقن تلقائيًا في أول render تالي.
     });
     if(recurringAdded) saveData();
   }
@@ -254,31 +260,31 @@ export function render(){
     sortedFilters.forEach(f => {
       if(ui.editingFilterId === f.id){
         html += `
-          <span class="filter-chip-outer" data-wrap-id="${f.id}">
+          <span class="filter-chip-outer" data-wrap-id="${escapeAttr(f.id)}">
             <span class="filter-chip-edit">
               <input class="edit-input filter-edit-input" id="editFilterInput" value="${escapeAttr(f.name)}" maxlength="40" />
-              <button class="icon-btn" data-action="save-filter" data-id="${f.id}" title="${t('c.save')}"><span class="material-icons">check</span></button>
+              <button class="icon-btn" data-action="save-filter" data-id="${escapeAttr(f.id)}" title="${t('c.save')}"><span class="material-icons">check</span></button>
               <button class="icon-btn" data-action="cancel-filter" title="${t('c.cancel')}"><span class="material-icons">close</span></button>
             </span>
           </span>
         `;
       } else {
         html += `
-          <span class="filter-chip-outer" data-wrap-id="${f.id}">
+          <span class="filter-chip-outer" data-wrap-id="${escapeAttr(f.id)}">
             <span class="filter-chip-wrap ${ui.activeFilter === f.id ? 'active' : ''}">
-              <button class="filter-chip-label" data-action="select-filter" data-filter-id="${f.id}">${f.pinned ? '<span class="material-icons filter-pin-icon">push_pin</span>' : ''}${escapeHtml(f.name)}</button>
-              <button class="filter-chip-more" data-action="toggle-filter-more" data-id="${f.id}" title="${t('c.more')}">
+              <button class="filter-chip-label" data-action="select-filter" data-filter-id="${escapeAttr(f.id)}">${f.pinned ? '<span class="material-icons filter-pin-icon">push_pin</span>' : ''}${escapeHtml(f.name)}</button>
+              <button class="filter-chip-more" data-action="toggle-filter-more" data-id="${escapeAttr(f.id)}" title="${t('c.more')}">
                 <span class="material-icons">more_vert</span>
               </button>
             </span>
             <div class="filter-more-dropdown ${ui.openFilterMoreId === f.id ? 'open' : ''}">
-              <button class="tmd-btn" data-action="toggle-pin-filter" data-id="${f.id}">
+              <button class="tmd-btn" data-action="toggle-pin-filter" data-id="${escapeAttr(f.id)}">
                 <span class="material-icons">push_pin</span><span>${f.pinned ? t('bank.unpin') : t('bank.pin')}</span>
               </button>
-              <button class="tmd-btn" data-action="edit-filter" data-id="${f.id}">
+              <button class="tmd-btn" data-action="edit-filter" data-id="${escapeAttr(f.id)}">
                 <span class="material-icons">edit</span><span>${t('c.edit')}</span>
               </button>
-              <button class="tmd-btn delete" data-action="delete-filter" data-id="${f.id}">
+              <button class="tmd-btn delete" data-action="delete-filter" data-id="${escapeAttr(f.id)}">
                 <span class="material-icons">delete</span><span>${t('c.delete')}</span>
               </button>
             </div>
@@ -326,32 +332,32 @@ export function render(){
           const alreadyAdded = dayTasks.some(t => t.name === k.name);
           const kStreak = computeTaskStreak(k.name);
           html += `
-            <div class="keyword-row" draggable="true" data-drag-id="${k.id}">
+            <div class="keyword-row" draggable="true" data-drag-id="${escapeAttr(k.id)}">
               <button class="add-to-day-btn ${alreadyAdded ? 'added' : ''}" data-action="add-to-day" data-name="${escapeAttr(k.name)}" ${alreadyAdded ? 'disabled' : ''} title="${alreadyAdded ? t('task.added_already') : t('task.add_to_today')}"><span class="material-icons">${alreadyAdded ? 'check' : 'add'}</span></button>
               <div class="keyword-main">
                 <span class="keyword-name" title="${escapeAttr(k.name)}">${highlightMatch(k.name, ui.bankSearchQuery)}</span>
                 ${kStreak >= 2 ? `<span class="keyword-streak" title="${kStreak} ${kStreak === 1 ? t('bank.streak_day') : t('bank.streak_days')} ${t('day.of_streak')}"><span class="material-icons">local_fire_department</span>${kStreak}</span>` : ``}
                 <div class="keyword-icons">
                   <div class="task-more-menu-wrap">
-                    <button class="icon-btn task-more-btn" data-action="toggle-keyword-more" data-id="${k.id}" title="${t('c.more')}">
+                    <button class="icon-btn task-more-btn" data-action="toggle-keyword-more" data-id="${escapeAttr(k.id)}" title="${t('c.more')}">
                       <span class="material-icons">more_vert</span>
                     </button>
                     <div class="task-more-dropdown ${ui.openKeywordMoreId === k.id ? 'open' : ''}">
-                      <button class="tmd-btn" data-action="edit-keyword" data-id="${k.id}">
+                      <button class="tmd-btn" data-action="edit-keyword" data-id="${escapeAttr(k.id)}">
                         <span class="material-icons">edit</span><span>${t('c.edit')}</span>
                       </button>
                       <div class="type-submenu-wrap">
-                        <button class="tmd-btn type-btn" data-action="toggle-keyword-type-popover" data-id="${k.id}" title="${t('c.type')}">
+                        <button class="tmd-btn type-btn" data-action="toggle-keyword-type-popover" data-id="${escapeAttr(k.id)}" title="${t('c.type')}">
                           <span class="material-icons">${TASK_TYPES[k.type || 'task'].icon}</span><span>${t('task.type_' + (k.type || 'task'))}</span>
                         </button>
                         <div class="priority-popover type-popover ${ui.openKeywordTypePopoverTaskId === k.id ? 'open' : ''}">
-                          <button class="priority-choice-btn tc-task ${k.type === 'task' || !k.type ? 'selected' : ''}" data-action="set-keyword-type" data-choice="task" data-id="${k.id}" type="button">
+                          <button class="priority-choice-btn tc-task ${k.type === 'task' || !k.type ? 'selected' : ''}" data-action="set-keyword-type" data-choice="task" data-id="${escapeAttr(k.id)}" type="button">
                             <span class="material-icons">assignment</span>${t('task.type_task')}
                           </button>
-                          <button class="priority-choice-btn tc-habit ${k.type === 'habit' ? 'selected' : ''}" data-action="set-keyword-type" data-choice="habit" data-id="${k.id}" type="button">
+                          <button class="priority-choice-btn tc-habit ${k.type === 'habit' ? 'selected' : ''}" data-action="set-keyword-type" data-choice="habit" data-id="${escapeAttr(k.id)}" type="button">
                             <span class="material-icons">loop</span>${t('task.type_habit')}
                           </button>
-                          <button class="priority-choice-btn tc-hobby ${k.type === 'hobby' ? 'selected' : ''}" data-action="set-keyword-type" data-choice="hobby" data-id="${k.id}" type="button">
+                          <button class="priority-choice-btn tc-hobby ${k.type === 'hobby' ? 'selected' : ''}" data-action="set-keyword-type" data-choice="hobby" data-id="${escapeAttr(k.id)}" type="button">
                             <span class="material-icons">palette</span>${t('task.type_hobby')}
                           </button>
                         </div>
@@ -359,7 +365,7 @@ export function render(){
                       <button class="tmd-btn" data-action="open-task-stats" data-name="${escapeAttr(k.name)}">
                         <span class="material-icons">insights</span><span>${t('bank.stats')}</span>
                       </button>
-                      <button class="tmd-btn" data-action="delete-keyword" data-id="${k.id}">
+                      <button class="tmd-btn" data-action="delete-keyword" data-id="${escapeAttr(k.id)}">
                         <span class="material-icons">archive</span><span>${t('bank.draft')}</span>
                       </button>
                     </div>
@@ -506,18 +512,18 @@ export function render(){
     html += `<div class="task-list view-${ui.dayViewMode === 'list' ? 'list' : 'chips'}">`;
     visibleDayTasks.forEach((task, idx) => {
       html += `
-        <div class="task-row ${task.done?'done':''} ${(!task.done && isPastDay)?'missed':''} ${task.priority ? 'priority-' + task.priority : ''} ${entrance ? 'task-in' : ''}" ${entrance ? `style="--task-order:${idx}"` : ''} draggable="true" data-drag-id="${task.id}">
+        <div class="task-row ${task.done?'done':''} ${(!task.done && isPastDay)?'missed':''} ${task.priority ? 'priority-' + task.priority : ''} ${entrance ? 'task-in' : ''}" ${entrance ? `style="--task-order:${idx}"` : ''} draggable="true" data-drag-id="${escapeAttr(task.id)}">
           ${ui.editingTaskId === task.id ? `
             <div class="inline-edit-wrap">
-              <input type="text" id="inlineEditInput_${task.id}" class="inline-edit-input" value="${escapeAttr(task.name)}" />
-              <button class="icon-btn" data-action="save-task-edit" data-id="${task.id}" title="${t('c.save')}"><span class="material-icons">check</span></button>
-              <button class="icon-btn" data-action="cancel-task-edit" data-id="${task.id}" title="${t('c.cancel')}"><span class="material-icons">close</span></button>
+              <input type="text" id="inlineEditInput_${escapeAttr(task.id)}" class="inline-edit-input" value="${escapeAttr(task.name)}" />
+              <button class="icon-btn" data-action="save-task-edit" data-id="${escapeAttr(task.id)}" title="${t('c.save')}"><span class="material-icons">check</span></button>
+              <button class="icon-btn" data-action="cancel-task-edit" data-id="${escapeAttr(task.id)}" title="${t('c.cancel')}"><span class="material-icons">close</span></button>
             </div>
           ` : `
-            <button type="button" class="task-check" data-action="toggle-task" data-id="${task.id}" title="${task.done ? t('task.undo_done') : t('task.mark_done')}">
+            <button type="button" class="task-check" data-action="toggle-task" data-id="${escapeAttr(task.id)}" title="${task.done ? t('task.undo_done') : t('task.mark_done')}">
               <span class="material-icons">${task.done ? 'check_circle' : 'radio_button_unchecked'}</span>
             </button>
-            <button type="button" class="task-name-btn" data-action="open-task-details" data-id="${task.id}" title="${t('task.view_details')}">
+            <button type="button" class="task-name-btn" data-action="open-task-details" data-id="${escapeAttr(task.id)}" title="${t('task.view_details')}">
               <span class="task-type-icon task-type-${task.type || 'task'}" title="${t('task.type_' + (task.type || 'task'))}"><span class="material-icons">${TASK_TYPES[task.type || 'task'].icon}</span></span>
               <span class="task-name">${escapeHtml(task.name)}</span>
             </button>
@@ -525,88 +531,88 @@ export function render(){
           ${ui.dayViewMode === 'list' ? `
             <span class="task-inline-meta">
               ${task.startTime || task.duration || task.actualDuration ? `
-                <button type="button" class="task-inline-chip duration-badge" data-action="toggle-duration-popover" data-id="${task.id}" title="${t('task.duration')}">
+                <button type="button" class="task-inline-chip duration-badge" data-action="toggle-duration-popover" data-id="${escapeAttr(task.id)}" title="${t('task.duration')}">
                   <span class="material-icons">schedule</span>
                 </button>
               ` : ``}
               ${task.subtasks && task.subtasks.length ? `
-                <button type="button" class="task-inline-chip" data-action="open-subtasks" data-id="${task.id}" title="${t('task.subtasks')}">
+                <button type="button" class="task-inline-chip" data-action="open-subtasks" data-id="${escapeAttr(task.id)}" title="${t('task.subtasks')}">
                   <span class="material-icons">account_tree</span>
                   <span dir="ltr">${task.subtasks.filter(s => s.done).length}/${task.subtasks.length}</span>
                 </button>
               ` : ``}
               ${task.note ? `
-                <button type="button" class="task-inline-chip" data-action="open-task-note" data-id="${task.id}" title="${t('task.note_tooltip_has')}">
+                <button type="button" class="task-inline-chip" data-action="open-task-note" data-id="${escapeAttr(task.id)}" title="${t('task.note_tooltip_has')}">
                   <span class="material-icons">sticky_note_2</span>
                 </button>
               ` : ``}
             </span>
           ` : ``}
           ${task.remindAt ? `
-            <button class="clock-btn reminder-row-btn" data-action="open-reminder" data-id="${task.id}" title="${t('task.reminder_with', {time: formatTimeArabic(task.remindAt)})} — ${t('task.reminder_set')}">
+            <button class="clock-btn reminder-row-btn" data-action="open-reminder" data-id="${escapeAttr(task.id)}" title="${t('task.reminder_with', {time: formatTimeArabic(task.remindAt)})} — ${t('task.reminder_set')}">
               <span class="material-icons">notifications_active</span>
             </button>
           ` : ``}
           <div class="task-more-menu-wrap ${ui.openTaskMoreUp ? 'open-up' : ''}" data-wrap-id="${task.id}">
-              <button class="icon-btn task-more-btn" data-action="toggle-task-more" data-id="${task.id}" title="${t('c.more')}">
+              <button class="icon-btn task-more-btn" data-action="toggle-task-more" data-id="${escapeAttr(task.id)}" title="${t('c.more')}">
                 <span class="material-icons">more_vert</span>
               </button>
               <div class="task-more-dropdown ${ui.openTaskMoreId === task.id ? 'open' : ''}"${ui.openTaskMoreId === task.id && listScrollActive && ui.openTaskMorePos ? ` style="top:${ui.openTaskMorePos.top}px;left:${ui.openTaskMorePos.left}px;"` : ''}>
-                <button class="tmd-btn" data-action="edit-task-today" data-id="${task.id}">
+                <button class="tmd-btn" data-action="edit-task-today" data-id="${escapeAttr(task.id)}">
                   <span class="material-icons">edit</span><span>${t('c.edit')}</span>
                 </button>
-                <button class="tmd-btn ${task.note ? 'active' : ''}" data-action="open-task-note" data-id="${task.id}" title="${task.note ? t('task.note_tooltip_has') : t('task.note_tooltip_none')}">
+                <button class="tmd-btn ${task.note ? 'active' : ''}" data-action="open-task-note" data-id="${escapeAttr(task.id)}" title="${task.note ? t('task.note_tooltip_has') : t('task.note_tooltip_none')}">
                   <span class="material-icons">${task.note ? 'sticky_note_2' : 'note_add'}</span><span>${t('task.note')}</span>
                 </button>
                 <div class="time-choice-submenu-wrap">
-                  <button class="tmd-btn" data-action="toggle-duration" data-id="${task.id}" title="${t('task.duration_title')}">
+                  <button class="tmd-btn" data-action="toggle-duration" data-id="${escapeAttr(task.id)}" title="${t('task.duration_title')}">
                     <span class="material-icons">schedule</span><span>${t('task.duration')}</span>
                   </button>
                   <div class="clock-choice-popover ${ui.openClockChoiceTaskId === task.id ? 'open' : ''}">
-                    <button class="clock-choice-btn" data-action="clock-choice-target" data-id="${task.id}" type="button">
+                    <button class="clock-choice-btn" data-action="clock-choice-target" data-id="${escapeAttr(task.id)}" type="button">
                       <span class="material-icons">flag</span>${t('task.goal')}
                     </button>
-                    <button class="clock-choice-btn" data-action="clock-choice-actual" data-id="${task.id}" type="button">
+                    <button class="clock-choice-btn" data-action="clock-choice-actual" data-id="${escapeAttr(task.id)}" type="button">
                       <span class="material-icons">timelapse</span>${t('task.actual')}
                     </button>
-                    <button class="clock-choice-btn" data-action="clock-choice-timer" data-id="${task.id}" type="button">
+                    <button class="clock-choice-btn" data-action="clock-choice-timer" data-id="${escapeAttr(task.id)}" type="button">
                       <span class="material-icons">play_circle_outline</span>${t('task.timer')}
                     </button>
                   </div>
                 </div>
-                <button class="tmd-btn" data-action="open-subtasks" data-id="${task.id}">
+                <button class="tmd-btn" data-action="open-subtasks" data-id="${escapeAttr(task.id)}">
                   <span class="material-icons">account_tree</span><span>${t('task.subtasks')}</span>
                 </button>
-                <button class="tmd-btn ${(state.recurringTasks && state.recurringTasks[task.name] && state.recurringTasks[task.name].length) ? 'active' : ''}" data-action="open-recurrence" data-id="${task.id}">
+                <button class="tmd-btn ${(state.recurringTasks && state.recurringTasks[task.name] && state.recurringTasks[task.name].length) ? 'active' : ''}" data-action="open-recurrence" data-id="${escapeAttr(task.id)}">
                   <span class="material-icons">event_repeat</span>
                   <span>${t('task.recurrence_move')}</span>
                 </button>
                 <div class="priority-submenu-wrap">
-                  <button class="tmd-btn priority-btn ${task.priority ? 'priority-' + task.priority : ''}" data-action="toggle-priority-popover" data-id="${task.id}" title="${task.priority ? t('task.priority_label', {level: t('task.priority_' + task.priority)}) : t('task.priority_unset')}">
+                  <button class="tmd-btn priority-btn ${task.priority ? 'priority-' + task.priority : ''}" data-action="toggle-priority-popover" data-id="${escapeAttr(task.id)}" title="${task.priority ? t('task.priority_label', {level: t('task.priority_' + task.priority)}) : t('task.priority_unset')}">
                     <span class="material-icons">flag</span><span>${t('c.priority')}</span>
                   </button>
                   <div class="priority-popover ${ui.openPriorityPopoverTaskId === task.id ? 'open' : ''}">
-                    <button class="priority-choice-btn priority-choice-high ${task.priority === 'high' ? 'selected' : ''}" data-action="set-task-priority" data-choice="high" data-id="${task.id}" type="button">
+                    <button class="priority-choice-btn priority-choice-high ${task.priority === 'high' ? 'selected' : ''}" data-action="set-task-priority" data-choice="high" data-id="${escapeAttr(task.id)}" type="button">
                       <span class="material-icons">flag</span>${t('task.priority_high')}
                     </button>
-                    <button class="priority-choice-btn priority-choice-medium ${task.priority === 'medium' ? 'selected' : ''}" data-action="set-task-priority" data-choice="medium" data-id="${task.id}" type="button">
+                    <button class="priority-choice-btn priority-choice-medium ${task.priority === 'medium' ? 'selected' : ''}" data-action="set-task-priority" data-choice="medium" data-id="${escapeAttr(task.id)}" type="button">
                       <span class="material-icons">flag</span>${t('task.priority_medium')}
                     </button>
-                    <button class="priority-choice-btn priority-choice-low ${task.priority === 'low' ? 'selected' : ''}" data-action="set-task-priority" data-choice="low" data-id="${task.id}" type="button">
+                    <button class="priority-choice-btn priority-choice-low ${task.priority === 'low' ? 'selected' : ''}" data-action="set-task-priority" data-choice="low" data-id="${escapeAttr(task.id)}" type="button">
                       <span class="material-icons">flag</span>${t('task.priority_low')}
                     </button>
-                    <button class="priority-choice-btn priority-choice-none ${!task.priority ? 'selected' : ''}" data-action="set-task-priority" data-choice="" data-id="${task.id}" type="button">
+                    <button class="priority-choice-btn priority-choice-none ${!task.priority ? 'selected' : ''}" data-action="set-task-priority" data-choice="" data-id="${escapeAttr(task.id)}" type="button">
                       <span class="material-icons">outlined_flag</span>${t('c.none')}
                     </button>
                   </div>
                 </div>
-                <button class="tmd-btn ${task.remindAt ? 'active' : ''}" data-action="open-reminder" data-id="${task.id}" title="${task.remindAt ? t('task.reminder_set') : t('task.reminder_unset')}">
+                <button class="tmd-btn ${task.remindAt ? 'active' : ''}" data-action="open-reminder" data-id="${escapeAttr(task.id)}" title="${task.remindAt ? t('task.reminder_set') : t('task.reminder_unset')}">
                   <span class="material-icons">${task.remindAt ? 'notifications_active' : 'notifications_none'}</span><span>${task.remindAt ? t('task.reminder_with', {time: formatTimeArabic(task.remindAt)}) : t('task.reminder')}</span>
                 </button>
-                <button class="tmd-btn" data-action="save-as-template" data-id="${task.id}">
+                <button class="tmd-btn" data-action="save-as-template" data-id="${escapeAttr(task.id)}">
                   <span class="material-icons">content_copy</span><span>${t('template.save')}</span>
                 </button>
-                <button class="tmd-btn delete" data-action="delete-task" data-id="${task.id}">
+                <button class="tmd-btn delete" data-action="delete-task" data-id="${escapeAttr(task.id)}">
                   <span class="material-icons">delete</span><span>${t('c.delete')}</span>
                 </button>
               </div>

@@ -2,11 +2,12 @@
 // drafts.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { emptyStateHtml, highlightMatch, normalizeArabic } from './utils.js';
+import { emptyStateHtml, escapeAttr, highlightMatch, normalizeArabic } from './utils.js';
 import { showToast, showUndoToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
 import { t } from './i18n.js';
+import { enforceTaskNameLimit } from './upgrade.js';
 
 // ممنوع تكرار الأسماء في البنك حتى باختلاف الحركات (أ/إ/ا ...) — يُستخدم
 // عند استرجاع مسودة من قائمة المسودات لمنع خلق مهام مكررة بالاسم.
@@ -37,8 +38,8 @@ export function renderDraftsModal(){
       <div style="background: var(--paper); border: 1px solid var(--paper-line); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
         <span style="font-size: 0.92rem; font-weight: 700; color: var(--ink);">${highlightMatch(d.name, ui.draftsSearchQuery)}</span>
         <div style="display: flex; gap: 6px;">
-          <button class="icon-btn" data-action="restore-draft" data-id="${d.id}" title="${t('drafts.restore')}"><span class="material-icons">unarchive</span></button>
-          <button class="icon-btn" data-action="delete-draft-permanently" data-id="${d.id}" title="${t('drafts.delete_permanent')}"><span class="material-icons">delete_forever</span></button>
+          <button class="icon-btn" data-action="restore-draft" data-id="${escapeAttr(d.id)}" title="${t('drafts.restore')}"><span class="material-icons">unarchive</span></button>
+          <button class="icon-btn" data-action="delete-draft-permanently" data-id="${escapeAttr(d.id)}" title="${t('drafts.delete_permanent')}"><span class="material-icons">delete_forever</span></button>
         </div>
       </div>
     `;
@@ -56,6 +57,8 @@ export function renderDraftsModal(){
             showToast(t('toast.duplicate_in_bank'));
             return;
           }
+          // الاستعادة تُرجع اسمًا للبنك — حد المهام الفريدة للمجانية
+          if(!enforceTaskNameLimit(draftItem.name)) return;
           state.drafts = state.drafts.filter(x => x.id !== id);
           state.keywords.push(draftItem);
           renderDraftsModal();

@@ -957,29 +957,40 @@
         <div class="modal-body onboarding-body">
           <div class="onboarding-step active" data-step="0">
             <div class="onboarding-illust">
-              <span class="material-icons">playlist_add_check</span>
+              <span class="material-icons">waving_hand</span>
             </div>
-            <h3 class="onboarding-step-title" data-i18n="onboard.step1_title">اكتب المهمة مرة واحدة</h3>
-            <p class="onboarding-step-text" data-i18n="onboard.step1_text">ضع مهامك الثابتة في بنك المهام، وأضفها إلى مهام اليوم بضغطة واحدة دون الحاجة إلى إعادة كتابتها كل مرة.</p>
+            <h3 class="onboarding-step-title" data-i18n="onboard.welcome">أهلاً بك في نظّم</h3>
+            <p class="onboarding-step-text" data-i18n="onboard.welcome_text">بنك مهامك، جدولك الزمني، مؤقتاتك وإحصائياتك — كل أدوات يومك في مكان واحد.</p>
           </div>
           <div class="onboarding-step" data-step="1">
-            <div class="onboarding-illust">
-              <span class="material-icons">event_repeat</span>
-            </div>
-            <h3 class="onboarding-step-title" data-i18n="onboard.step2_title">رتب يومك وكرّر مهامك</h3>
-            <p class="onboarding-step-text" data-i18n="onboard.step2_text">اضبط المهام المتكررة باليوم أو بالأسبوع، وحدد لكل مهمة موعدها ومدتها وأهميتها، وستُرتب مهام اليوم تلقائيًا مع متابعة إنجازك.</p>
+            <h3 class="onboarding-step-title" data-i18n="onboard.goal_title">ما هدفك الأساسي؟</h3>
+            <p class="onboarding-step-text" data-i18n="onboard.goal_text">اختر ما يناسبك وسنجهز لك مهام بداية في بنك المهام.</p>
+            <div class="goal-chips" id="onboardingGoals"></div>
+            <p class="onboarding-step-hint" data-i18n="onboard.goal_multi">يمكنك اختيار أكثر من هدف</p>
           </div>
           <div class="onboarding-step" data-step="2">
             <div class="onboarding-illust">
-              <span class="material-icons">timer</span>
+              <span class="material-icons">workspace_premium</span>
             </div>
-            <h3 class="onboarding-step-title" data-i18n="onboard.step3_title">ركّز باستخدام المؤقتات</h3>
-            <p class="onboarding-step-text" data-i18n="onboard.step3_text">سجّل وقتك عبر مؤقت مفتوح أو مؤقت بمدة محددة من لوحة مؤقتات اليوم، أو ابدأ مؤقتًا باسم أي مهمة من قائمة الوقت الخاصة بها، وتابع إجمالي وقتك الفعلي في الإحصائيات.</p>
+            <h3 class="onboarding-step-title" data-i18n="onboard.trial_title">تجربتك الاحترافية بدأت</h3>
+            <p class="onboarding-step-text" id="onboardingTrialText"></p>
+          </div>
+          <div class="onboarding-step" data-step="3">
+            <div class="onboarding-illust">
+              <span class="material-icons">notifications_active</span>
+            </div>
+            <h3 class="onboarding-step-title" data-i18n="onboard.notify_title">فعّل التذكيرات</h3>
+            <p class="onboarding-step-text" data-i18n="onboard.notify_text">سنذكّرك بمهامك وملخص صباحك ومراجعة مسائك — في وقتها تمامًا.</p>
+            <div class="notify-actions">
+              <button class="onboarding-next-btn" id="onboardingEnableBtn" type="button"><span data-i18n="onboard.enable">تفعيل التنبيهات</span></button>
+              <button class="onboarding-skip-btn" id="onboardingLaterBtn" type="button"><span data-i18n="onboard.later">لاحقًا</span></button>
+            </div>
           </div>
           <div class="onboarding-dots">
             <span class="onboarding-dot active" data-dot="0"></span>
             <span class="onboarding-dot" data-dot="1"></span>
             <span class="onboarding-dot" data-dot="2"></span>
+            <span class="onboarding-dot" data-dot="3"></span>
           </div>
         </div>
         <div class="onboarding-footer">

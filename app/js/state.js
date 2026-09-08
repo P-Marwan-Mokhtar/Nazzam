@@ -46,12 +46,15 @@ export let state = {
     lastMorningFiredDate: null,
     lastEveningFiredDate: null
   },
-  plan: 'pro', // خطة المستخدم: 'free' | 'trial' | 'pro' — حاليًا 'pro' (مرحلة البيتا قبل إطلاق الدفع مع Tap، لما الاشتراك يشتغل على السيرفر هو اللي بيحددها)
+  plan: 'pro', // خطة المستخدم: 'free' | 'trial' | 'pro' — الحسابات الجديدة تبدأ trial تلقائيًا (plans.js)، والبيتا القدامى pro
+  planCycle: null, // دورة الاشتراك المدفوع: null | 'monthly' | 'yearly' — يضبطها السيرفر عند تفعيل الدفع
+  planPendingCycle: null, // نية اشتراك مسجلة من شاشة الترقية (واجهة فقط قبل Tap): null | 'monthly' | 'yearly'
+  trialStartedAt: null, // طابع بدء التجربة المجانية (ms) — يُضبط مرة واحدة فقط ولا يُمسح أبدًا (تجربة واحدة للأبد)
   templates: [], // قوالب المهام: { id, name, type, priority, duration, note } — ميزة Pro
 };
 
 export function resetState(){
-  state = { lang: 'ar', keywords: [], drafts: [], notes: {}, days: {}, filters: [], timers: {}, darkMode: false, accentLight: 'blue', accentDark: 'blue', recurringTasks: {}, recurringMeta: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null }, plan: 'pro', templates: [] };
+  state = { lang: 'ar', keywords: [], drafts: [], notes: {}, days: {}, filters: [], timers: {}, darkMode: false, accentLight: 'blue', accentDark: 'blue', recurringTasks: {}, recurringMeta: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null }, plan: 'pro', planCycle: null, planPendingCycle: null, trialStartedAt: null, templates: [] };
 }
 
 export const ui = {
@@ -136,6 +139,7 @@ export const ui = {
   templatesSearchQuery: '',  // نص البحث الحالي في مودال القوالب الجاهزة
   editingTemplateId: null,  // معرّف القالب اللي بيتعمله edit في المودال
   replaceConfirm: null,  // بيانات popup التأكيد عند استبدال قالب مكرر — null | { kind, name, templateId }
+  trialJustExpired: false,  // علَم لمرة واحدة: التسوية أسقطت التجربة للتو — main.js يفتح الترقية تلقائيًا ثم يصفّره
 };
 
 export const timerPanelEl = document.getElementById('timerPanel');

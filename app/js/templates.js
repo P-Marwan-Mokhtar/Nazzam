@@ -2,12 +2,12 @@
 // templates.js — مودال القوالب الجاهزة (ميزة Pro): بحث + تعديل + حذف + إضافة لليوم
 // ============================================================
 
-import { emptyStateHtml, escapeHtml, highlightMatch, normalizeArabic, uid } from './utils.js';
+import { emptyStateHtml, escapeAttr, escapeHtml, highlightMatch, normalizeArabic, uid } from './utils.js';
 import { showToast, showUndoToast, state, ui, TASK_TYPES } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
 import { t } from './i18n.js';
-import { gateFree } from './upgrade.js';
+import { gateFree, enforceTaskNameLimit } from './upgrade.js';
 
 // القوالب (state.templates) بتتشال/تتعدل هنا بس — العرض مش جزء من بنك المهام.
 // بنرسم القايمة برة الـ contentEl فالـ contentActions (اللي مربوطة بـ contentEl) مش
@@ -49,9 +49,9 @@ export function renderTemplatesModal(){
           <span class="material-icons tc-${tp.type || 'task'}">${TASK_TYPES[tp.type || 'task'].icon}</span>
           <span class="template-modal-name" title="${escapeHtml(tp.name)}">${highlightMatch(tp.name, ui.templatesSearchQuery)}</span>
           <div class="template-modal-actions">
-            <button class="icon-btn" data-id="${tp.id}" data-action="add" title="${t('task.add_to_today')}"><span class="material-icons">add</span></button>
-            <button class="icon-btn" data-id="${tp.id}" data-action="edit" title="${t('c.edit')}"><span class="material-icons">edit</span></button>
-            <button class="icon-btn" data-id="${tp.id}" data-action="delete" title="${t('template.remove')}"><span class="material-icons">delete_outline</span></button>
+            <button class="icon-btn" data-id="${escapeAttr(tp.id)}" data-action="add" title="${t('task.add_to_today')}"><span class="material-icons">add</span></button>
+            <button class="icon-btn" data-id="${escapeAttr(tp.id)}" data-action="edit" title="${t('c.edit')}"><span class="material-icons">edit</span></button>
+            <button class="icon-btn" data-id="${escapeAttr(tp.id)}" data-action="delete" title="${t('template.remove')}"><span class="material-icons">delete_outline</span></button>
           </div>
         </div>
       `;
@@ -82,6 +82,8 @@ export function renderTemplatesModal(){
           return;
         }
         const newTask = { id: uid(), name: tpl.name, done: false, createdAt: Date.now() };
+        // القالب قد يدخل اسمًا جديدًا — حد المهام الفريدة للمجانية
+        if(!enforceTaskNameLimit(newTask.name)) return;
         if(tpl.type) newTask.type = tpl.type;
         if(tpl.priority) newTask.priority = tpl.priority;
         if(tpl.duration) newTask.duration = tpl.duration;

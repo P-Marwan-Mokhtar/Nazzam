@@ -2,7 +2,7 @@
 // subtasks.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { emptyStateHtml, escapeHtml, uid } from './utils.js';
+import { emptyStateHtml, escapeAttr, escapeHtml, uid } from './utils.js';
 import { state, ui } from './state.js';
 import { t } from './i18n.js';
 import { saveData } from './dataStore.js';
@@ -37,16 +37,16 @@ function renderSubtasksList() {
   let html = '';
   task.subtasks.forEach(st => {
     html += `
-      <div class="subtask-item ${st.done ? 'done' : ''}" data-id="${st.id}">
+      <div class="subtask-item ${st.done ? 'done' : ''}" data-id="${escapeAttr(st.id)}">
         <div class="subtask-item-left">
-          <input type="checkbox" class="subtask-checkbox" data-id="${st.id}" ${st.done ? 'checked' : ''} />
-          <span class="subtask-title" data-id="${st.id}">${escapeHtml(st.title)}</span>
+          <input type="checkbox" class="subtask-checkbox" data-id="${escapeAttr(st.id)}" ${st.done ? 'checked' : ''} />
+          <span class="subtask-title" data-id="${escapeAttr(st.id)}">${escapeHtml(st.title)}</span>
         </div>
         <div class="subtask-item-actions">
-          <button class="subtask-edit-btn" data-id="${st.id}" title="${t('c.edit')}">
+          <button class="subtask-edit-btn" data-id="${escapeAttr(st.id)}" title="${t('c.edit')}">
             <span class="material-icons">edit</span>
           </button>
-          <button class="subtask-delete-btn" data-id="${st.id}" title="${t('c.delete')}">
+          <button class="subtask-delete-btn" data-id="${escapeAttr(st.id)}" title="${t('c.delete')}">
             <span class="material-icons">close</span>
           </button>
         </div>
@@ -98,7 +98,7 @@ function startEditSubtask(task, stId) {
   const st = task.subtasks.find(x => x.id === stId);
   if (!st) return;
 
-  const itemEl = document.querySelector(`.subtask-item[data-id="${stId}"]`);
+  const itemEl = document.querySelector(`.subtask-item[data-id="${CSS.escape(stId)}"]`);
   const titleEl = itemEl ? itemEl.querySelector('.subtask-title') : null;
   if (!itemEl || !titleEl) return;
 

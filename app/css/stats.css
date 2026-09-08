@@ -192,6 +192,12 @@
   background: var(--pen);
   color: #fff;
 }
+.stats-range-btn .stats-lock-icon {
+  font-size: 15px;
+  vertical-align: -3px;
+  margin-inline-end: 3px;
+  opacity: 0.8;
+}
 
 /* ===== مقارنة بالأسبوع/اليوم السابق (grid cards) ===== */
 .compare-section-title {
