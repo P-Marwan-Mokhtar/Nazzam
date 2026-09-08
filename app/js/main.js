@@ -4,7 +4,7 @@
 
 import { showToast, state, ui } from './state.js';
 import { initLang, getLang, applyStaticTranslations } from './i18n.js';
-import { closeAccountModal, ensureAuth, openAccountModal, openAuthGate } from './auth.js';
+import { closeAccountModal, ensureAuth, openAuthGate } from './auth.js';
 import { closeCalendarModal, openCalendarModal } from './calendar.js';
 import { importDataFromFile, loadData, saveData, trySyncPending } from './dataStore.js';
 import { closeDraftsModal, openDraftsModal, renderDraftsModal } from './drafts.js';

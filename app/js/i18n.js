@@ -1225,8 +1225,6 @@ en: {
   'auth.logout_error': 'An error occurred during sign out',
   'auth.logout_pending': 'You have unsaved changes that have not been uploaded to the server yet — wait for the connection to be restored so they sync before signing out, so nothing is lost',
   'auth.success_login': 'Successfully signed in with Google',
-  'account.wipe_data': 'Delete my data',
-  'account.wipe_confirm': 'All your tasks and data will be permanently deleted (your plan, language and theme are kept). Are you sure?',
   'account.delete_account': 'Delete my account',
   'account.delete_confirm1': 'Your account will be permanently deleted: your email and all your data on all devices. This cannot be undone. Continue?',
   'account.delete_confirm2': 'Final confirmation: press OK to permanently delete the account.',
