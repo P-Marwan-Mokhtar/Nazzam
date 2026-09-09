@@ -282,6 +282,9 @@ function sanitizeLoadedState(obj){
   if(typeof obj.trialStartedAt === 'number' && isFinite(obj.trialStartedAt) && obj.trialStartedAt >= 0) out.trialStartedAt = Math.floor(obj.trialStartedAt);
   if(obj.planCycle === 'monthly' || obj.planCycle === 'yearly') out.planCycle = obj.planCycle;
   if(obj.planPendingCycle === 'monthly' || obj.planPendingCycle === 'yearly') out.planPendingCycle = obj.planPendingCycle;
+  // ختم مراجعة النسخة (monotonic ms) — للمقارنة "الأحدث يكسب" عند التحميل
+  // بين المحلية والسيرفر. قيمة مفقودة/تالفة = 0 (الأقدم دائمًا).
+  if(typeof obj._savedAt === 'number' && isFinite(obj._savedAt) && obj._savedAt >= 0) out._savedAt = Math.floor(obj._savedAt);
   if(isPlainObject(obj.pinnedInjected)) out.pinnedInjected = obj.pinnedInjected;
   if(Array.isArray(obj.pinnedTaskNames)){
     const names = obj.pinnedTaskNames.filter(n => typeof n === 'string' && n.trim());
@@ -500,7 +503,19 @@ function decodeB64(str){
 
 const ENCRYPTED_PREFIX = 'nz1:';
 
+// آخر مراجعة ملف رأيناها مكتوبة فعلًا (لرصد كتابة تبويب آخر عبر storage event).
+// تُضبط بعد كل حفظ محلي ناجح وبعد كل تحميل — والمقارنة دائمًا ملف-ضد-ملف.
+let lastSeenFileRev = 0;
+
+function trackFileRev(){
+  lastSeenFileRev = (typeof state._savedAt === 'number' && isFinite(state._savedAt)) ? state._savedAt : 0;
+}
+
 async function saveLocalBackup(){
+  // ختم المراجعة قبل التسلسل: كل نسخة محفوظة تحمل لحظة كتابتها، فيقدر التحميل
+  // لاحقًا يختار الأحدث بين المحلية والسيرفر بدل الثقة العمياء في السيرفر
+  // (اللي كانت بترجع نسخة صباحية عتيقة فوق شغل اليوم كله بعد أي ريستارت).
+  state._savedAt = Date.now();
   try{
     const plaintext = JSON.stringify(state);
     const keyOwner = currentUserId || getBackupOwner();
@@ -520,15 +535,29 @@ async function saveLocalBackup(){
         }
       }
       localStorage.setItem(LOCAL_BACKUP_KEY, plaintext);
+      trackFileRev();
     } else {
       const key = await deriveLocalKey();
       const iv = crypto.getRandomValues(new Uint8Array(12));
       const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(plaintext));
       localStorage.setItem(LOCAL_BACKUP_KEY, ENCRYPTED_PREFIX + encodeB64(iv) + '.' + encodeB64(ct));
+      trackFileRev();
     }
   }catch(e){
     console.warn('تعذّر تشفير النسخة المحلية، سيتم الحفظ بدون تشفير:', e);
-    try{ localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(state)); }catch(_){}
+    try{
+      localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(state));
+      trackFileRev();
+    }catch(_){
+      // فشل الكتابة المحلية تمامًا (امتلاء التخزين غالبًا) — كان يُبتلع بصمت
+      // فتستمر الجلسة وكأن الحفظ يعمل ثم يضيع كل شيء عند الإغلاق.
+      // تنبيه واحد صريح بدل الصمت (نفس أسلوب warnedNoServer).
+      if(!warnedQuota){
+        warnedQuota = true;
+        console.error('فشلت الكتابة في localStorage (غالبًا امتلاء):', e);
+        showToast('مساحة التخزين ممتلئة — احفظ نسخة احتياطية فورًا فقد تضيع بياناتك بعد الإغلاق');
+      }
+    }
     return;
   }
   // علم سريع للوضع الداكن في مفتاح منفصل غير مشفّر — الـ <head> بيقراه فورًا
@@ -587,6 +616,97 @@ async function loadLocalBackup(){
     console.warn('تعذّر فك تشفير النسخة المحلية:', e);
     return null;
   }
+}
+
+// ============================================================
+// حرّاس البقاء متعدد التبويبات والإغلاق المفاجئ
+// ============================================================
+// المشكلة الأصلية: تبويب قديم (مفتوح من الصباح) يرفع نسخة عتيقة فوق شغل
+// اليوم كله (آخر كتابة تكسب)، أو ريستارت يضيع ما بعد آخر حفظ ناجح.
+// الحل ثلاثي: (1) كتابة طوارئ متزامنة عند الإغلاق، (2) تبنّي نسخة التبويب
+// الآخر لو أحدث ونحن عاطلون، (3) الأحدث يكسب عند الإقلاع (تحت في loadData).
+
+// كتابة طوارئ متزامنة 100% (لحدث pagehide — لا مجال لانتظار التشفير).
+// مقايضة معلنة: تُكتب واضحة لضمان عدم الضياع، وأول saveData تالٍ يعيد
+// تشفيرها. loadLocalBackup يقرأ الواضح كمسار قديم مدعوم.
+function saveLocalBackupSync(){
+  try{
+    state._savedAt = Date.now();
+    localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(state));
+    lastSeenFileRev = state._savedAt;
+    markPendingSync(true); // تُرفع عند أول إقلاع تالٍ
+    try{ localStorage.setItem(THEME_PREF_KEY, state.darkMode ? 'dark' : 'light'); }catch(_){}
+  }catch(e){ /* اللحظة الأخيرة — لا شيء نفعله */ }
+}
+
+// قراءة مراجعة نسخة خام (مشفرة أو واضحة) بدون تطبيقها — للمقارنة فقط
+async function peekBackupRev(raw){
+  try{
+    if(!raw) return 0;
+    let obj = null;
+    if(!raw.startsWith(ENCRYPTED_PREFIX)){
+      obj = JSON.parse(raw);
+    } else if(typeof crypto !== 'undefined' && crypto.subtle){
+      const payload = raw.slice(ENCRYPTED_PREFIX.length);
+      const dot = payload.indexOf('.');
+      if(dot === -1) return 0;
+      const iv = decodeB64(payload.slice(0, dot));
+      const ct = decodeB64(payload.slice(dot + 1));
+      const owners = [];
+      if(currentUserId) owners.push(currentUserId);
+      if(getBackupOwner()) owners.push(getBackupOwner());
+      const tried = new Set();
+      for(const owner of owners){
+        if(tried.has(owner)) continue;
+        tried.add(owner);
+        try{
+          const key = await deriveLocalKeyFor(owner);
+          const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+          obj = JSON.parse(new TextDecoder().decode(pt));
+          break;
+        }catch(_){}
+      }
+    }
+    const rev = obj && typeof obj._savedAt === 'number' ? obj._savedAt : 0;
+    return isFinite(rev) ? rev : 0;
+  }catch(e){ return 0; }
+}
+
+// تبنّي نسخة تبويب آخر لو أحدث — بشرطين: لا شغل معلق لدينا (debounce/in-flight)
+// يعني ذاكرتنا أقدم فعلًا، لا أننا مشغولون بكتابة أحدث لم تصل للملف بعد.
+async function adoptNewerExternalBackup(raw){
+  try{
+    if(saveTimer !== null || saveInFlight) return;
+    const extRev = await peekBackupRev(raw);
+    if(!(extRev > lastSeenFileRev)) return;
+    const parsed = await loadLocalBackup();
+    if(!parsed) return;
+    const fileRev = (typeof parsed._savedAt === 'number') ? parsed._savedAt : 0;
+    if(!(fileRev > lastSeenFileRev)) return;
+    applyLoadedState(parsed);
+    trackFileRev();
+    render();
+  }catch(e){ /* التبني فشل — نبقى على حالتنا */ }
+}
+
+// تسليح الحرّاس (يُستدعى مرة من main.js عند الإقلاع):
+// - visibilitychange(hidden): تفريغ كامل غير متزامن (ينجح غالبًا).
+// - pagehide: كتابة طوارئ متزامنة (تنجح دائمًا إن أمكنت الكتابة أصلًا).
+// - storage: التقاط كتابة تبويب آخر.
+export function armPersistenceGuards(){
+  if(typeof window === 'undefined' || typeof document === 'undefined') return;
+  document.addEventListener('visibilitychange', () => {
+    if(document.visibilityState === 'hidden'){
+      try{ saveData().catch(() => {}); }catch(e){}
+    }
+  });
+  window.addEventListener('pagehide', () => {
+    saveLocalBackupSync();
+  });
+  window.addEventListener('storage', (e) => {
+    if(!e || e.key !== LOCAL_BACKUP_KEY || e.newValue == null) return;
+    adoptNewerExternalBackup(e.newValue).catch(() => {});
+  });
 }
 
 // تسوية الخطة بعد أي تحميل/استيراد (تجربة تلقائية للجدد + سقوط المنتهية).
@@ -672,6 +792,7 @@ export async function loadData(skipAuthCheck){
     // وإلا جلسة وهمية فاضية ممكن تتلصق فوق بيانات الحساب الحقيقي عند أول دخول بعدها.
     showToast('تعذّر الاتصال بالخادم، يعمل التطبيق حاليًا بنسخة محلية');
     if(getBackupOwner()) applyLoadedState(await loadLocalBackup());
+    trackFileRev();
     await settlePlanAfterLoad();
     return;
   }
@@ -690,6 +811,7 @@ export async function loadData(skipAuthCheck){
     // غير كده السيرفر هو المرجع الآمن ومنمسحش العلم ونكمل تحميل عادي
     if(backup && getBackupOwner() === currentUserId){
       applyLoadedState(backup);
+      trackFileRev();
       await trySyncPending();
       await settlePlanAfterLoad();
       return;
@@ -711,8 +833,24 @@ export async function loadData(skipAuthCheck){
       // عشان التعديلات اللي لسه متسجّلتش (وكانت هتترفع فوق سطر الـ upsert ده)
       // متبقاش عالقة ترفع نسخة متآكلة؛ وبعد التطبيق بنحفظ نسخة نظيفة مطابقة.
       cancelPendingSave();
-      applyLoadedState(data.data);
-      await saveLocalBackup(); // حدّث النسخة المحلية بأحدث بيانات من السيرفر
+      // الأحدث يكسب (ملف-ضد-ملف): لو النسخة المحلية أحدث من نسخة السيرفر
+      // (تبويب قديم رفع نسخة صباحية عتيقة، أو آخر حفظ محلي لم يُرفع)، نعتمد
+      // المحلية ونرفعها فورًا بدل ما نكتب العتيقة فوقها ونضيع شغل اليوم.
+      // ملحوظة صدق: المقارنة بساعات الأجهزة — دقيقة لنفس الجهاز (الحالة
+      // المُبلغ عنها)، وتقريبية بين جهازين بساعتين مختلفتين.
+      const serverRev = (data.data && typeof data.data._savedAt === 'number' && isFinite(data.data._savedAt)) ? data.data._savedAt : 0;
+      const local = await loadLocalBackup();
+      const localRev = (local && typeof local._savedAt === 'number' && isFinite(local._savedAt)) ? local._savedAt : 0;
+      if(local && localRev > serverRev && getBackupOwner() === currentUserId){
+        applyLoadedState(local);
+        trackFileRev();
+        markPendingSync(true);
+        await flushPendingSave(); // ارفع الأحدث فورًا بدل انتظار الـ debounce
+      } else {
+        applyLoadedState(data.data);
+        await saveLocalBackup(); // حدّث النسخة المحلية بأحدث بيانات من السيرفر
+        trackFileRev();
+      }
     } else {
       // أول مرة للمستخدم ده: لو عنده بيانات قديمة في localStorage، ارفعها لـ Supabase
       const legacy = await loadLocalBackup();
@@ -724,6 +862,7 @@ export async function loadData(skipAuthCheck){
   }catch(e){
     console.warn('تعذر التحميل من Supabase، هنستخدم النسخة المحلية:', e);
     applyLoadedState(await loadLocalBackup());
+    trackFileRev();
   }
   await settlePlanAfterLoad();
 }
@@ -735,6 +874,9 @@ let savePending = false;
 // نعرض تحذير "الحفظ محلي فقط" مرة واحدة بس طوال فترة الانقطاع، بدل ما يتكرر
  // مع كل عملية حفظ (كل تفاعل بيلوح توست جديد مزعج). بنصفّره لما المزامنة تنجح.
 let warnedNoServer = false;
+
+// تحذير امتلاء التخزين المحلي — مرة واحدة أيضًا (الصمت هنا = ضياع صامت للبيانات)
+let warnedQuota = false;
 
 // مؤقّت الـ debounce: بيجمع كل الاستدعاءات المتتالية لـ saveData خلال فترة قصيرة
 // ويرسل آخر حالة للسيرفر مرة واحدة بس — بدل ما يبعت upsert لكل تفاعل (كتابة اسم
@@ -750,10 +892,14 @@ async function flushPendingSave(){
     return;
   }
   saveInFlight = true;
+  // مراجعة اللقطة المرفوعة: لو تقدّمت الحالة (حفظ أحدث) أثناء الرفع، نجاح
+  // هذا الرفع القديم لا يُسقط علَم التعليق — وإلا إقلاع تالٍ يثق في نسخة
+  // السيرفر العتيقة فوق المحلية الأحدث (الضياع المُبلغ عنه).
+  const flushRev = (typeof state._savedAt === 'number') ? state._savedAt : 0;
   try{
     await pushToServer();
     warnedNoServer = false;
-    markPendingSync(false); // اتزامنت بنجاح، مبقتش معلّقة
+    if(state._savedAt === flushRev) markPendingSync(false); // اتزامنت بنجاح، مبقتش معلّقة
   }catch(e){
     console.error('Save failed:', e);
     showToast('تعذّر الحفظ على الخادم، تم الحفظ محليًا وسيتم إعادة المحاولة تلقائيًا عند توفر الاتصال');

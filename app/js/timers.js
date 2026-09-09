@@ -442,12 +442,17 @@ export async function resumeExistingTimer(name, mode){
   return true;
 }
 
+// آخر حفظ دوري للمؤقتات الشغالة (يُستخدم داخل tickTimers تحت)
+let lastTimerPersist = 0;
+
 export function tickTimers(){
   const timers = state.timers[ui.selectedDate];
   let timersChanged = false;
+  let anyRunning = false;
   if(timers){
     timers.forEach(timer => {
       if(!timer.running) return;
+      anyRunning = true;
       const elapsed = getElapsedMs(timer);
       const el = document.getElementById(`timerClock_${timer.id}`);
       if(timer.mode === 'countdown'){
@@ -473,6 +478,15 @@ export function tickTimers(){
   }
 
   if(timersChanged) saveData();
+
+  // مؤقت شغال = ذاكرة حية (elapsed يُحسب من startedAt ولا يُكتب في الحالة).
+  // حفظ دوري كل 30 ثانية أثناء التشغيل يحدّد سقف الخسارة عند ريستارت مفاجئ
+  // بدل فقدان جلسة اليوم كاملة — رخيص (debounce يجمعها أصلًا).
+  const nowTick = Date.now();
+  if(anyRunning && nowTick - lastTimerPersist > 30000){
+    lastTimerPersist = nowTick;
+    saveData();
+  }
 
   // وضع التركيز بيتحدث مع كل ثانية (الدالة بتتجاهل نفسها لو الـ overlay مقفول)
   renderFocusMode();

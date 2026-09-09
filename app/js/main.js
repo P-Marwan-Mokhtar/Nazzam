@@ -6,7 +6,7 @@ import { showToast, state, ui } from './state.js';
 import { initLang, getLang, applyStaticTranslations } from './i18n.js';
 import { closeAccountModal, ensureAuth, openAuthGate } from './auth.js';
 import { closeCalendarModal, openCalendarModal } from './calendar.js';
-import { importDataFromFile, loadData, saveData, trySyncPending } from './dataStore.js';
+import { importDataFromFile, loadData, saveData, trySyncPending, armPersistenceGuards } from './dataStore.js';
 import { closeDraftsModal, openDraftsModal, renderDraftsModal } from './drafts.js';
 import { closeNotificationSettingsModal, registerServiceWorker, startNotificationScheduler } from './notifications.js';
 import { hideClockChoicePopover, hideDurationPopover } from './popovers.js';
@@ -91,6 +91,10 @@ async function startApp(){
   // تفاعل مع التطبيق (زي إضافة مهمة) في اللحظة دي، كان بيتسجّل فوق الحالة الفاضية
   // ويمسح بياناته الحقيقية بدل ما يضيف عليها.
   await loadData(true); // init عمل ensureAuth لتوّه — منعيدش فحص الجلسة تاني هنا
+
+  // حرّاس البقاء: تفريغ عند إخفاء الصفحة + كتابة طوارئ عند الإغلاق +
+  // التقاط كتابة تبويب آخر — ضد ضياع البيانات عند الريستارت المفاجئ.
+  armPersistenceGuards();
 
   initLang(); // تهيئة اللغة المحفوظة
   applyTheme(); // نطبّق الثيم المحفوظ (themeName + darkMode) قبل أول رسم
