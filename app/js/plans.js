@@ -159,7 +159,6 @@ export function settlePlan(){
       state.plan = 'pro';
       return { changed: true, expired: false, trialJustStarted: false };
     }
-  if(state.plan === 'trial' && !isTrialActive()){
     state.plan = 'free';
     return { changed: true, expired: true, trialJustStarted: false };
   }
