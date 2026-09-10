@@ -12,6 +12,9 @@ let turnstileWidgetId = null;
 
 let turnstileResolve = null;
 
+// تحدٍ Turnstile واحد في كل لحظة — المتصل الثاني يشارك نفس الوعد (single-flight)
+let turnstileInflight = null;
+
 export let currentUserId = null;
 
 export let currentUserEmail = null;
@@ -91,6 +94,16 @@ function updateAccountIcon(){
 }
 
 function getTurnstileToken(){
+  // تحدٍ واحد فقط في كل لحظة (single-flight): نقرة مزدوجة/إرسال مكرر كانا
+  // يشغّلان تحدّيين متزامنين على نفس الأداة (remove أثناء التنفيذ) فيرد
+  // Turnstile بالخطأ 110200 ويفشل الاثنان برسالة "تعذّر التحقق الأمني" —
+  // المتصل الثاني يشارك نفس الوعد بدل تحدٍ جديد متصادم.
+  if(turnstileInflight) return turnstileInflight;
+  turnstileInflight = runTurnstileChallenge().finally(() => { turnstileInflight = null; });
+  return turnstileInflight;
+}
+
+function runTurnstileChallenge(){
   return new Promise((resolve) => {
     // لو الـ Turnstile مش متاح أو الـ site key مش مضبوط، نرفض بشكل صريح (fail-closed)
     // بدل ما نعدّي من غير تحدي. ده يمنع تجاوز الحماية الآلي لمجرد غلق السكربت.
@@ -101,6 +114,8 @@ function getTurnstileToken(){
     }
     const container = document.getElementById('turnstileContainer');
     if(!container){ resolve({ ok: false, token: null, reason: 'unavailable' }); return; }
+    // حاوية من نافذة أُعيد رسمها (خطأ سابق) — تحدٍ عليها ميت حتمًا
+    if(!container.isConnected){ resolve({ ok: false, token: null, reason: 'unavailable' }); return; }
 
     // ملاحظة: مفيش "مهلة بتسلّم null صامت" عشان مانخلّيش إرسال طلب الدخول بدون
     // توكن captcha (اللي كان بيسمح بتجاوز آلي للدور الدفاعي). لو الـ widget علّق،
@@ -139,7 +154,11 @@ function getTurnstileToken(){
       'error-callback': () => failWith('error'),
       'expired-callback': () => failWith('expired')
     });
-    turnstile.execute(turnstileWidgetId);
+    try{
+      turnstile.execute(turnstileWidgetId);
+    }catch(e){
+      failWith('error');
+    }
   });
 }
 
@@ -436,7 +455,7 @@ function renderAuthGate(errorMsg){
       <div class="account-switch-line"><button id="accSwitchMode">${t('auth.back_to_login')}</button></div>
     `;
     document.getElementById('accSwitchMode').onclick = () => { gateMode = 'signin'; renderAuthGate(); };
-    const submit = () => handleForgotPassword(document.getElementById('accEmail').value.trim());
+    const submit = () => { if(accountFormBusy) return; handleForgotPassword(document.getElementById('accEmail').value.trim()); };
     document.getElementById('accSubmitBtn').onclick = submit;
     wireEnterSubmit('#accForm', submit);
     return;
@@ -494,6 +513,8 @@ function renderAuthGate(errorMsg){
     wirePasswordToggle('accPassword', 'accPassToggle');
     wirePasswordToggle('accPasswordConfirm', 'accPassConfirmToggle');
     const submit = () => {
+      // النقرة المزدوجة أثناء التحدي تشغّل turnstile مرتين فيتصادمان (110200)
+      if(accountFormBusy) return;
       const email = document.getElementById('accEmail').value.trim();
       const password = document.getElementById('accPassword').value;
       const passwordConfirm = document.getElementById('accPasswordConfirm').value;
@@ -524,6 +545,7 @@ function renderAuthGate(errorMsg){
   `;
   wirePasswordToggle('accPassword', 'accPassToggle');
   const submit = () => {
+    if(accountFormBusy) return;
     const email = document.getElementById('accEmail').value.trim();
     const password = document.getElementById('accPassword').value;
     signInExisting(email, password);
