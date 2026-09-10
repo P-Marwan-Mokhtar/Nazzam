@@ -427,9 +427,13 @@ function applyLoadedState(parsed, opts){
     // مسار الاستيراد: رجّع اشتراك الجلسة (الملف لا يغيّر الخطة/التجربة/الختم)
     Object.assign(state, keepSub);
   } else if(state.plan === 'pro' && !state.proLegacy){
-    // ترحيل البيتا (مسارات التحميل فقط): لقطة محمّلة بخطة pro = حساب قائم —
-    // يُختم قبل التسوية حتى لو فارغًا. الجديد بلا صف سيرفر/نسخة محلية لا يمر من هنا.
+    // ترحيل البيتا (مسارات التحميل فقط — لا الاستيراد): لقطة محمّلة بخطة pro
+    // = حساب قائم فيُختم قبل التسوية حتى لو فارغًا. الجديد بلا صف سيرفر/نسخة
+    // محلية لا يمر من هنا أصلًا. علَم proLegacyLatched يجبر حفظًا فوريًا في
+    // settlePlanAfterLoad — بدونه تتغيّر الذاكرة دون حفظ فتتكسر بصمة المزامنة
+    // ويظهر تنبيه "تمت المزامنة" مع كل تحديث.
     state.proLegacy = true;
+    proLegacyLatched = true;
   }
   if(parsed.notificationSettings){
     state.notificationSettings = Object.assign({}, state.notificationSettings, parsed.notificationSettings);
@@ -817,6 +821,11 @@ export function armPersistenceGuards(){
   });
 }
 
+// ختم بيتا جديد هذه الجلسة (applyLoadedState) ولم يُحفظ بعد — يجبر
+// settlePlanAfterLoad على حفظ فوري ورفع يحدّثان بصمة المزامنة، وإلا بقيت
+// البصمة قديمة وظهر تنبيه المزامنة مع كل إقلاع.
+let proLegacyLatched = false;
+
 // تسوية الخطة بعد أي تحميل/استيراد (تجربة تلقائية للجدد + سقوط المنتهية).
 // تُستدعى من loadData (كل مساراتها) ومن importDataFromFile — مكان واحد فقط.
 // trialJustExpired يُضبط فقط في مسار الإقلاع (loadData) — أما الاستيراد
@@ -829,7 +838,10 @@ async function settlePlanAfterLoad(markExpired = true){
   ui.trialJustExpired = markExpired && res.expired;
   if(res.expired) showToast('انتهت فترتك التجريبية — انتقلت إلى الخطة المجانية');
   else if(res.trialJustStarted) showToast('بدأت تجربتك المجانية — كل المميزات مفتوحة لمدة ٧ أيام');
-  if(res.changed){
+  // ختم بيتا جديد يحتاج حفظًا فوريًا (محلي + رفع) حتى تستقر بصمة المزامنة —
+  // وإلا ظهر تنبيه "تمت المزامنة" مع كل إقلاع رغم عدم وجود تغيير حقيقي.
+  if(res.changed || proLegacyLatched){
+    proLegacyLatched = false;
     await saveLocalBackup();
     markPendingSync(true);
     await flushPendingSave();
@@ -877,8 +889,11 @@ async function pushToServer(){
 }
 
 // بتتنادى لما النت يرجع (أونلاين إيفنت) أو عند بداية تحميل البيانات:
-// لو فيه تعديلات محلية معلّقة، تحاول ترفعها للسيرفر قبل أي حاجة تانية
-export async function trySyncPending(){
+// لو فيه تعديلات محلية معلّقة، تحاول ترفعها للسيرفر قبل أي حاجة تانية.
+// quiet=true في مسار الإقلاع: الرفع هنا روتين تحقق (قد يكون من إغلاق طبيعي
+// أونلاين) لا عودة من انقطاع مؤكدة — فبلا تنبيه، وإلا ظهر تنبيه "دون اتصال"
+// مع كل تحديث رغم أن النت لم ينقطع. التنبيه الحقيقي لمسار online-event فقط.
+export async function trySyncPending(quiet = false){
   if(!currentUserId || !hasPendingSync()) return;
   // حماية إضافية: التعديلات المعلّقة لازم تكون مكتوبة باسم الحساب الحالي —
   // لو ملك حد تاني (أو استخدام بعد خروج) بنعتبرها غير صالحة وبنشيل العلم
@@ -894,7 +909,7 @@ export async function trySyncPending(){
     // وإلا ظهر "تمت المزامنة" مع كل تحديث رغم عدم وجود أي تغيير
     // (العلة المُبلغ عنها: العلم كان يُعلَّم مع كل إغلاق).
     const h = stateContentHash();
-    if(h === null || h !== getSyncedHash()){
+    if(!quiet && (h === null || h !== getSyncedHash())){
       showToast('تمت مزامنة التغييرات التي أجريتها دون اتصال بالإنترنت بنجاح');
     }
     if(h !== null) setSyncedHash(h);
@@ -937,7 +952,8 @@ export async function loadData(skipAuthCheck){
       applyLoadedState(backup);
       trackFileRev();
       lastWrittenHash = stateContentHash();
-      await trySyncPending();
+      // صامت: رفع تحقق روتيني عند الإقلاع — التنبيه لعودة النت الحية فقط (online event)
+      await trySyncPending(true);
       await settlePlanAfterLoad();
       return;
     }
