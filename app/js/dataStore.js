@@ -503,6 +503,41 @@ function decodeB64(str){
 
 const ENCRYPTED_PREFIX = 'nz1:';
 
+// مفتاح بصمة آخر محتوى رُفع بنجاح — للتمييز بين مزامنة حقيقية تستحق
+// التنبيه، ورفع نسخة مطابقة لا يستحق إزعاج المستخدم بتنبيه كل تحديث.
+const SYNCED_HASH_KEY = 'habit-data-synced-hash-v1';
+
+// بصمة المحتوى (بدون ختم المراجعة _savedAt الذي يتغير مع كل حفظ).
+// FNV-1a + الطول: كافية لمقارنة "هل تغيّر شيء؟" — ليست توقيعًا أمنيًا.
+// مُصدَّرة للاختبارات فقط (الاستخدام الإنتاجي داخلي).
+export function stateContentHash(){
+  try{
+    const s = JSON.stringify(state, (k, v) => (k === '_savedAt' ? undefined : v));
+    let h = 0x811c9dc5;
+    for(let i = 0; i < s.length; i++){
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    return h.toString(16) + ':' + s.length;
+  }catch(e){ return null; }
+}
+
+function getSyncedHash(){
+  try{ return localStorage.getItem(SYNCED_HASH_KEY); }catch(e){ return null; }
+}
+
+function setSyncedHash(h){
+  try{
+    if(h == null) localStorage.removeItem(SYNCED_HASH_KEY);
+    else localStorage.setItem(SYNCED_HASH_KEY, h);
+  }catch(e){}
+}
+
+// بصمة آخر كتابة محلية ناجحة — كاتب الطوارئ يقارن بها ويتخطى الكتابة
+// (والتعليق) لو لا جديد، وإلا علّم كل إغلاق "معلّقًا"فظهر تنبيه المزامنة
+// مع كل تحديث (العلة المُبلغ عنها).
+let lastWrittenHash = null;
+
 // آخر مراجعة ملف رأيناها مكتوبة فعلًا (لرصد كتابة تبويب آخر عبر storage event).
 // تُضبط بعد كل حفظ محلي ناجح وبعد كل تحميل — والمقارنة دائمًا ملف-ضد-ملف.
 let lastSeenFileRev = 0;
@@ -516,6 +551,9 @@ async function saveLocalBackup(){
   // لاحقًا يختار الأحدث بين المحلية والسيرفر بدل الثقة العمياء في السيرفر
   // (اللي كانت بترجع نسخة صباحية عتيقة فوق شغل اليوم كله بعد أي ريستارت).
   state._savedAt = Date.now();
+  // بصمة المحتوى (بدون الختم) تُحسب مرة هنا وتُسجَّل مع كل كتابة ناجحة —
+  // بها يعرف كاتب الطوارئ لاحقًا هل هناك جديد يستحق الكتابة والتعليق.
+  const contentHash = stateContentHash();
   try{
     const plaintext = JSON.stringify(state);
     const keyOwner = currentUserId || getBackupOwner();
@@ -536,18 +574,21 @@ async function saveLocalBackup(){
       }
       localStorage.setItem(LOCAL_BACKUP_KEY, plaintext);
       trackFileRev();
+      if(contentHash !== null) lastWrittenHash = contentHash;
     } else {
       const key = await deriveLocalKey();
       const iv = crypto.getRandomValues(new Uint8Array(12));
       const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(plaintext));
       localStorage.setItem(LOCAL_BACKUP_KEY, ENCRYPTED_PREFIX + encodeB64(iv) + '.' + encodeB64(ct));
       trackFileRev();
+      if(contentHash !== null) lastWrittenHash = contentHash;
     }
   }catch(e){
     console.warn('تعذّر تشفير النسخة المحلية، سيتم الحفظ بدون تشفير:', e);
     try{
       localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(state));
       trackFileRev();
+      if(contentHash !== null) lastWrittenHash = contentHash;
     }catch(_){
       // فشل الكتابة المحلية تمامًا (امتلاء التخزين غالبًا) — كان يُبتلع بصمت
       // فتستمر الجلسة وكأن الحفظ يعمل ثم يضيع كل شيء عند الإغلاق.
@@ -631,9 +672,15 @@ async function loadLocalBackup(){
 // تشفيرها. loadLocalBackup يقرأ الواضح كمسار قديم مدعوم.
 function saveLocalBackupSync(){
   try{
+    // لا جديد منذ آخر كتابة ناجحة → تخطَّ تمامًا (لا كتابة ولا تعليق).
+    // بدون هذا الشرط كان كل إغلاق/تحديث يعلّم "معلّقًا" فيظهر تنبيه
+    // "تمت المزامنة" مع كل تحديث رغم عدم وجود أي تغيير (العلة المُبلغ عنها).
+    const h = stateContentHash();
+    if(h !== null && h === lastWrittenHash) return;
     state._savedAt = Date.now();
     localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(state));
     lastSeenFileRev = state._savedAt;
+    if(h !== null) lastWrittenHash = h;
     markPendingSync(true); // تُرفع عند أول إقلاع تالٍ
     try{ localStorage.setItem(THEME_PREF_KEY, state.darkMode ? 'dark' : 'light'); }catch(_){}
   }catch(e){ /* اللحظة الأخيرة — لا شيء نفعله */ }
@@ -774,7 +821,14 @@ export async function trySyncPending(){
     await pushToServer();
     warnedNoServer = false;
     markPendingSync(false);
-    showToast('تمت مزامنة التغييرات التي أجريتها دون اتصال بالإنترنت بنجاح');
+    // التنبيه فقط لو المحتوى المرفوع جديد فعلًا عما رُفع آخر مرة —
+    // وإلا ظهر "تمت المزامنة" مع كل تحديث رغم عدم وجود أي تغيير
+    // (العلة المُبلغ عنها: العلم كان يُعلَّم مع كل إغلاق).
+    const h = stateContentHash();
+    if(h === null || h !== getSyncedHash()){
+      showToast('تمت مزامنة التغييرات التي أجريتها دون اتصال بالإنترنت بنجاح');
+    }
+    if(h !== null) setSyncedHash(h);
   }catch(e){
     console.warn('تعذر مزامنة التغييرات المعلّقة، هنحاول تاني لاحقًا:', e);
   }
@@ -793,6 +847,7 @@ export async function loadData(skipAuthCheck){
     showToast('تعذّر الاتصال بالخادم، يعمل التطبيق حاليًا بنسخة محلية');
     if(getBackupOwner()) applyLoadedState(await loadLocalBackup());
     trackFileRev();
+    lastWrittenHash = stateContentHash();
     await settlePlanAfterLoad();
     return;
   }
@@ -812,6 +867,7 @@ export async function loadData(skipAuthCheck){
     if(backup && getBackupOwner() === currentUserId){
       applyLoadedState(backup);
       trackFileRev();
+      lastWrittenHash = stateContentHash();
       await trySyncPending();
       await settlePlanAfterLoad();
       return;
@@ -864,6 +920,9 @@ export async function loadData(skipAuthCheck){
     applyLoadedState(await loadLocalBackup());
     trackFileRev();
   }
+  // بصمة المحتوى المحمّل: أول إغلاق بعد الإقلاع بلا تعديل يجب أن يتخطى
+  // الكتابة (الحالة مطابقة للملف أصلًا) — وإلا عادت علة التنبيه المتكرر.
+  lastWrittenHash = stateContentHash();
   await settlePlanAfterLoad();
 }
 
@@ -900,6 +959,10 @@ async function flushPendingSave(){
     await pushToServer();
     warnedNoServer = false;
     if(state._savedAt === flushRev) markPendingSync(false); // اتزامنت بنجاح، مبقتش معلّقة
+    // سجّل بصمة آخر رفع ناجح (بصمت — التنبيه مسؤولية trySyncPending فقط)
+    // عشان مزامنة لاحقة لنسخة مطابقة لا تزعج المستخدم بتنبيه مكرر.
+    const syncedHash = stateContentHash();
+    if(syncedHash !== null) setSyncedHash(syncedHash);
   }catch(e){
     console.error('Save failed:', e);
     showToast('تعذّر الحفظ على الخادم، تم الحفظ محليًا وسيتم إعادة المحاولة تلقائيًا عند توفر الاتصال');
