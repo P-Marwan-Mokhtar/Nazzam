@@ -25,7 +25,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' https://challenges.cloudflare.com https://www.clarity.ms https://c.clarity.ms; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://txdgfvxnjofpmiaiwsax.supabase.co https://*.supabase.co https://challenges.cloudflare.com wss://*.supabase.co https://www.clarity.ms https://c.clarity.ms; img-src 'self' data: blob: https://*.supabase.co; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests; block-all-mixed-content"
+          "value": "default-src 'self'; script-src 'self' https://challenges.cloudflare.com https://*.clarity.ms; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://txdgfvxnjofpmiaiwsax.supabase.co https://*.supabase.co https://challenges.cloudflare.com wss://*.supabase.co https://*.clarity.ms; img-src 'self' data: blob: https://*.supabase.co https://*.clarity.ms; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests; block-all-mixed-content"
         }
       ]
     }
