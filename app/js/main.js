@@ -92,6 +92,11 @@ async function startApp(){
   // ويمسح بياناته الحقيقية بدل ما يضيف عليها.
   await loadData(true); // init عمل ensureAuth لتوّه — منعيدش فحص الجلسة تاني هنا
 
+  // إعادة تطبيق الهاش بعد استقرار الخطة: أول applyHashToState اشتغل بخطة
+  // افتراضية (pro) قبل تحميل البيانات، فمستخدم free بهاش #timeblock كان
+  // هيعدّي البوابة — بنعيد التطبيق بعد settlePlan عشان البوابة تشوف الخطة الحقيقية.
+  applyHashToState();
+
   // حرّاس البقاء: تفريغ عند إخفاء الصفحة + كتابة طوارئ عند الإغلاق +
   // التقاط كتابة تبويب آخر — ضد ضياع البيانات عند الريستارت المفاجئ.
   armPersistenceGuards();
@@ -109,12 +114,20 @@ async function startApp(){
   // تنبيه نهاية التجربة (مرة واحدة): قبل يوم من الانتهاء أو لحظة الانتهاء —
   // بعد استقرار الواجهة عشان المودال يفتح فوق محتوى جاهز.
   maybeShowTrialNudge();
+  // رابط Pro مسدود (هاش/اختصار لميزة مدفوعة والمستخدم مجاني): نعرض الترقية
+  // كتغذية راجعة بدل شاشة يوم صامتة — البوابة نفسها سددت العلم في routing.js.
+  if(location.hash === '#timeblock' && !ui.timeBlockViewOpen) gateFree('timeBlockView');
+  else if(location.hash === '#smartlists' && !ui.smartListsOpen) gateFree('smartLists');
+  else if(shortcutView === 'timeblock' && !ui.timeBlockViewOpen) gateFree('timeBlockView');
   if(shortcutView === 'calendar') openCalendarModal(); // shortcut التقويم بيشاور على modal مش view بالـ hash — بنفتحه بعد أول render
   setInterval(tickTimers, 1000);
 
   window.addEventListener('hashchange', () => {
     applyHashToState();
     render();
+    // كتابة الهاش يدويًا لميزة Pro مسدودة: نفس التغذية الراجعة الفورية.
+    if(location.hash === '#timeblock' && !ui.timeBlockViewOpen) gateFree('timeBlockView');
+    else if(location.hash === '#smartlists' && !ui.smartListsOpen) gateFree('smartLists');
   });
 
   document.addEventListener('click', (e) => {

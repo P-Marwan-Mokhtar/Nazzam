@@ -553,7 +553,7 @@ export function render(){
               <span class="material-icons">notifications_active</span>
             </button>
           ` : ``}
-          <div class="task-more-menu-wrap ${ui.openTaskMoreUp ? 'open-up' : ''}" data-wrap-id="${task.id}">
+          <div class="task-more-menu-wrap ${ui.openTaskMoreUp ? 'open-up' : ''}" data-wrap-id="${escapeAttr(task.id)}">
               <button class="icon-btn task-more-btn" data-action="toggle-task-more" data-id="${escapeAttr(task.id)}" title="${t('c.more')}">
                 <span class="material-icons">more_vert</span>
               </button>

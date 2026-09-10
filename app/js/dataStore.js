@@ -4,7 +4,7 @@
 
 import { supabaseClient } from './config.js';
 import { detectTimezone, todayStr, uid } from './utils.js';
-import { LOCAL_BACKUP_KEY, BACKUP_OWNER_KEY, PENDING_SYNC_KEY, THEME_PREF_KEY, showToast, state, ui } from './state.js';
+import { LOCAL_BACKUP_KEY, BACKUP_OWNER_KEY, LAST_SERVER_TS_KEY, PENDING_SYNC_KEY, THEME_PREF_KEY, showToast, state, ui } from './state.js';
 import { currentUserId, ensureAuth } from './auth.js';
 import { render } from './render.js';
 import { applyTheme, isValidAccent, resolveLegacyTheme } from './theme.js';
@@ -72,6 +72,17 @@ function isDayIndex(x){
   return typeof x === 'number' && Number.isInteger(x) && x >= 0 && x <= 6;
 }
 
+// سقوف الاستيراد: ملف JSON ملعوب بلا حدود عددية (10MB مليئة بمهام فرعية)
+// كان يجمّد التبويب عند الرسم — فالنصوص الطويلة تُقتطع والقوائم تُقصّ.
+// (تُطبّق على مسار الاستيراد فقط؛ بيانات الجلسة الحية لا تمر من هنا.)
+const MAX_NAME_LEN = 200; // أسماء المهام/البنك/الفلاتر/المؤقتات/القوالب
+const MAX_NOTE_LEN = 5000; // الملاحظات
+const MAX_SUBTASKS = 50; // مهام فرعية لكل مهمة
+const MAX_KEYWORDS = 2000; // عناصر بنك المهام
+function capStr(s, n){
+  return (typeof s === 'string' && s.length > n) ? s.slice(0, n) : s;
+}
+
 // معرّف آمن: حروف/أرقام/`-`/`_` فقط وبطول محدود — أي id جاي من ملف استيراد
 // خارجي وفيه رموز HTML أو اقتباسات بيترفض وبيتولد بداله uid جديد.
 // ده بيمنع كسر الـ attributes (`data-id="..."`) وحقن كود عبر ملف JSON ملعوب فيه.
@@ -83,7 +94,7 @@ function sanitizeId(v){
 // عنصر من بنك المهام/المسودات: { id, name, filterId?, type? }
 function sanitizeNamedItem(x){
   if(!isPlainObject(x)) return null;
-  const name = typeof x.name === 'string' ? x.name.trim() : '';
+  const name = typeof x.name === 'string' ? capStr(x.name.trim(), MAX_NAME_LEN) : '';
   if(!name) return null;
   const out = { id: sanitizeId(x.id) || uid(), name };
   if(typeof x.filterId === 'string' && x.filterId) out.filterId = x.filterId;
@@ -94,17 +105,18 @@ function sanitizeNamedItem(x){
 // قالب مهمة (ميزة Pro): بنحتفظ بالحقول اللي بتصلح للاستخدام السريع { id, name, type, priority, duration, note, subtasks }
 function sanitizeTemplate(x){
   if(!isPlainObject(x)) return null;
-  const name = typeof x.name === 'string' ? x.name.trim() : '';
+  const name = typeof x.name === 'string' ? capStr(x.name.trim(), MAX_NAME_LEN) : '';
   if(!name) return null;
   const out = { id: sanitizeId(x.id) || uid(), name };
   if(x.type === 'task' || x.type === 'habit' || x.type === 'hobby') out.type = x.type;
   if(x.priority === 'high' || x.priority === 'medium' || x.priority === 'low') out.priority = x.priority;
   if(typeof x.duration === 'string' && x.duration.trim()) out.duration = x.duration;
-  if(typeof x.note === 'string') out.note = x.note;
+  if(typeof x.note === 'string') out.note = capStr(x.note, MAX_NOTE_LEN);
   if(Array.isArray(x.subtasks)){
     const subs = x.subtasks
       .filter(s => isPlainObject(s) && typeof s.title === 'string' && s.title.trim())
-      .map(s => ({ id: sanitizeId(s.id) || uid(), title: s.title, done: s.done === true }));
+      .slice(0, MAX_SUBTASKS)
+      .map(s => ({ id: sanitizeId(s.id) || uid(), title: capStr(s.title, MAX_NAME_LEN), done: s.done === true }));
     if(subs.length) out.subtasks = subs;
   }
   return out;
@@ -113,7 +125,7 @@ function sanitizeTemplate(x){
 // مهمة: بنحتفظ بالحقول المعروفة بس (وأي نص جواه بيوصل للشاشة متشفّر بـ escapeHtml)
 function sanitizeTask(t){
   if(!isPlainObject(t)) return null;
-  const name = typeof t.name === 'string' ? t.name.trim() : '';
+  const name = typeof t.name === 'string' ? capStr(t.name.trim(), MAX_NAME_LEN) : '';
   if(!name) return null;
   const out = { id: sanitizeId(t.id) || uid(), name, done: t.done === true };
   if(typeof t.createdAt === 'number' && isFinite(t.createdAt) && t.createdAt >= 0) out.createdAt = Math.floor(t.createdAt);
@@ -121,7 +133,7 @@ function sanitizeTask(t){
   if(t.type === 'task' || t.type === 'habit' || t.type === 'hobby') out.type = t.type;
   if(isHHMM(t.remindAt)) out.remindAt = t.remindAt;
   if(t.reminded === true) out.reminded = true;
-  if(typeof t.note === 'string') out.note = t.note;
+  if(typeof t.note === 'string') out.note = capStr(t.note, MAX_NOTE_LEN);
   if(typeof t.duration === 'string' && t.duration.trim()) out.duration = t.duration;
   if(typeof t.actualDuration === 'string' && t.actualDuration.trim()) out.actualDuration = t.actualDuration;
   if(isHHMM(t.startTime)) out.startTime = t.startTime;
@@ -130,7 +142,8 @@ function sanitizeTask(t){
   if(Array.isArray(t.subtasks)){
     const subs = t.subtasks
       .filter(s => isPlainObject(s) && typeof s.title === 'string' && s.title.trim())
-      .map(s => ({ id: sanitizeId(s.id) || uid(), title: s.title, done: s.done === true }));
+      .slice(0, MAX_SUBTASKS)
+      .map(s => ({ id: sanitizeId(s.id) || uid(), title: capStr(s.title, MAX_NAME_LEN), done: s.done === true }));
     if(subs.length) out.subtasks = subs;
   }
   return out;
@@ -139,7 +152,7 @@ function sanitizeTask(t){
 // مؤقت: open أو countdown
 function sanitizeTimer(t){
   if(!isPlainObject(t)) return null;
-  const name = typeof t.name === 'string' ? t.name.trim() : '';
+  const name = typeof t.name === 'string' ? capStr(t.name.trim(), MAX_NAME_LEN) : '';
   if(!name) return null;
   const hasValidStartedAt = (typeof t.startedAt === 'number' && isFinite(t.startedAt));
   const out = {
@@ -163,7 +176,7 @@ function sanitizeTimer(t){
 
 function sanitizeFilterItem(x){
   if(!isPlainObject(x)) return null;
-  const name = typeof x.name === 'string' ? x.name.trim() : '';
+  const name = typeof x.name === 'string' ? capStr(x.name.trim(), MAX_NAME_LEN) : '';
   if(!name) return null;
   return { id: sanitizeId(x.id) || uid(), name, pinned: x.pinned === true };
 }
@@ -264,6 +277,8 @@ function sanitizeLoadedState(obj){
   if(!isPlainObject(obj)) return null;
   const out = {};
   out.keywords = sanitizeList(obj.keywords, sanitizeNamedItem) || [];
+  // سقف البنك: ملف ملعوب بآلاف الأسماء يُقصّ بدل ما يجمّد الرسم
+  if(out.keywords.length > MAX_KEYWORDS) out.keywords = out.keywords.slice(0, MAX_KEYWORDS);
   out.drafts = sanitizeList(obj.drafts, sanitizeNamedItem) || [];
   out.notes = sanitizeNotes(obj.notes) || {};
   out.days = sanitizeDateMap(obj.days, sanitizeTask) || {};
@@ -282,6 +297,8 @@ function sanitizeLoadedState(obj){
   if(typeof obj.trialStartedAt === 'number' && isFinite(obj.trialStartedAt) && obj.trialStartedAt >= 0) out.trialStartedAt = Math.floor(obj.trialStartedAt);
   if(obj.planCycle === 'monthly' || obj.planCycle === 'yearly') out.planCycle = obj.planCycle;
   if(obj.planPendingCycle === 'monthly' || obj.planPendingCycle === 'yearly') out.planPendingCycle = obj.planPendingCycle;
+  // ختم البيتا مزلاج أحادي: يُقبل true فقط ولا يُخزَّن false أبدًا (لا يُمسح)
+  if(obj.proLegacy === true) out.proLegacy = true;
   // ختم مراجعة النسخة (monotonic ms) — للمقارنة "الأحدث يكسب" عند التحميل
   // بين المحلية والسيرفر. قيمة مفقودة/تالفة = 0 (الأقدم دائمًا).
   if(typeof obj._savedAt === 'number' && isFinite(obj._savedAt) && obj._savedAt >= 0) out._savedAt = Math.floor(obj._savedAt);
@@ -359,7 +376,8 @@ export function importDataFromFile(file){
     if(!confirm('سيستبدل استيراد هذا الملف جميع بياناتك الحالية (المهام، البنك، المسودات، إلخ) بالبيانات الموجودة في الملف. هل تريد المتابعة؟')){
       return;
     }
-    applyLoadedState(sanitized);
+    // fromImport: الاستيراد يستبدل البيانات فقط — الخطة/التجربة/الختم من الجلسة (السيرفر مرجعها)
+    applyLoadedState(sanitized, { fromImport: true });
     // تسوية الخطة على البيانات المستوردة (تجربة منتهية في الملف تسقط لـ free)
     // قبل الرسم والحفظ عشان الواجهة والمزامنة يشوفوا الخطة النهائية.
     // markExpired=false: الاستيراد منتصف الجلسة، فلا علَم إقلاع هنا.
@@ -381,8 +399,12 @@ export function importDataFromFile(file){
   reader.readAsText(file);
 }
 
-function applyLoadedState(parsed){
+function applyLoadedState(parsed, opts){
   if(!parsed) return;
+  // الاستيراد ينقل البيانات فقط لا الاشتراك: الخطة والطوابع والختم من الجلسة
+  // الحالية (السيرفر مرجعها) — وإلا ملف JSON معدّل يمنح pro أو يصفّر/يمدّد التجربة.
+  const fromImport = !!(opts && opts.fromImport);
+  const keepSub = fromImport ? { plan: state.plan, trialStartedAt: state.trialStartedAt, planCycle: state.planCycle, planPendingCycle: state.planPendingCycle, proLegacy: state.proLegacy } : null;
   if(parsed.keywords) state.keywords = parsed.keywords;
   if(parsed.drafts) state.drafts = parsed.drafts;
   if(parsed.notes) state.notes = parsed.notes;
@@ -393,11 +415,22 @@ function applyLoadedState(parsed){
   if(parsed.recurringMeta) state.recurringMeta = parsed.recurringMeta;
   if(parsed.templates) state.templates = parsed.templates;
   if(parsed.plan && (parsed.plan === 'free' || parsed.plan === 'trial' || parsed.plan === 'pro')) state.plan = parsed.plan;
-  // حقول الاشتراك: الغائب يُصفّر صراحةً عشان بيانات قديمة/ملف مستورد من غيرها
-  // مايورّثش قيم جلسة سابقة (وإلا تجربة قديمة تمنع تجربة جديدة والعكس).
-  state.trialStartedAt = (typeof parsed.trialStartedAt === 'number') ? parsed.trialStartedAt : null;
+  // حقول الاشتراك: trialStartedAt لا يُصفَّر أبدًا فوق طابع قائم —
+  // ملف مستورد بلا الطابع (بيانات قديمة) كان يفتح باب تجربة ثانية،
+  // فالغائب يُتجاهل ويُحفظ الطابع الحالي (تجربة واحدة للأبد).
+  if(typeof parsed.trialStartedAt === 'number') state.trialStartedAt = parsed.trialStartedAt;
   state.planCycle = (parsed.planCycle === 'monthly' || parsed.planCycle === 'yearly') ? parsed.planCycle : null;
   state.planPendingCycle = (parsed.planPendingCycle === 'monthly' || parsed.planPendingCycle === 'yearly') ? parsed.planPendingCycle : null;
+  // ختم البيتا مزلاج أحادي: يُضاف فقط ولا يُمسح أبدًا
+  if(parsed.proLegacy === true) state.proLegacy = true;
+  if(fromImport && keepSub){
+    // مسار الاستيراد: رجّع اشتراك الجلسة (الملف لا يغيّر الخطة/التجربة/الختم)
+    Object.assign(state, keepSub);
+  } else if(state.plan === 'pro' && !state.proLegacy){
+    // ترحيل البيتا (مسارات التحميل فقط): لقطة محمّلة بخطة pro = حساب قائم —
+    // يُختم قبل التسوية حتى لو فارغًا. الجديد بلا صف سيرفر/نسخة محلية لا يمر من هنا.
+    state.proLegacy = true;
+  }
   if(parsed.notificationSettings){
     state.notificationSettings = Object.assign({}, state.notificationSettings, parsed.notificationSettings);
   }
@@ -446,6 +479,34 @@ function getBackupOwner(){
 function setBackupOwner(userId){
   try{ localStorage.setItem(BACKUP_OWNER_KEY, userId || ''); }catch(e){}
 }
+
+// آخر طابع سيرفر متزامن (ms من updated_at الحقيقي — trigger سيرفر):
+// مرجع "هل السيرفر تحرّك منذ آخر مزامنة؟" بساعات قاعدة البيانات لا ساعات
+// الأجهزة. يُكتب مع كل قراءة/رفع ناجح، ويُقارن عند الإقلاع قبل مقارنة _savedAt
+// (التي تبقى احتياطًا للأجهزة القديمة بلا ختم). المفتاح في state.js (مشترك مع auth).
+function getLastServerTs(){
+  try{
+    const raw = localStorage.getItem(LAST_SERVER_TS_KEY);
+    if(!raw) return 0;
+    const o = JSON.parse(raw);
+    if(!o || o.owner !== getBackupOwner() || typeof o.ts !== 'number' || !isFinite(o.ts)) return 0;
+    return o.ts;
+  }catch(e){ return 0; }
+}
+
+function setLastServerTs(ts){
+  try{
+    if(typeof ts !== 'number' || !isFinite(ts) || ts <= 0) return;
+    localStorage.setItem(LAST_SERVER_TS_KEY, JSON.stringify({ owner: getBackupOwner(), ts: Math.floor(ts) }));
+  }catch(e){}
+}
+
+export function clearLastServerTs(){
+  try{ localStorage.removeItem(LAST_SERVER_TS_KEY); }catch(e){}
+}
+
+// تسامح انحراف الساعات العادي (NTP) قبل اعتبار طابع ما "مستقبليًا مستحيلًا"
+const SKEW_TOL_MS = 60 * 60 * 1000;
 
 // ============================================================
 // تشفير النسخة المحلية (localStorage) بحماية "في حالة القراءة من الجهاز"
@@ -798,13 +859,21 @@ async function pushToServer(){
   // نسخة السيرفر. اللقطة بتضمن إن اللي بيرتاح للعملية هو ما كان موجود فعلًا لحظة
   // بدء الرفع، وكأننا جوّدنا نسخة الرفع من التعديلات اللاحقة.
   const snapshot = JSON.parse(JSON.stringify(state));
-  const { error } = await supabaseClient
+  // نطلب updated_at الراجع من السيرفر (trigger يختمه بساعة القاعدة) —
+  // يُحفظ كمرجع lastSeen لقرار "الأحدث يكسب" في الإقلاع التالي.
+  const { data: pushed, error } = await supabaseClient
     .from('user_data')
     .upsert(
       { user_id: currentUserId, data: snapshot, updated_at: new Date().toISOString() },
       { onConflict: 'user_id' }
-    );
+    )
+    .select('updated_at')
+    .single();
   if(error) throw error;
+  if(pushed && pushed.updated_at){
+    const ts = new Date(pushed.updated_at).getTime();
+    if(isFinite(ts)) setLastServerTs(ts);
+  }
 }
 
 // بتتنادى لما النت يرجع (أونلاين إيفنت) أو عند بداية تحميل البيانات:
@@ -878,7 +947,7 @@ export async function loadData(skipAuthCheck){
   try{
     const { data, error } = await supabaseClient
       .from('user_data')
-      .select('data')
+      .select('data,updated_at')
       .eq('user_id', currentUserId)
       .maybeSingle();
 
@@ -889,15 +958,29 @@ export async function loadData(skipAuthCheck){
       // عشان التعديلات اللي لسه متسجّلتش (وكانت هتترفع فوق سطر الـ upsert ده)
       // متبقاش عالقة ترفع نسخة متآكلة؛ وبعد التطبيق بنحفظ نسخة نظيفة مطابقة.
       cancelPendingSave();
-      // الأحدث يكسب (ملف-ضد-ملف): لو النسخة المحلية أحدث من نسخة السيرفر
-      // (تبويب قديم رفع نسخة صباحية عتيقة، أو آخر حفظ محلي لم يُرفع)، نعتمد
-      // المحلية ونرفعها فورًا بدل ما نكتب العتيقة فوقها ونضيع شغل اليوم.
-      // ملحوظة صدق: المقارنة بساعات الأجهزة — دقيقة لنفس الجهاز (الحالة
-      // المُبلغ عنها)، وتقريبية بين جهازين بساعتين مختلفتين.
-      const serverRev = (data.data && typeof data.data._savedAt === 'number' && isFinite(data.data._savedAt)) ? data.data._savedAt : 0;
+      // الأحدث يكسب (ملف-ضد-ملف) بمرجع سيرفر: updated_at ساعة قاعدة البيانات
+      // (trigger) لا ساعات الأجهزة — فجهاز بساعة متقدمة خطأً لا يفرض نسخة عتيقة
+      // فوق شغل جهاز آخر. ملحوظة صدق: مقارنة _savedAt تبقى احتياطًا للأجهزة
+      // القديمة بلا ختم مرجع، وتقريبية بين ساعتين مختلفتين.
+      const serverUpdatedAtMs = (data.updated_at && isFinite(new Date(data.updated_at).getTime())) ? new Date(data.updated_at).getTime() : 0;
+      let serverRev = (data.data && typeof data.data._savedAt === 'number' && isFinite(data.data._savedAt)) ? data.data._savedAt : 0;
+      // صف قديم بلا ختم ملف: الطابع السيرفر مرجع أصدق من الصفر
+      if(!serverRev && serverUpdatedAtMs) serverRev = serverUpdatedAtMs;
       const local = await loadLocalBackup();
       const localRev = (local && typeof local._savedAt === 'number' && isFinite(local._savedAt)) ? local._savedAt : 0;
-      if(local && localRev > serverRev && getBackupOwner() === currentUserId){
+      const ownBackup = !!(local && getBackupOwner() === currentUserId);
+      let useLocal = ownBackup && localRev > serverRev;
+      const nowMs = Date.now();
+      if(ownBackup && localRev > nowMs + SKEW_TOL_MS && !(serverRev > nowMs + SKEW_TOL_MS)){
+        // نسختنا مختومة بتاريخ مستقبلي مستحيل (ساعة الجهاز كانت متقدمة لحظة
+        // الكتابة) — لا تفرض نفسها فوق نسخة سيرفر سليمة التوقيت.
+        useLocal = false;
+      } else if(serverUpdatedAtMs > 0 && getLastServerTs() > 0 && serverUpdatedAtMs > getLastServerTs()){
+        // السيرفر تحرّك بساعاته هو منذ آخر مزامنة (جهاز آخر كتب فعلًا) —
+        // السيرفر يكسب مهما ادّعت طوابع الملفات بساعات أجهزتها.
+        useLocal = false;
+      }
+      if(useLocal){
         applyLoadedState(local);
         trackFileRev();
         markPendingSync(true);
@@ -906,6 +989,7 @@ export async function loadData(skipAuthCheck){
         applyLoadedState(data.data);
         await saveLocalBackup(); // حدّث النسخة المحلية بأحدث بيانات من السيرفر
         trackFileRev();
+        if(serverUpdatedAtMs) setLastServerTs(serverUpdatedAtMs);
       }
     } else {
       // أول مرة للمستخدم ده: لو عنده بيانات قديمة في localStorage، ارفعها لـ Supabase

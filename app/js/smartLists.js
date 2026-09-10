@@ -6,6 +6,8 @@
 
 import { addDays, escapeAttr, escapeHtml, emptyStateHtml, fmtDay, getWeekStart, todayStr, uid } from './utils.js';
 import { contentEl, showToast, state, ui, TASK_TYPES } from './state.js';
+import { canUse } from './plans.js';
+import { gateFree } from './upgrade.js';
 import { saveData } from './dataStore.js';
 import { handleContentAction } from './events.js';
 import { render } from './render.js';
@@ -15,6 +17,9 @@ import { formatTimeArabic } from './timePicker.js';
 const SMART_LIST_LIMIT = 50;
 
 export function openSmartLists(){
+  // دفاع عمقي: أي استدعاء مباشر (رابط/اختصار/كود مستقبلي) يمر من هنا،
+  // فالمجاني يُسدّ هنا بدل الاعتماد على فحص كل متصل على حدة.
+  if(!gateFree('smartLists')) return;
   if(ui.smartListsOpen) return;
   ui.smartListsOpen = true;
   ui.statsViewOpen = false;

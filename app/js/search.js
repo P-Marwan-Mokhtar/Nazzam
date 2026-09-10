@@ -2,7 +2,7 @@
 // search.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { emptyStateHtml, escapeHtml, fmtDay, highlightMatch, normalizeArabic } from './utils.js';
+import { emptyStateHtml, escapeAttr, escapeHtml, fmtDay, highlightMatch, normalizeArabic } from './utils.js';
 import { state, ui } from './state.js';
 import { render } from './render.js';
 import { t } from './i18n.js';
@@ -41,7 +41,7 @@ export function renderGlobalSearchResults(){
   let html = '';
   shown.forEach(({ date, task }) => {
     html += `
-      <button type="button" class="global-search-result" data-date="${date}">
+      <button type="button" class="global-search-result" data-date="${escapeAttr(date)}">
         <span class="material-icons global-search-result-status ${task.done ? 'done' : ''}">${task.done ? 'check_circle' : 'radio_button_unchecked'}</span>
         <span class="global-search-result-main">
           <span class="global-search-result-name">${highlightMatch(task.name, ui.globalSearchQuery)}</span>

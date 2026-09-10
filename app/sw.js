@@ -5,7 +5,7 @@
 // رقم الإصدار (CACHE_VERSION) بيتغيّر تلقائيًا مع أي تغيير في المحتوى.
 // ============================================================
 
-const CACHE_VERSION = 'v3bc53ba0ae';
+const CACHE_VERSION = 'vb0eb0fc8e7';
 const CACHE_NAME = 'daily-tasks-shell-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -27,12 +27,14 @@ const PRECACHE_URLS = [
   "./icons/icon-maskable-512.png",
   "./icons/favicon.ico",
   "./icons/apple-touch-icon.png",
+  "./img/nazzam-logo.png",
   "./fonts/material-icons.woff2",
   "./js/main.js",
   "./js/boot-redirect.js",
   "./js/boot-sw.js",
   "./js/boot-theme.js",
   "./js/boot-more.js",
+  "./js/clarity.js",
   "./js/config.js",
   "./js/auth.js",
   "./js/accountMenu.js",

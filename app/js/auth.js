@@ -3,7 +3,7 @@
 // ============================================================
 
 import { AUTH_RATE_LIMIT_URL, TURNSTILE_SITE_KEY, supabaseClient } from './config.js';
-import { LOCAL_BACKUP_KEY, BACKUP_OWNER_KEY, PENDING_SYNC_KEY, showToast } from './state.js';
+import { LOCAL_BACKUP_KEY, BACKUP_OWNER_KEY, LAST_SERVER_TS_KEY, PENDING_SYNC_KEY, showToast } from './state.js';
 import { t } from './i18n.js';
 import { escapeHtml } from './utils.js';
 import { openUpgrade } from './upgrade.js';
@@ -730,6 +730,8 @@ export async function signOutUser(){
     // بيكتب نسخة محلية "يتيمة" مش بتاعة أي حساب، ومش هتترفع فوق بيانات
     // الحساب الحقيقي عند أول تسجيل دخول بعدها (حماية في dataStore.js)
     try{ localStorage.removeItem(BACKUP_OWNER_KEY); }catch(e){}
+    // ختم المرجع السيرفر يخص الجلسة المنتهية — حساب تالٍ يبني ختمه من مزامنته هو
+    try{ localStorage.removeItem(LAST_SERVER_TS_KEY); }catch(e){}
     window.location.reload();
   }catch(e){
     console.error('Sign out error:', e);

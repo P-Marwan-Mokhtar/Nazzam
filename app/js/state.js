@@ -14,6 +14,8 @@ export const PENDING_SYNC_KEY = 'habit-data-pending-sync-v1';
 // أو '' لو النسخة اتكتبت من استخدام بعد تسجيل خروج (مش بتاعة أي حساب).
 // بيمنع تعديلات جلسة "بعد الخروج" من تلصق فوق بيانات الحساب عند أول دخول.
 export const BACKUP_OWNER_KEY = 'habit-data-backup-owner-v1';
+// آخر طابع سيرفر متزامن (updated_at بساعة القاعدة) — مرجع "الأحدث يكسب" (dataStore.js)
+export const LAST_SERVER_TS_KEY = 'nazam-server-ts-v1';
 
 // علم سريع وغير مشفّر للوضع الداكن، بيقراه سكريبت الـ <head> في app/index.html
 // عشان يطبّق الثيم فورًا وقت الإعادة قبل ما تتفك بيانات الحساب (يمنع وميض أبيض).
@@ -50,11 +52,12 @@ export let state = {
   planCycle: null, // دورة الاشتراك المدفوع: null | 'monthly' | 'yearly' — يضبطها السيرفر عند تفعيل الدفع
   planPendingCycle: null, // نية اشتراك مسجلة من شاشة الترقية (واجهة فقط قبل Tap): null | 'monthly' | 'yearly'
   trialStartedAt: null, // طابع بدء التجربة المجانية (ms) — يُضبط مرة واحدة فقط ولا يُمسح أبدًا (تجربة واحدة للأبد)
+  proLegacy: false, // ختم قدامى البيتا: حساب قائم بخطة pro يُختم مرة واحدة ولا يُمسح أبدًا — التسوية لا تنزّله لتجربة/مجاني حتى لو فارغًا (plans.js)
   templates: [], // قوالب المهام: { id, name, type, priority, duration, note } — ميزة Pro
 };
 
 export function resetState(){
-  state = { lang: 'ar', keywords: [], drafts: [], notes: {}, days: {}, filters: [], timers: {}, darkMode: false, accentLight: 'blue', accentDark: 'blue', recurringTasks: {}, recurringMeta: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null }, plan: 'pro', planCycle: null, planPendingCycle: null, trialStartedAt: null, templates: [] };
+  state = { lang: 'ar', keywords: [], drafts: [], notes: {}, days: {}, filters: [], timers: {}, darkMode: false, accentLight: 'blue', accentDark: 'blue', recurringTasks: {}, recurringMeta: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null }, plan: 'pro', planCycle: null, planPendingCycle: null, trialStartedAt: null, proLegacy: false, templates: [] };
 }
 
 export const ui = {

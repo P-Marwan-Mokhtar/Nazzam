@@ -8,7 +8,7 @@ import { render } from './render.js';
 import { currentPalette } from './theme.js';
 import { t, pl, formatHM, formatMinutes } from './i18n.js';
 import { canUse } from './plans.js';
-import { openUpgrade } from './upgrade.js';
+import { gateFree, openUpgrade } from './upgrade.js';
 
 // محور الوقت بيظهر كأرقام ساعات صحيحة (1، 2، 3...) والتفاصيل بالدقايق في التلميح
 function fmtAxisHours(v){
@@ -322,6 +322,9 @@ export function renderTaskStatsView(name){
 // تصدير تقرير PDF من نافذة طباعة: أسبوعي (آخر 7 أيام) أو يومي (اليوم المختار).
 // الوضعان بيتقاسموا نفس القالب بالظبط — الفرق في مصدر الإحصائيات وجدول الملخص وكارت التمييز.
 function exportStatsPDF(mode){
+  // نقطة الخنق الوحيدة لتصدير PDF: أي زر (أسبوع/يوم/قائمة الحساب) يمر من هنا،
+  // فالمجاني يُسدّ هنا مباشرة بدل الاعتماد على فحص كل متصل على حدة.
+  if(!gateFree('pdfExport')) return;
   const isDaily = mode === 'day';
   const dateStr = ui.selectedDate || todayStr();
   const s = isDaily ? computeDayStats(dateStr, null) : computeWeekStats();

@@ -5,6 +5,7 @@
 // ============================================================
 
 import { ui } from './state.js';
+import { canUse } from './plans.js';
 
 const HASH_STATS = '#stats';
 const HASH_WEEK = '#week';
@@ -13,12 +14,15 @@ const HASH_SMART = '#smartlists';
 
 // بتتنفذ مرة واحدة بس عند فتح التطبيق (قبل أول render): تقرأ الـ hash من الرابط
 // وتظبط عليه حالة الواجهة، عشان الشاشة الصح تظهر من أول لحظة من غير أي وميض (flash).
+// ملحوظة بوابات Pro: timeblock/smartlists مميزات مدفوعة، فالهاش لا يفتحهما
+// للمجاني — العلم يفضل مقفولًا وmain.js يعرض نافذة الترقية بعد أول render.
+// (الفحص هنا + داخل openSmartLists/toggleTimeBlockView = دفاع عمقي).
 export function applyHashToState(){
   const hash = location.hash;
   ui.statsViewOpen = hash === HASH_STATS;
   ui.weekViewOpen = hash === HASH_WEEK;
-  ui.timeBlockViewOpen = hash === HASH_TIMEBLOCK;
-  ui.smartListsOpen = hash === HASH_SMART;
+  ui.timeBlockViewOpen = hash === HASH_TIMEBLOCK && canUse('timeBlockView');
+  ui.smartListsOpen = hash === HASH_SMART && canUse('smartLists');
   // نظّف باقي المتغيرات اللي بتحدد أنواع الشاشات (HASH_HASH) في الهاش
   // بتخصيص أكثر من شاشة واحدة (Hash) عن طريق هاش واحد
   if(ui.statsViewOpen || ui.weekViewOpen || ui.timeBlockViewOpen || ui.smartListsOpen) ui.taskStatsName = null;
@@ -36,7 +40,7 @@ export function consumeShortcutViewParam(){
   history.replaceState(history.state, '', location.pathname + location.hash);
   if(view === 'stats' && !location.hash) ui.statsViewOpen = true;
   else if(view === 'week' && !location.hash) ui.weekViewOpen = true;
-  else if(view === 'timeblock' && !location.hash) ui.timeBlockViewOpen = true;
+  else if(view === 'timeblock' && !location.hash) ui.timeBlockViewOpen = canUse('timeBlockView');
   return view;
 }
 

@@ -14,11 +14,46 @@ const VAPID_PUBLIC_KEY = Deno.env.get("VAPID_PUBLIC_KEY")!;
 const VAPID_PRIVATE_KEY = Deno.env.get("VAPID_PRIVATE_KEY")!;
 const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") || "mailto:example@example.com";
 
-// 🔐 سر اختياري لحماية الفنكشن من الاستدعاء العشوائي (هي URL عام):
-// لو ظبطت CRON_SECRET في إعدادات الفنكشن (supabase secrets set CRON_SECRET=...),
-// أي طلب من غير هيدر x-cron-secret بنفس القيمة هيرفض بـ401 — حدّث جدولة الـ cron
-// تبعت نفس الهيدر. لو مش متظبط، السلوك يفضل زي الأول (مفتوح) عشان مايتكسرش cron قائم.
+// 🔐 حماية الفنكشن من الاستدعاء العشوائي (هي URL عام):
+// CRON_SECRET إجباري — يُظبط عبر (supabase secrets set CRON_SECRET=...).
+// أي طلب من غير هيدر x-cron-secret بنفس القيمة يُرفض بـ401، ولو المتغير
+// نفسه مش متظبط الفنكشن ترفض بـ500 بدل ما تفضل مفتوحة للعالم.
 const CRON_SECRET = Deno.env.get("CRON_SECRET");
+
+// ------------------------------------------------------------
+// CORS — نفس سياسة باقي الدوال (أصول معروفة فقط + preflight)
+// ------------------------------------------------------------
+const ALLOWED_ORIGINS = [
+  "https://nazam-sass.vercel.app",
+  "https://nazzam.app",
+  "https://www.nazzam.app",
+];
+
+function corsHeaders(req: Request): { [k: string]: string } {
+  const origin = req.headers.get("origin") || "";
+  const isAllowed =
+    !origin ||
+    ALLOWED_ORIGINS.includes(origin) ||
+    origin.startsWith("http://localhost") ||
+    /^https:\/\/[a-zA-Z0-9-]+\.github\.io$/.test(origin);
+
+  const headers: { [k: string]: string } = {};
+  if (isAllowed) headers["Access-Control-Allow-Origin"] = origin || "*";
+  headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS";
+  headers["Access-Control-Allow-Headers"] = "Content-Type, x-cron-secret";
+  headers["Vary"] = "Origin";
+  return headers;
+}
+
+function jsonResponse(req: Request, body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "Content-Type": "application/json",
+      ...corsHeaders(req),
+    },
+  });
+}
 
 // ⚠️ بسّطنا الموضوع بافتراض كل المستخدمين في نفس المنطقة الزمنية دي بدل ما نخزن منطقة كل مستخدم لوحده.
 // غيّرها لو جمهورك في منطقة تانية، أو قولّي لو عايز نضيف حفظ منطقة كل مستخدم لوحده.
@@ -65,19 +100,26 @@ async function sendToSubs(subs: any[], title: string, body: string) {
 }
 
 Deno.serve(async (req) => {
-  if (CRON_SECRET && req.headers.get("x-cron-secret") !== CRON_SECRET) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
+  // الرد على preflight قبل أي تحقق
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders(req) });
+  }
+  if (req.method !== "GET" && req.method !== "POST") {
+    return jsonResponse(req, { error: "Method not allowed" }, 405);
+  }
+  // السر إجباري: غيابه = سوء إعداد، والفنكشن ترفض بدل ما تنفتح
+  if (!CRON_SECRET) {
+    console.error("send-digest-push: CRON_SECRET غير مضبوط — مرفوض");
+    return jsonResponse(req, { error: "Misconfigured" }, 500);
+  }
+  if (req.headers.get("x-cron-secret") !== CRON_SECRET) {
+    return jsonResponse(req, { error: "Unauthorized" }, 401);
   }
   try {
     const { data: subs, error: subsErr } = await supabase.from("push_subscriptions").select("*");
     if (subsErr) throw subsErr;
     if (!subs || subs.length === 0) {
-      return new Response(JSON.stringify({ checked: 0, sent: 0 }), {
-        headers: { "Content-Type": "application/json" },
-      });
+      return jsonResponse(req, { checked: 0, sent: 0 });
     }
 
     const userIds = [...new Set(subs.map((s) => s.user_id))];
@@ -191,13 +233,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ checked: userIds.length, sent: sentCount }), {
-      headers: { "Content-Type": "application/json" },
-    });
+    return jsonResponse(req, { checked: userIds.length, sent: sentCount });
   } catch (e) {
-    return new Response(JSON.stringify({ error: String(e) }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return jsonResponse(req, { error: String(e) }, 500);
   }
 });

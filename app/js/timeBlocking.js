@@ -1083,7 +1083,7 @@ function openTbmMorePop(triggerBtn){
     ${scheduled.map(({ task, startMin }) => `
       <button type="button" class="tbm-more-item ${task.done ? 'done' : ''}"
               style="--blk: ${taskColorVar(task.name)}"
-              data-id="${escapeAttr(task.id)}" data-date="${dateStr}">
+               data-id="${escapeAttr(task.id)}" data-date="${escapeAttr(dateStr)}">
         <span class="tbm-event-time">${formatTimeArabic(minutesToHHMM(startMin))}</span>
         <span class="tbm-event-name">${escapeHtml(task.name)}</span>
       </button>

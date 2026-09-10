@@ -125,23 +125,40 @@ export function downgradeToFree(){
 
 // حساب جديد تمامًا = بلا أي بيانات وبلا تجربة سابقة.
 // مستخدمو البيتا الحاليون (عندهم مهام/بنك) ليسوا جددًا → يفضلون pro كما هم.
+// (الختم الصريح proLegacy في settlePlan هو الحماية الأساسية؛ هذا الفحص احتياطي
+// للتمييز، ويشمل الملاحظات والتكرار حتى لا يُحسب صاحبها "جديدًا").
 function isFreshAccount(){
   const u = usageSummary();
   return u.tasks === 0 && u.filters === 0 && u.savedTimers === 0
     && Object.keys(state.days || {}).length === 0
     && (state.drafts || []).length === 0
-    && (state.templates || []).length === 0;
+    && (state.templates || []).length === 0
+    && Object.keys(state.notes || {}).length === 0
+    && Object.keys(state.recurringTasks || {}).length === 0
+    && Object.keys(state.recurringMeta || {}).length === 0;
 }
 
 // تسوية الخطة بعد كل تحميل/استيراد — تُستدعى مرة واحدة من dataStore.
 // تُرجع { changed, expired, trialJustStarted } عشان المتصل يقرر الحفظ والتنبيه.
 export function settlePlan(){
+  // قدامى البيتا المختومين (proLegacy) بخطة pro لا تمسهم التسوية أبدًا —
+  // حتى لو حسابهم فارغ تمامًا (مسح/جهاز جديد/تزامن فاشل) يفضلون pro
+  // بدل النزول لتجربة ثم مجاني. النزول الطوعي لـ free محترم (plan='free' لا يُمس).
+  if(state.proLegacy && state.plan === 'pro'){
+    return { changed: false, expired: false, trialJustStarted: false };
+  }
   // 1) حساب جديد → تجربة تلقائية بكل المميزات
   if(!state.trialStartedAt && state.plan !== 'free' && isFreshAccount()){
     startTrial();
     return { changed: true, expired: false, trialJustStarted: true };
   }
-  // 2) تجربة منتهية → سقوط تلقائي للمجانية
+  // 2) تجربة منتهية → سقوط تلقائي للمجانية، إلا المختومة (تحويل قديم قبل الختم)
+  // فترجع pro بصمت وبلا تنبيه انتهاء (لا ذنب لها).
+  if(state.plan === 'trial' && !isTrialActive()){
+    if(state.proLegacy){
+      state.plan = 'pro';
+      return { changed: true, expired: false, trialJustStarted: false };
+    }
   if(state.plan === 'trial' && !isTrialActive()){
     state.plan = 'free';
     return { changed: true, expired: true, trialJustStarted: false };
