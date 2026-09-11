@@ -752,6 +752,9 @@ export async function signOutUser(){
     // بيكتب نسخة محلية "يتيمة" مش بتاعة أي حساب، ومش هتترفع فوق بيانات
     // الحساب الحقيقي عند أول تسجيل دخول بعدها (حماية في dataStore.js)
     try{ localStorage.removeItem(BACKUP_OWNER_KEY); }catch(e){}
+    // علَم التعليق أيضًا: جلسة لاحقة لحساب آخر يجب أن تبدأ نظيفة —
+    // علَم عالق + نسخة يتيمة كانا يفتحان مسار "المعلّق" لبيانات غريبة.
+    try{ localStorage.removeItem(PENDING_SYNC_KEY); }catch(e){}
     // ختم المرجع السيرفر يخص الجلسة المنتهية — حساب تالٍ يبني ختمه من مزامنته هو
     try{ localStorage.removeItem(LAST_SERVER_TS_KEY); }catch(e){}
     window.location.reload();

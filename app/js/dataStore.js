@@ -299,6 +299,8 @@ function sanitizeLoadedState(obj){
   if(obj.planPendingCycle === 'monthly' || obj.planPendingCycle === 'yearly') out.planPendingCycle = obj.planPendingCycle;
   // ختم البيتا مزلاج أحادي: يُقبل true فقط ولا يُخزَّن false أبدًا (لا يُمسح)
   if(obj.proLegacy === true) out.proLegacy = true;
+  // ختم المصدر: نص فقط — يُفحص عند التطبيق (backupOwnedBy)
+  if(typeof obj._owner === 'string' && obj._owner) out._owner = obj._owner;
   // ختم مراجعة النسخة (monotonic ms) — للمقارنة "الأحدث يكسب" عند التحميل
   // بين المحلية والسيرفر. قيمة مفقودة/تالفة = 0 (الأقدم دائمًا).
   if(typeof obj._savedAt === 'number' && isFinite(obj._savedAt) && obj._savedAt >= 0) out._savedAt = Math.floor(obj._savedAt);
@@ -404,7 +406,7 @@ function applyLoadedState(parsed, opts){
   // الاستيراد ينقل البيانات فقط لا الاشتراك: الخطة والطوابع والختم من الجلسة
   // الحالية (السيرفر مرجعها) — وإلا ملف JSON معدّل يمنح pro أو يصفّر/يمدّد التجربة.
   const fromImport = !!(opts && opts.fromImport);
-  const keepSub = fromImport ? { plan: state.plan, trialStartedAt: state.trialStartedAt, planCycle: state.planCycle, planPendingCycle: state.planPendingCycle, proLegacy: state.proLegacy } : null;
+  const keepSub = fromImport ? { plan: state.plan, trialStartedAt: state.trialStartedAt, planCycle: state.planCycle, planPendingCycle: state.planPendingCycle, proLegacy: state.proLegacy, _owner: state._owner } : null;
   if(parsed.keywords) state.keywords = parsed.keywords;
   if(parsed.drafts) state.drafts = parsed.drafts;
   if(parsed.notes) state.notes = parsed.notes;
@@ -415,6 +417,9 @@ function applyLoadedState(parsed, opts){
   if(parsed.recurringMeta) state.recurringMeta = parsed.recurringMeta;
   if(parsed.templates) state.templates = parsed.templates;
   if(parsed.plan && (parsed.plan === 'free' || parsed.plan === 'trial' || parsed.plan === 'pro')) state.plan = parsed.plan;
+  // ختم مصدر النسخة يُنسخ كما هو (provenance) — الحفظ يحافظ عليه (first-wins)
+  // والرفع يرفض مختوم الأجنبي. الاستيراد يسترجعه من الجلسة (تبنّي صريح).
+  if(typeof parsed._owner === 'string' && parsed._owner) state._owner = parsed._owner;
   // حقول الاشتراك: trialStartedAt لا يُصفَّر أبدًا فوق طابع قائم —
   // ملف مستورد بلا الطابع (بيانات قديمة) كان يفتح باب تجربة ثانية،
   // فالغائب يُتجاهل ويُحفظ الطابع الحالي (تجربة واحدة للأبد).
@@ -572,12 +577,12 @@ const ENCRYPTED_PREFIX = 'nz1:';
 // التنبيه، ورفع نسخة مطابقة لا يستحق إزعاج المستخدم بتنبيه كل تحديث.
 const SYNCED_HASH_KEY = 'habit-data-synced-hash-v1';
 
-// بصمة المحتوى (بدون ختم المراجعة _savedAt الذي يتغير مع كل حفظ).
-// FNV-1a + الطول: كافية لمقارنة "هل تغيّر شيء؟" — ليست توقيعًا أمنيًا.
+// بصمة المحتوى (بدون ختم المراجعة _savedAt وختم المصدر _owner اللذين يتغيران
+// مع كل حفظ). FNV-1a + الطول: كافية لمقارنة "هل تغيّر شيء؟" — ليست توقيعًا أمنيًا.
 // مُصدَّرة للاختبارات فقط (الاستخدام الإنتاجي داخلي).
 export function stateContentHash(){
   try{
-    const s = JSON.stringify(state, (k, v) => (k === '_savedAt' ? undefined : v));
+    const s = JSON.stringify(state, (k, v) => (k === '_savedAt' || k === '_owner' ? undefined : v));
     let h = 0x811c9dc5;
     for(let i = 0; i < s.length; i++){
       h ^= s.charCodeAt(i);
@@ -611,10 +616,29 @@ function trackFileRev(){
   lastSeenFileRev = (typeof state._savedAt === 'number' && isFinite(state._savedAt)) ? state._savedAt : 0;
 }
 
+// ملكية النسخة داخل حمولتها (لا في مفتاح منفصل فقط): كاتب الطوارئ يكتب نسخة
+// واضحة (غير مشفرة) يقرأها أي حساب، وعلَم التعليق ومفتاح الملكية مشتركان بين
+// التبويبات — فتبويب قديم لحساب آخر كان يزرع بياناته في حساب جديد يُسجَّل الدخول
+// في تبويب مجاور (تلوث حسابات). القاعدة: مختومة لغير المالك الحالي تُرفض في كل
+// مسار قراءة، وبلا ختم تُقبل (توافق مع نسخ ما قبل الختم).
+function backupOwnedBy(parsed, owner){
+  if(!parsed || typeof parsed._owner !== 'string' || !parsed._owner) return true;
+  return parsed._owner === owner;
+}
+
+// ختم مصدر النسخة (first-writer-wins): أول كاتب يختم بمعرّفه، واللاحق يحافظ
+// عليه ولا يغطّيه — وإلا ختم تبويب جديد فوق بيانات أجنبية وشرعنها.
+function stampBackupOwner(){
+  if(typeof state._owner === 'string' && state._owner) return;
+  const o = currentUserId || getBackupOwner();
+  if(o) state._owner = o;
+}
+
 async function saveLocalBackup(){
   // ختم المراجعة قبل التسلسل: كل نسخة محفوظة تحمل لحظة كتابتها، فيقدر التحميل
   // لاحقًا يختار الأحدث بين المحلية والسيرفر بدل الثقة العمياء في السيرفر
   // (اللي كانت بترجع نسخة صباحية عتيقة فوق شغل اليوم كله بعد أي ريستارت).
+  stampBackupOwner();
   state._savedAt = Date.now();
   // بصمة المحتوى (بدون الختم) تُحسب مرة هنا وتُسجَّل مع كل كتابة ناجحة —
   // بها يعرف كاتب الطوارئ لاحقًا هل هناك جديد يستحق الكتابة والتعليق.
@@ -742,6 +766,8 @@ function saveLocalBackupSync(){
     // "تمت المزامنة" مع كل تحديث رغم عدم وجود أي تغيير (العلة المُبلغ عنها).
     const h = stateContentHash();
     if(h !== null && h === lastWrittenHash) return;
+    // ختم المصدر قبل الكتابة الواضحة أيضًا — هذه النسخة يقرأها أي حساب
+    stampBackupOwner();
     state._savedAt = Date.now();
     localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(state));
     lastSeenFileRev = state._savedAt;
@@ -793,6 +819,9 @@ async function adoptNewerExternalBackup(raw){
     if(!(extRev > lastSeenFileRev)) return;
     const parsed = await loadLocalBackup();
     if(!parsed) return;
+    // نسخة تبويب آخر لحساب آخر (متصفح مشترك/خروج ثم دخول) لا تُتبنّى أبدًا —
+    // بلا ختم تُقبل (توافق قديم)، ومختومة الغير تُرفض بصمت ونبقى على حالنا.
+    if(!backupOwnedBy(parsed, getBackupOwner())) return;
     const fileRev = (typeof parsed._savedAt === 'number') ? parsed._savedAt : 0;
     if(!(fileRev > lastSeenFileRev)) return;
     applyLoadedState(parsed);
@@ -871,6 +900,12 @@ async function pushToServer(){
   // نسخة السيرفر. اللقطة بتضمن إن اللي بيرتاح للعملية هو ما كان موجود فعلًا لحظة
   // بدء الرفع، وكأننا جوّدنا نسخة الرفع من التعديلات اللاحقة.
   const snapshot = JSON.parse(JSON.stringify(state));
+  // حارس المصدر (خط الدفاع الأخير): لقطة مختومة لحساب آخر لا تُرفع أبدًا —
+  // تلوث الحسابات مستحيل حتى لو تسربت بيانات أجنبية للذاكرة عبر أي مسار.
+  // بلا ختم يُسمح (توافق قديم) — مسارات القراءة ترفض الأجنبي المختوم أصلًا.
+  if(snapshot._owner && snapshot._owner !== currentUserId){
+    throw new Error('refuse push: snapshot owned by another account');
+  }
   // نطلب updated_at الراجع من السيرفر (trigger يختمه بساعة القاعدة) —
   // يُحفظ كمرجع lastSeen لقرار "الأحدث يكسب" في الإقلاع التالي.
   const { data: pushed, error } = await supabaseClient
@@ -929,7 +964,12 @@ export async function loadData(skipAuthCheck){
     // النسخ اللي اتكتبت بعد تسجيل خروج (owner فاضي) ما نعرضهاش كبيانات حساب —
     // وإلا جلسة وهمية فاضية ممكن تتلصق فوق بيانات الحساب الحقيقي عند أول دخول بعدها.
     showToast('تعذّر الاتصال بالخادم، يعمل التطبيق حاليًا بنسخة محلية');
-    if(getBackupOwner()) applyLoadedState(await loadLocalBackup());
+    if(getBackupOwner()){
+      const offBackup = await loadLocalBackup();
+      // أوفلاين بلا جلسة (currentUserId فارغ): نطابق ختم الملف مع ختم الملكية
+      // المحفوظ — نسخة حساب آخر مرفوضة حتى لو فكّ تشفيرها ممكن.
+      if(offBackup && backupOwnedBy(offBackup, getBackupOwner())) applyLoadedState(offBackup);
+    }
     trackFileRev();
     lastWrittenHash = stateContentHash();
     await settlePlanAfterLoad();
@@ -947,8 +987,10 @@ export async function loadData(skipAuthCheck){
   if(hasPendingSync()){
     const backup = await loadLocalBackup();
     // بنرفع التعديلات المعلّقة بس لو مكتوبة باسم الحساب نفسه —
-    // غير كده السيرفر هو المرجع الآمن ومنمسحش العلم ونكمل تحميل عادي
-    if(backup && getBackupOwner() === currentUserId){
+    // غير كده السيرفر هو المرجع الآمن ومنمسحش العلم ونكمل تحميل عادي.
+    // + ختم الحمولة: نسخة تبويب/حساب آخر (كاتب طوارئ واضح) تُرفض حتى لو
+    // مفتاح الملكية المشترك يوحي بغير ذلك — ضد تلوث الحسابات.
+    if(backup && getBackupOwner() === currentUserId && backupOwnedBy(backup, currentUserId)){
       applyLoadedState(backup);
       trackFileRev();
       lastWrittenHash = stateContentHash();
@@ -1008,11 +1050,15 @@ export async function loadData(skipAuthCheck){
         if(serverUpdatedAtMs) setLastServerTs(serverUpdatedAtMs);
       }
     } else {
-      // أول مرة للمستخدم ده: لو عنده بيانات قديمة في localStorage، ارفعها لـ Supabase
+      // أول مرة للمستخدم ده: لو عنده بيانات قديمة في localStorage، ارفعها لـ Supabase.
+      // بشرط الملكية: نسخة مختومة لحساب آخر (تبويب مجاور/جلسة سابقة) تُتجاهل —
+      // وإلا بيانات الغير تُرفع لصف الحساب الجديد (تلوث حسابات). بلا ختم تُقبل (قديم).
       const legacy = await loadLocalBackup();
-      if(legacy){
+      if(legacy && backupOwnedBy(legacy, getBackupOwner())){
         applyLoadedState(legacy);
         await saveData();
+      } else if(legacy){
+        console.warn('تم تجاهل نسخة محلية مختومة لحساب آخر (حماية من تلوث الحسابات)');
       }
     }
   }catch(e){
