@@ -1027,7 +1027,12 @@ export async function loadData(skipAuthCheck){
       const local = await loadLocalBackup();
       const localRev = (local && typeof local._savedAt === 'number' && isFinite(local._savedAt)) ? local._savedAt : 0;
       const ownBackup = !!(local && getBackupOwner() === currentUserId);
-      let useLocal = ownBackup && localRev > serverRev;
+      // نسخة بلا ختم مصدر مع مفتاح ملكية قائم = بقايا ما قبل الختم (أو أجنبية) —
+      // لا تكسب مقارنة الحداثة أمام صف السيرفر أبدًا؛ السيرفر مرجعها. مسار المعلّق
+      // (وله علمه الخاص) هو الوحيد الذي يقبل غير المختومة — فلا ضياع لشغل حقيقي.
+      const localStamped = !!(local && typeof local._owner === 'string' && local._owner);
+      const effectiveLocalRev = (ownBackup && localStamped) ? localRev : 0;
+      let useLocal = ownBackup && effectiveLocalRev > serverRev;
       const nowMs = Date.now();
       if(ownBackup && localRev > nowMs + SKEW_TOL_MS && !(serverRev > nowMs + SKEW_TOL_MS)){
         // نسختنا مختومة بتاريخ مستقبلي مستحيل (ساعة الجهاز كانت متقدمة لحظة
