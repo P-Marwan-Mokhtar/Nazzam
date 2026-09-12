@@ -26,7 +26,7 @@ import { applyHashToState, consumeShortcutViewParam } from './routing.js';
 import { applyTheme, closeAppearanceModal } from './theme.js';
 import { initMonitoring, trackView } from './monitoring.js';
 import { closeUpgrade, gateFree, maybeShowTrialNudge } from './upgrade.js';
-import { wireOnboarding, checkOnboarding } from './onboarding.js';
+import { wireOnboarding, checkOnboarding, closeOnboarding } from './onboarding.js';
 import { isWideListScroll, positionTaskMoreFixed } from './events.js';
 import { openSmartLists } from './smartLists.js';
 import { closeAccountPanel, isAccountPanelOpen, toggleAccountPanel } from './accountMenu.js';
@@ -563,7 +563,8 @@ async function startApp(){
       }
     }
     if(e.key === 'Escape'){
-      if(onboardingOverlay.classList.contains('open')){ closeOnboarding(); return; }
+      const onboardingOverlayEl = document.getElementById('onboardingOverlay');
+      if(onboardingOverlayEl && onboardingOverlayEl.classList.contains('open')){ closeOnboarding(); return; }
       if(isAccountPanelOpen()) closeAccountPanel();
       if(ui.taskStatsName){ ui.taskStatsName = null; ui.justReturnedFromStats = true; render(); }
       if(ui.statsViewOpen){ ui.statsViewOpen = false; ui.justReturnedFromStats = true; render(); }

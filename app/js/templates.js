@@ -3,7 +3,7 @@
 // ============================================================
 
 import { emptyStateHtml, escapeAttr, escapeHtml, highlightMatch, normalizeArabic, uid } from './utils.js';
-import { showToast, showUndoToast, state, ui, TASK_TYPES } from './state.js';
+import { showToast, showUndoToast, state, taskTypeKey, ui, TASK_TYPES } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
 import { t } from './i18n.js';
@@ -46,7 +46,7 @@ export function renderTemplatesModal(){
     } else {
       html += `
         <div class="template-modal-row">
-          <span class="material-icons tc-${tp.type || 'task'}">${TASK_TYPES[tp.type || 'task'].icon}</span>
+          <span class="material-icons tc-${taskTypeKey(tp.type)}">${TASK_TYPES[taskTypeKey(tp.type)].icon}</span>
           <span class="template-modal-name" title="${escapeHtml(tp.name)}">${highlightMatch(tp.name, ui.templatesSearchQuery)}</span>
           <div class="template-modal-actions">
             <button class="icon-btn" data-id="${escapeAttr(tp.id)}" data-action="add" title="${t('task.add_to_today')}"><span class="material-icons">add</span></button>
@@ -162,9 +162,11 @@ async function applyReplaceConfirm(){
 
   if(conf.kind === 'replace-day'){
     // استبدال بيانات المهمة الموجودة في اليوم ببيانات القالب (نفس id المهمة)
+    // مع لقطة تراجع: الاستبدال كان يمسح مهامًا فرعية/ملاحظة منجزة بلا رجعة
     const tpl = state.templates.find(x => x.id === conf.templateId);
     const dayTask = (state.days[ui.selectedDate] || []).find(t => t.name === conf.name);
     if(tpl && dayTask){
+      const snapshot = JSON.parse(JSON.stringify(dayTask));
       if(tpl.type) dayTask.type = tpl.type; else delete dayTask.type;
       if(tpl.priority) dayTask.priority = tpl.priority; else delete dayTask.priority;
       if(tpl.duration) dayTask.duration = tpl.duration; else delete dayTask.duration;
@@ -173,7 +175,14 @@ async function applyReplaceConfirm(){
       else delete dayTask.subtasks;
       render();
       await saveData();
-      showToast(t('template.replaced_toast'));
+      showUndoToast(t('template.replaced_toast'), async () => {
+        const cur = state.days[ui.selectedDate] || [];
+        const i = cur.findIndex(x => x.id === snapshot.id);
+        if(i !== -1) cur[i] = snapshot;
+        else cur.push(snapshot);
+        render();
+        await saveData();
+      });
     }
   } else if(conf.kind === 'replace-template'){
     // استبدال بيانات القالب القديم ببيانات المهمة اللي هيتحفظ

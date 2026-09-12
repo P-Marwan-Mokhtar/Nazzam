@@ -11,7 +11,7 @@ export function afterRender(cb){
 
 import { emptyStateHtml, escapeAttr, escapeHtml, fmtDay, fromISO, highlightMatch, normalizeArabic, parseDurationToMinutes, todayStr, uid } from './utils.js';
 import { t, formatHM } from './i18n.js';
-import { PRIORITY_LABELS, TASK_TYPES, contentEl, getDaySortMode, state, ui } from './state.js';
+import { PRIORITY_LABELS, TASK_TYPES, contentEl, getDaySortMode, state, taskTypeKey, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { attachEvents, isWideListScroll, positionTaskMoreFixed } from './events.js';
 import { buildFilterDropdown, hideDurationPopover } from './popovers.js';
@@ -41,55 +41,45 @@ export function ensureDayMaterialized(dateStr){
       const rDays = state.recurringTasks[rName] || [];
       if(!rDays.includes(weekday)) return; // مش من أيام تكرارها أصلاً، مفيش قرار نسجله
       if(dayPinned[rName]) return; // اتقرر مصيرها قبل كده في اليوم ده (اتحطت أو المستخدم شالها بنفسه)
-      if(!state.days[dateStr].some(t => t.name === rName && !t._fromRecurrence)){
-        const recTask = { id: uid(), name: rName, done: false, createdAt: Date.now(), _fromRecurrence: true };
-        // المواصفات المحفوظة مع التكرار (نوع/أولوية/مدة/ملاحظة/مهام فرعية) — دي الأولوية
-        // لأنها بتعكس آخر مواصفات حطها المستخدم على المهمة وقت تفعيل التكرار.
-        const meta = state.recurringMeta && state.recurringMeta[rName];
-        if(meta){
-          if(meta.type) recTask.type = meta.type;
-          if(meta.priority) recTask.priority = meta.priority;
-          if(meta.duration) recTask.duration = meta.duration;
-          if(meta.note) recTask.note = meta.note;
-          if(meta.subtasks && meta.subtasks.length) recTask.subtasks = meta.subtasks.map(s => ({ id: uid(), title: s.title, done: false }));
-        } else {
-          // تكرار من غير مواصفات محفوظة في recurringMeta — بننسخ المواصفات كاملة من
-          // النسخة الحية الموجود منها نسخة (أقرب يوم للماضي) عشان ما يحيّش مهمة فاضية.
-          let found = null;
-          const relevantDays = Object.keys(state.days).sort();
-          for(let i = relevantDays.length - 1; i >= 0; i--){
-            const same = state.days[relevantDays[i]].find(t => t.name === rName && !t._dupOf);
-            if(same){ found = same; break; }
-          }
-          if(found){
-            if(found.type) recTask.type = found.type;
-            if(found.priority) recTask.priority = found.priority;
-            if(found.duration) recTask.duration = found.duration;
-            if(found.note) recTask.note = found.note;
-            if(found.subtasks && found.subtasks.length) recTask.subtasks = found.subtasks.map(s => ({ id: uid(), title: s.title, done: false }));
-          } else {
-            // مفيش نسخة حية متاحة — نرث النوع من الكلمة لو موجودة
-            const rKw = state.keywords.find(k => k.name === rName);
-            if(rKw && rKw.type) recTask.type = rKw.type;
-          }
-        }
-        // لو فيه نسخة متكررة قديمة فاضية (من غير نوع) محقونة سابقًا من قبل التحديث،
-        // نستبدلها بالنسخة الجديدة ذات المواصفات بدل ما تفضل مهمة فاضية.
-        const existingIdx = state.days[dateStr].findIndex(t => t.name === rName && t._fromRecurrence);
-        if(existingIdx >= 0){
-          state.days[dateStr].splice(existingIdx, 1, recTask);
-        } else {
-          state.days[dateStr].push(recTask);
-        }
-        recurringAdded = true;
-        dayPinned[rName] = true;
-      } else if(state.days[dateStr].some(t => t.name === rName && t._fromRecurrence)){
-        // نسخة متكررة موجودة فعلًا جنب مهمة يدوية بنفس الاسم — القرار محسوم،
-        // بنعلّم عشان التقييم ميتكررش مع كل render.
-        dayPinned[rName] = true;
+      if(state.days[dateStr].some(t => t.name === rName && !t._fromRecurrence)) {
+        // مهمة يدوية بنفس الاسم — بنسيب اليوم من غير قرار عمدًا: لو المستخدم
+        // مسح اليدوية بعدين، التكرار يتحقن تلقائيًا في أول render تالي.
+        return;
       }
-      // لو فيه مهمة يدوية بس (من غير نسخة متكررة)، بنسيب اليوم من غير قرار عمدًا:
-      // لو المستخدم مسح اليدوية بعدين، التكرار يتحقن تلقائيًا في أول render تالي.
+      // لو الاسم مطابق لقالب حي، النسخة تتكرر "كقالب" بكامل خواص القالب الحي
+      // (وأي تعديل لاحق على القالب ينعكس على النسخ الجاية) — وإلا نسخة نضيفة:
+      // اسم فقط + النوع من هوية الكلمة في البنك، بلا أي علاقة بخواص الأصل.
+      const tpl = (state.templates || []).find(x => x && x.name === rName);
+      const recTask = { id: uid(), name: rName, done: false, createdAt: Date.now(), _fromRecurrence: true };
+      if(tpl){
+        if(tpl.type) recTask.type = tpl.type;
+        if(tpl.priority) recTask.priority = tpl.priority;
+        if(tpl.duration) recTask.duration = tpl.duration;
+        if(tpl.note) recTask.note = tpl.note;
+        if(tpl.subtasks && tpl.subtasks.length) recTask.subtasks = tpl.subtasks.map(s => ({ id: uid(), title: s.title, done: false }));
+      } else {
+        const rKw = state.keywords.find(k => k.name === rName);
+        if(rKw && rKw.type) recTask.type = rKw.type;
+      }
+      // نسخة متكررة قديمة محقونة سابقًا تُستبدل بالجديدة — إلا لو فيها تقدم
+      // منجز (إنجاز/مهام فرعية منجزة) فيُحافظ عليه وتُستكمل نواقصه فقط.
+      const existingIdx = state.days[dateStr].findIndex(t => t.name === rName && t._fromRecurrence);
+      if(existingIdx >= 0){
+        const oldRec = state.days[dateStr][existingIdx];
+        const hasProgress = oldRec.done === true ||
+          (Array.isArray(oldRec.subtasks) && oldRec.subtasks.some(s => s && s.done === true));
+        if(hasProgress){
+          if(!oldRec.type && recTask.type) oldRec.type = recTask.type;
+          if(!oldRec.priority && recTask.priority) oldRec.priority = recTask.priority;
+          if(!oldRec.duration && recTask.duration) oldRec.duration = recTask.duration;
+        } else {
+          state.days[dateStr].splice(existingIdx, 1, recTask);
+        }
+      } else {
+        state.days[dateStr].push(recTask);
+      }
+      recurringAdded = true;
+      dayPinned[rName] = true;
     });
     if(recurringAdded) saveData();
   }
@@ -262,7 +252,7 @@ export function render(){
         html += `
           <span class="filter-chip-outer" data-wrap-id="${escapeAttr(f.id)}">
             <span class="filter-chip-edit">
-              <input class="edit-input filter-edit-input" id="editFilterInput" value="${escapeAttr(f.name)}" maxlength="40" />
+              <input class="edit-input filter-edit-input" id="editFilterInput" value="${escapeAttr(ui.editingFilterId === f.id ? ui.editingFilterDraft : f.name)}" maxlength="40" />
               <button class="icon-btn" data-action="save-filter" data-id="${escapeAttr(f.id)}" title="${t('c.save')}"><span class="material-icons">check</span></button>
               <button class="icon-btn" data-action="cancel-filter" title="${t('c.cancel')}"><span class="material-icons">close</span></button>
             </span>
@@ -321,8 +311,8 @@ export function render(){
       slicedKeywords.forEach(k => {
         if(ui.editingKeywordId === k.id){
            html += `
-            <div class="keyword-row editing">
-              <input class="edit-input" id="editKeywordInput" value="${escapeAttr(k.name)}" />
+             <div class="keyword-row editing">
+              <input class="edit-input" id="editKeywordInput" value="${escapeAttr(ui.editingKeywordId === k.id ? ui.editingKeywordDraft : k.name)}" />
               ${buildFilterDropdown('editKeywordFilterCustom', k.filterId || '')}
               <button class="icon-btn" data-action="save-keyword" title="${t('c.save')}"><span class="material-icons">check</span></button>
               <button class="icon-btn" data-action="cancel-keyword" title="${t('c.cancel')}"><span class="material-icons">close</span></button>
@@ -348,7 +338,7 @@ export function render(){
                       </button>
                       <div class="type-submenu-wrap">
                         <button class="tmd-btn type-btn" data-action="toggle-keyword-type-popover" data-id="${escapeAttr(k.id)}" title="${t('c.type')}">
-                          <span class="material-icons">${TASK_TYPES[k.type || 'task'].icon}</span><span>${t('task.type_' + (k.type || 'task'))}</span>
+                          <span class="material-icons">${TASK_TYPES[taskTypeKey(k.type)].icon}</span><span>${t('task.type_' + taskTypeKey(k.type))}</span>
                         </button>
                         <div class="priority-popover type-popover ${ui.openKeywordTypePopoverTaskId === k.id ? 'open' : ''}">
                           <button class="priority-choice-btn tc-task ${k.type === 'task' || !k.type ? 'selected' : ''}" data-action="set-keyword-type" data-choice="task" data-id="${escapeAttr(k.id)}" type="button">
@@ -515,7 +505,7 @@ export function render(){
         <div class="task-row ${task.done?'done':''} ${(!task.done && isPastDay)?'missed':''} ${task.priority ? 'priority-' + task.priority : ''} ${entrance ? 'task-in' : ''}" ${entrance ? `style="--task-order:${idx}"` : ''} draggable="true" data-drag-id="${escapeAttr(task.id)}">
           ${ui.editingTaskId === task.id ? `
             <div class="inline-edit-wrap">
-              <input type="text" id="inlineEditInput_${escapeAttr(task.id)}" class="inline-edit-input" value="${escapeAttr(task.name)}" />
+              <input type="text" id="inlineEditInput_${escapeAttr(task.id)}" class="inline-edit-input" value="${escapeAttr(ui.editingTaskId === task.id ? ui.editingTaskDraft : task.name)}" />
               <button class="icon-btn" data-action="save-task-edit" data-id="${escapeAttr(task.id)}" title="${t('c.save')}"><span class="material-icons">check</span></button>
               <button class="icon-btn" data-action="cancel-task-edit" data-id="${escapeAttr(task.id)}" title="${t('c.cancel')}"><span class="material-icons">close</span></button>
             </div>
@@ -524,7 +514,7 @@ export function render(){
               <span class="material-icons">${task.done ? 'check_circle' : 'radio_button_unchecked'}</span>
             </button>
             <button type="button" class="task-name-btn" data-action="open-task-details" data-id="${escapeAttr(task.id)}" title="${t('task.view_details')}">
-              <span class="task-type-icon task-type-${task.type || 'task'}" title="${t('task.type_' + (task.type || 'task'))}"><span class="material-icons">${TASK_TYPES[task.type || 'task'].icon}</span></span>
+              <span class="task-type-icon task-type-${taskTypeKey(task.type)}" title="${t('task.type_' + taskTypeKey(task.type))}"><span class="material-icons">${TASK_TYPES[taskTypeKey(task.type)].icon}</span></span>
               <span class="task-name">${escapeHtml(task.name)}</span>
             </button>
           `}
@@ -632,9 +622,35 @@ export function render(){
   ui.justOpenedMobileFilters = false;
   ui.addArrowJustOpened = false;
 
+  // أي حقل تحرير داخلي مركز الآن (قبل استبدال الـ DOM): نحفظ معرفه ومكان
+  // المؤشر لنستعيده بعد الرسم — وإلا render طارئ أثناء الكتابة يسحب الفوكس
+  let focusedEditId = null;
+  let focusedEditCursor = 0;
+  try{
+    const ae = document.activeElement;
+    if(ae && ae.id && /^(inlineEditInput_.+|editKeywordInput|editFilterInput)$/.test(ae.id)){
+      focusedEditId = ae.id;
+      focusedEditCursor = typeof ae.selectionStart === 'number' ? ae.selectionStart : (ae.value ? ae.value.length : 0);
+    }
+  }catch(e){}
+
   requestAnimationFrame(() => {
     contentEl.innerHTML = html;
     attachEvents();
+    // تحرير داخلي كان مركزًا قبل render طارئ (مؤقت خلص/تذكير): النص محفوظ في
+    // مسودة ui، ونرجّع الفوكس ومكان المؤشر حتى لا يحس المستخدم بانقطاع الكتابة
+    if(focusedEditId){
+      const stillOpen = (focusedEditId === 'editKeywordInput' && ui.editingKeywordId)
+        || (focusedEditId === 'editFilterInput' && ui.editingFilterId)
+        || (focusedEditId.startsWith('inlineEditInput_') && ui.editingTaskId === focusedEditId.slice('inlineEditInput_'.length));
+      if(stillOpen){
+        const el = document.getElementById(focusedEditId);
+        if(el){
+          el.focus();
+          try{ el.setSelectionRange(focusedEditCursor, focusedEditCursor); }catch(e){}
+        }
+      }
+    }
     // القايمة اتفتحت من غير إحداثيات (زي التبديل من chips لـ list والقايمة مفتوحة) — نحسبها بعد الرسم
     if(isWideListScroll() && ui.openTaskMoreId && !ui.openTaskMorePos) positionTaskMoreFixed(ui.openTaskMoreId);
     if(ui.timerPanelRenderedForDate !== ui.selectedDate){

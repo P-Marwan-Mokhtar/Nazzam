@@ -4,7 +4,7 @@
 // ============================================================
 
 import { escapeHtml, parseDurationToMinutes } from './utils.js';
-import { PRIORITY_LABELS, TASK_TYPES, state, ui } from './state.js';
+import { PRIORITY_LABELS, TASK_TYPES, state, taskTypeKey, ui } from './state.js';
 import { t, formatHM } from './i18n.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
@@ -96,9 +96,9 @@ function renderDetails(){
       </div>
 
       <div class="td-row">
-        <span class="td-icon material-icons">${task.type ? TASK_TYPES[task.type].icon : 'label_off'}</span>
+        <span class="td-icon material-icons">${task.type ? TASK_TYPES[taskTypeKey(task.type)].icon : 'label_off'}</span>
         <span class="td-label">${t('c.type')}</span>
-        <span class="td-value ${task.type ? '' : 'muted'}">${task.type ? t('task.type_' + task.type) : t('task.type_task')}</span>
+        <span class="td-value ${task.type ? '' : 'muted'}">${task.type ? t('task.type_' + taskTypeKey(task.type)) : t('task.type_task')}</span>
         <div class="task-more-menu-wrap td-more-menu-wrap">
           <button type="button" class="icon-btn task-more-btn" data-td="toggle-details-type" title="${t('task.type_unset')}">
             <span class="material-icons">more_vert</span>
@@ -302,7 +302,7 @@ function handleAction(el){
   }
   else if(action === 'timer'){
     closeTaskDetails();
-    startOpenTimer(task.name);
+    startOpenTimer(task.name, task.id, ui.selectedDate);
   }
   else if(action === 'note'){
     closeTaskDetails();

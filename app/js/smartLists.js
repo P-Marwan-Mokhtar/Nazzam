@@ -5,7 +5,7 @@
 // ============================================================
 
 import { addDays, escapeAttr, escapeHtml, emptyStateHtml, fmtDay, getWeekStart, todayStr, uid } from './utils.js';
-import { contentEl, showToast, state, ui, TASK_TYPES } from './state.js';
+import { contentEl, showToast, state, taskTypeKey, ui, TASK_TYPES } from './state.js';
 import { canUse } from './plans.js';
 import { gateFree } from './upgrade.js';
 import { saveData } from './dataStore.js';
@@ -126,8 +126,8 @@ function buildRows(key, today){
     return emptyStateHtml('auto_awesome', t('smart.empty_list'));
   }
   return items.map(({ date, task }) => {
-    const icon = TASK_TYPES[task.type || 'task'].icon;
-    const typeClass = 'tc-' + (task.type || 'task');
+    const icon = TASK_TYPES[taskTypeKey(task.type)].icon;
+    const typeClass = 'tc-' + taskTypeKey(task.type);
     const dateLabel = date === ui.selectedDate ? t('smart.today') : fmtDay(date);
     const timeInfo = task.startTime
       ? `<span class="smart-task-time"><span class="material-icons">schedule</span>${formatTimeArabic(task.startTime)}</span>`

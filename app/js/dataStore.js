@@ -13,6 +13,21 @@ import { settlePlan } from './plans.js';
 const MAX_IMPORT_SIZE = 10 * 1024 * 1024; // حد أقصى لحجم ملف الاستيراد (10 ميجابايت)
 const EXPORT_MARKER = 'nazzam-backup-v1'; // بصمة النسخة الاحتياطية المصدّرة من التطبيق
 
+// نسخة تعارض للطوارئ: عند تغليب نسخة السيرفر فوق محلية مختلفة (جهاز آخر كتب
+// بينما كنا نحرر)، نحتفظ بالمحلية هنا بدل مسحها بصمت — حتى لا يضيع شغل المستخدم
+// دون أثر. تُكتب بأفضل جهد (best-effort) ولا تكسر التحميل لو فشلت.
+const CONFLICT_BACKUP_KEY = 'habit-data-conflict-v1';
+function stashConflictCopy(localSnapshot){
+  try{
+    if(!localSnapshot || typeof localSnapshot !== 'object') return;
+    localStorage.setItem(CONFLICT_BACKUP_KEY, JSON.stringify({
+      savedAt: Date.now(),
+      owner: getBackupOwner() || null,
+      data: localSnapshot
+    }));
+  }catch(e){}
+}
+
 // بصمة تحقق بسيطة (FNV-1a) فوق محتوى البيانات. مش توقيع تشفيري (التطبيق بيشتغل في
 // المتصفح فالكود علني، ولا يوجد سر مخفي ممكن نبصّم بيه)، لكنها بتضمن إن محتوى الملف
 // مفيش فيه أي تعديل/تلف من لحظة التصدير — فأي ملف اتعبت بشغل أو اتعدل بيترفض.
@@ -48,7 +63,7 @@ export function exportDataAsJSON(){
 
 function isPlausibleBackupShape(obj){
   if(!obj || typeof obj !== 'object') return false;
-  const knownKeys = ['keywords', 'drafts', 'days', 'filters', 'timers', 'darkMode', 'accentLight', 'accentDark', 'recurringTasks', 'recurringMeta', 'pinnedTaskNames', 'templates', 'plan'];
+  const knownKeys = ['keywords', 'drafts', 'trash', 'days', 'filters', 'timers', 'darkMode', 'accentLight', 'accentDark', 'recurringTasks', 'recurringMeta', 'pinnedTaskNames', 'templates', 'plan'];
   return knownKeys.some(k => Object.prototype.hasOwnProperty.call(obj, k));
 }
 
@@ -137,7 +152,10 @@ function sanitizeTask(t){
   if(typeof t.duration === 'string' && t.duration.trim()) out.duration = t.duration;
   if(typeof t.actualDuration === 'string' && t.actualDuration.trim()) out.actualDuration = t.actualDuration;
   if(isHHMM(t.startTime)) out.startTime = t.startTime;
-  if(t._dupOf === true) out._dupOf = true;
+  // علامة النسخة المكررة من الجدول الزمني: معرف نصي للأصل (timeBlocking.js: duplicateTimelineTask)
+  // تُحفظ كما هي بعد التحقق من صيغتها — وإلا ضاعت بعد reload/import وظهرت النسخ كمهام أصلية.
+  if(typeof t._dupOf === 'string' && sanitizeId(t._dupOf)) out._dupOf = t._dupOf;
+  else if(t._dupOf === true) out._dupOf = true;
   if(t._fromRecurrence === true) out._fromRecurrence = true;
   if(Array.isArray(t.subtasks)){
     const subs = t.subtasks
@@ -167,6 +185,10 @@ function sanitizeTimer(t){
   };
   // مقدار الوقت اللي تسجل فعلًا جوه الوقت الفعلي للمهمة المرتبطة بالمؤقت
   if(typeof t.loggedMs === 'number' && isFinite(t.loggedMs) && t.loggedMs >= 0) out.loggedMs = t.loggedMs;
+  // ربط المؤقت بالمهمة بالمعرف (لا بالاسم): يُحفظ بعد التحقق من الصيغة —
+  // المؤقتات القديمة بلا taskId تعمل بالمطابقة الاسمية كاحتياط
+  if(sanitizeId(t.taskId)) out.taskId = t.taskId;
+  if(isDateStr(t.taskDate)) out.taskDate = t.taskDate;
   if(out.mode === 'countdown'){
     out.targetMs = (typeof t.targetMs === 'number' && isFinite(t.targetMs) && t.targetMs > 0) ? t.targetMs : 0;
     if(t.alerted === true) out.alerted = true;
@@ -179,6 +201,22 @@ function sanitizeFilterItem(x){
   const name = typeof x.name === 'string' ? capStr(x.name.trim(), MAX_NAME_LEN) : '';
   if(!name) return null;
   return { id: sanitizeId(x.id) || uid(), name, pinned: x.pinned === true };
+}
+
+// عنصر سلة مهملات مهام اليوم: { id, task (مهمة كاملة), dups?, date, deletedAt? }
+// النسخة الكاملة تُعقّم بنفس sanitizeTask (يحفظ _dupOf النصي والمهام الفرعية والملاحظة)
+function sanitizeTrashItem(x){
+  if(!isPlainObject(x)) return null;
+  if(!isDateStr(x.date)) return null;
+  const task = sanitizeTask(x.task);
+  if(!task) return null;
+  const out = { id: sanitizeId(x.id) || uid(), task, date: x.date };
+  if(Array.isArray(x.dups)){
+    const dups = x.dups.map(sanitizeTask).filter(Boolean);
+    if(dups.length) out.dups = dups;
+  }
+  if(typeof x.deletedAt === 'number' && isFinite(x.deletedAt) && x.deletedAt >= 0) out.deletedAt = Math.floor(x.deletedAt);
+  return out;
 }
 
 // مصفوفة عناصر بنمرر كل عنصر على sanitize ونحذف اللي مش صالح
@@ -230,34 +268,10 @@ function sanitizeRecurringTasks(obj){
   return any ? out : null;
 }
 
-// مواصفات التكرار: اسم المهمة -> { type, priority, duration, note, subtasks } — جزء تخزيني فقط
-function sanitizeRecurringMeta(obj){
-  if(!isPlainObject(obj)) return null;
-  const out = {};
-  let any = false;
-  for(const name of Object.keys(obj)){
-    if(!isPlainObject(obj[name])) continue;
-    const meta = {};
-    const m = obj[name];
-    if(m.type === 'task' || m.type === 'habit' || m.type === 'hobby') meta.type = m.type;
-    if(m.priority === 'high' || m.priority === 'medium' || m.priority === 'low') meta.priority = m.priority;
-    if(typeof m.duration === 'string' && m.duration.trim()) meta.duration = m.duration;
-    if(typeof m.note === 'string') meta.note = m.note;
-    if(Array.isArray(m.subtasks)){
-      const subs = m.subtasks
-        .filter(s => isPlainObject(s) && typeof s.title === 'string' && s.title.trim())
-        .map(s => ({ id: sanitizeId(s.id) || uid(), title: s.title, done: s.done === true }));
-      if(subs.length) meta.subtasks = subs;
-    }
-    if(Object.keys(meta).length){
-      out[name] = meta;
-      any = true;
-    }
-  }
-  return any ? out : null;
-}
+// (أُسقطت مواصفات التكرار recurringMeta نهائيًا: تكرار المهمة نضيف بلا خواص،
+// ولو الاسم مطابق لقالب حي تُقرأ خواص القالب وقت الحقن — أي قيم قديمة تُتجاهل تلقائيًا)
 
-// إعدادات التنبيهات: بندمج فوق القيم الافتراضية ونرفض أي حقل من نوع غلط
+ // إعدادات التنبيهات: بندمج فوق القيم الافتراضية ونرفض أي حقل من نوع غلط
 function sanitizeNotificationSettings(obj){
   const out = { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null };
   if(!isPlainObject(obj)) return out;
@@ -280,6 +294,7 @@ function sanitizeLoadedState(obj){
   // سقف البنك: ملف ملعوب بآلاف الأسماء يُقصّ بدل ما يجمّد الرسم
   if(out.keywords.length > MAX_KEYWORDS) out.keywords = out.keywords.slice(0, MAX_KEYWORDS);
   out.drafts = sanitizeList(obj.drafts, sanitizeNamedItem) || [];
+  out.trash = sanitizeList(obj.trash, sanitizeTrashItem) || [];
   out.notes = sanitizeNotes(obj.notes) || {};
   out.days = sanitizeDateMap(obj.days, sanitizeTask) || {};
   out.filters = sanitizeList(obj.filters, sanitizeFilterItem) || [];
@@ -288,7 +303,6 @@ function sanitizeLoadedState(obj){
   out.accentLight = isValidAccent(obj.accentLight) ? obj.accentLight : 'classic';
   out.accentDark = isValidAccent(obj.accentDark) ? obj.accentDark : 'classic';
   out.recurringTasks = sanitizeRecurringTasks(obj.recurringTasks) || {};
-  out.recurringMeta = sanitizeRecurringMeta(obj.recurringMeta) || {};
   out.notificationSettings = sanitizeNotificationSettings(obj.notificationSettings);
   out.templates = sanitizeList(obj.templates, sanitizeTemplate) || [];
   if(obj.plan === 'free' || obj.plan === 'trial' || obj.plan === 'pro') out.plan = obj.plan;
@@ -409,12 +423,12 @@ function applyLoadedState(parsed, opts){
   const keepSub = fromImport ? { plan: state.plan, trialStartedAt: state.trialStartedAt, planCycle: state.planCycle, planPendingCycle: state.planPendingCycle, proLegacy: state.proLegacy, _owner: state._owner } : null;
   if(parsed.keywords) state.keywords = parsed.keywords;
   if(parsed.drafts) state.drafts = parsed.drafts;
+  if(parsed.trash) state.trash = parsed.trash;
   if(parsed.notes) state.notes = parsed.notes;
   if(parsed.days) state.days = parsed.days;
   if(parsed.filters) state.filters = parsed.filters;
   if(parsed.timers) state.timers = parsed.timers;
   if(parsed.recurringTasks) state.recurringTasks = parsed.recurringTasks;
-  if(parsed.recurringMeta) state.recurringMeta = parsed.recurringMeta;
   if(parsed.templates) state.templates = parsed.templates;
   if(parsed.plan && (parsed.plan === 'free' || parsed.plan === 'trial' || parsed.plan === 'pro')) state.plan = parsed.plan;
   // ختم مصدر النسخة يُنسخ كما هو (provenance) — الحفظ يحافظ عليه (first-wins)
@@ -993,6 +1007,7 @@ export async function loadData(skipAuthCheck){
     if(backup && getBackupOwner() === currentUserId && backupOwnedBy(backup, currentUserId)){
       applyLoadedState(backup);
       trackFileRev();
+      serverBootLoadedFor = currentUserId; // الجلسة رأت نسخة هذا الحساب — الدفع اللاحق معلوم النسب لا أعمى
       lastWrittenHash = stateContentHash();
       // صامت: رفع تحقق روتيني عند الإقلاع — التنبيه لعودة النت الحية فقط (online event)
       await trySyncPending(true);
@@ -1046,21 +1061,33 @@ export async function loadData(skipAuthCheck){
       if(useLocal){
         applyLoadedState(local);
         trackFileRev();
+        serverBootLoadedFor = currentUserId; // المحلية المعتمدة من نسب الجهاز نفسه
         markPendingSync(true);
         await flushPendingSave(); // ارفع الأحدث فورًا بدل انتظار الـ debounce
       } else {
+        // تغليب السيرفر: لو المحلية مختلفة فعلًا عن السيرفر، نحتفظ بها كنسخة
+        // تعارض قبل الكتابة فوقها — وإلا ضاع شغل جهاز آخر/جلسة أخرى بصمت.
+        if(ownBackup && localStamped && local && localRev !== serverRev){
+          stashConflictCopy(local);
+          showToast('تم العثور على نسخة أحدث على جهاز آخر، وتم الاحتفاظ بنسخة محلية احتياطية');
+        }
         applyLoadedState(data.data);
         await saveLocalBackup(); // حدّث النسخة المحلية بأحدث بيانات من السيرفر
         trackFileRev();
+        serverBootLoadedFor = currentUserId; // الجلسة رأت صف السيرفر لهذا الحساب
         if(serverUpdatedAtMs) setLastServerTs(serverUpdatedAtMs);
       }
     } else {
       // أول مرة للمستخدم ده: لو عنده بيانات قديمة في localStorage، ارفعها لـ Supabase.
-      // بشرط الملكية: نسخة مختومة لحساب آخر (تبويب مجاور/جلسة سابقة) تُتجاهل —
-      // وإلا بيانات الغير تُرفع لصف الحساب الجديد (تلوث حسابات). بلا ختم تُقبل (قديم).
+      // بشرط الملكية المزدوج: مختومة للحساب الحالي نفسه — لا يكفي تطابق الختم
+      // مع خانة قديمة (جلسة حساب آخر على نفس المتصفح)، وإلا نسخة حساب آخر
+      // الفارغة تُرفع باسم الحساب الجديد فتمسح بياناته من السيرفر (حادثة التبديل).
+      // بلا ختم وخانة فارغة تُقبل (توافق قديم).
       const legacy = await loadLocalBackup();
-      if(legacy && backupOwnedBy(legacy, getBackupOwner())){
+      const ownerSlot = getBackupOwner();
+      if(legacy && backupOwnedBy(legacy, ownerSlot) && (!ownerSlot || ownerSlot === currentUserId)){
         applyLoadedState(legacy);
+        serverBootLoadedFor = currentUserId;
         await saveData();
       } else if(legacy){
         console.warn('تم تجاهل نسخة محلية مختومة لحساب آخر (حماية من تلوث الحسابات)');
@@ -1068,7 +1095,14 @@ export async function loadData(skipAuthCheck){
     }
   }catch(e){
     console.warn('تعذر التحميل من Supabase، هنستخدم النسخة المحلية:', e);
-    applyLoadedState(await loadLocalBackup());
+    const offlineBackup = await loadLocalBackup();
+    // أوفلاين: لا نطبق نسخة مختومة لحساب آخر في جلسة الحساب الحالي —
+    // وإلا أول اتصال لاحق يرفعها باسمه (نفس حادثة المسح بالتبديل)
+    if(offlineBackup && !backupOwnedBy(offlineBackup, currentUserId)){
+      console.warn('تم تجاهل نسخة محلية مختومة لحساب آخر (حماية من تلوث الحسابات)');
+    } else {
+      applyLoadedState(offlineBackup);
+    }
     trackFileRev();
   }
   // بصمة المحتوى المحمّل: أول إغلاق بعد الإقلاع بلا تعديل يجب أن يتخطى
@@ -1080,6 +1114,22 @@ export async function loadData(skipAuthCheck){
 let saveInFlight = false;
 
 let savePending = false;
+
+// بصمة جلسة التحميل: معرف الحساب الذي رأت الجلسة صفه (سيرفرًا أو محلية معتمدة
+// بنفس المالك) — تُصفَّر مع كل reload (متغير وحدة). الدفع من جلسة لم ترَ صف
+// حسابها يُعامل كمشبوه لو اللقطة فارغة (حارس النسخة الفارغة تحت).
+let serverBootLoadedFor = null;
+
+// "فارغة" = بلا أي محتوى مستخدم (مهام/بنك/مسودات/سلة/فلاتر/مؤقتات/ملاحظات/
+// قوالب/تكرار) — حقول الخطة والإعدادات والطوابع لا تُحتسب (موجودة دائمًا).
+function isContentEmpty(s){
+  if(!s || typeof s !== 'object') return true;
+  const hasObj = (v) => v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length > 0;
+  const hasArr = (v) => Array.isArray(v) && v.length > 0;
+  return !hasObj(s.days) && !hasArr(s.keywords) && !hasArr(s.drafts) && !hasArr(s.trash)
+    && !hasArr(s.filters) && !hasObj(s.timers) && !hasObj(s.notes)
+    && !hasArr(s.templates) && !hasObj(s.recurringTasks);
+}
 
 // نعرض تحذير "الحفظ محلي فقط" مرة واحدة بس طوال فترة الانقطاع، بدل ما يتكرر
  // مع كل عملية حفظ (كل تفاعل بيلوح توست جديد مزعج). بنصفّره لما المزامنة تنجح.
@@ -1107,6 +1157,50 @@ async function flushPendingSave(){
   // السيرفر العتيقة فوق المحلية الأحدث (الضياع المُبلغ عنه).
   const flushRev = (typeof state._savedAt === 'number') ? state._savedAt : 0;
   try{
+    // حارس النسخة الفارغة (حادثة التبديل بين الحسابات): جلسة لم تحمّل صف هذا
+    // الحساب أبدًا + لقطة بلا محتوى = دفع مرفوض مبدئيًا. نتحقق من السيرفر
+    // (جلب كامل نادر — فقط عند الشبهة، والمسار الطبيعي يتخطاه بفحص منطقي):
+    // لو الصف موجود وله محتوى، نسحب نسخة السيرفر بدل مسحها بالفراغ.
+    // حساب جديد فعلًا (لا صف له) أو مسح متعمد بعد تحميل (نسب معلوم) = مسموح.
+    if(serverBootLoadedFor !== currentUserId && isContentEmpty(state)){
+      try{
+        const { data: emptyGuardRow, error: emptyGuardErr } = await supabaseClient
+          .from('user_data')
+          .select('data')
+          .eq('user_id', currentUserId)
+          .maybeSingle();
+        if(!emptyGuardErr && emptyGuardRow && emptyGuardRow.data && !isContentEmpty(emptyGuardRow.data)){
+          stashConflictCopy(JSON.parse(JSON.stringify(state)));
+          showToast('تم إيقاف حفظ نسخة فارغة فوق بياناتك المحفوظة، وجارٍ استرجاعها من الخادم');
+          markPendingSync(true);
+          await loadData(true);
+          return;
+        }
+      }catch(guardErr){}
+    }
+    // حارس الكتابة فوق جهاز آخر: لو السيرفر تحرّك منذ آخر مزامنة ناجحة
+    // (جهاز آخر رفع فعلًا)، لا نرفع فوقه عميانيًا — نُبقي التعديل معلّقًا
+    // ونطلب إعادة تحميل، بدل مسح شغل الجهاز الآخر بصمت (last-writer-wins).
+    // فشل الفحص (أوفلاين) = إكمال الرفع كالمعتاد وترك الخطأ للدفع نفسه.
+    try{
+      const lastTs = getLastServerTs();
+      if(lastTs > 0){
+        const { data: srv, error: srvErr } = await supabaseClient
+          .from('user_data')
+          .select('updated_at')
+          .eq('user_id', currentUserId)
+          .maybeSingle();
+        if(!srvErr && srv && srv.updated_at){
+          const srvMs = new Date(srv.updated_at).getTime();
+          if(isFinite(srvMs) && srvMs > lastTs){
+            stashConflictCopy(JSON.parse(JSON.stringify(state)));
+            showToast('يوجد نسخة أحدث على جهاز آخر — أعد تحميل الصفحة قبل الحفظ حتى لا يضيع شغلك');
+            markPendingSync(true);
+            return;
+          }
+        }
+      }
+    }catch(guardErr){}
     await pushToServer();
     warnedNoServer = false;
     if(state._savedAt === flushRev) markPendingSync(false); // اتزامنت بنجاح، مبقتش معلّقة

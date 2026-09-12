@@ -134,8 +134,7 @@ function isFreshAccount(){
     && (state.drafts || []).length === 0
     && (state.templates || []).length === 0
     && Object.keys(state.notes || {}).length === 0
-    && Object.keys(state.recurringTasks || {}).length === 0
-    && Object.keys(state.recurringMeta || {}).length === 0;
+    && Object.keys(state.recurringTasks || {}).length === 0;
 }
 
 // تسوية الخطة بعد كل تحميل/استيراد — تُستدعى مرة واحدة من dataStore.

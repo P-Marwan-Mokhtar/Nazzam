@@ -4,7 +4,7 @@
 
 import { addDays, emptyStateHtml, escapeAttr, escapeHtml, formatElapsed, getElapsedMs, parseDurationToMinutes, todayStr, uid } from './utils.js';
 import { t, formatHM, formatMinutes } from './i18n.js';
-import { MISSED_POPUP_SHOWN_KEY, TASK_TYPES, showToast, showUndoToast, state, timerPanelEl, ui } from './state.js';
+import { MISSED_POPUP_SHOWN_KEY, TASK_TYPES, showToast, showUndoToast, state, taskTypeKey, timerPanelEl, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
 import { openTimerDurationPicker } from './wheelPicker.js';
@@ -38,12 +38,25 @@ function findTaskByName(name){
   return null;
 }
 
+// حل المهمة المرتبطة بالمؤقت: المعرف أولًا (دقيق عبر كل الأيام)، ثم الاسم
+// كاحتياط للمؤقتات القديمة بلا taskId أو المكتوبة يدويًا بلا مهمة.
+// (الربط بالاسم وحده كان يسجل الوقت في اليوم الغلط عند تكرار الأسماء)
+function findLinkedTask(timer){
+  if(timer && timer.taskId){
+    for(const date in state.days){
+      const found = (state.days[date] || []).find(t => t.id === timer.taskId && !t._dupOf);
+      if(found) return found;
+    }
+  }
+  return findTaskByName(timer ? timer.name : '');
+}
+
 function commitTimerToTask(timer, silent = false){
   const totalMs = getElapsedMs(timer);
   const loggedMs = Math.max(0, timer.loggedMs || 0);
   const deltaMs = totalMs - loggedMs;
   if(deltaMs < 30000) return; // أقل من نص دقيقة متستاهلش تسجيل
-  const task = findTaskByName(timer.name);
+  const task = findLinkedTask(timer);
   if(!task) return;
   const addedMin = Math.round(deltaMs / 60000);
   if(addedMin <= 0) return;
@@ -56,7 +69,7 @@ function commitTimerToTask(timer, silent = false){
 function revertTimerFromTask(timer){
   const loggedMs = Math.max(0, timer.loggedMs || 0);
   if(loggedMs < 30000) return;
-  const task = findTaskByName(timer.name);
+  const task = findLinkedTask(timer);
   if(!task) return;
   const loggedMin = Math.round(loggedMs / 60000);
   if(loggedMin <= 0) return;
@@ -67,7 +80,7 @@ function revertTimerFromTask(timer){
 function restoreTimerToTask(timer){
   const loggedMs = Math.max(0, timer.loggedMs || 0);
   if(loggedMs < 30000) return;
-  const task = findTaskByName(timer.name);
+  const task = findLinkedTask(timer);
   if(!task) return;
   const loggedMin = Math.round(loggedMs / 60000);
   if(loggedMin <= 0) return;
@@ -399,11 +412,13 @@ function playAlertSound(){
   }catch(e){ /* تجاهل مشاكل الصوت */ }
 }
 
-export async function startOpenTimer(name){
-  // "بدء تايمر" من المهمة: لو في مؤقت بنفس الاسم يتستأنف، غير كده بيبدأ مؤقت مفتوح فورًا من غير اختيارات
+export async function startOpenTimer(name, taskId, dateStr){
+  // "بدء تايمر" من المهمة: لو في مؤقت بنفس الاسم يتستأنف، غير كده بيبدأ مؤقت مفتوح فورًا من غير اختيارات.
+  // taskId/dateStr (اختياريان): ربط دقيق بالمهمة المصدر — فالتسجيل يصيب مهمتها
+  // حتى لو نفس الاسم مكرر في أيام أخرى (الاسم وحده كان يضلل لليوم الغلط).
   if(await resumeExistingTimer(name, 'open')) return;
   ensureAudioContext();
-  getDayTimers(ui.selectedDate).push({
+  const timer = {
     id: uid(),
     name,
     elapsedMs: 0,
@@ -411,7 +426,10 @@ export async function startOpenTimer(name){
     startedAt: Date.now(),
     mode: 'open',
     loggedMs: 0
-  });
+  };
+  if(taskId) timer.taskId = taskId;
+  if(dateStr) timer.taskDate = dateStr;
+  getDayTimers(ui.selectedDate).push(timer);
   showToast(t('timer.started_open', {name}));
   renderTimerPanel();
   ui.timerPanelRenderedForDate = ui.selectedDate;
@@ -530,8 +548,8 @@ export function renderFocusMode(){
   if(!timer){ closeFocusMode(); return; }
 
   const elapsed = timer.running ? getElapsedMs(timer) : (timer.elapsedMs || 0);
-  const task = findTaskByName(timer.name);
-  const typeInfo = task && task.type ? TASK_TYPES[task.type] : null;
+  const task = findLinkedTask(timer);
+  const typeInfo = task && task.type ? TASK_TYPES[taskTypeKey(task.type)] : null;
   // الهدف: من المهمة لو ليها مدة، وإلا هدف المؤقت نفسه لو محدد المدة
   const goalMin = task ? parseDurationToMinutes(task.duration) : 0;
   const goalMs = goalMin > 0 ? goalMin * 60000 : (timer.mode === 'countdown' ? timer.targetMs : 0);

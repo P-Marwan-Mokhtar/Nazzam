@@ -2,7 +2,7 @@
 // recurrence.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { SHORT_DAY_NAMES, addDays, fromISO, todayStr, uid } from './utils.js';
+import { SHORT_DAY_NAMES, addDays, fromISO, todayStr } from './utils.js';
 import { t } from './i18n.js';
 import { showToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
@@ -120,25 +120,13 @@ async function saveRecurrence(){
   const taskName = task.name;
   const newDays = [...ui.pendingRecurrenceDays].sort((a,b) => a-b);
 
-  // بنحفظ مواصفات المهمة مع التكرار (نوع/أولوية/مدة/ملاحظة/مهام فرعية) عشان النسخة
-  // المتكررة في الأيام الجاية تيجي بنفس المواصفات مش مهمة فاضية.
-  const recPreset = {
-    type: task.type,
-    priority: task.priority,
-    duration: task.duration,
-    note: task.note,
-    subtasks: (task.subtasks && task.subtasks.length) ? task.subtasks.map(s => ({ id: uid(), title: s.title, done: false })) : undefined
-  };
-
+  // تكرار المهمة يحفظ الأيام فقط بلا أي نسخة من خواص النسخة الأصلية —
+  // خواص القالب (لو الاسم مطابق لقالب) تُقرأ من القالب الحي وقت الحقن.
   if(newDays.length === 0){
     delete state.recurringTasks[taskName];
-    if(state.recurringMeta) delete state.recurringMeta[taskName];
     showToast('تم إلغاء تكرار المهمة');
   } else {
     state.recurringTasks[taskName] = newDays;
-    // لو فيه مواصفات بيتم تخزينها جنب الأيام (خاصية specs) عشان ensureDayMaterialized يطبقها
-    if(!state.recurringMeta) state.recurringMeta = {};
-    state.recurringMeta[taskName] = recPreset;
     showToast('تم حفظ تكرار المهمة');
   }
 

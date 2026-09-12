@@ -506,6 +506,10 @@ ar: {
   'drafts.delete_permanent': 'حذف نهائي',
   'drafts.restored': 'تمت استعادة المهمة إلى القائمة',
   'drafts.deleted': 'تم حذف المسودة نهائيًا',
+  'drafts.trashed_title': 'مهام محذوفة من الأيام',
+  'drafts.trashed_hint': 'تُستعاد بنسختها الكاملة إلى يومها الأصلي.',
+  'drafts.restore_day': 'استعادة إلى اليوم',
+  'drafts.restored_day': 'تمت استعادة المهمة إلى يومها',
   'drafts.search_placeholder': 'بحث ذكي في المسودات...',
 
   // Auth
@@ -1177,6 +1181,10 @@ en: {
   'drafts.delete_permanent': 'Delete permanently',
   'drafts.restored': 'Task restored to list',
   'drafts.deleted': 'Draft deleted permanently',
+  'drafts.trashed_title': 'Deleted day tasks',
+  'drafts.trashed_hint': 'Restored in full to their original day.',
+  'drafts.restore_day': 'Restore to day',
+  'drafts.restored_day': 'Task restored to its day',
   'drafts.search_placeholder': 'Search drafts...',
 
   // Auth

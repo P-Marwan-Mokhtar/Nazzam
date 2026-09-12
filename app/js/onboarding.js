@@ -65,7 +65,7 @@ function openOnboarding(){
 
 // الإغلاق (تخطي/X/خارجية): لا زرع — لكن يُختم بعدم الظهور مجددًا.
 // الإتمام (التالي الأخير/تفعيل/لاحقًا): زرع ثم إغلاق.
-function closeOnboarding(){
+export function closeOnboarding(){
   overlay().classList.remove('open');
   try{ localStorage.setItem(SEEN_KEY, '1'); }catch(e){}
 }

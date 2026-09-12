@@ -31,6 +31,7 @@ export let state = {
   lang: 'ar',
   keywords: [],
   drafts: [], // قائمة المسودات المحفوظة بدلاً من الحذف
+  trash: [], // سلة مهملات مهام اليوم: نسخ كاملة (بمهامها الفرعية وملاحظاتها) تُستعاد ليومها الأصلي من مودال المسودات
   notes: {}, // ملاحظات اليوم: مفتاح = تاريخ اليوم (YYYY-MM-DD) وقيمة = نص الملاحظة
   days: {},
   filters: [],
@@ -38,8 +39,7 @@ export let state = {
   darkMode: false,
   accentLight: 'blue', // اللون المميز في الوضع الفاتح (id في ACCENTS من theme.js) — الأزرق هو الأساس للمستخدمين الجدد
   accentDark: 'blue', // اللون المميز في الوضع الداكن (مستقل عن الفاتح)
-  recurringTasks: {}, // اسم المهمة -> مصفوفة أرقام أيام الأسبوع (0=أحد..6=سبت) اللي تتكرر فيها تلقائيًا
-  recurringMeta: {}, // اسم المهمة -> مواصفات التكرار { type, priority, duration, note, subtasks } — لتطبيقها على النسخ المتكررة
+  recurringTasks: {}, // اسم المهمة -> مصفوفة أرقام أيام الأسبوع (0=أحد..6=سبت) اللي تتكرر فيها تلقائيًا (نسخ نضيفة: اسم فقط)
   notificationSettings: {
     morningEnabled: false,
     morningTime: '08:00',
@@ -57,7 +57,7 @@ export let state = {
 };
 
 export function resetState(){
-  state = { lang: 'ar', keywords: [], drafts: [], notes: {}, days: {}, filters: [], timers: {}, darkMode: false, accentLight: 'blue', accentDark: 'blue', recurringTasks: {}, recurringMeta: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null }, plan: 'pro', planCycle: null, planPendingCycle: null, trialStartedAt: null, proLegacy: false, templates: [] };
+  state = { lang: 'ar', keywords: [], drafts: [], trash: [], notes: {}, days: {}, filters: [], timers: {}, darkMode: false, accentLight: 'blue', accentDark: 'blue', recurringTasks: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null }, plan: 'pro', planCycle: null, planPendingCycle: null, trialStartedAt: null, proLegacy: false, templates: [] };
 }
 
 export const ui = {
@@ -97,6 +97,9 @@ export const ui = {
   activeTaskNoteId: null,  // المهمة اللي مفتوح لها popup الملاحظة دلوقتي
   pendingTaskName: '',
   pendingTaskFilterId: null,
+  editingTaskDraft: '',  // نص التحرير الداخلي الجاري لمهمة اليوم (يُحفظ مع كل حرف — فلا يضيع مع render طارئ)
+  editingKeywordDraft: '',  // نص تحرير كلمة البنك الجاري (نفس الحماية)
+  editingFilterDraft: '',  // نص تحرير الفلتر الجاري (نفس الحماية)
   addDraft: '',  // نص مكتوب حاليًا في حقل إضافة المهمة (عشان ما يمسحش مع إعادة الرسم)
   pendingTaskType: null,  // نوع المهمة الجديدة المنتظرة في صف الإضافة (مهمة/عادة/هواية) — بيدخل من بوب السهم
   pendingTaskPlace: 'today',  // مكان إضافة المهمة الجديدة المنتظرة في صف الإضافة: 'today' (اليوم الافتراضي) | 'bank' | 'both'
@@ -196,6 +199,13 @@ export const TASK_TYPES = {
   habit:  { icon: 'loop',          label: 'عادة' },
   hobby:  { icon: 'palette',       label: 'هواية' }
 };
+
+// مفتاح نوع آمن: أي قيمة شاذة (ملف مستورد ملعوب/حالة runtime) ترجع 'task'
+// بدل ما يرمي `TASK_TYPES[x].icon` استثناءً يشل بناء الـ HTML كله (شاشة متجمدة).
+// يُستخدم في كل قراءة لـ TASK_TYPES بمفتاح من بيانات (ممنوع الوصول المباشر).
+export function taskTypeKey(type){
+  return (type === 'task' || type === 'habit' || type === 'hobby') ? type : 'task';
+}
 
 export const DAY_SORT_MODES = ['none', 'priority', 'title', 'created'];
 

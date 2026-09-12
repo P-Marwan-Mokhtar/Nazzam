@@ -18,6 +18,7 @@ import { formatTimeArabic, openTimePicker } from './timePicker.js';
 import { startOpenTimer } from './timers.js';
 import { closeSmartLists, smartTab, smartToggleDone, smartToDay } from './smartLists.js';
 import { openTemplateReplaceConfirm } from './templates.js';
+import { pushDayTrash } from './drafts.js';
 import { gateFree, enforceLimit, enforceTaskNameLimit } from './upgrade.js';
 
 // قايمة المزيد بتاع مهمة اليوم: بتفتح لتحت لو فيه مساحة كفاية تحت الزرار،
@@ -110,29 +111,51 @@ export function openReminderPicker(taskId){
 
 // حذف مهمة من جدول اليوم مع النسخ المكررة المرتبطة بيها، ومع توست تراجع يقدر يرجعها.
 // مستخدمة من زرار الحذف في قائمة المزيد وفي تفاصيل المهمة.
+// شبكة أمان دائمة: نسخة كاملة في السلة (مودال المسودات) — فلا فقدان نهائي بعد فوات التوست.
 export async function deleteTaskById(id){
-  const list = state.days[ui.selectedDate] || [];
+  const dateStr = ui.selectedDate;
+  const list = state.days[dateStr] || [];
   const idx = list.findIndex(t => t.id === id);
   if(idx === -1) return;
   const [removedTask] = list.splice(idx, 1);
   // النسخ المكررة تبع المهمة دي بتتشال معاها عشان متفضلش معلقة في الجدول الزمني
-  const removedDupIndices = [];
   const removedDups = [];
   for(let i = list.length - 1; i >= 0; i--){
     if(list[i]._dupOf === id){
-      removedDupIndices.push(i);
       removedDups.push(list[i]);
       list.splice(i, 1);
     }
   }
+  removedDups.reverse(); // نحافظ على الترتيب الأصلي عند الاستعادة
   if(ui.pickerTaskId === id) closeDurationPicker();
+  // R6: مسح نسخة (يدوية أو تلقائية) ليها قاعدة تكرار = "مش عايزها اليوم ده" —
+  // نسجل القرار لحظة المسح. بدونه كان أول render بعد المسح يحقن نسخة تلقائية
+  // مكان اليدوية (فترجع لوحدها)، والمسحة التانية تثبت لأن القرار كان اتسجل
+  // مع الحقن لا مع المسح — وهو نفس اللي المستخدم اشتكى منه.
+  if(!removedTask._dupOf && state.recurringTasks && state.recurringTasks[removedTask.name] && state.recurringTasks[removedTask.name].length){
+    if(!state.pinnedInjected) state.pinnedInjected = {};
+    if(!state.pinnedInjected[dateStr]) state.pinnedInjected[dateStr] = {};
+    state.pinnedInjected[dateStr][removedTask.name] = true;
+  }
+  const trashId = pushDayTrash({ task: removedTask, dups: removedDups, date: dateStr });
   render();
   await saveData();
   showUndoToast(t('toast.task_deleted', {name: removedTask.name}), async () => {
-    list.splice(idx, 0, removedTask);
-    removedDupIndices.forEach((pos, k) => {
-      list.splice(pos, 0, removedDups[k]);
-    });
+    // التراجع يعمل على المصفوفة الحالية لتاريخ الحذف (لا المرجع الملتقط لحظة الحذف)
+    const cur = state.days[dateStr] || (state.days[dateStr] = []);
+    // لو مهمة يدوية بنفس الاسم اتعملت أثناء الحذف — لا نسحق شغل المستخدم، ننبه فقط
+    if(cur.some(t => t.name === removedTask.name && !t._dupOf && !t._fromRecurrence)){
+      showToast(t('toast.exists_today'));
+      return;
+    }
+    // لو نسخة تلقائية (تكرار) بنفس الاسم اتحقنت أثناء الحذف — نبدلها بالأصلية بدل التكرار
+    const autoIdx = cur.findIndex(t => t.name === removedTask.name && t._fromRecurrence);
+    if(autoIdx !== -1) cur.splice(autoIdx, 1, removedTask);
+    else cur.splice(Math.min(idx, cur.length), 0, removedTask);
+    removedDups.forEach(d => { if(!cur.some(t => t.id === d.id)) cur.push(d); });
+    // رجعت بالتراجع الفوري — تتشال من السلة حتى لا تتراكم نسخ مستعادة
+    state.trash = (state.trash || []).filter(x => x.id !== trashId);
+    ui.editingTaskId = null;
     render();
     await saveData();
   });
@@ -454,7 +477,7 @@ const contentActions = {
     render();
     const task = (state.days[ui.selectedDate] || []).find(x => x.id === id);
     if(!task) return;
-    await startOpenTimer(task.name);
+    await startOpenTimer(task.name, task.id, ui.selectedDate);
   },
   'open-subtasks': async (btn) => {
     const { id } = btn.dataset;
@@ -466,6 +489,10 @@ const contentActions = {
     const { id } = btn.dataset;
     ui.openTaskMoreId = null;
     ui.editingTaskId = id;
+    // نلتقط النص الحالي في مسودة ui — أي render طارئ أثناء الكتابة يعيد
+    // بناء الحقل من المسودة (لا من البيانات)، فلا يضيع حرف واحد
+    const t0 = (state.days[ui.selectedDate] || []).find(x => x.id === id);
+    ui.editingTaskDraft = t0 ? t0.name : '';
     render();
     afterRender(() => {
       const inp = document.getElementById('inlineEditInput_' + id);
@@ -480,19 +507,15 @@ const contentActions = {
     ui.openTaskMoreId = null;
     const task = (state.days[ui.selectedDate] || []).find(x => x.id === id);
     const inp = document.getElementById('inlineEditInput_' + id);
-    if(task && inp){
-      const newName = inp.value.trim();
+    // المسودة أولًا (قد يكون الـ DOM أُعيد بناؤه بعد آخر حرف)، والـ DOM احتياط
+    const rawVal = (ui.editingTaskId === id && typeof ui.editingTaskDraft === 'string') ? ui.editingTaskDraft : (inp ? inp.value : '');
+    if(task && (inp || ui.editingTaskId === id)){
+      const newName = rawVal.trim();
       if(newName && newName !== task.name){
         const oldName = task.name;
         if(state.recurringTasks && state.recurringTasks[oldName]){
           state.recurringTasks[newName] = state.recurringTasks[oldName];
           delete state.recurringTasks[oldName];
-        }
-        // مواصفات التكرار (نوع/أولوية/مدة/ملاحظة/مهام فرعية) بتترحّل مع الاسم
-        // الجديد — من غير كده النسخ المتكررة الجاية كانت بتتولد فاضية.
-        if(state.recurringMeta && state.recurringMeta[oldName]){
-          state.recurringMeta[newName] = state.recurringMeta[oldName];
-          delete state.recurringMeta[oldName];
         }
         // بنعيد التسمية على كل نسخ المهمة عبر كل الأيام (غير نسخ الجدول الزمني المكررة)
         // عشان النسخ اللي اتحقنت تلقائيًا في الأيام الجاية بالاسم القديم ميتسابش ليها
@@ -519,11 +542,13 @@ const contentActions = {
       }
     }
     ui.editingTaskId = null;
+    ui.editingTaskDraft = '';
     render();
     saveData();
   },
   'cancel-task-edit': async () => {
     ui.editingTaskId = null;
+    ui.editingTaskDraft = '';
     render();
   },
   'open-task-note': async (btn) => {
@@ -601,6 +626,8 @@ const contentActions = {
   'edit-filter': async (btn) => {
     const { id } = btn.dataset;
     ui.editingFilterId = id;
+    const f0 = state.filters.find(f => f.id === id);
+    ui.editingFilterDraft = f0 ? f0.name : '';
     ui.openFilterMoreId = null;
     render();
     afterRender(() => {
@@ -612,8 +639,9 @@ const contentActions = {
     const { id } = btn.dataset;
     const input = document.getElementById('editFilterInput');
     const filter = state.filters.find(f => f.id === id);
-    if(filter && input){
-      const val = input.value.trim();
+    const rawVal = (ui.editingFilterId === id && typeof ui.editingFilterDraft === 'string') ? ui.editingFilterDraft : (input ? input.value : '');
+    if(filter && (input || ui.editingFilterId === id)){
+      const val = rawVal.trim();
       if(val && val !== filter.name){
         const exists = state.filters.some(f => f.name === val && f.id !== id);
         if(exists){
@@ -625,10 +653,12 @@ const contentActions = {
       }
     }
     ui.editingFilterId = null;
+    ui.editingFilterDraft = '';
     render();
   },
   'cancel-filter': async () => {
     ui.editingFilterId = null;
+    ui.editingFilterDraft = '';
     render();
   },
   'delete-filter': async (btn) => {
@@ -677,6 +707,8 @@ const contentActions = {
   'edit-keyword': async (btn) => {
     const { id } = btn.dataset;
     ui.editingKeywordId = id;
+    const k0 = state.keywords.find(k => k.id === id);
+    ui.editingKeywordDraft = k0 ? k0.name : '';
     ui.openKeywordMoreId = null;
     render();
     afterRender(() => {
@@ -687,7 +719,9 @@ const contentActions = {
   'save-keyword': async () => {
     const input = document.getElementById('editKeywordInput');
     const filterSelect = document.getElementById('editKeywordFilterCustom');
-    const val = input.value.trim();
+    // المسودة أولًا (قد يكون الـ DOM أُعيد بناؤه بعد آخر حرف)، والـ DOM احتياط
+    const rawVal = (ui.editingKeywordId && typeof ui.editingKeywordDraft === 'string') ? ui.editingKeywordDraft : (input ? input.value : '');
+    const val = rawVal.trim();
     if(val){
       const kw = state.keywords.find(k => k.id === ui.editingKeywordId);
       if(kw){
@@ -703,11 +737,6 @@ const contentActions = {
           if(state.recurringTasks && state.recurringTasks[oldName]){
             state.recurringTasks[val] = state.recurringTasks[oldName];
             delete state.recurringTasks[oldName];
-          }
-          // مواصفات التكرار بتترحّل مع الاسم الجديد (نفس منطق save-task-edit).
-          if(state.recurringMeta && state.recurringMeta[oldName]){
-            state.recurringMeta[val] = state.recurringMeta[oldName];
-            delete state.recurringMeta[oldName];
           }
           Object.keys(state.days).forEach(dateStr => {
             state.days[dateStr] = state.days[dateStr].map(t => {
@@ -730,11 +759,13 @@ const contentActions = {
       }
     }
     ui.editingKeywordId = null;
+    ui.editingKeywordDraft = '';
     render();
     await saveData();
   },
   'cancel-keyword': async () => {
     ui.editingKeywordId = null;
+    ui.editingKeywordDraft = '';
     render();
   },
   // ------------------------------------------------------------
@@ -909,6 +940,8 @@ export function attachEvents(){
       if(e.key === 'Enter') document.querySelector('button[data-action="save-keyword"]').click();
       if(e.key === 'Escape') document.querySelector('button[data-action="cancel-keyword"]').click();
     };
+    // تخزين كل حرف في مسودة ui — render طارئ أثناء الكتابة يعيد البناء منها
+    editInput.oninput = () => { ui.editingKeywordDraft = editInput.value; };
   }
 
   const editFilterInput = document.getElementById('editFilterInput');
@@ -917,6 +950,7 @@ export function attachEvents(){
       if(e.key === 'Enter') document.querySelector('button[data-action="save-filter"]').click();
       if(e.key === 'Escape') document.querySelector('button[data-action="cancel-filter"]').click();
     };
+    editFilterInput.oninput = () => { ui.editingFilterDraft = editFilterInput.value; };
   }
 
   wireCustomSelects();
@@ -934,6 +968,8 @@ export function attachEvents(){
           if (btn) btn.click();
         }
       };
+      // تخزين كل حرف في مسودة ui — render طارئ أثناء الكتابة يعيد البناء منها
+      inp.oninput = () => { ui.editingTaskDraft = inp.value; };
     }
   }
 
