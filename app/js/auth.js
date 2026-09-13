@@ -266,25 +266,35 @@ function rateLimitMessage(minutes){
 
 // ------------------------------------------------------------
 // Preflight للـ Edge Function الخاصة بتحديد المعدل على مستوى الخادم.
-// بيرجّع true لو مسموح، و false لو محظور (مع رسالة)، و null لو الفنكشن
-// مش متاحة (fail-open → نكمل اعتمادًا على الحماية العميلية).
+// البروتوكول الجديد: check (فحص لا يزيد العد) + report (تسجيل فشل واحد).
+// check يرجع true/false/null، و report يبلغ الخادم بعد فشل Auth حقيقي.
 // ------------------------------------------------------------
-async function serverRatePreflight(action, email){
+async function serverRateCheck(action, email){
   try{
     const res = await fetch(AUTH_RATE_LIMIT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, email }),
+      body: JSON.stringify({ op: 'check', action, email }),
     });
-    // نقرا جسم الرد دايما (حتى لو 429) عشان نعرف allowed=؟
     let data = null;
     try{ data = await res.json(); }catch(e){}
-    if(!data || typeof data.allowed !== 'boolean') return null; // fail-open
+    if(!data || typeof data.allowed !== 'boolean') return null; // فشل فحص → حياد (اعتمد على المحلي)
     if(data.allowed === false) return typeof data.retryAfterMin === 'number' ? data.retryAfterMin : 1;
     return true;
   }catch(e){
-    return null; // شبكة/تعطل → fail-open
+    return null;
   }
+}
+
+// بعد فشل Auth حقيقي: بلّغ الخادم ليزيد العدّاد (أفضل جهد — فشل الشبكة لا يكسر التدفق)
+async function serverRateReport(action, email){
+  try{
+    await fetch(AUTH_RATE_LIMIT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ op: 'report', action, email }),
+    });
+  }catch(e){}
 }
 
 function mapAuthError(e){
@@ -581,7 +591,7 @@ async function signUpNewAccount(email, password, passwordConfirm){
   }
   setAccountFormBusy(true);
   try{
-    const serverOk = await serverRatePreflight('signUp', email);
+    const serverOk = await serverRateCheck('signUp', email);
     if(typeof serverOk === 'number'){
       renderAuthGate(rateLimitMessage(serverOk));
       return;
@@ -598,6 +608,7 @@ async function signUpNewAccount(email, password, passwordConfirm){
       options: captcha.token ? { captchaToken: captcha.token } : undefined
     });
     if(error){
+      serverRateReport('signUp', email);
       if(recordFailedAttempt('signUp', email)){
         throw Object.assign(error, { __rateLimit: true });
       }
@@ -636,8 +647,8 @@ async function signInExisting(email, password){
   }
   setAccountFormBusy(true);
   try{
-    // التحقق من مستوى الخادم (اختياري، fail-open لو مش متاح)
-    const serverOk = await serverRatePreflight('signIn', email);
+    // التحقق من مستوى الخادم (فحص لا يزيد العد — دخولات ناجحة لا تستهلك الحصة)
+    const serverOk = await serverRateCheck('signIn', email);
     if(typeof serverOk === 'number'){
       renderAuthGate(rateLimitMessage(serverOk));
       return;
@@ -652,7 +663,8 @@ async function signInExisting(email, password){
       options: captcha.token ? { captchaToken: captcha.token } : undefined
     });
     if(error){
-      // عدّي المحاولة الفاشلة، ولو اتجاوزنا الحد نبلغ المستخدم بفترة الحظر.
+      // فشل حقيقي — بلّغ الخادم (يزيد العد) وحدّث المحلي
+      serverRateReport('signIn', email);
       if(recordFailedAttempt('signIn', email)){
         throw Object.assign(error, { __rateLimit: true });
       }
@@ -682,7 +694,7 @@ async function handleForgotPassword(email){
   }
   setAccountFormBusy(true);
   try{
-    const serverOk = await serverRatePreflight('forgot', email);
+    const serverOk = await serverRateCheck('forgot', email);
     if(typeof serverOk === 'number'){
       renderAuthGate(rateLimitMessage(serverOk));
       return;
@@ -697,6 +709,7 @@ async function handleForgotPassword(email){
       captchaToken: captcha.token || undefined
     });
     if(error){
+      serverRateReport('forgot', email);
       if(recordFailedAttempt('forgot', email)){
         throw Object.assign(error, { __rateLimit: true });
       }

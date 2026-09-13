@@ -29,16 +29,20 @@ const ALLOWED_ORIGINS = [
   "https://www.nazzam.app",
 ];
 
+function isAllowedOrigin(origin: string): boolean {
+  if (!origin) return true;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
+  if (/^https:\/\/p-marwan-mokhtar\.github\.io$/.test(origin)) return true;
+  if (/^https:\/\/p-marwan-mokhtar\.github\.io\//.test(origin)) return true;
+  return false;
+}
+
 function corsHeaders(req: Request): { [k: string]: string } {
   const origin = req.headers.get("origin") || "";
-  const isAllowed =
-    !origin ||
-    ALLOWED_ORIGINS.includes(origin) ||
-    origin.startsWith("http://localhost") ||
-    /^https:\/\/[a-zA-Z0-9-]+\.github\.io$/.test(origin);
-
   const headers: { [k: string]: string } = {};
-  if (isAllowed) headers["Access-Control-Allow-Origin"] = origin || "*";
+  if (isAllowedOrigin(origin)) headers["Access-Control-Allow-Origin"] = origin || "*";
+  else headers["Access-Control-Allow-Origin"] = ALLOWED_ORIGINS[0];
   headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS";
   headers["Access-Control-Allow-Headers"] = "Content-Type, x-cron-secret";
   headers["Vary"] = "Origin";
@@ -100,12 +104,20 @@ async function sendToSubs(subs: any[], title: string, body: string) {
 }
 
 Deno.serve(async (req) => {
-  // الرد على preflight قبل أي تحقق
+  // الرد على preflight قبل أي تحقق — مع رفض الأصول غير المسموحة
   if (req.method === "OPTIONS") {
+    const origin = req.headers.get("origin") || "";
+    if (origin && !isAllowedOrigin(origin)) {
+      return new Response(null, { status: 403, headers: corsHeaders(req) });
+    }
     return new Response(null, { status: 204, headers: corsHeaders(req) });
   }
   if (req.method !== "GET" && req.method !== "POST") {
     return jsonResponse(req, { error: "Method not allowed" }, 405);
+  }
+  const origin = req.headers.get("origin") || "";
+  if (origin && !isAllowedOrigin(origin)) {
+    return jsonResponse(req, { error: "Origin not allowed" }, 403);
   }
   // السر إجباري: غيابه = سوء إعداد، والفنكشن ترفض بدل ما تنفتح
   if (!CRON_SECRET) {
