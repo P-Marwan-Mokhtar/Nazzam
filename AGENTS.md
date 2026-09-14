@@ -5,6 +5,8 @@
 ## البنية العامة
 
 - `index.html` + `landing.css` + `landing.js` — صفحة الهبوط (تعرض التطبيق وتربطه).
+- `components.js` — الهيدر والفوتر المشتركان لكل صفحات اللاندينج (`renderHeader(prefix)` + `renderFooter(prefix)`)، بيرسمهم `landing.js` تلقائيًا في `<header id="siteHeader">` و `<footer class="footer">` الفاضيين. `prefix = ''` للرئيسية و `'./'` للصفحات الفرعية.
+- `sw.js` (الجذر) — Service Worker للاندينج (مكتوب يدويًا، حدّث `PRECACHE_URLS` + `CACHE_VERSION` عند إضافة ملفات هبوط جديدة).
 - `app/` — التطبيق نفسه:
   - `app/index.html` — صفحة التطبيق (تحمّل `js/main.js`).
   - `app/js/` — كل موديولات JS (Vanilla ES Modules).

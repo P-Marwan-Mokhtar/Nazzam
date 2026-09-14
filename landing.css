@@ -510,7 +510,7 @@ body.menu-open { overflow: hidden; }
 .tb-shot-img img { width: 100%; height: auto; display: block; }
 
 
-.stats-shot-img { border-radius: 10px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow-sm); background: #fff; line-height: 0; max-width: 1100px; margin-inline: auto; }
+.stats-shot-img { border-radius: 10px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow-sm); background: #fff; line-height: 0; max-width: 1020px; margin-inline: auto; }
 
 .stats-shot-img img { width: 100%; height: auto; display: block; }
 
@@ -620,62 +620,99 @@ body.menu-open { overflow: hidden; }
 /* ---------- 11) Bento ---------- */
 /* توهج الحدود يتبع الماوس */
 /* mini calendar — مطابق للتطبيق */
-/* ---------- 11b) المميزات ---------- */
+/* ---------- 11b) المميزات — شريط الكروت ---------- */
 
-.features-tabs { display: grid; grid-template-columns: minmax(0, 520px) minmax(0, 540px); gap: calc(var(--s4) + 10px); align-items: stretch; justify-content: center; }
+.feat-strip { max-width: 1080px; margin-inline: auto; }
 
-.ft-list { display: flex; flex-direction: column; gap: 14px; }
+.fs-viewport { overflow: hidden; padding-block: 10px; }
 
-.ft-tab {
-  display: flex; align-items: center; gap: 14px; width: 100%;
-  padding: 16px 18px; text-align: start; cursor: pointer;
-  background: var(--surface); border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  transition: border-color var(--t-med) ease, background var(--t-med) ease;
+.fs-track {
+  display: flex; align-items: center; gap: 16px; direction: rtl;
+  will-change: transform;
+  transition: transform 0.6s var(--ease);
 }
-.ft-tab:hover { border-color: var(--ink-3); }
-.ft-tab .ic { width: 22px; height: 22px; color: var(--ink-3); flex: none; transition: color var(--t-med) ease; }
-.ft-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.ft-name { font-weight: 700; font-size: 0.98rem; color: var(--ink); }
-.ft-desc { font-size: 0.84rem; color: var(--ink-2); line-height: 1.6; }
-.ft-tab.on { background: var(--blue-soft); border-color: var(--blue); }
-.ft-tab.on .ic { color: var(--blue); }
-.ft-tab.on .ft-name { color: var(--blue-deep); }
+.fs-track.no-trans { transition: none; }
 
-.ft-mobile-img { display: none; }
-
-.ft-stage {
-  position: relative; display: grid; place-items: center;
-  position: relative; display: grid; place-items: center;
-  min-height: 0;
-  justify-self: center; max-width: 540px; width: 100%;
+.fs-card {
+  direction: rtl; flex: 0 0 calc((100% - 16px) / 2 - 48px); min-width: 0;
+  display: flex; flex-direction: column; align-items: stretch; gap: 12px;
+  padding: 18px 16px 20px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--r-xl);
-  box-shadow: 0 10px 26px -18px rgba(15, 23, 43, 0.18);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: opacity var(--t-med) var(--ease), border-color var(--t-med) var(--ease),
+              box-shadow var(--t-med) var(--ease), transform var(--t-med) var(--ease);
 }
-.ft-stage img {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: contain; padding: clamp(18px, 3vw, 32px);
+.fs-card:not(.on) { opacity: 0.55; }
+.fs-card:hover { opacity: 1; }
+.fs-card.on {
+  opacity: 1; border-color: var(--blue);
+  box-shadow: 0 16px 30px -16px rgba(9, 127, 232, 0.4);
+  transform: translateY(-5px);
+}
+
+.fsc-shot {
+  width: 100%; min-height: 440px;
+  display: grid; place-items: center;
+  padding: 14px;
   border-radius: var(--r-md);
-  box-shadow: none;
-  transition: opacity 0.24s var(--ease);
+  background: linear-gradient(180deg, var(--line-soft), var(--surface));
+  border: 1px solid var(--line-soft);
 }
-.ft-stage img.swap { opacity: 0; }
+.fsc-shot img {
+  width: 100%; height: 100%; object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 8px 18px -12px rgba(15, 23, 43, 0.4);
+}
+
+.fsc-body {
+  display: flex; align-items: flex-start; gap: 10px;
+  width: 100%; text-align: right;
+}
+.fsc-chip {
+  flex: none; display: grid; place-items: center;
+  width: 34px; height: 34px; border-radius: 9px;
+  background: var(--blue-tint); color: var(--blue);
+  margin-top: 2px;
+}
+.fsc-chip .ic { width: 18px; height: 18px; }
+.fsc-copy { flex: 1; min-width: 0; }
+.fsc-name { font-size: 0.95rem; font-weight: 700; color: var(--ink); }
+.fsc-desc { font-size: 0.8rem; color: var(--ink-2); line-height: 1.6; }
+
+.fs-controls {
+  display: flex; align-items: center; justify-content: center;
+  margin-top: var(--s3);
+}
+
+.fs-dots { display: flex; align-items: center; gap: 8px; }
+.fs-dot {
+  width: 9px; height: 9px; border-radius: 999px;
+  background: var(--ink-3); opacity: 0.45;
+  transition: width var(--t-med) var(--ease), opacity var(--t-med) var(--ease), background var(--t-med) var(--ease);
+}
+.fs-dot.on { width: 26px; opacity: 1; background: var(--blue); }
+.fs-dot:not(.on):hover { opacity: 0.8; }
 
 @media (max-width: 900px) {
-  .features-tabs { grid-template-columns: 1fr; gap: var(--s3); }
-  .ft-list { display: flex; flex-direction: column; gap: 10px; }
-  .ft-tab { flex: none; width: 100%; flex-wrap: wrap; flex-direction: row; align-items: flex-start; padding: 16px 18px; gap: 12px; text-align: right; overflow: visible; }
-  .ft-tab .ic { flex-shrink: 0; margin-top: 2px; }
-  .ft-tab .ft-text { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
-  .ft-tab .ft-desc { max-height: 0; overflow: hidden; opacity: 0; line-height: 0; margin: 0; padding: 0; transition: max-height 0.3s ease, opacity 0.25s ease, line-height 0.2s ease; }
-  .ft-tab.on .ft-desc { max-height: 200px; opacity: 1; line-height: 1.6; margin-top: 2px; }
-  .ft-mobile-img { display: block; flex: 0 0 100%; width: 100%; max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.35s var(--ease), opacity 0.25s ease, margin 0.3s ease; margin: 0; padding: 0; border-radius: 10px; line-height: 0; }
-  .ft-mobile-img img { width: 100%; height: 0; display: block; border-radius: 10px; }
-  .ft-tab.on .ft-mobile-img { max-height: 500px; opacity: 1; margin-top: 14px; line-height: normal; }
-  .ft-tab.on .ft-mobile-img img { height: auto; }
-  .ft-stage { display: none; }
+  .fs-viewport { padding-block: 6px; }
+  .fs-card { flex-basis: calc((100% - 16px) / 2); }
+  .fsc-shot { min-height: 360px; }
+  .fs-controls { margin-top: 18px; }
+}
+
+@media (max-width: 560px) {
+  .fs-card { flex-basis: 100%; }
+  .fsc-shot { min-height: 260px; }
+  .fs-dot { width: 8px; height: 8px; }
+  .fs-dot.on { width: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fs-track { transition: none; }
+  .fs-card { transition: none; }
 }
 /* ---------- الأسعار ---------- */
 
@@ -781,24 +818,6 @@ body.menu-open { overflow: hidden; }
 
 .footer-col a:hover { color: var(--blue); }
 
-/* About — مثل باقي أقسام اللاندينج، بلا حشو إيميل */
-.about-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(24px,4vw,48px);align-items:center}
-.about-copy .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.72rem;font-weight:800;letter-spacing:.1em;color:var(--blue);background:var(--blue-soft);border:1px solid rgba(9,127,232,.14);padding:5px 12px;border-radius:999px;margin-bottom:12px}
-.about-copy h2{font-family:var(--font-display);font-size:clamp(1.6rem,3vw,2.15rem);font-weight:800;line-height:1.28;letter-spacing:-.02em}
-.about-copy h2 em{color:var(--blue);font-style:normal}
-.about-copy p{color:var(--ink-2);font-size:.96rem;line-height:1.9;margin-top:12px;max-width:52ch}
-.about-points{margin-top:16px;display:flex;flex-direction:column;gap:10px}
-.about-points li{display:flex;align-items:center;gap:10px;font-size:.9rem;color:var(--ink-2);font-weight:500}
-.about-points .dot{width:7px;height:7px;border-radius:50%;background:var(--blue);flex-shrink:0}
-.about-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow-sm)}
-.about-card-head{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:.88rem;padding-bottom:12px;border-bottom:1px solid var(--line-soft);margin-bottom:14px}
-.about-badge{font-size:.72rem;font-weight:800;color:var(--blue);background:var(--blue-soft);border:1px solid rgba(9,127,232,.14);padding:4px 10px;border-radius:999px}
-.about-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}
-.about-stats b{font-family:var(--font-latin);font-size:1.45rem;display:block}
-.about-stats span{font-size:.74rem;color:var(--ink-3);font-weight:700}
-.about-quote{margin-top:14px;background:var(--mk-bg);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;font-size:.88rem;font-weight:700;color:var(--ink-2);font-style:italic}
-@media(max-width:860px){.about-grid{grid-template-columns:1fr}}
-
 .footer-bottom { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--line-soft); display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; align-items: center; text-align: center; }
 
 .footer-copy { font-size: .78rem; color: #71717a; text-align: center; width: 100%; }
@@ -810,7 +829,8 @@ body.menu-open { overflow: hidden; }
 .footer-legal-inline a:hover { color: var(--ink-2); }
 /* ---------- 18) الاستجابة ---------- */
 @media (max-width: 1100px) {
-  .focus-grid { grid-template-columns: 1fr; gap: var(--s5); } }
+  .focus-grid { grid-template-columns: 1fr; gap: var(--s5); }
+}
 @media (max-width: 880px) {
   .nav-links, .nav-login { display: none; }
   .nav-burger { display: block; }
@@ -826,13 +846,18 @@ body.menu-open { overflow: hidden; }
   .orbital-title { font-size: clamp(1.35rem, 6vw, 1.75rem); }
   .orbital-tag { position: static; width: 100%; justify-content: center; font-size: 0.82rem; padding: 9px 12px; transform: none !important; }
   .tag-8 { transform: none !important; }
+  .sec-head h2, .focus-copy h2 { font-size: 1.4rem; }
+  .finale h2 { font-size: 1.3rem; }
   .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
-  .footer-bottom { flex-direction: column; text-align: center; gap: 10px; } }
+  .footer-bottom { flex-direction: column; text-align: center; gap: 10px; }
+}
 @media (max-width: 375px) {
   .orbital { padding: 22px 12px; gap: 8px; }
   .orbital-title { font-size: 1.25rem; line-height: 1.35; }
   .orbital-tag { font-size: 0.78rem; padding: 8px 10px; gap: 6px; }
   .orbital-tag .ic { width: 14px; height: 14px; }
+  .sec-head h2, .focus-copy h2 { font-size: 1.3rem; }
+  .finale h2 { font-size: 1.2rem; }
 }
 /* ---------- 19) تقليل الحركة وبدون JS ---------- */
 @media (prefers-reduced-motion: reduce) {

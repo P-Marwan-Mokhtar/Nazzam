@@ -1,5 +1,6 @@
 // ============================================================
 // landing.js — صفحة «نظم»
+//   • تحميل الهيدر والفوتر المشتركين (components.js)
 //   • خط تقدم التمرير + حالة الهيدر
 //   • قائمة الموبايل + الإظهار عند التمرير
 //   • السيكشن التاني: تناثر مميزات حول عبارة المركز (أوربيتال)
@@ -8,7 +9,26 @@
 // كل الحركات تحترم prefers-reduced-motion و html:not(.js)
 // ============================================================
 
-document.getElementById('lpYear').textContent = new Date().getFullYear();
+import { renderHeader, renderFooter } from './components.js';
+
+// ===== رسم الهيدر والفوتر المشتركين =====
+// GitHub Pages ممكن يشغّل الموقع في مسار فرعي (/repo/index.html) — مش بس الجذر.
+const lastSegment = location.pathname.split('/').pop();
+const isHome = lastSegment === '' || lastSegment === 'index.html';
+const p = isHome ? '' : './';
+
+const headerSlot = document.getElementById('siteHeader');
+if (headerSlot && !headerSlot.querySelector('.container')) {
+  headerSlot.outerHTML = `<header class="nav" id="siteHeader">${renderHeader(p)}</header>`;
+}
+
+const footerSlot = document.querySelector('footer.footer');
+if (footerSlot && !footerSlot.querySelector('.footer-grid')) {
+  footerSlot.outerHTML = `<footer class="footer">${renderFooter(p)}</footer>`;
+}
+
+const yearEl = document.getElementById('lpYear');
+if (yearEl) yearEl.textContent = new Date().getFullYear();
 
 const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -36,9 +56,9 @@ function closeMenu() {
   document.body.classList.remove('menu-open');
   burger.setAttribute('aria-expanded', 'false');
   burger.querySelector('use').setAttribute('href', '#i-menu');
-  header.addEventListener('animationend', () => {
-    header.classList.remove('is-closing');
-  }, { once: true });
+  // احتياط: لو الاتنيميشن مش شغال (مثلًا prefers-reduced-motion) `animationend`
+  // مش هيحصل، فبنشيل الكلاس بعد مهلة قصيرة بدل ما يفضل عالق.
+  setTimeout(() => header.classList.remove('is-closing'), 350);
 }
 if (burger && header) {
   burger.addEventListener('click', () => {
@@ -102,82 +122,200 @@ if (burger && header) {
   });
 })();
 
-// ===== تبويبات «تفاصيل صغيرة»: التبويبات يمين والصورة شمال =====
-(function initFeatureTabs() {
-  const list = document.getElementById('ftList');
-  const stage = document.getElementById('ftStage');
-  if (!list || !stage) return;
-  const img = stage.querySelector('img');
-  const tabs = list.querySelectorAll('.ft-tab');
-  let busy = false;
+// ===== شريط «تفاصيل صغيرة»: loop بلا نهاية + كروت مكررة =====
+(function initFeatureSlider() {
+  const root = document.getElementById('featSlider');
+  const viewport = document.getElementById('fsViewport');
+  const track = document.getElementById('fsTrack');
+  const dotsEl = document.getElementById('fsDots');
+  if (!track || !dotsEl) return;
+  const real = [...track.children];
+  const n = real.length;
+  if (!n) return;
 
-  tabs.forEach((tab) => {
-    tab.addEventListener('click', () => {
-      if (tab.classList.contains('on') || busy) return;
-      const src = tab.dataset.img;
-      tabs.forEach((t) => {
-        const on = t === tab;
-        t.classList.toggle('on', on);
-        t.setAttribute('aria-selected', String(on));
-      });
-      if (!img || !src) return;
-      busy = true;
-      img.classList.add('swap');
-      setTimeout(() => {
-        img.src = src;
-        img.alt = tab.dataset.alt || '';
-        img.classList.remove('swap');
-        busy = false;
-      }, 260);
-    });
+  const loadImg = (img) => { if (img && !img.getAttribute('src')) img.setAttribute('src', img.dataset.src || ''); };
+
+  /* بنية الـ loop: نسخ من الكروت قبل وبعد الحقيقية عشان الحركة ما توقفش ومعرفش قفزة.
+     الترتيب RTL: [ونسخ من الأخيرة يمنين] [الحقيقية] [نسخ من الأولى شمال] */
+  const k = Math.min(3, n);
+  const items = [
+    ...real.slice(n - k).map((el) => el.cloneNode(true)),
+    ...real.map((el) => el.cloneNode(true)),
+    ...real.slice(0, k).map((el) => el.cloneNode(true))
+  ];
+  track.replaceChildren(...items);
+
+  /* بناء النقاط (بعدد الكروت الحقيقية بس) */
+  const dots = real.map((_, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'fs-dot';
+    b.setAttribute('aria-label', 'الانتقال إلى الشريحة ' + (i + 1));
+    b.addEventListener('click', () => goTo(k + i, true));
+    dotsEl.appendChild(b);
+    return b;
   });
+
+  const realIdx = () => ((pos - k) % n + n) % n;
+
+  let pos = k; /* نشير للكارت الحقيقي الأول */
+  let timer = null;
+  let snapTimer = null;
+  let x0 = null;
+  const AUTOPLAY = REDUCE_MOTION ? 0 : 6000;
+  const SNAP_MS = 650; /* بعد مدة الأنيميشن نعيد توجيه المؤشر للكارت الحقيقي بنفس المكان */
+
+  /* تمركز الكارت النشط — الـ track RTL (الفات الأول يمين والشمال نهايته) */
+  function layout() {
+    if (!viewport) return;
+    const cardW = items[0].getBoundingClientRect().width;
+    const gap = 16;
+    const vw = viewport.clientWidth;
+    const shift = (cardW - vw) / 2 + pos * (cardW + gap);
+    track.style.transform = 'translate3d(' + shift + 'px, 0, 0)';
+  }
+
+  function setActive() {
+    const r = realIdx();
+    items.forEach((el, j) => {
+      const on = ((j - k) % n + n) % n === r;
+      el.classList.toggle('on', on);
+      el.setAttribute('aria-selected', String(on));
+    });
+    dots.forEach((d, j) => { d.classList.toggle('on', j === r); });
+  }
+
+  function scheduleSnap() {
+    clearTimeout(snapTimer);
+    snapTimer = setTimeout(() => {
+      if (pos < k || pos >= k + n) {
+        track.classList.add('no-trans');
+        pos = pos < k ? pos + n : pos - n; /* نرجع للمكافئ الحقيقي بنفس الموقع */
+        layout();
+        void track.offsetWidth;
+        track.classList.remove('no-trans');
+        setActive();
+      }
+    }, SNAP_MS);
+  }
+
+  function goTo(idx, user) {
+    pos = idx;
+    setActive();
+    layout();
+    scheduleSnap();
+    if (AUTOPLAY && user) start();
+  }
+
+  function start() { stop(); if (AUTOPLAY) timer = setInterval(() => goTo(pos + 1), AUTOPLAY); }
+  function stop() { clearInterval(timer); timer = null; }
+
+  items.forEach((el, j) => {
+    el.addEventListener('click', () => { if (j !== pos) goTo(j, true); });
+  });
+  window.addEventListener('resize', layout);
+
+  if (root) {
+    root.addEventListener('pointerenter', stop);
+    root.addEventListener('pointerleave', start);
+    root.addEventListener('focusin', stop);
+    root.addEventListener('focusout', (e) => { if (!root.contains(e.relatedTarget)) start(); });
+  }
+
+  if (viewport) {
+    viewport.addEventListener('pointerdown', (e) => { x0 = e.clientX; });
+    viewport.addEventListener('pointerup', (e) => {
+      if (x0 === null) return;
+      const dx = e.clientX - x0; x0 = null;
+      if (Math.abs(dx) > 36) goTo(pos + (dx < 0 ? 1 : -1), true);
+    });
+    viewport.addEventListener('pointercancel', () => { x0 = null; });
+  }
+
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else start(); });
+
+  items.forEach((el) => loadImg(el.querySelector('img')));
+  goTo(k);
+  start();
 })();
 
 // ===== لو المستخدم مسجّل دخوله بنستبدل أزرار الدخول بزرار واحد =====
 (async function checkLoggedInState() {
+  let isLoggedIn = false;
   try {
     const { supabaseClient } = await import('./app/js/config.js');
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    const isLoggedIn = !!(session && session.user && !session.user.is_anonymous);
-    if (isLoggedIn) showLoggedInHeaderState();
-  } catch (e) {
-    // أي خطأ (السكريبت لسه بيتحمل مثلًا) — سيبنا الأزرار الافتراضية
+    if (supabaseClient) {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      isLoggedIn = !!(session && session.user && !session.user.is_anonymous);
+    }
+  } catch (e) {}
+  // fallback محلي (file:// أو import فشل): نفحص localStorage مباشرة
+  if (!isLoggedIn) {
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i) || '';
+        if (k.startsWith('sb-') && k.includes('auth-token')) {
+          const raw = localStorage.getItem(k);
+          if (raw) {
+            const obj = JSON.parse(raw);
+            const user = obj && (obj.user || (obj.currentSession && obj.currentSession.user));
+            if (user && !user.is_anonymous && user.id) { isLoggedIn = true; break; }
+          }
+        }
+      }
+    } catch (e) {}
+  }
+  if (isLoggedIn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', showLoggedInHeaderState);
+    } else {
+      showLoggedInHeaderState();
+    }
+    // احتياط: لو التحويل محصلش لأي سبب، عيد المحاولة بعد ثانية
+    setTimeout(() => { if (document.querySelector('.nav-login')) showLoggedInHeaderState(); }, 800);
   }
 })();
 
 function showLoggedInHeaderState() {
   const authBtnHtml = (id) => `<a href="app/" class="btn btn-primary btn-sm" id="${id}">اذهب إلى نظم</a>`;
 
-  // الهيدر: نحذف كل روابط تسجيل الدخول ونستبدل كل أزرار "ابدأ مجانًا" بزر واحد
-  document.querySelectorAll('.nav-login').forEach(el => el.remove());
-  // أي زر في .nav-actions يحمل "ابدأ" أو "مجانًا" يُستبدل
-  document.querySelectorAll('.nav-actions .btn').forEach(el => {
-    const txt = el.textContent.trim();
-    if (txt.includes('ابدأ') || txt.includes('مجانًا') || txt.includes('الدفع')) {
-      const keepId = el.id || 'lpStartBtn';
-      el.outerHTML = authBtnHtml(keepId);
-    }
-  });
-  // fallback للـ IDs القديمة (اللاندينج)
-  const loginBtn = document.getElementById('lpLoginBtn');
-  const startBtn = document.getElementById('lpStartBtn');
-  if (loginBtn) loginBtn.remove();
-  if (startBtn && document.body.contains(startBtn)) startBtn.outerHTML = authBtnHtml('lpStartBtn');
+  // الهيدر: زر واحد فقط — نحذف كل أزرار الدخول/البدء/الدفع ثم نزرع زر واحد قبل البرجر
+  const navActions = document.querySelector('.nav-actions');
+  // فحص صح: نتأكد إن مفيش زرار "اذهب إلى نظم" مركّب أصلًا — مش أي زرار بـ href="app/".
+  // (الفحص القديم كان بينطبق على زرار "ابدأ مجانًا" الافتراضي نفسه، فيتخطّى التحويل بالكامل.)
+  const alreadyTransformed = navActions && [...navActions.querySelectorAll('a.btn')].some(
+    (a) => a.textContent.trim() === 'اذهب إلى نظم'
+  );
+  if (navActions && !alreadyTransformed) {
+    navActions.querySelectorAll('.nav-login').forEach(el => el.remove());
+    [...navActions.querySelectorAll('.btn')].forEach(el => {
+      const t = el.textContent.trim();
+      if (t.includes('ابدأ') || t.includes('مجانًا') || t.includes('الدفع') || t.includes('اشتراك') || t.includes('تسجيل')) el.remove();
+    });
+    const burger = navActions.querySelector('.nav-burger');
+    if (burger) burger.insertAdjacentHTML('beforebegin', authBtnHtml('lpStartBtn'));
+    else navActions.insertAdjacentHTML('beforeend', authBtnHtml('lpStartBtn'));
+  }
 
-  // الأزرار داخل الصفحة (هيرو، ختام، أسعار)
+  // أزرار الدخول داخل الصفحة (هيرو، ختام، والكارت المجاني في الأسعار)
   ['heroStartBtn', 'finaleStartBtn', 'lpPriceBtn'].forEach((id) => {
     const b = document.getElementById(id);
     if (b) { b.textContent = 'اذهب إلى نظم'; b.setAttribute('href','app/'); }
   });
-  // الفوتر: أي رابط "تسجيل الدخول" في الفوتر
-  document.querySelectorAll('.footer a[href="app/"], .footer a[href="app/"] + a, #lpLoginFooter').forEach(el => {
-    if (el.textContent.includes('تسجيل الدخول')) {
-      el.textContent = 'افتح التطبيق';
-      el.setAttribute('href','app/');
+  // الفوتر: روابط الدخول/البدء تتحوّل لرابط واحد "افتح التطبيق" (مفيش تكرار)
+  let converted = false;
+  document.querySelectorAll('.footer a[href="app/"]').forEach(el => {
+    const txt = el.textContent.trim();
+    if (txt.includes('تسجيل الدخول') || txt.includes('ابدأ') || txt.includes('مجانًا')) {
+      if (!converted) {
+        el.textContent = 'افتح التطبيق';
+        converted = true;
+      } else {
+        const li = el.closest('li');
+        if (li) li.remove(); else el.remove();
+      }
     }
   });
-  const footLogin = document.getElementById('lpLoginFooter');
-  if (footLogin) { footLogin.textContent = 'افتح التطبيق'; footLogin.setAttribute('href','app/'); }
 }
 
 // ===== تنظيف تسجيل Service Worker قديم من نطاق الجذر (قبل نقل التطبيق لمجلد /app/) =====

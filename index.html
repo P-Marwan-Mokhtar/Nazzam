@@ -138,49 +138,7 @@
 
 
     <!-- ========================= الهيدر ========================= -->
-    <header class="nav" id="siteHeader">
-      <div class="container nav-inner">
-        <a href="#top" class="nav-logo" aria-label="نظم — الصفحة الرئيسية">
-          <img src="app/img/nazzam-logo.png" alt="نظم" class="logo-mark" width="80" height="80" decoding="async" fetchpriority="high" />
-        </a>
-        <nav class="nav-links" aria-label="التنقل الرئيسي">
-          <a href="#organize">التنظيم</a>
-          <a href="#plan">التخطيط</a>
-          <a href="#focus">التركيز</a>
-          <a href="#stats">الإحصائيات</a>
-          <a href="#more">المميزات</a>
-          <a href="#pricing">الأسعار</a>
-          <a href="#about">من نحن</a>
-          <a href="#faq">الأسئلة</a>
-        </nav>
-        <div class="nav-actions">
-          <a href="app/" class="nav-login" id="lpLoginBtn">تسجيل الدخول</a>
-          <a href="checkout.html" class="btn btn-primary btn-sm" id="lpCheckoutBtn">الدفع</a>
-          <a href="app/" class="btn btn-primary btn-sm" id="lpStartBtn">ابدأ مجانًا</a>
-          <button class="nav-burger" id="navBurger" aria-label="القائمة" aria-expanded="false">
-            <svg class="ic"><use href="#i-menu"/></svg>
-          </button>
-        </div>
-      </div>
-      <div class="nav-mobile" id="navMobile">
-        <div class="nav-mobile-group">
-          <span class="nav-mobile-label">النظام</span>
-          <a href="#organize">التنظيم</a>
-          <a href="#plan">التخطيط</a>
-          <a href="#focus">التركيز</a>
-          <a href="#stats">الإحصائيات</a>
-        </div>
-        <div class="nav-mobile-group">
-          <span class="nav-mobile-label">المنتج</span>
-          <a href="#more">المميزات</a>
-          <a href="#pricing">الأسعار</a>
-        </div>
-        <div class="nav-mobile-group">
-          <span class="nav-mobile-label">المساعدة</span>
-          <a href="#faq">الأسئلة</a>
-        </div>
-      </div>
-    </header>
+    <header class="nav" id="siteHeader"></header>
 
     <main id="top">
       <!-- ============================================================
@@ -395,55 +353,68 @@
       <section class="section" id="more">
         <div class="container">
           <div class="sec-head reveal">
-            <h2>تفاصيل صغيرة تصنع فرقًا كبيرًا</h2>
+            <h2>ميزات توفر لك الوقت والجهد</h2>
             <p class="sec-lead">كل ميزة بصورة حقيقية من التطبيق — نظرة سريعة على ما ينتظرك.</p>
           </div>
 
-          <div class="features-tabs reveal">
-            <div class="ft-list" id="ftList" role="tablist" aria-label="مميزات نظم">
-              <button class="ft-tab on" role="tab" aria-selected="true" data-img="app/img/features/search.png" data-alt="البحث في جميع المهام">
-                <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
-                <span class="ft-text">
-                  <span class="ft-name">البحث في جميع المهام</span>
-                  <span class="ft-desc">اكتب أي كلمة وستجد فورًا كل المهام والعادات وقائمة المهام المطابق لها.</span>
-                </span>
-                <span class="ft-mobile-img"><img src="app/img/features/search.png" alt="البحث في جميع المهام" loading="lazy" decoding="async" /></span>
-              </button>
-              <button class="ft-tab" role="tab" aria-selected="false" data-img="app/img/features/drafts.png" data-alt="المسودات">
-                <svg class="ic" aria-hidden="true"><use href="#i-file"/></svg>
-                <span class="ft-text">
-                  <span class="ft-name">المسودات</span>
-                  <span class="ft-desc">كل ما تحذفه يبقى محفوظًا في قائمة المسودات وتسترجعه بضغطة واحدة.</span>
-                </span>
-                <span class="ft-mobile-img"><img src="app/img/features/drafts.png" alt="المسودات" loading="lazy" decoding="async" /></span>
-              </button>
-              <button class="ft-tab" role="tab" aria-selected="false" data-img="app/img/features/templates.png" data-alt="قوالب المهام">
-                <svg class="ic" aria-hidden="true"><use href="#i-copy"/></svg>
-                <span class="ft-text">
-                  <span class="ft-name">قوالب المهام</span>
-                  <span class="ft-desc">مهامك المتكررة محفوظة كقوالب جاهزة — تضيفها لأي يوم بضغطة واحدة.</span>
-                </span>
-                <span class="ft-mobile-img"><img src="app/img/features/templates.png" alt="قوالب المهام" loading="lazy" decoding="async" /></span>
-              </button>
-              <button class="ft-tab" role="tab" aria-selected="false" data-img="app/img/features/notifications.png" data-alt="التنبيهات">
-                <svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg>
-                <span class="ft-text">
-                  <span class="ft-name">التنبيهات</span>
-                  <span class="ft-desc">تذكيرات تصل في معادها إشعارًا حتى مع إغلاق التطبيق، أو ملخصًا صباحيًا.</span>
-                </span>
-                <span class="ft-mobile-img"><img src="app/img/features/notifications.png" alt="التنبيهات" loading="lazy" decoding="async" /></span>
-              </button>
-              <button class="ft-tab" role="tab" aria-selected="false" data-img="app/img/features/task-details.png" data-alt="تفاصيل المهمة">
-                <svg class="ic" aria-hidden="true"><use href="#i-list"/></svg>
-                <span class="ft-text">
-                  <span class="ft-name">تفاصيل المهمة</span>
-                  <span class="ft-desc">اضغط على أي مهمة: الأهمية والوقت والملاحظة والمهام الفرعية في نافذة واحدة.</span>
-                </span>
-                <span class="ft-mobile-img"><img src="app/img/features/task-details.png" alt="تفاصيل المهمة" loading="lazy" decoding="async" /></span>
-              </button>
+          <div class="feat-strip reveal" id="featSlider">
+            <div class="fs-viewport" id="fsViewport">
+              <div class="fs-track" id="fsTrack">
+                <article class="fs-card on" data-slide="0">
+                  <div class="fsc-shot"><img data-src="app/img/features/search.png" alt="البحث في جميع المهام" loading="lazy" decoding="async" /></div>
+                  <div class="fsc-body">
+                    <span class="fsc-chip" aria-hidden="true"><svg class="ic"><use href="#i-search"/></svg></span>
+                    <div class="fsc-copy">
+                      <h3 class="fsc-name">البحث في جميع المهام</h3>
+                      <p class="fsc-desc">اكتب أي كلمة وستجد كل المهام والعادات وقائمة المهام المطابق لها.</p>
+                    </div>
+                  </div>
+                </article>
+                <article class="fs-card" data-slide="1">
+                  <div class="fsc-shot"><img data-src="app/img/features/drafts.png" alt="المسودات" loading="lazy" decoding="async" /></div>
+                  <div class="fsc-body">
+                    <span class="fsc-chip" aria-hidden="true"><svg class="ic"><use href="#i-file"/></svg></span>
+                    <div class="fsc-copy">
+                      <h3 class="fsc-name">المسودات</h3>
+                      <p class="fsc-desc">كل ما تحذفه يبقى محفوظًا في قائمة المسودات وتسترجعه بضغطة واحدة.</p>
+                    </div>
+                  </div>
+                </article>
+                <article class="fs-card" data-slide="2">
+                  <div class="fsc-shot"><img data-src="app/img/features/templates.png" alt="قوالب المهام" loading="lazy" decoding="async" /></div>
+                  <div class="fsc-body">
+                    <span class="fsc-chip" aria-hidden="true"><svg class="ic"><use href="#i-copy"/></svg></span>
+                    <div class="fsc-copy">
+                      <h3 class="fsc-name">قوالب المهام</h3>
+                      <p class="fsc-desc">مهامك المتكررة محفوظة كقوالب جاهزة — تضيفها لأي يوم بضغطة واحدة.</p>
+                    </div>
+                  </div>
+                </article>
+                <article class="fs-card" data-slide="3">
+                  <div class="fsc-shot"><img data-src="app/img/features/notifications.png" alt="التنبيهات" loading="lazy" decoding="async" /></div>
+                  <div class="fsc-body">
+                    <span class="fsc-chip" aria-hidden="true"><svg class="ic"><use href="#i-bell"/></svg></span>
+                    <div class="fsc-copy">
+                      <h3 class="fsc-name">التنبيهات</h3>
+                      <p class="fsc-desc">تذكيرات تصل في معادها إشعارًا حتى مع إغلاق التطبيق، أو ملخصًا صباحيًا.</p>
+                    </div>
+                  </div>
+                </article>
+                <article class="fs-card" data-slide="4">
+                  <div class="fsc-shot"><img data-src="app/img/features/task-details.png" alt="تفاصيل المهمة" loading="lazy" decoding="async" /></div>
+                  <div class="fsc-body">
+                    <span class="fsc-chip" aria-hidden="true"><svg class="ic"><use href="#i-list"/></svg></span>
+                    <div class="fsc-copy">
+                      <h3 class="fsc-name">تفاصيل المهمة</h3>
+                      <p class="fsc-desc">اضغط على أي مهمة: الأهمية والوقت والملاحظة والمهام الفرعية في نافذة واحدة.</p>
+                    </div>
+                  </div>
+                </article>
+              </div>
             </div>
-            <div class="ft-stage" id="ftStage" aria-live="polite">
-              <img src="app/img/features/search.png" alt="البحث في جميع المهام" loading="lazy" decoding="async" />
+
+            <div class="fs-controls">
+              <div class="fs-dots" id="fsDots" role="group" aria-label="مؤشرات الشريحة"></div>
             </div>
           </div>
         </div>
@@ -466,11 +437,12 @@
             <div class="price-card spot">
               <h3>مجاني</h3>
               <div class="price-num"><span class="digits">$0</span><small>للأبد</small></div>
-              <p class="price-for">للاستخدام الأساسي بعد انتهاء التجربة.</p>
+              <p class="price-for">أساسيات للاستخدام الخفيف — بحدود واضحة.</p>
               <ul class="price-feats">
-                <li><svg class="ic"><use href="#i-check"/></svg>مهام وعادات وقائمة المهام</li>
-                <li><svg class="ic"><use href="#i-check"/></svg>الجدول الزمني والتقويم</li>
-                <li><svg class="ic"><use href="#i-check"/></svg>وضع فاتح وداكن و٨ ألوان</li>
+                <li><svg class="ic"><use href="#i-check"/></svg>مهام وعادات وهوايات — حتى ١٠٠ فقط</li>
+                <li><svg class="ic"><use href="#i-check"/></svg>مميزات المهمة كاملة: أولوية، مهام فرعية، وملاحظات</li>
+                <li><svg class="ic"><use href="#i-check"/></svg>التقويم وعرض اليوم</li>
+                <li><svg class="ic"><use href="#i-check"/></svg>٣ تذكيرات و٣ مؤقّتات محفوظة</li>
                 <li><svg class="ic"><use href="#i-check"/></svg>يعمل دون اتصال</li>
               </ul>
               <a href="app/" class="btn btn-ghost btn-lg price-btn" id="lpPriceBtn">ابدأ مجانًا</a>
@@ -481,12 +453,15 @@
               <div class="price-num"><span class="digits">$3</span><small>/ شهريًا</small></div>
               <p class="price-for">كل المميزات بلا حدود، بمرونة شهرية.</p>
               <ul class="price-feats">
-                <li><svg class="ic"><use href="#i-check"/></svg>كل المميزات بلا حدود</li>
-                <li><svg class="ic"><use href="#i-check"/></svg>مزامنة سحابية بين أجهزتك</li>
+                <li><svg class="ic"><use href="#i-check"/></svg>بلا حدود: مهام، أقسام، تذكيرات، ومؤقّتات</li>
+                <li><svg class="ic"><use href="#i-check"/></svg>الجدول الزمني الكامل بالسحب والإفلات</li>
+                <li><svg class="ic"><use href="#i-check"/></svg>قوالب المهام الجاهزة لإعادة الاستخدام</li>
+                <li><svg class="ic"><use href="#i-check"/></svg>القوائم الذكية المرتبة تلقائيًا</li>
+                <li><svg class="ic"><use href="#i-check"/></svg>تصدير التقويم (ICS) وتقارير PDF</li>
+                <li><svg class="ic"><use href="#i-check"/></svg>إحصائيات كاملة وتفاصيل المهام</li>
                 <li><svg class="ic"><use href="#i-check"/></svg>تذكيرات وملخصات فورية</li>
-                <li><svg class="ic"><use href="#i-check"/></svg>تقارير PDF وتصدير ICS</li>
               </ul>
-              <a href="checkout.html" class="btn btn-primary btn-lg price-btn">اشتراك — Checkout</a>
+              <a href="checkout.html" class="btn btn-primary btn-lg price-btn">اشتراك</a>
             </div>
 
             <div class="price-card featured spot">
@@ -495,45 +470,17 @@
               <div class="price-num"><span class="digits">$30</span><small>/ سنويًا</small></div>
               <p class="price-for">بدلًا من ٣٦$ سنويًا — لأصحاب اليوم المزدحم.</p>
               <ul class="price-feats">
-                <li><svg class="ic"><use href="#i-check"/></svg>كل مميزات الخطة الشهرية</li>
+                <li><svg class="ic"><use href="#i-check"/></svg>كل مميزات الخطة الشهرية بلا حدود</li>
+                <li><svg class="ic"><use href="#i-check"/></svg>٧ أيام تجربة مجانية بكل المميزات</li>
                 <li><svg class="ic"><use href="#i-check"/></svg>سعر الإطلاق مثبّت لك</li>
                 <li><svg class="ic"><use href="#i-check"/></svg>أولوية في المميزات الجديدة</li>
                 <li><svg class="ic"><use href="#i-check"/></svg>دعم مباشر أسرع</li>
               </ul>
-              <a href="checkout.html" class="btn btn-primary btn-lg price-btn">اشتراك — Checkout</a>
+              <a href="checkout.html" class="btn btn-primary btn-lg price-btn">اشتراك</a>
             </div>
           </div>
 
           <p class="pricing-note reveal">بعد التجربة تنتقل تلقائيًا إلى الخطة المجانية — بدون أي التزام.</p>
-        </div>
-      </section>
-
-      <!-- ============================================================
-           من نحن — About Us
-      ============================================================ -->
-      <section class="section band-alt" id="about">
-        <div class="container">
-          <div class="about-grid reveal">
-            <div class="about-copy">
-              <span class="eyebrow">من نحن</span>
-              <h2>أداة عربية واحدة، <em>مُتقنة</em></h2>
-              <p>نظّم وُلد لأن معظم أدوات الإنتاجية تُبنى للإنجليزية أولاً. بنيناه من الصفر للعربية — اتجاه، خط، وتفاصيل — ليحوّل يومك المزدحم إلى نظام واضح يعمل دون اتصال ويحترم خصوصيتك.</p>
-              <ul class="about-points">
-                <li><span class="dot"></span> فريق صغير، تركيز واحد — لا تشتيت بمنتجات جانبية</li>
-                <li><span class="dot"></span> بياناتك لك وحدك — بلا إعلانات، بلا بيع</li>
-                <li><span class="dot"></span> نطوّر مع مجتمعنا — كل تحديث من ملاحظاتكم</li>
-              </ul>
-            </div>
-            <div class="about-card">
-              <div class="about-card-head"><span>نظّم اليوم</span><span class="about-badge">عربي 100%</span></div>
-              <div class="about-stats">
-                <div><b>٧</b><span>أيام تجربة</span></div>
-                <div><b>٣</b><span>خطط واضحة</span></div>
-                <div><b>∞</b><span>يعمل دون نت</span></div>
-              </div>
-              <div class="about-quote">“ركّز على أهدافك، واترك التنظيم على نظّم.”</div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -583,44 +530,7 @@
     </main>
 
     <!-- ========================= الفوتر ========================= -->
-    <footer class="footer">
-      <div class="container">
-        <div class="footer-grid">
-          <div class="footer-brand-block">
-            <a href="./" class="footer-brand" aria-label="نظّم"><img src="app/img/nazzam-logo.png" alt="نظّم" class="logo-mark" width="80" height="80" decoding="async" /></a>
-            <p class="footer-brand-text">نظّم يومك في نظام واحد — مهام، جدول زمني، مؤقّت تركيز، وإحصائيات. عربي بالكامل ويعمل دون اتصال.</p>
-          </div>
-          <div class="footer-col">
-            <h4>المنتج</h4>
-            <ul>
-              <li><a href="#more">المميزات</a></li>
-              <li><a href="#pricing">الأسعار</a></li>
-              <li><a href="#about">من نحن</a></li>
-              <li><a href="checkout.html">الدفع</a></li>
-            </ul>
-          </div>
-          <div class="footer-col">
-            <h4>القانوني</h4>
-            <ul>
-              <li><a href="terms.html">الشروط والأحكام</a></li>
-              <li><a href="privacy.html">الخصوصية</a></li>
-              <li><a href="refund.html">الاسترجاع</a></li>
-            </ul>
-          </div>
-          <div class="footer-col">
-            <h4>التواصل</h4>
-            <ul>
-              <li><a href="mailto:support@nazzam.app">support@nazzam.app</a></li>
-              <li><a href="app/">تسجيل الدخول</a></li>
-              <li><a href="app/">ابدأ مجانًا</a></li>
-            </ul>
-          </div>
-        </div>
-        <div class="footer-bottom">
-          <p class="footer-copy">© <span id="lpYear">2026</span> نظّم. جميع الحقوق محفوظة.</p>
-        </div>
-      </div>
-    </footer>
+    <footer class="footer"></footer>
 
     <script src="app/js/vendor/supabase.js" defer></script>
     <script type="module" src="landing.js"></script>

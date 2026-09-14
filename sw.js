@@ -8,7 +8,7 @@
 // Worker بتاعه هو (app/sw.js)، وده مكمّل له وميفضّلش عليه.
 // ============================================================
 
-const CACHE_VERSION = 'landing-v1';
+const CACHE_VERSION = 'landing-v23';
 const CACHE_NAME = 'nazzam-site-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -16,6 +16,7 @@ const PRECACHE_URLS = [
   './index.html',
   './landing.css',
   './landing.js',
+  './components.js',
   './app/icons/favicon.ico',
   './app/icons/icon-192.png',
   './app/icons/icon-512.png',
