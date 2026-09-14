@@ -781,6 +781,24 @@ body.menu-open { overflow: hidden; }
 
 .footer-col a:hover { color: var(--blue); }
 
+/* About — مثل باقي أقسام اللاندينج، بلا حشو إيميل */
+.about-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:clamp(24px,4vw,48px);align-items:center}
+.about-copy .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.72rem;font-weight:800;letter-spacing:.1em;color:var(--blue);background:var(--blue-soft);border:1px solid rgba(9,127,232,.14);padding:5px 12px;border-radius:999px;margin-bottom:12px}
+.about-copy h2{font-family:var(--font-display);font-size:clamp(1.6rem,3vw,2.15rem);font-weight:800;line-height:1.28;letter-spacing:-.02em}
+.about-copy h2 em{color:var(--blue);font-style:normal}
+.about-copy p{color:var(--ink-2);font-size:.96rem;line-height:1.9;margin-top:12px;max-width:52ch}
+.about-points{margin-top:16px;display:flex;flex-direction:column;gap:10px}
+.about-points li{display:flex;align-items:center;gap:10px;font-size:.9rem;color:var(--ink-2);font-weight:500}
+.about-points .dot{width:7px;height:7px;border-radius:50%;background:var(--blue);flex-shrink:0}
+.about-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow-sm)}
+.about-card-head{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:.88rem;padding-bottom:12px;border-bottom:1px solid var(--line-soft);margin-bottom:14px}
+.about-badge{font-size:.72rem;font-weight:800;color:var(--blue);background:var(--blue-soft);border:1px solid rgba(9,127,232,.14);padding:4px 10px;border-radius:999px}
+.about-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}
+.about-stats b{font-family:var(--font-latin);font-size:1.45rem;display:block}
+.about-stats span{font-size:.74rem;color:var(--ink-3);font-weight:700}
+.about-quote{margin-top:14px;background:var(--mk-bg);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;font-size:.88rem;font-weight:700;color:var(--ink-2);font-style:italic}
+@media(max-width:860px){.about-grid{grid-template-columns:1fr}}
+
 .footer-bottom { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--line-soft); display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; align-items: center; text-align: center; }
 
 .footer-copy { font-size: .78rem; color: #71717a; text-align: center; width: 100%; }
