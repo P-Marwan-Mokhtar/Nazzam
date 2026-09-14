@@ -148,15 +148,36 @@ if (burger && header) {
 function showLoggedInHeaderState() {
   const authBtnHtml = (id) => `<a href="app/" class="btn btn-primary btn-sm" id="${id}">اذهب إلى نظم</a>`;
 
+  // الهيدر: نحذف كل روابط تسجيل الدخول ونستبدل كل أزرار "ابدأ مجانًا" بزر واحد
+  document.querySelectorAll('.nav-login').forEach(el => el.remove());
+  // أي زر في .nav-actions يحمل "ابدأ" أو "مجانًا" يُستبدل
+  document.querySelectorAll('.nav-actions .btn').forEach(el => {
+    const txt = el.textContent.trim();
+    if (txt.includes('ابدأ') || txt.includes('مجانًا') || txt.includes('الدفع')) {
+      const keepId = el.id || 'lpStartBtn';
+      el.outerHTML = authBtnHtml(keepId);
+    }
+  });
+  // fallback للـ IDs القديمة (اللاندينج)
   const loginBtn = document.getElementById('lpLoginBtn');
   const startBtn = document.getElementById('lpStartBtn');
   if (loginBtn) loginBtn.remove();
-  if (startBtn) startBtn.outerHTML = authBtnHtml('lpStartBtn');
+  if (startBtn && document.body.contains(startBtn)) startBtn.outerHTML = authBtnHtml('lpStartBtn');
 
-  ['heroStartBtn', 'finaleStartBtn', 'lpPriceBtn', 'lpLoginFooter'].forEach((id) => {
+  // الأزرار داخل الصفحة (هيرو، ختام، أسعار)
+  ['heroStartBtn', 'finaleStartBtn', 'lpPriceBtn'].forEach((id) => {
     const b = document.getElementById(id);
-    if (b) b.textContent = 'اذهب إلى نظم';
+    if (b) { b.textContent = 'اذهب إلى نظم'; b.setAttribute('href','app/'); }
   });
+  // الفوتر: أي رابط "تسجيل الدخول" في الفوتر
+  document.querySelectorAll('.footer a[href="app/"], .footer a[href="app/"] + a, #lpLoginFooter').forEach(el => {
+    if (el.textContent.includes('تسجيل الدخول')) {
+      el.textContent = 'افتح التطبيق';
+      el.setAttribute('href','app/');
+    }
+  });
+  const footLogin = document.getElementById('lpLoginFooter');
+  if (footLogin) { footLogin.textContent = 'افتح التطبيق'; footLogin.setAttribute('href','app/'); }
 }
 
 // ===== تنظيف تسجيل Service Worker قديم من نطاق الجذر (قبل نقل التطبيق لمجلد /app/) =====
