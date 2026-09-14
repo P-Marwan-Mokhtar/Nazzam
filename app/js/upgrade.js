@@ -42,6 +42,41 @@ export function openUpgrade(feature){
     : null;
   const alreadyPro = plan === 'pro';
 
+  if(alreadyPro){
+    const cycleLabel = state.planCycle === 'yearly' ? t('plan.yearly') : state.planCycle === 'monthly' ? t('plan.monthly') : t('plan.yearly');
+    const cyclePrice = state.planCycle === 'monthly' ? `${PLANS.monthly.currency}${PLANS.monthly.price} ${t('plan.per_month')}` : `${PLANS.yearly.currency}${PLANS.yearly.price} ${t('plan.per_year')}`;
+    bodyEl.innerHTML = `
+      <div class="upgrade-hero">
+        <div class="upgrade-hero-title">${t('plan.manage_title') || 'إدارة الاشتراك'}</div>
+        <div class="upgrade-hero-sub">${t('plan.current_pro')} — ${escapeHtml(cycleLabel)} · ${escapeHtml(cyclePrice)}</div>
+      </div>
+      <div class="upgrade-manage-card">
+        <div class="upgrade-manage-row">
+          <span class="material-icons">verified</span>
+          <div>
+            <strong>${t('plan.pro')} — ${escapeHtml(cycleLabel)}</strong>
+            <span>${t('plan.active') || 'نشط'}</span>
+          </div>
+          <span class="upgrade-manage-badge">${t('plan.pro_badge')}</span>
+        </div>
+      </div>
+      <ul class="upgrade-list">
+        ${PRO_FEATURES.map(f => `
+          <li>
+            <span class="material-icons upgrade-list-icon">check_circle</span>
+            <span>${escapeHtml(t('profeat.' + f))}</span>
+          </li>
+        `).join('')}
+      </ul>
+      <p class="upg-manage-hint">${t('plan.manage_hint')}</p>
+      <button type="button" class="upg-cta-btn" disabled>${t('plan.current_pro')}</button>
+      <p class="upg-terms">${t('plan.terms')}</p>
+    `;
+    overlay.classList.add('open');
+    wireUpgradeButtons();
+    return;
+  }
+
   bodyEl.innerHTML = `
     <div class="upgrade-hero">
       <div class="upgrade-hero-title">${t('plan.upgrade_title')}</div>
@@ -77,8 +112,8 @@ export function openUpgrade(feature){
         </button>
       `}
     </div>
-    <button type="button" class="upg-cta-btn" id="upgCtaBtn" ${alreadyPro ? 'disabled' : ''}>
-      ${alreadyPro ? t('plan.current_pro') : `${ctaPriceHtml()} ${t('plan.upgrade_now')}`}
+    <button type="button" class="upg-cta-btn" id="upgCtaBtn">
+      ${ctaPriceHtml()} ${t('plan.upgrade_now')}
     </button>
     <p class="upg-terms">${t('plan.terms')}</p>
   `;

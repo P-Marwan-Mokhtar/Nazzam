@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>الدفع — نظّم</title>
+  <meta name="description" content="إتمام اشتراك نظّم Pro عبر Tap — دفع آمن." />
+  <link rel="icon" href="app/icons/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="landing.css" />
+  <style>
+    .checkout{width:min(720px,92vw);margin:0 auto;padding:148px 0 64px}
+    .checkout h1{font-family:var(--font-display);font-size:clamp(1.6rem,3vw,2rem);font-weight:800;letter-spacing:-.02em}
+    .checkout p.lead{color:var(--ink-2);font-size:.95rem;margin-top:8px}
+    .cart{margin-top:20px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff}
+    .cart-head{padding:14px 16px;background:var(--mk-bg);border-bottom:1px solid var(--line);font-weight:800;font-family:var(--font-display)}
+    .cart-row{display:flex;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line-soft);align-items:center}
+    .cart-row:last-child{border-bottom:none}
+    .cart-row b{font-size:.95rem}
+    .cart-row span{font-size:.88rem;color:var(--ink-2)}
+    .cart-total{padding:14px 16px;background:var(--mk-bg);display:flex;justify-content:space-between;font-weight:800}
+    .checkout-actions{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap}
+    .btn{border-radius:999px;padding:12px 22px;font-weight:800;font-size:.92rem;border:1px solid transparent;display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+    .btn-primary{background:var(--ink);color:#fff}
+    .btn-ghost{background:#fff;border-color:var(--line);color:var(--ink)}
+    .hint{margin-top:12px;color:var(--ink-3);font-size:.82rem}
+  </style>
+</head>
+<body>
+  <header class="nav is-scrolled" id="siteHeader">
+    <div class="container nav-inner">
+      <a href="./" class="nav-logo"><img src="app/img/nazzam-logo.png" alt="نظّم" class="logo-mark" width="80" height="80" /></a>
+      <nav class="nav-links" aria-label="التنقل">
+        <a href="./#organize">التنظيم</a>
+        <a href="./#plan">التخطيط</a>
+        <a href="./#pricing">الأسعار</a>
+        <a href="./#about">من نحن</a>
+      </nav>
+      <div class="nav-actions">
+        <a href="app/" class="nav-login">تسجيل الدخول</a>
+        <a href="app/" class="btn btn-primary btn-sm">ابدأ مجانًا</a>
+        <button class="nav-burger" id="navBurger" aria-label="القائمة" aria-expanded="false"><svg class="ic"><use href="#i-menu"/></svg></button>
+      </div>
+    </div>
+    <div class="nav-mobile" id="navMobile">
+      <div class="nav-mobile-group"><span class="nav-mobile-label">النظام</span><a href="./#organize">التنظيم</a><a href="./#plan">التخطيط</a></div>
+      <div class="nav-mobile-group"><span class="nav-mobile-label">المنتج</span><a href="./#pricing">الأسعار</a></div>
+    </div>
+  </header>
+
+  <main class="checkout">
+    <h1>إتمام الاشتراك</h1>
+    <p class="lead">اختر خطتك — الدفع آمن عبر Tap. يمكنك الإلغاء في أي وقت.</p>
+
+    <div class="cart" id="cart">
+      <div class="cart-head">سلة الاشتراك</div>
+      <label class="cart-row" style="cursor:pointer">
+        <div><b>Pro شهري</b><br><span>$3 / شهر — كل المزايا</span></div>
+        <input type="radio" name="plan" value="monthly" checked />
+      </label>
+      <label class="cart-row" style="cursor:pointer">
+        <div><b>Pro سنوي — وفّر 17%</b><br><span>$30 / سنة</span></div>
+        <input type="radio" name="plan" value="yearly" />
+      </label>
+      <div class="cart-total"><span>الإجمالي</span><span id="total">$3 / شهر</span></div>
+    </div>
+
+    <div class="checkout-actions">
+      <button class="btn btn-primary" id="checkoutBtn">المتابعة للدفع عبر Tap</button>
+      <a href="./#pricing" class="btn btn-ghost">العودة للأسعار</a>
+    </div>
+    <p class="hint">بالمتابعة توافق على <a href="terms.html" style="color:var(--blue);text-decoration:underline">الشروط</a> و <a href="refund.html" style="color:var(--blue);text-decoration:underline">الاسترجاع</a>. التجربة 7 أيام بدون بطاقة.</p>
+    <p class="hint">بعد الدفع ستعود للتطبيق ويُفعّل Pro تلقائياً. للاستفسار: <a href="mailto:support@nazzam.app" style="color:var(--blue)">support@nazzam.app</a></p>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand-block">
+          <a href="./" class="footer-brand"><img src="app/img/nazzam-logo.png" alt="نظّم" class="logo-mark" width="80" height="80" /></a>
+          <p class="footer-brand-text">نظّم يومك في نظام واحد — مهام، جدول زمني، مؤقّت تركيز، وإحصائيات.</p>
+        </div>
+        <div class="footer-col"><h4>المنتج</h4><ul><li><a href="./#pricing">الأسعار</a></li><li><a href="./#about">من نحن</a></li></ul></div>
+        <div class="footer-col"><h4>القانوني</h4><ul><li><a href="terms.html">الشروط</a></li><li><a href="privacy.html">الخصوصية</a></li><li><a href="refund.html">الاسترجاع</a></li></ul></div>
+        <div class="footer-col"><h4>التواصل</h4><ul><li><a href="mailto:support@nazzam.app">support@nazzam.app</a></li></ul></div>
+      </div>
+      <div class="footer-bottom"><p class="footer-copy">© 2026 نظّم. جميع الحقوق محفوظة.</p></div>
+    </div>
+  </footer>
+
+  <script type="module" src="landing.js"></script>
+  <script>
+    const radios=[...document.querySelectorAll('input[name="plan"]')];
+    const total=document.getElementById('total');
+    function updateTotal(){
+      const v=(document.querySelector('input[name="plan"]:checked')||{}).value;
+      total.textContent = v==='yearly' ? '$30 / سنة' : '$3 / شهر';
+    }
+    radios.forEach(r=>r.addEventListener('change',updateTotal));
+    document.getElementById('checkoutBtn').addEventListener('click',()=>{
+      const v=(document.querySelector('input[name="plan"]:checked')||{}).value || 'monthly';
+      // مؤقتاً: نحول للتطبيق مع نية الخطة — عند ربط Tap سيتحول لصفحة دفع حقيقية
+      localStorage.setItem('nazam-pending-plan', v);
+      location.href = 'app/#checkout=' + v;
+    });
+  </script>
+</body>
+</html>
