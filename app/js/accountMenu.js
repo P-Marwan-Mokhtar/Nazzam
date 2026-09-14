@@ -7,10 +7,11 @@ import { ACCENTS, setAccent, setDarkMode } from './theme.js';
 import { getLang, setLang, t, applyStaticTranslations } from './i18n.js';
 import { showToast, state, ui } from './state.js';
 import { DELETE_ACCOUNT_URL, supabaseClient } from './config.js';
+import { getPlan, isTrialActive, trialDaysLeft } from './plans.js';
 import { saveData, exportDataAsJSON } from './dataStore.js';
 import { render } from './render.js';
 import { escapeHtml } from './utils.js';
-import { currentUserEmail, signOutUser, openPasswordChange } from './auth.js';
+import { currentUserEmail, signOutUser, openPasswordChange, refreshAccountModal } from './auth.js';
 import { renderStatsView, renderTaskStatsView } from './stats.js';
 import { openUpgrade, gateFree } from './upgrade.js';
 import { exportCalendarAsICS } from './icalExport.js';
@@ -77,6 +78,61 @@ function renderAccountBody(){
   const lang = getLang();
 
   // ---- قسم الحساب ----
+  const plan = getPlan();
+  const isPro = plan === 'pro';
+  const isTrial = plan === 'trial' && isTrialActive();
+  let planActionHtml = '';
+  if(isPro){
+    const cycleLabel = state.planCycle === 'yearly' ? t('plan.yearly') : state.planCycle === 'monthly' ? t('plan.monthly') : '';
+    const proLabel = cycleLabel ? `Pro · ${cycleLabel}` : 'Pro';
+    planActionHtml = `
+      <div class="ap-plan-card ap-plan-pro">
+        <div class="ap-plan-info">
+          <span class="material-icons ap-plan-icon pro">verified</span>
+          <div class="ap-plan-text">
+            <strong>${escapeHtml(proLabel)}</strong>
+            <span>${t('plan.active') || 'نشط'}</span>
+          </div>
+        </div>
+        <button type="button" class="ap-plan-action" data-ap="manage-subscription">${t('plan.manage_subscription') || 'إدارة'}</button>
+      </div>
+    `;
+  } else if(isTrial){
+    const days = trialDaysLeft() ?? 0;
+    const isEn = getLang() === 'en';
+    let daysText = '';
+    let trialLabel = '';
+    if(isEn){
+      trialLabel = 'Pro Trial';
+      daysText = days === 1 ? '1 day left' : `${days} days left`;
+    } else {
+      trialLabel = 'تجربة Pro';
+      if(days === 1) daysText = 'يوم واحد';
+      else if(days === 2) daysText = 'يومان';
+      else if(days >= 3 && days <= 10) daysText = `${days} أيام`;
+      else daysText = `${days} يوم`;
+      daysText = `باقي ${daysText}`;
+    }
+    planActionHtml = `
+      <div class="ap-plan-card ap-plan-trial">
+        <div class="ap-plan-info">
+          <span class="material-icons ap-plan-icon trial">schedule</span>
+          <div class="ap-plan-text">
+            <strong>${escapeHtml(trialLabel)}</strong>
+            <span>${escapeHtml(daysText)}</span>
+          </div>
+        </div>
+        <button type="button" class="ap-plan-action primary" data-ap="upgrade">${t('plan.upgrade_short') || 'ترقية'}</button>
+      </div>
+    `;
+  } else {
+    planActionHtml = `
+      <button type="button" class="ap-btn ap-btn-primary" data-ap="upgrade">
+        <span class="material-icons">workspace_premium</span>
+        <span>${t('plan.upgrade')}</span>
+      </button>
+    `;
+  }
   const accountBlock = `
     <div class="ap-section">
       <div class="ap-account">
@@ -90,20 +146,19 @@ function renderAccountBody(){
           </button>
         </div>
         <div class="ap-account-actions">
-          <button type="button" class="ap-btn" data-ap="change-password">
+          <button type="button" class="ap-btn ap-btn-subtle" data-ap="change-password">
             <span class="material-icons">lock_reset</span>
             <span>${t('account.change_password')}</span>
           </button>
-          <button type="button" class="ap-btn ap-btn-danger" data-ap="delete-account">
+        </div>
+        <div class="ap-danger-zone">
+          <button type="button" class="ap-danger-link" data-ap="delete-account">
             <span class="material-icons">delete_forever</span>
             <span>${t('account.delete_account')}</span>
           </button>
         </div>
       </div>
-      <button type="button" class="ap-btn" data-ap="upgrade">
-        <span class="material-icons">workspace_premium</span>
-        <span>${t('plan.upgrade')}</span>
-      </button>
+      ${planActionHtml}
     </div>
   `;
 
@@ -181,6 +236,12 @@ function handleAction(btn){
   } else if(ap === 'upgrade'){
     closeAccountPanel();
     openUpgrade();
+  } else if(ap === 'manage-subscription'){
+    closeAccountPanel();
+    // للـ Pro: نفتح نفس مودال الترقية لكنه يعرض "اشتراكك فعّال" + إدارة عبر Tap
+    // (عند ربط Tap لاحقاً: يفتح بوابة الفوترة مباشرة)
+    openUpgrade();
+    showToast(t('plan.manage_hint') || 'إدارة الاشتراك عبر بوابة الدفع قريباً — للتواصل: support@nazzam.app');
   } else if(ap === 'change-password'){
     closeAccountPanel();
     openPasswordChange();
@@ -199,6 +260,7 @@ function handleAction(btn){
     render();
     document.title = next === 'ar' ? 'Nazzam — إدارة المهام' : 'Nazzam — Task Manager';
     renderAccountPanelAfterChange();
+    refreshAccountModal();
   } else if(ap === 'import-data'){
     closeAccountPanel();
     const fileInput = document.getElementById('importDataInput');

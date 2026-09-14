@@ -781,9 +781,9 @@ body.menu-open { overflow: hidden; }
 
 .footer-col a:hover { color: var(--blue); }
 
-.footer-bottom { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--line-soft); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: center; }
+.footer-bottom { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--line-soft); display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; align-items: center; text-align: center; }
 
-.footer-copy { font-size: .78rem; color: #71717a; }
+.footer-copy { font-size: .78rem; color: #71717a; text-align: center; width: 100%; }
 
 .footer-legal-inline { display: flex; gap: 14px; flex-wrap: wrap; }
 

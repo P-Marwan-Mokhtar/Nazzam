@@ -738,7 +738,7 @@
 .ap-data-icon-btn .material-icons {
   font-size: 22px;
 }
-/* زرا الباسوورد والمسح — كل واحد في سطر لوحده داخل بطاقة الحساب */
+/* زرا الباسوورد — زر ثانوي خفيف */
 .ap-account-actions {
   display: grid;
   grid-template-columns: 1fr;
@@ -749,6 +749,49 @@
   padding: 8px 10px;
   font-size: 0.8rem;
 }
+.ap-btn-subtle{
+  background:var(--card);border:1px solid var(--paper-line);color:var(--ink-soft);
+}
+.ap-btn-subtle:hover{border-color:var(--pen);color:var(--ink);background:var(--paper)}
+.ap-btn-subtle .material-icons{color:var(--ink-soft)}
+.ap-btn-subtle:hover .material-icons{color:var(--pen)}
+/* منطقة الخطر — معزولة بخط فاصل زي الشركات الكبيرة */
+.ap-danger-zone{
+  margin-top:10px;padding-top:10px;
+  border-top:1px solid var(--paper-line);
+  display:flex;justify-content:center;
+}
+.ap-danger-link{
+  display:inline-flex;align-items:center;gap:6px;
+  background:transparent;border:none;
+  color:var(--missed);font-family:inherit;font-size:.78rem;font-weight:700;
+  cursor:pointer;padding:6px 12px;border-radius:999px;transition:.15s
+}
+.ap-danger-link .material-icons{font-size:16px}
+.ap-danger-link:hover{background:var(--missed-soft);color:var(--missed)}
+.dark-mode .ap-danger-zone{border-top-color:#2b2e34}
+/* خطة الاشتراك — تصميم نظيف زي الشركات الكبيرة: سطر واحد خفيف */
+.ap-plan-card{
+  display:flex;align-items:center;gap:12px;
+  background:var(--paper);border:1px solid var(--paper-line);border-radius:12px;
+  padding:10px 12px;margin-top:8px;
+}
+.ap-plan-info{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.ap-plan-icon{font-size:20px;flex-shrink:0}
+.ap-plan-icon.pro{color:var(--pen)}
+.ap-plan-icon.trial{color:var(--ink-soft)}
+.ap-plan-text{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.ap-plan-text strong{font-size:.84rem;color:var(--ink);white-space:nowrap}
+.ap-plan-text span{font-size:.76rem;color:var(--ink-soft);font-weight:600}
+.ap-plan-action{
+  flex-shrink:0;background:var(--card);border:1px solid var(--paper-line);color:var(--ink);
+  border-radius:999px;padding:6px 14px;font-family:inherit;font-size:.78rem;font-weight:800;cursor:pointer;transition:.15s
+}
+.ap-plan-action:hover{border-color:var(--pen);color:var(--pen);background:var(--pen-soft)}
+.ap-plan-action.primary{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.ap-plan-action.primary:hover{background:var(--ink);opacity:.88;border-color:var(--ink);color:var(--card)}
+.dark-mode .ap-plan-action.primary{background:var(--pen);color:#fff;border-color:var(--pen)}
+.dark-mode .ap-plan-action.primary:hover{background:var(--pen);opacity:.92;border-color:var(--pen);color:#fff}
 /* وضع العرض + اللغة */
 .ap-mode-row {
   display: flex;

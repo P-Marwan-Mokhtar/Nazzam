@@ -362,7 +362,7 @@ function renderAccountModal(pwError){
   const bodyEl = document.getElementById('accountBody');
   const titleEl = document.getElementById('accountModalTitle');
   if(!bodyEl) return;
-  if(titleEl) titleEl.textContent = t('auth.account');
+  if(titleEl) titleEl.textContent = pwOnlyMode ? t('account.change_password') : t('auth.account');
   const errorHtml = pwError ? `<div class="account-error">${escapeHtml(pwError)}</div>` : '';
   const pwFormHtml = `
     <div class="account-form" id="pwForm">
@@ -798,6 +798,11 @@ export function openPasswordChange(){
   const overlay = document.getElementById('accountOverlay');
   overlay.classList.remove('is-gate');
   overlay.classList.add('open');
+}
+
+export function refreshAccountModal(){
+  const overlay = document.getElementById('accountOverlay');
+  if(overlay && overlay.classList.contains('open')) renderAccountModal();
 }
 
 export function closeAccountModal(){
