@@ -23,6 +23,13 @@ export const THEME_PREF_KEY = 'habit-data-theme-v1';
 
 export const MISSED_POPUP_SHOWN_KEY = 'nazam-missed-popup-last-shown';
 
+// تلميح جلسة خفيف (مقروء من سكريبت <head> المتزامن قبل تحميل الوحدات):
+// '1' = آخر حالة معروفة مسجّل دخوله. يضبطه التطبيق عند دخول حقيقي
+// ويُمسح عند الخروج — فاللاندينج تحوّل للتطبيق تلقائيًا فقط لمن هو
+// داخل فعلًا، ولا تحبس من خرج أو لم يدخل أصلًا. (مجرد تلميح UX —
+// القرار الأمني الحقيقي دائمًا عبر ensureAuth/getSession.)
+export const SESSION_HINT_KEY = 'nazam-has-session';
+
 export const contentEl = document.getElementById('content');
 
 const toastEl = document.getElementById('toast');
@@ -50,7 +57,7 @@ export let state = {
   },
   plan: 'pro', // خطة المستخدم: 'free' | 'trial' | 'pro' — الحسابات الجديدة تبدأ trial تلقائيًا (plans.js)، والبيتا القدامى pro
   planCycle: null, // دورة الاشتراك المدفوع: null | 'monthly' | 'yearly' — يضبطها السيرفر عند تفعيل الدفع
-  planPendingCycle: null, // نية اشتراك مسجلة من شاشة الترقية (واجهة فقط قبل Tap): null | 'monthly' | 'yearly'
+  planPendingCycle: null, // نية اشتراك مسجلة من شاشة الترقية (واجهة فقط قبل Paymob): null | 'monthly' | 'yearly'
   trialStartedAt: null, // طابع بدء التجربة المجانية (ms) — يُضبط مرة واحدة فقط ولا يُمسح أبدًا (تجربة واحدة للأبد)
   proLegacy: false, // ختم قدامى البيتا: حساب قائم بخطة pro يُختم مرة واحدة ولا يُمسح أبدًا — التسوية لا تنزّله لتجربة/مجاني حتى لو فارغًا (plans.js)
   templates: [], // قوالب المهام: { id, name, type, priority, duration, note } — ميزة Pro

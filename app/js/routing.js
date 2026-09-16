@@ -29,6 +29,66 @@ export function applyHashToState(){
   if(ui.weekViewOpen && !ui.weekViewDate) ui.weekViewDate = ui.selectedDate;
 }
 
+// ------------------------------------------------------------
+// الفوترة (بوابة واحدة — Paymob):
+// - checkout.html تحوّل إلى app/#checkout=monthly|yearly مع نية محفوظة
+//   (nazam-pending-plan) — تُستهلك مرة واحدة: تُقرأ الدورة، تُمسح النية،
+//   ويُنظَّف الرابط (بلا أثر في تاريخ Back).
+// - بعد الدفع تعود Paymob إلى app/?billing=paymob (مع تفاصيل العملية) —
+//   تُستهلك مرة واحدة وmain.js ينتظر تأكيد الويبهوك عبر waitForServerPlan.
+// - احتياط علَم الدفع المعلّق (nazam-pending-payment من billing.js): لو
+//   الرابط العائد تشوّه وضاعت علامته، العلَم الطازج + أي query يكفيان
+//   لاعتبارها عودة. (tap_id القديمة تُقبل للتوافق فقط.)
+// ------------------------------------------------------------
+const HASH_CHECKOUT_PREFIX = '#checkout=';
+
+const PENDING_PLAN_KEY = 'nazam-pending-plan';
+
+export function consumePendingCheckout(){
+  let cycle = null;
+  if(location.hash.startsWith(HASH_CHECKOUT_PREFIX)){
+    const v = location.hash.slice(HASH_CHECKOUT_PREFIX.length);
+    if(v === 'monthly' || v === 'yearly') cycle = v;
+  }
+  if(!cycle){
+    try{
+      const v = localStorage.getItem(PENDING_PLAN_KEY);
+      if(v === 'monthly' || v === 'yearly') cycle = v;
+    }catch(e){}
+  }
+  if(cycle){
+    try{ localStorage.removeItem(PENDING_PLAN_KEY); }catch(e){}
+    if(location.hash.startsWith(HASH_CHECKOUT_PREFIX)){
+      history.replaceState(history.state, '', location.pathname + location.search);
+    }
+  }
+  return cycle;
+}
+
+const PENDING_PAYMENT_KEY = 'nazam-pending-payment';
+
+export function consumeBillingReturn(){
+  const params = new URLSearchParams(location.search);
+  let found = false;
+  if(params.get('tap_id')){ params.delete('tap_id'); found = true; } // توافق قديم
+  if(params.get('billing') === 'paymob'){ params.delete('billing'); found = true; }
+  // علَم معلّق طازج + أي query عائد من البوابة = رجوع (يغطي تشويه الروابط).
+  // بلا query (فتح عادي بعد إجهاض الدفع) = لا انتظار ولا إزعاج.
+  if(!found){
+    try{
+      const raw = localStorage.getItem(PENDING_PAYMENT_KEY);
+      if(raw){
+        const o = JSON.parse(raw);
+        if(o && typeof o.ts === 'number' && Date.now() - o.ts < 3600 * 1000 && params.toString()) found = true;
+      }
+    }catch(e){}
+  }
+  try{ localStorage.removeItem(PENDING_PAYMENT_KEY); }catch(e){}
+  if(!found) return false;
+  const q = params.toString();
+  history.replaceState(history.state, '', location.pathname + (q ? ('?' + q) : '') + location.hash);
+  return true;
+}
 // Shortcuts الـ PWA (manifest.json) بتفتح التطبيق برابط فيه ?view=stats أو ?view=calendar.
 // بنقرا الـ param مرة واحدة عند بدء التطبيق، ونمسحه من الرابط (عشان أول refresh يرجع
 // يتصرف بشكل طبيعي حسب الشاشة الحالية بدل ما يفضل مربوط بالـ shortcut)، وبنرجّع اسم

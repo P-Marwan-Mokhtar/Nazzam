@@ -9,6 +9,7 @@ import { currentUserId, ensureAuth } from './auth.js';
 import { render } from './render.js';
 import { applyTheme, isValidAccent, resolveLegacyTheme } from './theme.js';
 import { settlePlan } from './plans.js';
+import { syncPlanFromServer } from './billing.js';
 
 const MAX_IMPORT_SIZE = 10 * 1024 * 1024; // حد أقصى لحجم ملف الاستيراد (10 ميجابايت)
 const EXPORT_MARKER = 'nazzam-backup-v1'; // بصمة النسخة الاحتياطية المصدّرة من التطبيق
@@ -112,7 +113,10 @@ function sanitizeNamedItem(x){
   const name = typeof x.name === 'string' ? capStr(x.name.trim(), MAX_NAME_LEN) : '';
   if(!name) return null;
   const out = { id: sanitizeId(x.id) || uid(), name };
-  if(typeof x.filterId === 'string' && x.filterId) out.filterId = x.filterId;
+  // filterId بنفس صرامة id: أي قيمة فيها رموز/اقتباسات (من ملف استيراد
+  // ملعوب فيه) بتترفض بدل ما تكسر الـ attributes وتححقن كود.
+  const fid = sanitizeId(x.filterId);
+  if(fid) out.filterId = fid;
   if(x.type === 'habit' || x.type === 'hobby') out.type = x.type;
   return out;
 }
@@ -875,6 +879,10 @@ let proLegacyLatched = false;
 // في منتصف الجلسة فيمرر markExpired=false عشان علَم قديم مايفتحش المودال
 // في إقلاع لاحق لسبب عفا عليه الزمن.
 async function settlePlanAfterLoad(markExpired = true){
+  // السيرفر أولًا (المرحلة B): خطة جدول subscriptions تصحّح المحلية قبل
+  // منطق التجربة — فعبث Console بالخطة يُمحى عند أول تحميل، وPro المفعّل
+  // بالدفع لا تمسه التسوية. بلا صف/أوفلاين = المحلية كما هي.
+  await syncPlanFromServer();
   const res = settlePlan();
   // علَم لمرة واحدة يلتقطه main.js بعد الإقلاع ليفتح الترقية تلقائيًا
   // في لحظة الانتهاء (أهم لحظة تحويل) — ثم يُصفَّر هناك.

@@ -537,7 +537,7 @@
   justify-content: space-between;
   padding: 6px 0;
   font-size: 0.88rem;
-  border-bottom: 1px dashed var(--paper-line);
+  border-bottom: 1px solid var(--paper-line);
 }
 .stat-list li:last-child {
   border-bottom: none;
@@ -948,6 +948,112 @@
 .upg-cta-btn:disabled {
   opacity: 0.6;
   cursor: default;
+}
+/* زر بدء التجربة المجانية (مسار ثانوي تحت زر الدفع — للمستحق فقط) */
+.trial-start-btn {
+  width: 100%;
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px solid var(--paper-line);
+  border-radius: 12px;
+  padding: 11px;
+  font-weight: 800;
+  font-size: 0.88rem;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.trial-start-btn:hover {
+  background: var(--paper);
+}
+
+/* بطاقة إدارة الاشتراك (v2) + أزرارها */
+.upgrade-manage-card {
+  background: var(--pen-soft);
+  border: 1px solid var(--pen);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.upgrade-manage-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.upgrade-manage-row > .material-icons {
+  color: var(--pen);
+}
+.upgrade-manage-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+.upgrade-manage-row strong {
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+.upgrade-manage-row span {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+.plan-cycle-badge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--ink);
+  background: transparent;
+  border: 1.5px solid var(--pen);
+  border-radius: 20px;
+  padding: 2px 10px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.upgrade-manage-meta {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--paper-line);
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+.manage-btn-row {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0;
+}
+.manage-btn {
+  flex: 1;
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px solid var(--paper-line);
+  border-radius: 12px;
+  padding: 11px 8px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.manage-btn:hover {
+  background: var(--paper);
+}
+.manage-btn.primary {
+  background: var(--pen);
+  border-color: var(--pen);
+  color: var(--card);
+}
+.manage-btn.primary:hover {
+  filter: brightness(0.94);
+}
+.manage-btn.danger {
+  color: var(--missed);
+  border-color: var(--missed);
+}
+.manage-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.upg-manage-hint {
+  font-size: 0.74rem;
+  color: var(--ink-soft);
+  text-align: center;
+  margin: 10px 0 0;
 }
 .upg-terms {
   font-size: 0.72rem;

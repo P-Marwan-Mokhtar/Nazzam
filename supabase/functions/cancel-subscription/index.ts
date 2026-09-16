@@ -1,13 +1,12 @@
 // ============================================================
-// delete-account — مسح حساب المستخدم نهائيًا (مثل TickTick)
+// cancel-subscription — إلغاء تجديد الاشتراك (إدارة Pro — v2)
 //
-// POST بدون جسم (التوكن في Authorization يحدد الضحية = صاحب التوكن نفسه).
-// الخطوات بالترتيب:
-//   1) تحقق من التوكن عبر getUser (لازم جلسة حقيقية).
-//   2) مسح صف user_data + اشتراكات push_subscriptions الخاصة به.
-//   3) حذف مستخدم auth نهائيًا عبر admin.deleteUser.
-// لا يقبل user_id من العميل أصلًا — مستحيل يمسح غير نفسه.
-// النشر: supabase functions deploy delete-account (بلا أسرار إضافية)
+// POST بلا جسم + توكن المستخدم في Authorization.
+// يحوّل حالة الصف إلى canceled مع بقاء current_period_end كما هي —
+// أي يبقى Pro مفعّلًا حتى نهاية المدة المدفوعة (حسب سياسة الاسترجاع:
+// لا استرجاع جزئي). بلا رد أموال هنا إطلاقًا.
+// idempotent: ملغي أصلًا = نجاح صامت. بلا صف = 404.
+// النشر: supabase functions deploy cancel-subscription
 // ============================================================
 
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -68,27 +67,23 @@ Deno.serve(async (req) => {
     const { data: { user }, error: userErr } = await supabase.auth.getUser(token);
     if (userErr || !user) return jsonResponse(req, { error: "Unauthorized" }, 401);
 
-    // 1) اشتراكات الدفع (عشان ما يوصله تنبيه بعد المسح)
-    const { error: pushErr } = await supabase
-      .from("push_subscriptions")
-      .delete()
-      .eq("user_id", user.id);
-    if (pushErr) throw pushErr;
+    const { data: sub } = await supabase
+      .from("subscriptions")
+      .select("status")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!sub) return jsonResponse(req, { error: "no_subscription" }, 404);
+    if (sub.status === "canceled") return jsonResponse(req, { ok: true, already: true });
 
-    // 2) بيانات التطبيق (الجداول بلا cascade تلقائي — نمسح صراحةً)
-    const { error: dataErr } = await supabase
-      .from("user_data")
-      .delete()
+    const { error: updErr } = await supabase
+      .from("subscriptions")
+      .update({ status: "canceled", updated_at: new Date().toISOString() })
       .eq("user_id", user.id);
-    if (dataErr) throw dataErr;
-
-    // 3) مستخدم المصادقة نفسه (نهائي ولا رجعة فيه)
-    const { error: delErr } = await supabase.auth.admin.deleteUser(user.id);
-    if (delErr) throw delErr;
+    if (updErr) throw updErr;
 
     return jsonResponse(req, { ok: true });
   } catch (e) {
-    console.error("delete-account error:", e);
+    console.error("cancel-subscription error:", e);
     return jsonResponse(req, { error: "Internal error" }, 500);
   }
 });

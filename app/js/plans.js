@@ -1,5 +1,5 @@
 // ============================================================
-// plans.js — نظام الخطط والاشتراكات (الدفع قريبًا مع Tap)
+// plans.js — نظام الخطط والاشتراكات (الدفع عبر Paymob)
 //
 // الخطط الثلاث (مطابقة لصفحة الهبوط index.html#pricing):
 //   free    — مجانية للأبد (حدود عادلة)
@@ -109,7 +109,7 @@ export function startTrial(){
   return true;
 }
 
-// اختيار خطة مدفوعة (واجهة فقط حاليًا — الدفع يُربط لاحقًا مع Tap):
+// اختيار خطة مدفوعة (يسجّل نية الدورة — والدفع عبر Paymob):
 // بيسجّل نية المستخدم في planPendingCycle من غير ما يغيّر خطته الفعلية.
 export function selectPaidPlan(cycle){
   if(cycle !== 'monthly' && cycle !== 'yearly') return false;

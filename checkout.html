@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>الدفع — نظّم</title>
-  <meta name="description" content="إتمام اشتراك نظّم Pro عبر Tap — دفع آمن." />
+  <meta name="description" content="إتمام اشتراك نظّم Pro عبر Paymob — دفع آمن." />
   <link rel="icon" href="app/icons/favicon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -33,7 +33,7 @@
 
   <main class="checkout">
     <h1>إتمام الاشتراك</h1>
-    <p class="lead">اختر خطتك — الدفع آمن عبر Tap. يمكنك الإلغاء في أي وقت.</p>
+    <p class="lead">اختر خطتك — الدفع آمن عبر Paymob. يمكنك الإلغاء في أي وقت.</p>
 
     <div class="cart" id="cart">
       <div class="cart-head">سلة الاشتراك</div>
@@ -49,7 +49,7 @@
     </div>
 
     <div class="checkout-actions">
-      <button class="btn btn-primary" id="checkoutBtn">المتابعة للدفع عبر Tap</button>
+      <button class="btn btn-primary" id="checkoutBtn">المتابعة للدفع عبر Paymob</button>
       <a href="./#pricing" class="btn btn-ghost">العودة للأسعار</a>
     </div>
     <p class="hint">بالمتابعة توافق على <a href="terms.html" style="color:var(--blue);text-decoration:underline">الشروط</a> و <a href="refund.html" style="color:var(--blue);text-decoration:underline">الاسترجاع</a>. التجربة 7 أيام بدون بطاقة.</p>
@@ -59,20 +59,6 @@
   <footer class="footer"></footer>
 
   <script type="module" src="landing.js"></script>
-  <script>
-    const radios=[...document.querySelectorAll('input[name="plan"]')];
-    const total=document.getElementById('total');
-    function updateTotal(){
-      const v=(document.querySelector('input[name="plan"]:checked')||{}).value;
-      total.textContent = v==='yearly' ? '$30 / سنة' : '$3 / شهر';
-    }
-    radios.forEach(r=>r.addEventListener('change',updateTotal));
-    document.getElementById('checkoutBtn').addEventListener('click',()=>{
-      const v=(document.querySelector('input[name="plan"]:checked')||{}).value || 'monthly';
-      // مؤقتاً: نحول للتطبيق مع نية الخطة — عند ربط Tap سيتحول لصفحة دفع حقيقية
-      localStorage.setItem('nazam-pending-plan', v);
-      location.href = 'app/#checkout=' + v;
-    });
-  </script>
+  <script src="checkout.js"></script>
 </body>
 </html>

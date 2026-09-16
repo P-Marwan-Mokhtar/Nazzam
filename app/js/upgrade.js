@@ -1,10 +1,10 @@
 // ============================================================
 // upgrade.js — نافذة الترقية + بوابة ميزات Pro
 //
-// التصميم: قائمة المميزات + Dropdown للدورة (شهري/سنوي) + طريقة الدفع (Tap)
+// التصميم: قائمة المميزات + Dropdown للدورة (شهري/سنوي) + طريقة الدفع (Paymob)
 // + زر اشتراك بالسعر — بلا بطاقة مجانية هنا (المجانية تُدار تلقائيًا).
-// اختيار المدفوعة يبدأ التجربة أولًا (لو مستحقة) ويسجّل نية الدورة؛
-// الدفع نفسه يُربط لاحقًا مع Tap.
+// زر الاشتراك ينادي paymob-checkout ويحوّل لصفحة Paymob المستضافة؛
+// التفعيل يحدث حصرًا عبر paymob-webhook (السيرفر مصدر الحقيقة).
 // ============================================================
 
 import { escapeHtml } from './utils.js';
@@ -12,6 +12,7 @@ import { t } from './i18n.js';
 import { showToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { getPlan, canUse, eligibleForTrial, isTrialActive, startTrial, selectPaidPlan, trialDaysLeft, PLANS, PRO_FEATURES, PRO_FEATURE_ICON, checkLimit, canAddTaskName, canAddTimerName } from './plans.js';
+import { startCheckout, toastCheckoutError, BILLING_CYCLES, cancelSubscription, lastServerSub, formatPeriodDate, cycleAmountLabel, cyclePeriodLabel } from './billing.js';
 
 // حالة Dropdown دورة الدفع داخل المودال (خارج render المركزي — المودال overlay مستقل)
 let billingOpen = false;
@@ -43,44 +44,23 @@ export function openUpgrade(feature){
   const alreadyPro = plan === 'pro';
 
   if(alreadyPro){
-    const cycleLabel = state.planCycle === 'yearly' ? t('plan.yearly') : state.planCycle === 'monthly' ? t('plan.monthly') : t('plan.yearly');
-    const cyclePrice = state.planCycle === 'monthly' ? `${PLANS.monthly.currency}${PLANS.monthly.price} ${t('plan.per_month')}` : `${PLANS.yearly.currency}${PLANS.yearly.price} ${t('plan.per_year')}`;
-    bodyEl.innerHTML = `
-      <div class="upgrade-hero">
-        <div class="upgrade-hero-title">${t('plan.manage_title') || 'إدارة الاشتراك'}</div>
-        <div class="upgrade-hero-sub">${t('plan.current_pro')} — ${escapeHtml(cycleLabel)} · ${escapeHtml(cyclePrice)}</div>
-      </div>
-      <div class="upgrade-manage-card">
-        <div class="upgrade-manage-row">
-          <span class="material-icons">verified</span>
-          <div>
-            <strong>${t('plan.pro')} — ${escapeHtml(cycleLabel)}</strong>
-            <span>${t('plan.active') || 'نشط'}</span>
-          </div>
-          <span class="upgrade-manage-badge">${t('plan.pro_badge')}</span>
-        </div>
-      </div>
-      <ul class="upgrade-list">
-        ${PRO_FEATURES.map(f => `
-          <li>
-            <span class="material-icons upgrade-list-icon">check_circle</span>
-            <span>${escapeHtml(t('profeat.' + f))}</span>
-          </li>
-        `).join('')}
-      </ul>
-      <p class="upg-manage-hint">${t('plan.manage_hint')}</p>
-      <button type="button" class="upg-cta-btn" disabled>${t('plan.current_pro')}</button>
-      <p class="upg-terms">${t('plan.terms')}</p>
-    `;
+    renderManageView();
     overlay.classList.add('open');
-    wireUpgradeButtons();
+    wireManageButtons();
     return;
   }
+
+  // البانر صادق حسب الحالة: إعلان التجربة فقط لمن في تجربة نشطة أو
+  // مستحق لم تبدأ تجربته (زر البدء تحته مباشرة) — أما المنتهية/غير
+  // المستحقة فيرى دعوة اشتراك محايدة بدل وعد بتجربة لن تحدث.
+  const trialActive = isTrialActive();
+  const canTrial = !trialActive && eligibleForTrial();
+  const heroSub = (trialActive || canTrial) ? t('plan.trial_banner') : t('plan.upgrade_sub');
 
   bodyEl.innerHTML = `
     <div class="upgrade-hero">
       <div class="upgrade-hero-title">${t('plan.upgrade_title')}</div>
-      <div class="upgrade-hero-sub">${t('plan.trial_banner')}</div>
+      <div class="upgrade-hero-sub">${heroSub}</div>
     </div>
     ${trialLineHtml()}
     ${feat ? `
@@ -115,10 +95,132 @@ export function openUpgrade(feature){
     <button type="button" class="upg-cta-btn" id="upgCtaBtn">
       ${ctaPriceHtml()} ${t('plan.upgrade_now')}
     </button>
+    ${trialStartBtnHtml()}
     <p class="upg-terms">${t('plan.terms')}</p>
   `;
   overlay.classList.add('open');
   wireUpgradeButtons();
+}
+
+// ضبط دورة الدفع من خارج المودال (العودة من checkout.html بهاش #checkout=):
+// تختار الدورة مسبقًا ثم يفتح المتصل openUpgrade() كالمعتاد.
+export function setBillingCycle(cycle){
+  if(!BILLING_CYCLES.includes(cycle)) return;
+  selectedCycle = cycle;
+  selectPaidPlan(cycle);
+}
+
+// دورة شاشة الإدارة الحالية والمقابلة (لأزرار تغيير/تجديد الدورة)
+let manageCurrent = 'yearly';
+let manageOther = 'monthly';
+
+// شاشة إدارة المشترك (v2): بطاقة حقيقية بدل الزر الميت — الدورة والسعر
+// بالجنيه (المحصَّل فعلًا، فبطل خلل اتجاه `$`)، وتاريخ التجديد وآخر دفعة
+// من كاش السيرفر (lastServerSub)، مع أزرار عاملة: تغيير الدورة / تجديد /
+// إلغاء التجديد. بلا صف سيرفر (pro محلي قديم) تُعرض البطاقة بلا تواريخ
+// مختلقة — لا نكذب على المشترك أبدًا.
+function renderManageView(){
+  const bodyEl = document.getElementById('upgradeBody');
+  if(!bodyEl) return;
+  manageCurrent = state.planCycle === 'monthly' ? 'monthly' : 'yearly';
+  manageOther = manageCurrent === 'monthly' ? 'yearly' : 'monthly';
+  const cycleLabel = manageCurrent === 'monthly' ? t('plan.monthly') : t('plan.yearly');
+  const otherLabel = manageOther === 'monthly' ? t('plan.monthly') : t('plan.yearly');
+  const amount = cycleAmountLabel(manageCurrent);
+  const period = cyclePeriodLabel(manageCurrent);
+  const sub = lastServerSub;
+  const canceled = !!(sub && sub.status === 'canceled');
+  const renewDate = sub ? formatPeriodDate(sub.current_period_end) : '';
+  const lastPaidDate = sub ? formatPeriodDate(sub.updated_at) : '';
+  // ملاحظة صدق: آخر دفعة تُعرض فقط للنشط — بعد الإلغاء يتحدث updated_at
+  // بلحظة الإلغاء نفسها فيصير مضللًا، فالملغي يرى سطر الإلغاء بدلها.
+  const statusLine = canceled
+    ? (renewDate ? t('plan.manage_cancelled_note', { date: renewDate }) : t('plan.manage_cancel_policy'))
+    : (renewDate ? t('plan.manage_renews', { date: renewDate }) : (t('plan.active') || 'نشط'));
+  const lastPaidHtml = (!canceled && lastPaidDate && amount)
+    ? `<div class="upgrade-manage-meta">${escapeHtml(t('plan.manage_last_paid', { amount, date: lastPaidDate }))}</div>`
+    : '';
+  const buttonsHtml = canceled
+    ? `<div class="manage-btn-row">
+         <button type="button" class="manage-btn primary" id="manageRenewBtn">${t('plan.manage_renew_now')} · ${escapeHtml(amount)}</button>
+         <button type="button" class="manage-btn" id="manageChangeBtn">${escapeHtml(t('plan.manage_change_to', { cycle: otherLabel }))}</button>
+       </div>`
+    : `<div class="manage-btn-row">
+         <button type="button" class="manage-btn" id="manageChangeBtn">${escapeHtml(t('plan.manage_change_to', { cycle: otherLabel }))}</button>
+         <button type="button" class="manage-btn danger" id="manageCancelBtn">${t('plan.manage_cancel')}</button>
+       </div>`;
+  bodyEl.innerHTML = `
+    <div class="upgrade-hero">
+      <div class="upgrade-hero-title">${t('plan.manage_title') || 'إدارة الاشتراك'}</div>
+      <div class="upgrade-hero-sub">${t('plan.current_pro')} — ${escapeHtml(cycleLabel)} · ${escapeHtml(amount)} ${escapeHtml(period)}</div>
+    </div>
+    <div class="upgrade-manage-card">
+      <div class="upgrade-manage-row">
+        <span class="material-icons">verified</span>
+        <div>
+          <strong>${t('plan.pro')} — ${escapeHtml(cycleLabel)}</strong>
+          <span>${escapeHtml(statusLine)}</span>
+        </div>
+        <span class="plan-cycle-badge">${escapeHtml(cycleLabel)}</span>
+      </div>
+      ${lastPaidHtml}
+    </div>
+    <ul class="upgrade-list">
+      ${PRO_FEATURES.map(f => `
+        <li>
+          <span class="material-icons upgrade-list-icon">check_circle</span>
+          <span>${escapeHtml(t('profeat.' + f))}</span>
+        </li>
+      `).join('')}
+    </ul>
+    ${buttonsHtml}
+    <p class="upg-manage-hint">${t('plan.manage_cancel_policy')}</p>
+    <p class="upg-terms">${t('plan.terms')}</p>
+  `;
+}
+
+function wireManageButtons(){
+  const changeBtn = document.getElementById('manageChangeBtn');
+  if(changeBtn) changeBtn.onclick = () => payForCycle(manageOther, changeBtn);
+  const renewBtn = document.getElementById('manageRenewBtn');
+  if(renewBtn) renewBtn.onclick = () => payForCycle(manageCurrent, renewBtn);
+  const cancelBtn = document.getElementById('manageCancelBtn');
+  if(cancelBtn) cancelBtn.onclick = () => cancelSubscriptionNow(cancelBtn);
+}
+
+// الدفع لدورة معينة (زر الاشتراك + أزرار الإدارة): يحفظ النية، يطلب رابط
+// Paymob، ويحوّل لصفحة الدفع — بلا أي تفعيل محلي (التفعيل عبر الويبهوك حصرًا).
+async function payForCycle(cycle, btn){
+  if(btn) btn.disabled = true;
+  try{
+    selectPaidPlan(cycle);
+    await saveData();
+    showToast(t('billing.starting'));
+    window.location.href = await startCheckout(cycle);
+  }catch(e){
+    if(btn) btn.disabled = false;
+    toastCheckoutError(e && e.code);
+    openUpgrade();
+  }
+}
+
+// إلغاء التجديد: تأكيد صريح ثم الدالة على السيرفر — تبقى Pro حتى نهاية
+// المدة المدفوعة، والشاشة تعيد رسم نفسها على الحالة الملغاة فورًا.
+async function cancelSubscriptionNow(btn){
+  if(!confirm(t('plan.manage_cancel_confirm'))) return;
+  if(btn) btn.disabled = true;
+  try{
+    await cancelSubscription();
+    const end = lastServerSub ? formatPeriodDate(lastServerSub.current_period_end) : '';
+    showToast(end
+      ? t('plan.manage_cancelled_note', { date: end })
+      : t('plan.manage_cancel_policy'));
+  }catch(e){
+    if(btn) btn.disabled = false;
+    showToast(t('billing.cancel_failed'));
+    return;
+  }
+  openUpgrade();
 }
 
 // سطر حالة التجربة (مدمج وصغير): أيام متبقية فقط — بلا بطاقات ولا أزرار
@@ -132,6 +234,19 @@ function trialLineHtml(){
     `;
   }
   return '';
+}
+
+// زر بدء التجربة (مسار ثانوي تحت زر الدفع): للمستحق الذي لم تبدأ تجربته
+// فقط — حسابات قديمة بلا trialStartedAt لم تشملها البداية التلقائية.
+// يعيد مدخل التجربة الذي أزالته المرحلة B من زر الدفع، فيبقى البانر صادقًا:
+// منتهية التجربة لا يرى زرًا ولا بانرًا إطلاقًا.
+function trialStartBtnHtml(){
+  if(isTrialActive() || !eligibleForTrial()) return '';
+  return `
+    <button type="button" class="trial-start-btn" id="trialStartBtn">
+      ${t('plan.start_trial')}
+    </button>
+  `;
 }
 
 // نص خيار الدورة: الاسم + السعر + (للشهري: شهريًا)
@@ -206,13 +321,17 @@ function wireUpgradeButtons(){
   }
   const cta = document.getElementById('upgCtaBtn');
   if(cta && !cta.disabled){
-    cta.onclick = async () => {
-      // بأسلوب الشركات الكبيرة: اختيار المدفوعة يبدأ التجربة أولًا (لو مستحقة)
-      // ويسجّل نية الدورة معًا — والدفع نفسه يُفعَّل لاحقًا مع Tap.
-      const justStarted = eligibleForTrial() && startTrial();
-      selectPaidPlan(selectedCycle);
-      await saveData();
-      showToast(justStarted ? t('plan.trial_started') : t('plan.pending_saved'));
+    cta.onclick = () => payForCycle(selectedCycle, cta);
+  }
+  // زر بدء التجربة للمستحق (يظهر فقط مع trialStartBtnHtml): يبدأ التجربة
+  // الوحيدة للحساب ويعيد رسم المودال (فيتحول البانر لسطر الأيام المتبقية)
+  const trialBtn = document.getElementById('trialStartBtn');
+  if(trialBtn){
+    trialBtn.onclick = async () => {
+      if(startTrial()){
+        await saveData();
+        showToast(t('plan.trial_started'));
+      }
       openUpgrade();
     };
   }

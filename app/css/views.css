@@ -780,7 +780,7 @@ body.locked-view .main-col {
   padding: 10px 0;
 }
 .timeblock-side.drop-target .timeblock-unscheduled-list {
-  outline: 2px dashed var(--pen);
+  outline: 2px solid var(--pen);
   outline-offset: 4px;
   border-radius: 8px;
 }

@@ -11,7 +11,7 @@ import { getPlan, isTrialActive, trialDaysLeft } from './plans.js';
 import { saveData, exportDataAsJSON } from './dataStore.js';
 import { render } from './render.js';
 import { escapeHtml } from './utils.js';
-import { currentUserEmail, signOutUser, openPasswordChange, refreshAccountModal } from './auth.js';
+import { currentUserEmail, signOutUser, openPasswordChange, refreshAccountModal, clearDeviceCaches, verifyIdentityForDelete } from './auth.js';
 import { renderStatsView, renderTaskStatsView } from './stats.js';
 import { openUpgrade, gateFree } from './upgrade.js';
 import { exportCalendarAsICS } from './icalExport.js';
@@ -238,10 +238,9 @@ function handleAction(btn){
     openUpgrade();
   } else if(ap === 'manage-subscription'){
     closeAccountPanel();
-    // للـ Pro: نفتح نفس مودال الترقية لكنه يعرض "اشتراكك فعّال" + إدارة عبر Tap
-    // (عند ربط Tap لاحقاً: يفتح بوابة الفوترة مباشرة)
+    // للـ Pro: مودال الترقية يعرض شاشة الإدارة الحقيقية
+    // (تجديد/آخر دفعة/تغيير دورة/إلغاء تجديد) — بلا وسطاء.
     openUpgrade();
-    showToast(t('plan.manage_hint') || 'إدارة الاشتراك عبر بوابة الدفع قريباً — للتواصل: support@nazzam.app');
   } else if(ap === 'change-password'){
     closeAccountPanel();
     openPasswordChange();
@@ -286,12 +285,17 @@ function handleAction(btn){
   }
 }
 
-// مسح الحساب نهائيًا (مثل TickTick): تأكيد مزدوج → دالة السيرفر تمسح
-// الصف والاشتراكات والمستخدم → تنظيف الجهاز → خروج وإعادة تحميل.
+// مسح الحساب نهائيًا (مثل TickTick): تأكيد مزدوج → إثبات هوية لحظي
+// (كلمة مرور/بريد) → دالة السيرفر تمسح الصف والاشتراكات والمستخدم
+// → تنظيف الجهاز → خروج وإعادة تحميل.
 // لا تراجع هنا عمدًا (الحذف نهائي ولا رجعة) — لذلك تأكيدان متتاليان.
 async function deleteMyAccount(){
   if(!confirm(t('account.delete_confirm1'))) return;
   if(!confirm(t('account.delete_confirm2'))) return;
+  // إثبات هوية لحظي قبل المسح: جلسة مسروقة وحدها لا تكفي
+  // (كلمة المرور لمستخدمي البريد، وكتابة البريد لمستخدمي غوغل).
+  const verified = await verifyIdentityForDelete();
+  if(!verified) return;
   try{
     showToast(t('account.deleting'));
     const { data: { session } } = await supabaseClient.auth.getSession();
@@ -302,8 +306,10 @@ async function deleteMyAccount(){
       headers: { 'Authorization': `Bearer ${token}` },
     });
     if(!res.ok) throw new Error('failed');
-    // نجح المسح على السيرفر — نظّف الجهاز كاملًا (حساب محذوف، فلا تفضيلات تُحفظ)
+    // نجح المسح على السيرفر — نظّف الجهاز كاملًا (حساب محذوف، فلا تفضيلات تُحفظ):
+    // المفاتيح + مخازن الـ SW + إلغاء تسجيله (حساب منتهي، فلا أوفلاين بعده)
     try{ localStorage.clear(); }catch(e){}
+    try{ await clearDeviceCaches(true); }catch(e){}
     try{ await supabaseClient.auth.signOut({ scope: 'local' }); }catch(e){}
     window.location.reload();
   }catch(e){

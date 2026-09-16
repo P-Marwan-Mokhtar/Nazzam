@@ -3,7 +3,7 @@
 // ============================================================
 
 import { showToast, state, ui } from './state.js';
-import { initLang, getLang, applyStaticTranslations } from './i18n.js';
+import { initLang, getLang, applyStaticTranslations, t } from './i18n.js';
 import { closeAccountModal, ensureAuth, openAuthGate } from './auth.js';
 import { closeCalendarModal, openCalendarModal } from './calendar.js';
 import { importDataFromFile, loadData, saveData, trySyncPending, armPersistenceGuards } from './dataStore.js';
@@ -22,15 +22,16 @@ import { checkMissedTasksPopup, closeMissedTasksModal, renderTimerPanel, tickTim
 import { closeDurationPicker, commitDurationPicker } from './wheelPicker.js';
 import { toggleWeekView } from './weekView.js';
 import { closeTimelineTaskPopup, closeTbSide, toggleTimeBlockView } from './timeBlocking.js';
-import { applyHashToState, consumeShortcutViewParam } from './routing.js';
+import { applyHashToState, consumeShortcutViewParam, consumePendingCheckout, consumeBillingReturn } from './routing.js';
 import { applyTheme, closeAppearanceModal } from './theme.js';
 import { initMonitoring, trackView } from './monitoring.js';
-import { closeUpgrade, gateFree, maybeShowTrialNudge } from './upgrade.js';
+import { closeUpgrade, gateFree, maybeShowTrialNudge, openUpgrade, setBillingCycle } from './upgrade.js';
 import { wireOnboarding, checkOnboarding, closeOnboarding } from './onboarding.js';
 import { isWideListScroll, positionTaskMoreFixed } from './events.js';
 import { openSmartLists } from './smartLists.js';
 import { closeAccountPanel, isAccountPanelOpen, toggleAccountPanel } from './accountMenu.js';
 import { addDays, todayStr } from './utils.js';
+import { waitForServerPlan } from './billing.js';
 
 (async function init(){
   initMonitoring();
@@ -78,6 +79,12 @@ import { addDays, todayStr } from './utils.js';
 async function startApp(){
   applyHashToState(); // نظبط الشاشة الحالية (إحصائيات/أسبوعي/جدول زمني) حسب الرابط قبل أول render، عشان منعملش وميض لمهام اليوم الأول ثم نتنقل
   const shortcutView = consumeShortcutViewParam(); // Shortcuts الـ PWA (manifest.json): ?view=stats أو ?view=calendar — بنحولهم للشاشة الصح عند بدء التطبيق
+  // الفوترة (Paymob): نية دفع من checkout.html (#checkout=+نية محلية) تُستهلك
+  // مرة واحدة وتُفتح في مودال الترقية بعد أول render؛ ورجوع Paymob
+  // (?billing=paymob) يُستهلك مرة واحدة ويُنتظر تأكيد الويبهوك بعد استقرار الواجهة.
+  const pendingCycle = consumePendingCheckout();
+  if(pendingCycle) ui.pendingCheckoutCycle = pendingCycle;
+  if(consumeBillingReturn()) ui.billingReturn = true;
 
   // نطبق حالة طي الشريط الجانبي المحفوظة بدري (قبل تحميل البيانات) عشان أثناء
   // شاشة التحميل ميبانش مفتوح بالكلام لو كان المستخدم مطويه قبل الـ refresh.
@@ -119,6 +126,17 @@ async function startApp(){
   if(location.hash === '#timeblock' && !ui.timeBlockViewOpen) gateFree('timeBlockView');
   else if(location.hash === '#smartlists' && !ui.smartListsOpen) gateFree('smartLists');
   else if(shortcutView === 'timeblock' && !ui.timeBlockViewOpen) gateFree('timeBlockView');
+  // نية دفع قادمة من checkout.html: نفتح الترقية بالدورة المختارة مسبقًا
+  if(ui.pendingCheckoutCycle){
+    const c = ui.pendingCheckoutCycle;
+    ui.pendingCheckoutCycle = null;
+    setBillingCycle(c);
+    openUpgrade();
+  } else if(ui.billingReturn){
+    // عودة من Paymob: ننتظر تأكيد الويبهوك (مصدر الحقيقة) ثم نعلن النتيجة
+    ui.billingReturn = false;
+    handleBillingReturn();
+  }
   if(shortcutView === 'calendar') openCalendarModal(); // shortcut التقويم بيشاور على modal مش view بالـ hash — بنفتحه بعد أول render
   setInterval(tickTimers, 1000);
 
@@ -619,5 +637,19 @@ async function startApp(){
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       window.location.reload();
     });
+  }
+}
+
+// العودة من بوابة Paymob (?billing=paymob): التفعيل يحدث حصرًا عبر الويبهوك على
+// السيرفر — هنا ننتظر نتيجته (حتى ٣٠ ثانية) ثم نعلنها ونعيد الرسم.
+// لا يُمنح Pro محليًا أبدًا في هذا المسار.
+async function handleBillingReturn(){
+  showToast(t('billing.processing'));
+  const ok = await waitForServerPlan(30000);
+  if(ok){
+    showToast(t('billing.activated'));
+    render();
+  } else {
+    showToast(t('billing.not_confirmed'));
   }
 }

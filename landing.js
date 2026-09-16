@@ -266,6 +266,8 @@ if (burger && header) {
     } catch (e) {}
   }
   if (isLoggedIn) {
+    // جلسة حقيقية: ثبّت تلميح اللاندينج (التحويل التلقائي للتطبيق مسموح)
+    try{ localStorage.setItem('nazam-has-session', '1'); }catch(e){}
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', showLoggedInHeaderState);
     } else {
@@ -273,6 +275,10 @@ if (burger && header) {
     }
     // احتياط: لو التحويل محصلش لأي سبب، عيد المحاولة بعد ثانية
     setTimeout(() => { if (document.querySelector('.nav-login')) showLoggedInHeaderState(); }, 800);
+  } else {
+    // بلا جلسة: امسح أي تلميح قديم (انتهاء/خروج من جهاز آخر) — وإلا
+    // التحويل التلقائي يظن المستخدم داخلًا ويحبسه خارج اللاندينج.
+    try{ localStorage.removeItem('nazam-has-session'); }catch(e){}
   }
 })();
 
@@ -322,5 +328,19 @@ function showLoggedInHeaderState() {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then((regs) => {
     regs.forEach((reg) => reg.update().catch(() => {}));
+  });
+}
+
+// ===== تسجيل Service Worker نطاق الجذر (كان وسمًا مضمّنًا في index.html —
+// نُقل هنا لتوافق CSP بـ `script-src 'self'`): يخزّن ملفات الهبوط
+// (index.html + landing.css + landing.js + الأيقونات وصور الهبوط) عشان
+// الموقع يشتغل دون اتصال بدل نسخة قديمة.
+// updateViaCache: 'none' يخلي المتصفح يفحص sw.js من السيرفر مباشرة كل
+// مرة عشان أي تحديث للهبوط يوصّل فورًا.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).catch((e) => {
+      console.warn('تعذر تسجيل Service Worker للهبوط:', e);
+    });
   });
 }

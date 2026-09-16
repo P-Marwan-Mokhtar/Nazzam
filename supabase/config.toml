@@ -21,3 +21,21 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/delete-account/deno.json"
 entrypoint = "./functions/delete-account/index.ts"
+
+[functions.paymob-checkout]
+enabled = true
+verify_jwt = false
+import_map = "./functions/paymob-checkout/deno.json"
+entrypoint = "./functions/paymob-checkout/index.ts"
+
+[functions.paymob-webhook]
+enabled = true
+verify_jwt = false
+import_map = "./functions/paymob-webhook/deno.json"
+entrypoint = "./functions/paymob-webhook/index.ts"
+
+[functions.cancel-subscription]
+enabled = true
+verify_jwt = false
+import_map = "./functions/cancel-subscription/deno.json"
+entrypoint = "./functions/cancel-subscription/index.ts"

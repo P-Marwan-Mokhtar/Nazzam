@@ -3,7 +3,7 @@
 // ============================================================
 
 import { AUTH_RATE_LIMIT_URL, TURNSTILE_SITE_KEY, supabaseClient } from './config.js';
-import { LOCAL_BACKUP_KEY, BACKUP_OWNER_KEY, LAST_SERVER_TS_KEY, PENDING_SYNC_KEY, showToast } from './state.js';
+import { LOCAL_BACKUP_KEY, BACKUP_OWNER_KEY, LAST_SERVER_TS_KEY, PENDING_SYNC_KEY, SESSION_HINT_KEY, showToast } from './state.js';
 import { t } from './i18n.js';
 import { escapeHtml } from './utils.js';
 import { openUpgrade } from './upgrade.js';
@@ -81,6 +81,8 @@ function applyAuthUser(user){
   if(!user) return;
   currentUserId = user.id;
   currentUserEmail = user.email || null;
+  // تلميح للاندينج (مزامن): جلسة حقيقية = التحويل التلقائي للتطبيق مسموح
+  try{ localStorage.setItem(SESSION_HINT_KEY, '1'); }catch(e){}
   updateAccountIcon();
 }
 
@@ -151,7 +153,12 @@ function runTurnstileChallenge(){
       size: 'invisible',
       retry: 'auto',
       callback: (token) => settle({ ok: true, token, reason: 'ok' }),
-      'error-callback': () => failWith('error'),
+      // نسجّل كود الخطأ (مثل 110200 = الدومين غير مسجّل في الـ widget) في
+      // الكونسول لتسهيل التشخيص — مع بقاء الفشل مغلقًا للمستخدم.
+      'error-callback': (code) => {
+        try{ console.warn('Turnstile challenge failed, code:', code); }catch(e){}
+        failWith('error');
+      },
       'expired-callback': () => failWith('expired')
     });
     try{
@@ -278,10 +285,16 @@ async function serverRateCheck(action, email){
     });
     let data = null;
     try{ data = await res.json(); }catch(e){}
-    if(!data || typeof data.allowed !== 'boolean') return null; // فشل فحص → حياد (اعتمد على المحلي)
+    // فشل فحص الخادم = حياد (اعتمد على المحلي) — مع تنبيه مراقب في الكونسول
+    // عشان تكرار الـ fail-open يبان في المتابعة بدل ما يحصل بصمت.
+    if(!data || typeof data.allowed !== 'boolean'){
+      try{ console.warn('auth-rate-limit غير متاح — الاعتماد على الحماية المحلية'); }catch(e){}
+      return null;
+    }
     if(data.allowed === false) return typeof data.retryAfterMin === 'number' ? data.retryAfterMin : 1;
     return true;
   }catch(e){
+    try{ console.warn('auth-rate-limit غير متاح — الاعتماد على الحماية المحلية'); }catch(e2){}
     return null;
   }
 }
@@ -446,6 +459,30 @@ async function saveNewPassword(){
 // ------------------------------------------------------------
 // شاشة الدخول الإجبارية (Gate): تظهر لما محدش مسجّل دخوله، ومينفعش تتقفل غير بعد نجاح الدخول
 // ------------------------------------------------------------
+// رابط العودة للاندينج داخل الشاشة الإجبارية (يُحقن في كل أوضاعها):
+// المستخدم اللي غيّر رأيه كان محبوسًا — علَم "جوا التطبيق" يرجّعه لـ app/
+// مع كل محاولة رجوع للجذر. الزر يمسح العلم (والتلميح) ثم ينتقل للجذر،
+// فتبقى اللاندينج مستقرة بدل حلقة تحويل لا نهائية.
+// (بـ DOM API مباشرة بلا innerHTML — لا مدخلات هنا أصلًا.)
+function wireGateHomeLink(){
+  const bodyEl = document.getElementById('accountBody');
+  if(!bodyEl || document.getElementById('accHomeBtn')) return;
+  const line = document.createElement('div');
+  line.className = 'account-switch-line';
+  const btn = document.createElement('button');
+  btn.id = 'accHomeBtn';
+  btn.textContent = t('auth.back_to_home');
+  btn.onclick = backToLanding;
+  line.appendChild(btn);
+  bodyEl.appendChild(line);
+}
+
+export function backToLanding(){
+  try{ sessionStorage.removeItem('nazam-in-app'); }catch(e){}
+  try{ localStorage.removeItem(SESSION_HINT_KEY); }catch(e){}
+  window.location.href = new URL('../', window.location.href).href;
+}
+
 function renderAuthGate(errorMsg){
   const bodyEl = document.getElementById('accountBody');
   const titleEl = document.getElementById('accountModalTitle');
@@ -468,6 +505,7 @@ function renderAuthGate(errorMsg){
     const submit = () => { if(accountFormBusy) return; handleForgotPassword(document.getElementById('accEmail').value.trim()); };
     document.getElementById('accSubmitBtn').onclick = submit;
     wireEnterSubmit('#accForm', submit);
+    wireGateHomeLink();
     return;
   }
 
@@ -483,6 +521,7 @@ function renderAuthGate(errorMsg){
       <div class="account-switch-line"><button id="accSwitchMode">${t('auth.back_to_login')}</button></div>
     `;
     document.getElementById('accSwitchMode').onclick = () => { gateMode = 'signin'; renderAuthGate(); };
+    wireGateHomeLink();
     return;
   }
 
@@ -498,6 +537,7 @@ function renderAuthGate(errorMsg){
       <div class="account-switch-line"><button id="accSwitchMode">${t('auth.back_to_login')}</button></div>
     `;
     document.getElementById('accSwitchMode').onclick = () => { gateMode = 'signin'; renderAuthGate(); };
+    wireGateHomeLink();
     return;
   }
 
@@ -534,6 +574,7 @@ function renderAuthGate(errorMsg){
     wireEnterSubmit('#accForm', submit);
     document.getElementById('accSwitchMode').onclick = () => { gateMode = 'signin'; renderAuthGate(); };
     document.getElementById('accGoogleBtn').onclick = signInWithGoogle;
+    wireGateHomeLink();
     return;
   }
 
@@ -565,6 +606,7 @@ function renderAuthGate(errorMsg){
   document.getElementById('accForgotBtn').onclick = () => { gateMode = 'forgot'; renderAuthGate(); };
   document.getElementById('accSwitchMode').onclick = () => { gateMode = 'signup'; renderAuthGate(); };
   document.getElementById('accGoogleBtn').onclick = signInWithGoogle;
+  wireGateHomeLink();
 }
 
 async function signUpNewAccount(email, password, passwordConfirm){
@@ -744,6 +786,30 @@ async function signInWithGoogle(){
   }
 }
 
+// ------------------------------------------------------------
+// مسح مخازن الجهاز (CacheStorage) عند الخروج/مسح الحساب:
+// الـ Service Worker بيخزّن نسخًا مقدّمة من الصفحات في مخزن منفصل
+// عن localStorage، فمسح المفاتيح وحده كان بيخلّي بيانات مقدّمة
+// قابلة للاسترجاع على جهاز مشترك. unregisterSw للحذف النهائي فقط
+// (الخروج العادي بيحتفظ بتسجيل الـ SW عشان يشتغل أوفلاين من جديد).
+// ------------------------------------------------------------
+export async function clearDeviceCaches(unregisterSw){
+  try{
+    if(typeof caches !== 'undefined' && caches && typeof caches.keys === 'function'){
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => { try{ return caches.delete(k); }catch(e){ return null; } }));
+    }
+  }catch(e){}
+  if(unregisterSw){
+    try{
+      if('serviceWorker' in navigator){
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map((r) => { try{ return r.unregister(); }catch(e){ return null; } }));
+      }
+    }catch(e){}
+  }
+}
+
 export async function signOutUser(){
   if(!confirm(t('auth.logout_confirm'))) return;
   // حماية من فقدان البيانات: لو فيه تعديلات محلية لسه ماوصلتش للسيرفر، تسجيل الخروج
@@ -770,6 +836,10 @@ export async function signOutUser(){
     try{ localStorage.removeItem(PENDING_SYNC_KEY); }catch(e){}
     // ختم المرجع السيرفر يخص الجلسة المنتهية — حساب تالٍ يبني ختمه من مزامنته هو
     try{ localStorage.removeItem(LAST_SERVER_TS_KEY); }catch(e){}
+    // تلميح الجلسة للاندينج: بلا جلسة = بلا تحويل تلقائي للتطبيق
+    try{ localStorage.removeItem(SESSION_HINT_KEY); }catch(e){}
+    // مخازن الـ SW المنفصلة (صفحات مقدّمة) — تتمسح مع المفاتيح لجهاز نظيف
+    await clearDeviceCaches(false);
     window.location.reload();
   }catch(e){
     console.error('Sign out error:', e);
@@ -807,6 +877,78 @@ export function refreshAccountModal(){
 
 export function closeAccountModal(){
   document.getElementById('accountOverlay').classList.remove('open');
+}
+
+// ------------------------------------------------------------
+// تأكيد الهوية قبل مسح الحساب (re-authenticate):
+// جلسة مسروقة وحدها لا تكفي للمسح — لازم إثبات هوية لحظي داخل
+// نفس مودال الحساب الموجود (بلا UI جديد):
+// - مستخدم البريد (providers فيها 'email'): كلمة المرور الحالية،
+//   وتُتحقق عبر signInWithPassword (بتجدّد الجلسة فقط، لا تغيّر شيئًا).
+// - مستخدم غوغل بلا كلمة مرور: كتابة البريد كاملًا مطابقًا.
+// تُرجع Promise<boolean>: true لو تم التحقق، false لو تراجع/فشل.
+// ------------------------------------------------------------
+export function verifyIdentityForDelete(){
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('accountOverlay');
+    const bodyEl = document.getElementById('accountBody');
+    const titleEl = document.getElementById('accountModalTitle');
+    if(!overlay || !bodyEl || !supabaseClient){ resolve(false); return; }
+    let finished = false;
+    const done = (ok) => {
+      if(finished) return;
+      finished = true;
+      try{ overlay.classList.remove('open'); }catch(e){}
+      resolve(ok);
+    };
+    const renderForm = (hasPassword, errMsg) => {
+      if(titleEl) titleEl.textContent = t('account.delete_verify_title');
+      const errHtml = errMsg ? `<div class="account-error">${escapeHtml(errMsg)}</div>` : '';
+      const hint = hasPassword ? t('account.delete_password_hint') : t('account.delete_email_hint');
+      const fieldHtml = hasPassword
+        ? `<input type="password" class="account-input" id="delVerifyInput" placeholder="${t('account.delete_password_placeholder')}" autocomplete="current-password" />`
+        : `<input type="email" class="account-input" id="delVerifyInput" placeholder="${escapeHtml(currentUserEmail || '')}" autocomplete="email" dir="ltr" />`;
+      bodyEl.innerHTML = `
+        <div class="account-hint">${hint}</div>
+        ${errHtml}
+        <div class="account-form">
+          ${fieldHtml}
+          <button class="account-primary-btn" id="delVerifyConfirm" style="width:100%;">${t('account.delete_confirm_btn')}</button>
+          <button class="account-secondary-btn" id="delVerifyCancel" style="width:100%;margin-top:8px;">${t('account.delete_cancel')}</button>
+        </div>
+      `;
+      overlay.classList.remove('is-gate');
+      overlay.classList.add('open');
+      const cancelBtn = document.getElementById('delVerifyCancel');
+      if(cancelBtn) cancelBtn.onclick = () => done(false);
+      const confirmBtn = document.getElementById('delVerifyConfirm');
+      const input = document.getElementById('delVerifyInput');
+      if(confirmBtn) confirmBtn.onclick = async () => {
+        const val = input ? input.value : '';
+        if(hasPassword){
+          if(!val){ renderForm(true, t('account.delete_wrong_password')); return; }
+          confirmBtn.disabled = true;
+          try{
+            const { error } = await supabaseClient.auth.signInWithPassword({ email: currentUserEmail, password: val });
+            if(error) throw error;
+            done(true);
+          }catch(e){
+            console.error('Delete re-auth error:', e);
+            renderForm(true, t('account.delete_wrong_password'));
+          }
+        } else {
+          const typed = String(val || '').trim().toLowerCase();
+          const actual = String(currentUserEmail || '').trim().toLowerCase();
+          if(typed && typed === actual) done(true);
+          else renderForm(false, t('account.delete_email_mismatch'));
+        }
+      };
+    };
+    supabaseClient.auth.getUser().then(({ data }) => {
+      const providers = (data && data.user && data.user.app_metadata && data.user.app_metadata.providers) || [];
+      renderForm(providers.includes('email'), null);
+    }).catch(() => resolve(false));
+  });
 }
 
 export function openAuthGate(){

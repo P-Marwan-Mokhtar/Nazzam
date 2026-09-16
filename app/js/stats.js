@@ -417,7 +417,7 @@ th { background: #f0ebe3; padding: 8px 10px; text-align: right; font-weight: 700
 td { padding: 8px 10px; border-bottom: 1px solid #f0ebe3; }
 tr:last-child td { border-bottom: none; }
 .task-list { list-style: none; padding: 0; }
-.task-list li { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px dashed #ede7dd; font-size: 0.88rem; }
+.task-list li { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #ede7dd; font-size: 0.88rem; }
 .task-list li:last-child { border-bottom: none; }
 .task-list strong { color: #3e5c2e; font-weight: 800; }
 .badge { display: inline-block; background: #e8f0e2; color: #3e5c2e; border-radius: 6px; padding: 2px 10px; font-size: 0.78rem; font-weight: 700; }

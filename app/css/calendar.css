@@ -47,7 +47,7 @@
   opacity: 0.4;
 }
 .cal-day.today {
-  border: 1.5px dashed var(--pen);
+  border: 1.5px solid var(--pen);
 }
 .cal-day.selected {
   background: var(--pen) !important;

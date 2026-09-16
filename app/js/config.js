@@ -13,7 +13,21 @@ export const TURNSTILE_SITE_KEY = '0x4AAAAAAD-WN3zH063FV-FK';
 // Edge Function الخاصة بتحديد معدل المصادقة (حماية القوة الغاشمة على مستوى الخادم).
 // تبقى اختيارية: لو الفنكشن مش منشورة أو الـ secret مش مضبوط، بيتم تجاهلها
 // (fail-open) ويظل الحماية العميلية شغالة.
+// تنبيه تشغيلي: الـ fail-open ده متعمَّد للتوفر، لكنه قابل للتجاوز بنداء
+// Supabase Auth مباشرة — وطبقة السيرفر المستقلة مفعّلة بالفعل من لوحة
+// Supabase: Authentication → Captcha protection (Turnstile) على الدخول
+// والتسجيل، والعميل بيبعت الـ captchaToken مع كل طلب (fail-closed في الواجهة).
+// حافظ على التفعيل ده دائمًا — إيقافه يرجّع الحماية للعميل وحده.
 export const AUTH_RATE_LIMIT_URL = `${SUPABASE_URL}/functions/v1/auth-rate-limit`;
+
+// Edge Function الخاصة بإنشاء عملية دفع Paymob (بوابة واحدة — Paymob):
+// تنشئ Intention بالمفتاح السري وترجع رابط صفحة Paymob المستضافة.
+// بلا مفاتيح مضبوطة ترجع 501 (not_configured) — الواجهة تعرض تنبيه "قريبًا".
+export const CREATE_CHECKOUT_URL = `${SUPABASE_URL}/functions/v1/paymob-checkout`;
+
+// Edge Function الخاصة بإلغاء تجديد الاشتراك (إدارة Pro — v2):
+// تحوّل الحالة لـ canceled مع بقاء المدة المدفوعة — بلا رد أموال هنا.
+export const CANCEL_SUBSCRIPTION_URL = `${SUPABASE_URL}/functions/v1/cancel-subscription`;
 
 // Edge Function الخاصة بمسح الحساب نهائيًا (تُستدعى بتوكن المستخدم نفسه،
 // والدالة تمسح صفه واشتراكاته ثم مستخدم المصادقة — لا يقبل user_id إطلاقًا).
