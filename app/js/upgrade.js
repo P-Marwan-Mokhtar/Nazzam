@@ -142,7 +142,7 @@ function renderManageView(){
     : '';
   const buttonsHtml = canceled
     ? `<div class="manage-btn-row">
-         <button type="button" class="manage-btn primary" id="manageRenewBtn">${t('plan.manage_renew_now')} · ${escapeHtml(amount)}</button>
+         <button type="button" class="manage-btn primary" id="manageUndoBtn">${t('plan.manage_undo_cancel')}</button>
          <button type="button" class="manage-btn" id="manageChangeBtn">${escapeHtml(t('plan.manage_change_to', { cycle: otherLabel }))}</button>
        </div>`
     : `<div class="manage-btn-row">
@@ -182,8 +182,8 @@ function renderManageView(){
 function wireManageButtons(){
   const changeBtn = document.getElementById('manageChangeBtn');
   if(changeBtn) changeBtn.onclick = () => payForCycle(manageOther, changeBtn);
-  const renewBtn = document.getElementById('manageRenewBtn');
-  if(renewBtn) renewBtn.onclick = () => payForCycle(manageCurrent, renewBtn);
+  const undoBtn = document.getElementById('manageUndoBtn');
+  if(undoBtn) undoBtn.onclick = () => undoCancellation(undoBtn);
   const cancelBtn = document.getElementById('manageCancelBtn');
   if(cancelBtn) cancelBtn.onclick = () => cancelSubscriptionNow(cancelBtn);
 }
@@ -204,6 +204,20 @@ async function payForCycle(cycle, btn){
   }
 }
 
+// التراجع عن الإلغاء: بلا تأكيد (غير مُتلِف) وبلا دفع — يعيد النشاط فورًا
+// ثم يعيد رسم الشاشة على الحالة النشطة.
+async function undoCancellation(btn){
+  if(btn) btn.disabled = true;
+  try{
+    await cancelSubscription('undo');
+    showToast(t('plan.manage_undo_done'));
+  }catch(e){
+    if(btn) btn.disabled = false;
+    showToast(t('billing.cancel_failed'));
+    return;
+  }
+  openUpgrade();
+}
 // إلغاء التجديد: تأكيد صريح ثم الدالة على السيرفر — تبقى Pro حتى نهاية
 // المدة المدفوعة، والشاشة تعيد رسم نفسها على الحالة الملغاة فورًا.
 async function cancelSubscriptionNow(btn){

@@ -142,24 +142,27 @@ export async function waitForServerPlan(timeoutMs){
   return false;
 }
 
-// إلغاء تجديد الاشتراك: يوقف التجديد فقط — تبقى Pro حتى نهاية المدة
-// المدفوعة (تطبقه الدالة على السيرفر؛ العميل ممنوع من الكتابة المباشرة).
+// إلغاء/التراجع عن تجديد الاشتراك: الإلغاء يوقف التجديد فقط — وتبقى Pro
+// حتى نهاية المدة المدفوعة؛ والتراجع يعيد النشاط مجانيًا فورًا (بلا دفع).
+// كلاهما عبر الدالة على السيرفر (العميل ممنوع من الكتابة المباشرة).
 // يرمي { code } بأحد: 'no-session' | 'failed'
-export async function cancelSubscription(){
+export async function cancelSubscription(action){
+  const op = action === 'undo' ? 'undo' : 'cancel';
   const token = await authedToken();
   if(!token) throw { code: 'no-session' };
   let res = null;
   try{
     res = await fetch(CANCEL_SUBSCRIPTION_URL, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ action: op }),
     });
   }catch(e){
     throw { code: 'failed' };
   }
   if(!res.ok) throw { code: 'failed' };
-  // حدّث الكاش المحلي فورًا بدل انتظار تحميل قادم — الشاشة تعكس الإلغاء حالًا
-  if(lastServerSub) lastServerSub = { ...lastServerSub, status: 'canceled' };
+  // حدّث الكاش المحلي فورًا بدل انتظار تحميل قادم — الشاشة تعكس الحالة حالًا
+  if(lastServerSub) lastServerSub = { ...lastServerSub, status: op === 'undo' ? 'active' : 'canceled' };
   return true;
 }
 

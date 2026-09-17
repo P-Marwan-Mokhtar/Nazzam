@@ -84,7 +84,8 @@ function renderAccountBody(){
   let planActionHtml = '';
   if(isPro){
     const cycleLabel = state.planCycle === 'yearly' ? t('plan.yearly') : state.planCycle === 'monthly' ? t('plan.monthly') : '';
-    const proLabel = cycleLabel ? `الاحترافية · ${cycleLabel}` : 'الاحترافية';
+    const proName = getLang() === 'ar' ? 'الاحترافية' : 'Pro';
+    const proLabel = cycleLabel ? `${proName} · ${cycleLabel}` : proName;
     planActionHtml = `
       <div class="ap-plan-card ap-plan-pro">
         <div class="ap-plan-info">

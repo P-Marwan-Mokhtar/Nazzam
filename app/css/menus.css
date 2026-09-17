@@ -781,7 +781,7 @@
 .ap-plan-icon.pro{color:var(--pen)}
 .ap-plan-icon.trial{color:var(--ink-soft)}
 .ap-plan-text{display:flex;flex-direction:column;line-height:1.25;min-width:0}
-.ap-plan-text strong{font-size:.84rem;color:var(--ink);white-space:nowrap}
+.ap-plan-text strong{font-size:.84rem;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .ap-plan-text span{font-size:.76rem;color:var(--ink-soft);font-weight:600}
 .ap-plan-action{
   flex-shrink:0;background:var(--card);border:1px solid var(--paper-line);color:var(--ink);

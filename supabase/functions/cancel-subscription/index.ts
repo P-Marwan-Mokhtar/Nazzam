@@ -1,11 +1,12 @@
 // ============================================================
-// cancel-subscription — إلغاء تجديد الاشتراك (إدارة Pro — v2)
+// cancel-subscription — إلغاء/التراجع عن تجديد الاشتراك (إدارة Pro — v2)
 //
-// POST بلا جسم + توكن المستخدم في Authorization.
-// يحوّل حالة الصف إلى canceled مع بقاء current_period_end كما هي —
-// أي يبقى Pro مفعّلًا حتى نهاية المدة المدفوعة (حسب سياسة الاسترجاع:
-// لا استرجاع جزئي). بلا رد أموال هنا إطلاقًا.
-// idempotent: ملغي أصلًا = نجاح صامت. بلا صف = 404.
+// POST { action: 'cancel' | 'undo' } + توكن المستخدم في Authorization.
+// - cancel: يحوّل الحالة إلى canceled مع بقاء current_period_end —
+//   يبقى Pro مفعّلًا حتى نهاية المدة المدفوعة (بلا رد أموال هنا إطلاقًا).
+// - undo: يعيد الحالة إلى active (تراجع مجاني فوري — بلا دفع) ما دامت
+//   المدة سارية؛ المنتهية تُرفض (422) إذ لا شيء يُعاد تفعيله.
+// idempotent في الاتجاهين. بلا صف = 404.
 // النشر: supabase functions deploy cancel-subscription
 // ============================================================
 
@@ -69,15 +70,34 @@ Deno.serve(async (req) => {
 
     const { data: sub } = await supabase
       .from("subscriptions")
-      .select("status")
+      .select("status,current_period_end")
       .eq("user_id", user.id)
       .maybeSingle();
     if (!sub) return jsonResponse(req, { error: "no_subscription" }, 404);
+
+    const body = await req.json().catch(() => ({}));
+    const action = body && body.action === "undo" ? "undo" : "cancel";
+
+    if (action === "undo") {
+      // تراجع مجاني: يعيد النشاط فقط والمدة سارية — المنتهية لا يُعاد تفعيلها
+      if (sub.status !== "canceled") return jsonResponse(req, { ok: true, already: true });
+      const endMs = sub.current_period_end ? new Date(sub.current_period_end).getTime() : 0;
+      if (!isFinite(endMs) || endMs <= Date.now()) {
+        return jsonResponse(req, { error: "period_expired" }, 422);
+      }
+      const { error: updErr } = await supabase
+        .from("subscriptions")
+        .update({ status: "active" })
+        .eq("user_id", user.id);
+      if (updErr) throw updErr;
+      return jsonResponse(req, { ok: true, reactivated: true });
+    }
+
     if (sub.status === "canceled") return jsonResponse(req, { ok: true, already: true });
 
     const { error: updErr } = await supabase
       .from("subscriptions")
-      .update({ status: "canceled", updated_at: new Date().toISOString() })
+      .update({ status: "canceled" })
       .eq("user_id", user.id);
     if (updErr) throw updErr;
 
