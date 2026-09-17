@@ -757,6 +757,9 @@ body.menu-open { overflow: hidden; }
 
 .price-btn { width: 100%; margin-top: var(--s3); }
 
+/* شارة الخطة الحالية للمشترك (بدل زر اشتراك — غير قابلة للنقر) */
+.current-plan-btn { opacity: 0.7; cursor: default; pointer-events: none; }
+
 .pricing-note { text-align: center; margin-top: var(--s3); font-size: 0.86rem; color: var(--ink-2); }
 /* ---------- 15) الأسئلة الشائعة ---------- */
 

@@ -148,6 +148,16 @@ async function startApp(){
     else if(location.hash === '#smartlists' && !ui.smartListsOpen) gateFree('smartLists');
   });
 
+  // الرجوع من بوابة الدفع بزر المتصفح يعيد التطبيق من ذاكرة bfcache
+  // ومودال الترقية مفتوح بزر معطّل — نعيد رسمه كاملًا (idempotent) بدل زر ميت.
+  window.addEventListener('pageshow', (e) => {
+    if(!e || !e.persisted) return;
+    try{
+      const upgradeOverlay = document.getElementById('upgradeOverlay');
+      if(upgradeOverlay && upgradeOverlay.classList.contains('open')) openUpgrade();
+    }catch(err){}
+  });
+
   document.addEventListener('click', (e) => {
     const accountPanel = document.getElementById('accountPanel');
     if(accountPanel && isAccountPanelOpen() && !e.target.closest('#accountPanel') && !e.target.closest('#accountBtn') && !e.target.closest('#bottomProfileBtn') && !e.target.closest('#sideNavAccountBtn')){

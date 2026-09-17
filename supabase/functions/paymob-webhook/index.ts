@@ -139,15 +139,22 @@ Deno.serve(async (req) => {
     // عدم التكرار: نفس العملية لا تمنح مرتين مهما أُعيد إرسالها
     const { data: existing } = await supabase
       .from("subscriptions")
-      .select("paymob_transaction_id")
+      .select("paymob_transaction_id,current_period_end")
       .eq("user_id", userId)
       .maybeSingle();
     if (existing && existing.paymob_transaction_id === txnId) {
       return jsonResponse({ ok: true, duplicate: true });
     }
 
-    // الدفع شهري/سنوي لمرة واحدة لكل دورة: النهاية = الآن + مدة الدورة
-    const periodEnd = new Date(Date.now() + price.months * 30 * 24 * 60 * 60 * 1000).toISOString();
+    // الدفع شهري/سنوي لمرة واحدة لكل دورة: يُمدَّد من أبعد نقطة —
+    // دفعة مبكرة/مكررة تُضاف لنهاية المدة القائمة بدل الكتابة فوقها
+    // وضياع قيمتها (مطابق لوعد "تبقى Pro حتى نهاية دورتك المدفوعة").
+    let baseMs = Date.now();
+    if (existing && typeof existing.current_period_end === "string") {
+      const curEnd = new Date(existing.current_period_end).getTime();
+      if (isFinite(curEnd) && curEnd > baseMs) baseMs = curEnd;
+    }
+    const periodEnd = new Date(baseMs + price.months * 30 * 24 * 60 * 60 * 1000).toISOString();
 
     const { error: upsertErr } = await supabase.from("subscriptions").upsert({
       user_id: userId,

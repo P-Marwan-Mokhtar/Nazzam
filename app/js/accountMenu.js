@@ -84,7 +84,7 @@ function renderAccountBody(){
   let planActionHtml = '';
   if(isPro){
     const cycleLabel = state.planCycle === 'yearly' ? t('plan.yearly') : state.planCycle === 'monthly' ? t('plan.monthly') : '';
-    const proLabel = cycleLabel ? `Pro · ${cycleLabel}` : 'Pro';
+    const proLabel = cycleLabel ? `الاحترافية · ${cycleLabel}` : 'الاحترافية';
     planActionHtml = `
       <div class="ap-plan-card ap-plan-pro">
         <div class="ap-plan-info">
@@ -106,7 +106,7 @@ function renderAccountBody(){
       trialLabel = 'Pro Trial';
       daysText = days === 1 ? '1 day left' : `${days} days left`;
     } else {
-      trialLabel = 'تجربة Pro';
+      trialLabel = 'تجربة الاحترافية';
       if(days === 1) daysText = 'يوم واحد';
       else if(days === 2) daysText = 'يومان';
       else if(days >= 3 && days <= 10) daysText = `${days} أيام`;

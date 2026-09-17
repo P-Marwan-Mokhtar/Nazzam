@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>الدفع — نظّم</title>
-  <meta name="description" content="إتمام اشتراك نظّم Pro عبر Paymob — دفع آمن." />
+  <meta name="description" content="إتمام اشتراك نظّم الاحترافي عبر Paymob — دفع آمن." />
   <link rel="icon" href="app/icons/favicon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -26,6 +26,8 @@
     .btn-primary{background:var(--ink);color:#fff}
     .btn-ghost{background:#fff;border-color:var(--line);color:var(--ink)}
     .hint{margin-top:12px;color:var(--ink-3);font-size:.82rem}
+    .form-error{color:#b3261e;font-weight:700}
+    .form-note{font-weight:700}
   </style>
 </head>
 <body>
@@ -38,11 +40,11 @@
     <div class="cart" id="cart">
       <div class="cart-head">سلة الاشتراك</div>
       <label class="cart-row" style="cursor:pointer">
-        <div><b>Pro شهري</b><br><span>$3 / شهر — كل المزايا</span></div>
+        <div><b>الاحترافية — شهري</b><br><span>$3 / شهر — كل المزايا</span></div>
         <input type="radio" name="plan" value="monthly" checked />
       </label>
       <label class="cart-row" style="cursor:pointer">
-        <div><b>Pro سنوي — وفّر 17%</b><br><span>$30 / سنة</span></div>
+        <div><b>الاحترافية — سنوي — وفّر 17%</b><br><span>$30 / سنة</span></div>
         <input type="radio" name="plan" value="yearly" />
       </label>
       <div class="cart-total"><span>الإجمالي</span><span id="total">$3 / شهر</span></div>
@@ -52,13 +54,16 @@
       <button class="btn btn-primary" id="checkoutBtn">المتابعة للدفع عبر Paymob</button>
       <a href="./#pricing" class="btn btn-ghost">العودة للأسعار</a>
     </div>
+    <p class="hint form-error" id="checkoutError" hidden></p>
+    <p class="hint form-note" id="proNotice" hidden>اشتراكك الاحترافي مفعّل بالفعل — <a href="app/" style="color:var(--blue);text-decoration:underline">أدر اشتراكك من التطبيق</a></p>
     <p class="hint">بالمتابعة توافق على <a href="terms.html" style="color:var(--blue);text-decoration:underline">الشروط</a> و <a href="refund.html" style="color:var(--blue);text-decoration:underline">الاسترجاع</a>. التجربة 7 أيام بدون بطاقة.</p>
-    <p class="hint">بعد الدفع ستعود للتطبيق ويُفعّل Pro تلقائياً. للاستفسار: <a href="mailto:support@nazzam.app" style="color:var(--blue)">support@nazzam.app</a></p>
+    <p class="hint">بعد الدفع ستعود للتطبيق وتُفعَّل الاحترافية تلقائياً. للاستفسار: <a href="mailto:support@nazzam.app" style="color:var(--blue)">support@nazzam.app</a></p>
   </main>
 
   <footer class="footer"></footer>
 
+  <script src="app/js/vendor/supabase.js" defer></script>
   <script type="module" src="landing.js"></script>
-  <script src="checkout.js"></script>
+  <script type="module" src="checkout.js"></script>
 </body>
 </html>

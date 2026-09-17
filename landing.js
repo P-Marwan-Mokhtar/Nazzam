@@ -275,6 +275,36 @@ if (burger && header) {
     }
     // احتياط: لو التحويل محصلش لأي سبب، عيد المحاولة بعد ثانية
     setTimeout(() => { if (document.querySelector('.nav-login')) showLoggedInHeaderState(); }, 800);
+    // المشترك Pro لا تُعرض عليه أزرار "اشتراك" — حسب دورته:
+    // بطاقته الحالية → شارة "خطتك الحالية" غير قابلة للنقر، والبطاقة
+    // الأخرى → تبديل مباشر (التراكم في الويبهوك يحفظ المدة المتبقية،
+    // فالتبديل في أي اتجاه آمن). بلا دورة معروفة → "إدارة اشتراكك".
+    // الفشل الصامت = إبقاء الأزرار (checkout.html تحرس نفسها بنفس الفحص).
+    try{
+      const { fetchServerSubscription, isServerProActive } = await import('./app/js/billing.js');
+      const sub = await fetchServerSubscription();
+      if(isServerProActive(sub)){
+        const cycle = (sub && (sub.plan_cycle === 'monthly' || sub.plan_cycle === 'yearly')) ? sub.plan_cycle : null;
+        document.querySelectorAll('.price-card a[href^="checkout.html"]').forEach((a) => {
+          const m = /[?&]plan=(monthly|yearly)/.exec(a.getAttribute('href') || '');
+          const cardCycle = m ? m[1] : null;
+          if(cycle && cardCycle){
+            if(cardCycle === cycle){
+              const badge = document.createElement('span');
+              badge.className = 'btn btn-ghost btn-lg price-btn current-plan-btn';
+              badge.textContent = 'خطتك الحالية';
+              badge.setAttribute('aria-disabled', 'true');
+              a.replaceWith(badge);
+            } else {
+              a.textContent = cardCycle === 'yearly' ? 'الترقية إلى سنوي' : 'التبديل إلى شهري';
+            }
+          } else {
+            a.textContent = 'إدارة اشتراكك';
+            a.setAttribute('href', 'app/');
+          }
+        });
+      }
+    }catch(e){}
   } else {
     // بلا جلسة: امسح أي تلميح قديم (انتهاء/خروج من جهاز آخر) — وإلا
     // التحويل التلقائي يظن المستخدم داخلًا ويحبسه خارج اللاندينج.
