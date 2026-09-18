@@ -85,6 +85,7 @@ export const ui = {
   closingMobileFilters: false,
   mobileFiltersCloseTimeoutId: null,
   draftsSearchQuery: '',
+  draftsTab: 'bank',  // تبويب مودال المسودات: 'bank' (مهام البنك) | 'days' (مهام الأيام) — واحد ظاهر فقط
   bankDisplayLimit: 10,
   timerPanelRenderedForDate: null,
   statsViewOpen: false,  // لما تبقى true، #content بيعرض شاشة الإحصائيات بدل مهام اليوم
@@ -150,6 +151,7 @@ export const ui = {
   smartListKey: 'today',  // القائمة الذكية المعروضة: 'today' | 'overdue' | 'week' | 'no-time' | 'high'
   templateAddOpen: false,  // هل حقل إضافة قالب جديد (جوه بنك المهام) مفتوح دلوقتي
   templatesSearchQuery: '',  // نص البحث الحالي في مودال القوالب الجاهزة
+  templatesTab: 'task',  // تبويب مودال القوالب: 'task' (قوالب المهام) | 'day' (قوالب الأيام) — واحد ظاهر فقط
   editingTemplateId: null,  // معرّف القالب اللي بيتعمله edit في المودال
   replaceConfirm: null,  // بيانات popup التأكيد عند استبدال قالب مكرر — null | { kind, name, templateId }
   trialJustExpired: false,  // علَم لمرة واحدة: التسوية أسقطت التجربة للتو — main.js يفتح الترقية تلقائيًا ثم يصفّره

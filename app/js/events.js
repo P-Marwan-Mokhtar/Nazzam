@@ -17,7 +17,7 @@ import { ensureNotificationPermission, currentHHMM } from './notifications.js';
 import { formatTimeArabic, openTimePicker } from './timePicker.js';
 import { startOpenTimer } from './timers.js';
 import { closeSmartLists, smartTab, smartToggleDone, smartToDay } from './smartLists.js';
-import { openTemplateReplaceConfirm } from './templates.js';
+import { openTemplateReplaceConfirm, saveDayRoutine } from './templates.js';
 import { pushDayTrash } from './drafts.js';
 import { gateFree, enforceLimit, enforceTaskNameLimit } from './upgrade.js';
 
@@ -302,6 +302,11 @@ const contentActions = {
     ui.dayViewMode = ui.dayViewMode === 'list' ? 'chips' : 'list';
     try{ localStorage.setItem('nazam-day-view-mode', ui.dayViewMode); }catch(e){}
     render();
+  },
+  // حفظ اليوم المعروض كروتين من شريط اليوم نفسه (سياق الفعل الطبيعي) —
+  // البوابة والتنبيهات داخل الدالة نفسها.
+  'save-day-routine': async () => {
+    await saveDayRoutine();
   },
   'toggle-day-sort-menu': async () => {
     ui.daySortMenuOpen = !ui.daySortMenuOpen;

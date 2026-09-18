@@ -15,7 +15,7 @@ import { PRIORITY_LABELS, TASK_TYPES, contentEl, getDaySortMode, state, taskType
 import { saveData } from './dataStore.js';
 import { attachEvents, isWideListScroll, positionTaskMoreFixed } from './events.js';
 import { buildFilterDropdown, hideDurationPopover } from './popovers.js';
-import { computeTaskStreak, renderStatsView, renderTaskStatsView } from './stats.js';
+import { computeTaskStreak, renderStatsView, renderTaskStatsView, taskScheduleDays } from './stats.js';
 import { renderTimeBlockView, setTbStretch } from './timeBlocking.js';
 import { renderTimerPanel } from './timers.js';
 import { formatTimeArabic } from './timePicker.js';
@@ -321,12 +321,17 @@ export function render(){
         } else {
           const alreadyAdded = dayTasks.some(t => t.name === k.name);
           const kStreak = computeTaskStreak(k.name);
+          // العادة المجدولة تُقاس بالجلسات لا بالأيام — التسمية تتبع المقياس
+          const kScheduled = !!taskScheduleDays(k.name);
+          const kStreakUnit = kStreak === 1
+            ? t(kScheduled ? 'bank.streak_session' : 'bank.streak_day')
+            : t(kScheduled ? 'bank.streak_sessions' : 'bank.streak_days');
           html += `
             <div class="keyword-row" draggable="true" data-drag-id="${escapeAttr(k.id)}">
               <button class="add-to-day-btn ${alreadyAdded ? 'added' : ''}" data-action="add-to-day" data-name="${escapeAttr(k.name)}" ${alreadyAdded ? 'disabled' : ''} title="${alreadyAdded ? t('task.added_already') : t('task.add_to_today')}"><span class="material-icons">${alreadyAdded ? 'check' : 'add'}</span></button>
               <div class="keyword-main">
                 <span class="keyword-name" title="${escapeAttr(k.name)}">${highlightMatch(k.name, ui.bankSearchQuery)}</span>
-                ${kStreak >= 2 ? `<span class="keyword-streak" title="${kStreak} ${kStreak === 1 ? t('bank.streak_day') : t('bank.streak_days')} ${t('day.of_streak')}"><span class="material-icons">local_fire_department</span>${kStreak}</span>` : ``}
+                ${kStreak >= 2 ? `<span class="keyword-streak" title="${kStreak} ${kStreakUnit} ${t('day.of_streak')}"><span class="material-icons">local_fire_department</span>${kStreak}</span>` : ``}
                 <div class="keyword-icons">
                   <div class="task-more-menu-wrap">
                     <button class="icon-btn task-more-btn" data-action="toggle-keyword-more" data-id="${escapeAttr(k.id)}" title="${t('c.more')}">
@@ -395,6 +400,9 @@ export function render(){
       <div class="day-actions-wrap">
       <button class="day-actions-toggle ${ui.dayViewMode === 'list' ? 'open' : ''}" data-action="toggle-day-view" type="button" title="${t('day.view_mode_title')}">
         <span class="material-icons">${ui.dayViewMode === 'list' ? 'view_list' : 'view_module'}</span>
+      </button>
+      <button class="day-actions-toggle" data-action="save-day-routine" type="button" title="${t('template.save_day_routine')}">
+        <span class="material-icons">bookmark_add</span>
       </button>
       <button class="day-actions-toggle ${ui.dayActionsOpen ? 'open' : ''}" data-action="toggle-day-actions" type="button" title="${t('day.filters_title')}">
         <span class="material-icons">grid_view</span>

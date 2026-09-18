@@ -135,6 +135,10 @@
             <span class="material-icons">drafts</span>
             <span class="side-nav-label" data-i18n="nav.archived">المهام المؤرشفة</span>
           </button>
+          <button class="side-nav-btn" data-side-target="templatesBtn" title="قوالب المهام الجاهزة" data-i18n-title="nav.templates">
+            <span class="material-icons">content_copy</span>
+            <span class="side-nav-label" data-i18n="nav.templates">قوالب المهام</span>
+          </button>
           <button class="side-nav-btn" data-side-target="calendarBtn" title="التقويم" data-i18n-title="nav.calendar">
             <span class="material-icons">calendar_today</span>
             <span class="side-nav-label" data-i18n="nav.calendar">التقويم</span>
@@ -142,10 +146,6 @@
           <button class="side-nav-btn" data-side-target="notificationSettingsBtn" title="إعدادات التنبيهات" data-i18n-title="nav.notif_settings">
             <span class="material-icons">notifications</span>
             <span class="side-nav-label" data-i18n="nav.notif_settings">إعدادات التنبيهات</span>
-          </button>
-          <button class="side-nav-btn" data-side-target="templatesBtn" title="قوالب المهام الجاهزة" data-i18n-title="nav.templates">
-            <span class="material-icons">content_copy</span>
-            <span class="side-nav-label" data-i18n="nav.templates">قوالب المهام</span>
           </button>
         </aside>
 
@@ -238,6 +238,15 @@
             </button>
             <button
               class="header-menu-item"
+              id="templatesBtn"
+              title="قوالب المهام الجاهزة"
+              data-i18n-title="nav.templates"
+            >
+              <span class="material-icons">content_copy</span>
+              <span class="header-btn-label" data-i18n="nav.templates">قوالب المهام</span>
+            </button>
+            <button
+              class="header-menu-item"
               id="calendarBtn"
               title="التقويم"
               data-i18n-title="nav.calendar"
@@ -253,15 +262,6 @@
             >
               <span class="material-icons">notifications</span>
               <span class="header-btn-label" data-i18n="nav.notif_settings">إعدادات التنبيهات</span>
-            </button>
-            <button
-              class="header-menu-item"
-              id="templatesBtn"
-              title="قوالب المهام الجاهزة"
-              data-i18n-title="nav.templates"
-            >
-              <span class="material-icons">content_copy</span>
-              <span class="header-btn-label" data-i18n="nav.templates">قوالب المهام</span>
             </button>
           </div>
         </div>
@@ -307,7 +307,7 @@
       </div>
     </div>
 
-    <!-- Modal للـ Drafts مع البحث الذكي -->
+    <!-- Modal للـ Drafts مع البحث -->
     <div class="modal-overlay" id="draftsOverlay">
       <div class="modal-card" style="max-width: 500px">
         <div class="modal-header">
@@ -317,12 +317,11 @@
           </button>
         </div>
         <div class="modal-body">
-          <div class="bank-search" style="margin-top: 0; margin-bottom: 14px">
-            <span class="material-icons bank-search-icon">search</span>
+          <div class="bank-search modal-search-box" style="margin-top: 0; margin-bottom: 14px">
             <input
               type="text"
               id="draftsSearchInput"
-              placeholder="بحث ذكي في المسودات..."
+              placeholder="بحث في المسودات..."
               data-i18n-placeholder="drafts.search_placeholder"
             />
             <button
@@ -334,6 +333,15 @@
             >
               <span class="material-icons">close</span>
             </button>
+            <span class="ms-divider" aria-hidden="true"></span>
+            <button type="button" class="ms-filter" id="draftsFilterBtn" aria-haspopup="listbox">
+              <span id="draftsFilterLabel">القائمة</span>
+              <span class="material-icons">expand_more</span>
+            </button>
+            <div class="ms-menu" id="draftsFilterMenu" hidden>
+              <button type="button" data-dfilter="bank"><span data-i18n="drafts.tab_bank">القائمة</span><span class="material-icons check">check</span></button>
+              <button type="button" data-dfilter="days"><span data-i18n="drafts.tab_days">الأيام</span><span class="material-icons check">check</span></button>
+            </div>
           </div>
           <div
             id="draftsModalList"
@@ -351,18 +359,17 @@
       </div>
     </div>
 
-    <!-- Modal القوالب الجاهزة (ميزة Pro) -->
+    <!-- Modal القوالب (ميزة Pro): هيدر + بحث + فلاتر النوع -->
     <div class="modal-overlay" id="templatesOverlay">
       <div class="modal-card" style="max-width: 500px">
         <div class="modal-header">
-          <h2 data-i18n="modal.templates">قوالب المهام</h2>
+          <h2 data-i18n="template.title">القوالب</h2>
           <button class="icon-btn" id="closeTemplatesBtn" title="إغلاق" data-i18n-title="c.close">
             <span class="material-icons">close</span>
           </button>
         </div>
         <div class="modal-body">
-          <div class="bank-search" style="margin-top: 0; margin-bottom: 14px">
-            <span class="material-icons bank-search-icon">search</span>
+          <div class="bank-search modal-search-box" style="margin-top: 0; margin-bottom: 14px">
             <input
               type="text"
               id="templatesSearchInput"
@@ -378,6 +385,15 @@
             >
               <span class="material-icons">close</span>
             </button>
+            <span class="ms-divider" aria-hidden="true"></span>
+            <button type="button" class="ms-filter" id="templatesFilterBtn" aria-haspopup="listbox">
+              <span id="templatesFilterLabel">المهام</span>
+              <span class="material-icons">expand_more</span>
+            </button>
+            <div class="ms-menu" id="templatesFilterMenu" hidden>
+              <button type="button" data-tfilter="task"><span data-i18n="template.short_tasks">المهام</span><span class="material-icons check">check</span></button>
+              <button type="button" data-tfilter="day"><span data-i18n="template.short_days">الأيام</span><span class="material-icons check">check</span></button>
+            </div>
           </div>
           <div
             id="templatesModalList"
@@ -649,6 +665,9 @@
             هذه المهام كانت في جدول الأمس ولم تُنجز بعد:
           </p>
           <ul class="stat-list" id="missedTasksList"></ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="account-primary-btn" id="moveMissedBtn" style="width:100%;" data-i18n="missed.move_selected">ترحيل المحدد إلى اليوم</button>
         </div>
       </div>
     </div>

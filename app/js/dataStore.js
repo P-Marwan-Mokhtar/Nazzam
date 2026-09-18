@@ -80,7 +80,8 @@ function isDateStr(x){
   return typeof x === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x);
 }
 
-function isHHMM(x){
+// يُصدَّر للوحدات التي تبني مهامًا موقوتة (قوالب الأيام) — نفس التحقق الواحد بلا تكرار
+export function isHHMM(x){
   return typeof x === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(x);
 }
 
@@ -95,6 +96,7 @@ const MAX_NAME_LEN = 200; // أسماء المهام/البنك/الفلاتر/�
 const MAX_NOTE_LEN = 5000; // الملاحظات
 const MAX_SUBTASKS = 50; // مهام فرعية لكل مهمة
 const MAX_KEYWORDS = 2000; // عناصر بنك المهام
+const MAX_ROUTINE_ITEMS = 30; // عناصر قالب اليوم الواحد (حجم يوم معقول)
 function capStr(s, n){
   return (typeof s === 'string' && s.length > n) ? s.slice(0, n) : s;
 }
@@ -121,12 +123,43 @@ function sanitizeNamedItem(x){
   return out;
 }
 
+// عنصر روتين يوم: نفس حقول قالب المهمة + وقت اختياري (HH:MM) للجدول الزمني.
+// بلا id مخزن — تُولَّد معرفات جديدة عند كل تطبيق (نسخ حية لا روابط).
+function sanitizeDayItem(x){
+  if(!isPlainObject(x)) return null;
+  const name = typeof x.name === 'string' ? capStr(x.name.trim(), MAX_NAME_LEN) : '';
+  if(!name) return null;
+  const out = { name };
+  if(x.type === 'task' || x.type === 'habit' || x.type === 'hobby') out.type = x.type;
+  if(x.priority === 'high' || x.priority === 'medium' || x.priority === 'low') out.priority = x.priority;
+  if(typeof x.duration === 'string' && x.duration.trim()) out.duration = x.duration;
+  if(isHHMM(x.startTime)) out.startTime = x.startTime;
+  if(typeof x.note === 'string') out.note = capStr(x.note, MAX_NOTE_LEN);
+  if(Array.isArray(x.subtasks)){
+    const subs = x.subtasks
+      .filter(s => isPlainObject(s) && typeof s.title === 'string' && s.title.trim())
+      .slice(0, MAX_SUBTASKS)
+      .map(s => ({ title: capStr(s.title, MAX_NAME_LEN) }));
+    if(subs.length) out.subtasks = subs;
+  }
+  return out;
+}
+
 // قالب مهمة (ميزة Pro): بنحتفظ بالحقول اللي بتصلح للاستخدام السريع { id, name, type, priority, duration, note, subtasks }
 function sanitizeTemplate(x){
   if(!isPlainObject(x)) return null;
   const name = typeof x.name === 'string' ? capStr(x.name.trim(), MAX_NAME_LEN) : '';
   if(!name) return null;
   const out = { id: sanitizeId(x.id) || uid(), name };
+  // قالب اليوم (روتين): عناصره تحمل الحقول — لا حقول مفردة على مستوى القالب
+  if(x.kind === 'day'){
+    out.kind = 'day';
+    if(Array.isArray(x.items)){
+      const items = x.items.map(sanitizeDayItem).filter(Boolean).slice(0, MAX_ROUTINE_ITEMS);
+      if(items.length) out.items = items;
+    }
+    return out;
+  }
   if(x.type === 'task' || x.type === 'habit' || x.type === 'hobby') out.type = x.type;
   if(x.priority === 'high' || x.priority === 'medium' || x.priority === 'low') out.priority = x.priority;
   if(typeof x.duration === 'string' && x.duration.trim()) out.duration = x.duration;

@@ -2,7 +2,7 @@
 // stats.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { DAY_NAMES, addDays, escapeHtml, fmtDay, fromISO, parseDurationToMinutes, todayStr } from './utils.js';
+import { DAY_NAMES, addDays, escapeAttr, escapeHtml, fmtDay, fromISO, parseDurationToMinutes, todayStr } from './utils.js';
 import { contentEl, showToast, state, ui } from './state.js';
 import { render } from './render.js';
 import { currentPalette } from './theme.js';
@@ -181,7 +181,44 @@ export function computeDayStats(dateStr, typeFilter){
   };
 }
 
+// أيام العادة المجدولة (من نافذة التكرار): مصفاة لأرقام أيام أسبوع صحيحة.
+// تُرجع null للغير مجدولة أو اليومية الكاملة (7 أيام = لا استثناء أصلًا،
+// فتُعامل كيومية عادية) — فقط الجداول الجزئية تستحق ستريك المواعيد.
+export function taskScheduleDays(name){
+  const days = state.recurringTasks ? state.recurringTasks[name] : null;
+  if(!Array.isArray(days)) return null;
+  const clean = [...new Set(days.filter(d => Number.isInteger(d) && d >= 0 && d <= 6))];
+  if(clean.length === 0 || clean.length >= 7) return null;
+  return clean;
+}
+
 export function computeTaskStreak(name){
+  const schedule = taskScheduleDays(name);
+  if(schedule){
+    // ستريك المواعيد المجدولة (الجيم أيامًا معينة): نرجع يومًا بيوم —
+    // غير المجدول يُتخطى تمامًا (راحة مخططة لا تكسر ولا تُحتسب)،
+    // والمجدول المنجز يُحتسب، وأول مجدول فائت (غائب/غير منجز) يكسر.
+    const dayDone = (date) => {
+      const tasks = state.days[date] || [];
+      const task = tasks.find(x => x.name === name);
+      return !!(task && task.done);
+    };
+    let streak = 0;
+    const today = todayStr();
+    if(schedule.includes(fromISO(today).getDay()) && dayDone(today)) streak++;
+    let cursor = addDays(today, -1);
+    // حارس أمان فقط: الحلقة تنتهي طبيعيًا عند أول موعد فائت (التاريخ محدود)،
+    // والحد هنا مجرد شبكة ضد بيانات شاذة (مثل جدول مفرغ من الأيام).
+    let guard = 0;
+    while(guard++ < 1200){
+      if(schedule.includes(fromISO(cursor).getDay())){
+        if(!dayDone(cursor)) break;
+        streak++;
+      }
+      cursor = addDays(cursor, -1);
+    }
+    return streak;
+  }
   let streak = 0;
   const today = todayStr();
   const todayTasks = state.days[today] || [];
@@ -235,6 +272,41 @@ export function computeTaskStats(name){
 
   occurrences.sort((a,b) => b.date.localeCompare(a.date)); // الأحدث أولًا
 
+  // بصائر إضافية من نفس البيانات (بلا حقول جديدة):
+  // - أطول سلسلة تاريخيًا بنفس قواعد الستريك (المجدول: المواعيد فقط).
+  // - التزام آخر 30 يومًا: منجز/مخطط (المخطط = المواعيد المجدولة، أو الأيام
+  //   المسجلة لغير المجدولة) — اليوم الجاري غير المنجز محايد لا يُحتسب.
+  // - الموعد القادم للمجدولة فقط.
+  const schedDays = taskScheduleDays(name);
+  const doneMap = {};
+  occurrences.forEach(o => { doneMap[o.date] = !!o.done; });
+  const ascFirst = occurrences.length ? occurrences[occurrences.length - 1].date : today;
+  let walkStart = ascFirst < addDays(today, -364) ? addDays(today, -364) : ascFirst;
+  let bestStreak = 0, run = 0;
+  for(let d = walkStart; d <= today; d = addDays(d, 1)){
+    if(schedDays && !schedDays.includes(fromISO(d).getDay())) continue; // راحة مخططة
+    if(d === today && doneMap[d] !== true) continue; // اليوم الجاري المحايد
+    if(doneMap[d] === true){ run++; if(run > bestStreak) bestStreak = run; }
+    else run = 0;
+  }
+  const cutoff30 = addDays(today, -29);
+  let cDone = 0, cTotal = 0;
+  if(schedDays){
+    for(let d = cutoff30; d <= today; d = addDays(d, 1)){
+      if(!schedDays.includes(fromISO(d).getDay())) continue;
+      if(d === today && doneMap[d] !== true) continue;
+      cTotal++;
+      if(doneMap[d] === true) cDone++;
+    }
+  } else {
+    occurrences.forEach(o => {
+      if(o.date < cutoff30) return;
+      cTotal++;
+      if(o.done) cDone++;
+    });
+  }
+  const consistency30 = cTotal > 0 ? Math.round((cDone / cTotal) * 100) : null;
+
   // اسم التصنيف (filter) المرتبط بالمهمة في البنك
   const kw = state.keywords.find(k => k.name === name);
   const filterId = kw ? kw.filterId : null;
@@ -243,15 +315,85 @@ export function computeTaskStats(name){
   return {
     totalCount, doneCount, totalActualMs, totalTargetMs,
     completionPct: totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0,
-    streak: computeTaskStreak(name),
+    streak: computeTaskStreak(name), bestStreak, consistency30,
     lastDoneDate, lastAddedDate, filterName, occurrences,
   };
+}
+
+// خريطة الالتزام الحرارية (GitHub-style): آخر 12 أسبوعًا، كل عمود أسبوع
+// والأعمدة مرتبة زمنيًا. الحالات الأربع:
+// - منجز (أخضر) أيًا كان مجدولًا أم لا.
+// - فائت: موعد مجدول غير منجز، أو يوم أُضيفت فيه المهمة ولم تُنجز.
+// - راحة: يوم خارج جدول العادة (محايد — لا يُحسب فواتًا).
+// - بلا بيانات: أيام لم تُسجل فيها المهمة أصلًا (لغير المجدولة).
+// اليوم الحالي لا يُحسب فائتًا قبل انتهائه — يُحاط بإطار فقط.
+// البيانات من occurrences الجاهزة (مستبعد منها المستقبل أصلًا) + الجدولة.
+function heatmapHtml(name, occurrences){
+  // عرض أوسع = تاريخ أطول: 12 أسبوعًا موبايل / 26 لوحي / 52 سنة كاملة ديسكتوب
+  // (GitHub-style) — تُحسب لحظة الرسم، وإعادة الرسم عند تدوير الشاشة تحدّثها.
+  let WEEKS = 12;
+  try{
+    if(window.matchMedia('(min-width:1024px)').matches) WEEKS = 52;
+    else if(window.matchMedia('(min-width:640px)').matches) WEEKS = 26;
+  }catch(e){}
+  const total = WEEKS * 7;
+  const today = todayStr();
+  const start = addDays(today, -(total - 1));
+  const sched = taskScheduleDays(name);
+  const doneByDate = {};
+  (occurrences || []).forEach(o => { doneByDate[o.date] = !!o.done; });
+  let cells = '';
+  for(let i = 0; i < total; i++){
+    const date = addDays(start, i);
+    let cls;
+    let status;
+    if(doneByDate[date] === true){
+      cls = 'done' + (date === today ? ' today' : '');
+      status = t('stats.done_short');
+    } else if(date === today){
+      cls = 'today';
+      status = '';
+    } else if(sched){
+      if(sched.includes(fromISO(date).getDay())){ cls = 'missed'; status = t('stats.not_done_short'); }
+      else { cls = 'rest'; status = t('stats.heat_rest_tip'); }
+    } else if(date in doneByDate){
+      cls = 'missed'; status = t('stats.not_done_short');
+    } else {
+      cls = 'none'; status = '';
+    }
+    const title = status ? `${fmtDay(date)} — ${status}` : fmtDay(date);
+    cells += `<span class="heat-cell ${cls}" title="${escapeAttr(title)}"></span>`;
+  }
+  return `
+    <div class="heat-wrap">
+      <div class="heat-grid">${cells}</div>
+      <div class="heat-legend">
+        <span><i class="heat-cell done"></i>${t('stats.heat_done')}</span>
+        <span><i class="heat-cell missed"></i>${t('stats.heat_missed')}</span>
+        <span><i class="heat-cell rest"></i>${t('stats.heat_rest')}</span>
+      </div>
+    </div>
+  `;
 }
 
 // شاشة إحصائيات مهمة واحدة — بتتفتح من قائمة (المزيد) في بنك المهام
 export function renderTaskStatsView(name){
   const s = computeTaskStats(name);
-  const recent = s.occurrences.slice(0, 20);
+  const scheduled = !!taskScheduleDays(name);
+
+  // بيانات مخطط الوقت اليومي (آخر 14 يومًا): الدقائق الفعلية لكل يوم —
+  // من occurrences الجاهزة (مستبعد منها المستقبل أصلًا).
+  const TREND_DAYS = 14;
+  const trendMap = {};
+  s.occurrences.forEach(o => { trendMap[o.date] = (trendMap[o.date] || 0) + (o.actualMs || 0); });
+  const trendDates = [], trendLabels = [], trendMinutes = [];
+  for(let i = TREND_DAYS - 1; i >= 0; i--){
+    const d = addDays(todayStr(), -i);
+    trendDates.push(d);
+    trendLabels.push(String(Number(d.slice(8, 10))));
+    trendMinutes.push(Math.round((trendMap[d] || 0) / 6000) / 10);
+  }
+  const hasTrendTime = trendMinutes.some(v => v > 0);
 
   const html = `
     <div class="stats-view">
@@ -280,35 +422,28 @@ export function renderTaskStatsView(name){
         <div class="stats-summary-pill">
           <span class="material-icons">bolt</span>
           <strong>${s.streak}</strong>
-          <small>${pl(s.streak, t('stats.streak_day'), t('stats.streak_days'))}</small>
+          <small>${pl(s.streak, t(scheduled ? 'stats.streak_session' : 'stats.streak_day'), t(scheduled ? 'stats.streak_sessions' : 'stats.streak_days'))}</small>
         </div>
         <div class="stats-summary-pill">
-          <span class="material-icons">schedule</span>
-          <strong>${formatHM(s.totalActualMs)}</strong>
-          <small>${t('stats.actual_time')}</small>
+          <span class="material-icons">emoji_events</span>
+          <strong>${s.bestStreak}</strong>
+          <small>${t('stats.best_streak')}</small>
         </div>
         <div class="stats-summary-pill">
-          <span class="material-icons">flag</span>
-          <strong>${formatHM(s.totalTargetMs)}</strong>
-          <small>${t('stats.goal')}</small>
+          <span class="material-icons">percent</span>
+          <strong>${s.consistency30 === null ? '—' : s.consistency30 + '%'}</strong>
+          <small>${t('stats.consistency_30')}</small>
         </div>
       </div>
 
       <div class="stat-block">
-        <div class="stat-block-title"><span class="material-icons">history</span>${t('stats.recent_appearances', {count: recent.length})}</div>
-        ${recent.length ? `
-          <ul class="stat-list">
-            ${recent.map(o => `
-              <li>
-                <span class="stat-list-name">
-                  <span class="task-stats-status ${o.done ? 'done' : ''}"><span class="material-icons">${o.done ? 'check_circle' : 'radio_button_unchecked'}</span></span>
-                  ${fmtDay(o.date)}
-                </span>
-                <span class="stat-list-value">${o.done ? t('stats.done_short') : t('stats.not_done_short')}</span>
-              </li>
-            `).join('')}
-          </ul>
-        ` : `<div class="stat-empty">${t('stats.no_data_recorded')}</div>`}
+        <div class="stat-block-title"><span class="material-icons">calendar_view_month</span>${t('stats.heat_title')}</div>
+        ${heatmapHtml(name, s.occurrences)}
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-title"><span class="material-icons">show_chart</span>${t('stats.task_time_trend')}</div>
+        <div class="chart-card-body">${hasTrendTime ? `<canvas id="chartTaskTrend"></canvas>` : `<div class="stat-empty">${t('stats.no_data_recorded')}</div>`}</div>
       </div>
     </div>
   `;
@@ -316,7 +451,41 @@ export function renderTaskStatsView(name){
   contentEl.innerHTML = html;
 
   const backBtn = document.getElementById('taskStatsBackBtn');
-  if(backBtn) backBtn.onclick = () => { ui.taskStatsName = null; ui.justReturnedFromStats = true; render(); };
+  if(backBtn) backBtn.onclick = () => { ui.taskStatsName = null; ui.justReturnedFromStats = true; destroyStatsCharts(); render(); };
+
+  destroyStatsCharts();
+  if(typeof Chart !== 'undefined' && hasTrendTime){
+    const colors = statsChartColors();
+    Chart.defaults.font.family = "'Almarai', sans-serif";
+    Chart.defaults.color = colors.inkColor;
+    mountChart('chartTaskTrend', {
+      type: 'bar',
+      data: {
+        labels: trendLabels,
+        datasets: [{
+          label: t('stats.minutes'),
+          data: trendMinutes,
+          backgroundColor: colors.penColor,
+          borderRadius: 6,
+          maxBarThickness: 36
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: {
+            title: (items) => items.length ? fmtDay(trendDates[items[0].dataIndex]) : '',
+            label: (ctx) => formatMinutes(ctx.parsed.y)
+          } }
+        },
+        scales: {
+          x: chartXCategory(colors.inkColor),
+          y: chartYMinutes(colors)
+        }
+      }
+    });
+  }
 }
 
 // تصدير تقرير PDF من نافذة طباعة: أسبوعي (آخر 7 أيام) أو يومي (اليوم المختار).

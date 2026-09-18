@@ -146,6 +146,38 @@
   background: var(--paper);
   color: var(--ink);
 }
+
+/* فوتر المودالات العامة + اختيار مهام الأمس للترحيل */
+.modal-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 20px 20px;
+}
+.missed-pick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+}
+.missed-pick input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--pen);
+  cursor: pointer;
+}
+.missed-toggle-all {
+  border-bottom: 1px solid var(--paper-line);
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+}
+.missed-toggle-all .stat-list-name {
+  font-weight: 800;
+  color: var(--ink);
+}
 .account-section {
   margin-bottom: 16px;
 }
@@ -445,6 +477,102 @@
 .modal-body {
   padding: 16px 18px 20px;
   overflow-y: auto;
+}
+/* صندوق البحث المدمج (مودال القوالب/المسودات فقط): فلتر عائم بلا حدود +
+   إدخال بلا حدود داخل إطار واحد — لا يمس .bank-search العامة إطلاقًا */
+.bank-search.modal-search-box {
+  background: var(--paper);
+  border: 1px solid var(--paper-line);
+  border-radius: 10px;
+  padding: 4px 10px;
+  gap: 6px;
+}
+.bank-search.modal-search-box:focus-within {
+  border-color: var(--pen);
+}
+.bank-search.modal-search-box input {
+  border: 0;
+  background: transparent;
+  padding: 10px 2px;
+}
+.bank-search.modal-search-box input:focus {
+  border-color: transparent;
+  outline: none;
+}
+html[dir="ltr"] .bank-search.modal-search-box input {
+  padding: 10px 2px;
+}
+.bank-search.modal-search-box .bank-search-clear {
+  position: static;
+  flex-shrink: 0;
+}
+.ms-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: transparent;
+  border: 0;
+  padding: 6px 2px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.ms-filter .material-icons {
+  font-size: 19px;
+  color: var(--ink-soft);
+}
+.ms-divider {
+  width: 1px;
+  align-self: stretch;
+  margin: 8px 0;
+  background: var(--paper-line);
+  flex-shrink: 0;
+}
+.ms-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline-end: 0;
+  min-width: 150px;
+  background: var(--popup);
+  border: 1px solid var(--paper-line);
+  border-radius: 12px;
+  padding: 4px;
+  z-index: 60;
+  box-shadow: var(--shadow);
+}
+.ms-menu[hidden] {
+  display: none;
+}
+.ms-menu button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+}
+.ms-menu button:hover {
+  background: var(--pen-soft);
+}
+.ms-menu button .check {
+  font-size: 18px;
+  color: var(--pen);
+  visibility: hidden;
+}
+.ms-menu button.active .check {
+  visibility: visible;
 }
 .tl-task-meta {
   display: flex;

@@ -1860,6 +1860,21 @@ select:focus {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* عداد عناصر روتين اليوم — muted ليبقى الاسم هو البطل */
+.template-day-count {
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+.modal-header h2 {
+  flex-shrink: 0;
+}
+/* سطر التلميح تحت تبويبات المسودات (معنى الاستعادة الكاملة) */
+.drafts-tab-hint {
+  margin: 0 2px 8px;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
 .template-modal-actions {
   display: flex;
   align-items: center;

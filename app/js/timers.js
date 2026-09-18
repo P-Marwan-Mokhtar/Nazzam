@@ -7,6 +7,7 @@ import { t, formatHM, formatMinutes } from './i18n.js';
 import { MISSED_POPUP_SHOWN_KEY, TASK_TYPES, showToast, showUndoToast, state, taskTypeKey, timerPanelEl, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
+import { moveSingleTask } from './recurrence.js';
 import { openTimerDurationPicker } from './wheelPicker.js';
 import { enforceTimerNameLimit } from './upgrade.js';
 
@@ -99,7 +100,23 @@ export function checkMissedTasksPopup(){
     if(missed.length === 0) return; // خلص كل حاجة أو مفيش مهام أصلاً، مفيش داعي نضايقه
 
     const listEl = document.getElementById('missedTasksList');
-    if(listEl) listEl.innerHTML = missed.map(t => `<li><span class="stat-list-name">${escapeHtml(t.name)}</span></li>`).join('');
+    if(listEl){
+      // كل مهمة بصندوق تحديد (الكل معلَّم افتراضيًا = ضغطة واحدة لترحيل الكل)،
+      // مع صف "تحديد الكل" للمزامنة في الاتجاهين — بلا حالة محفوظة، تُقرأ لحظة الضغط.
+      listEl.innerHTML =
+        `<li class="missed-toggle-all"><label class="missed-pick"><input type="checkbox" id="missedToggleAll" checked /><span class="stat-list-name">${t('missed.select_all')}</span></label></li>` +
+        missed.map(t => `<li><label class="missed-pick"><input type="checkbox" data-missed-id="${escapeAttr(t.id)}" checked /><span class="stat-list-name">${escapeHtml(t.name)}</span></label></li>`).join('');
+      listEl.onchange = (e) => {
+        if(!e || !e.target || e.target.type !== 'checkbox') return;
+        if(e.target.id === 'missedToggleAll'){
+          listEl.querySelectorAll('input[data-missed-id]').forEach(c => { c.checked = e.target.checked; });
+        } else if(e.target.hasAttribute('data-missed-id')){
+          const all = [...listEl.querySelectorAll('input[data-missed-id]')];
+          const tog = document.getElementById('missedToggleAll');
+          if(tog) tog.checked = all.length > 0 && all.every(c => c.checked);
+        }
+      };
+    }
     document.getElementById('missedTasksOverlay').classList.add('open');
   }catch(e){}
 }
@@ -108,6 +125,42 @@ export function closeMissedTasksModal(){
   const el = document.getElementById('missedTasksOverlay');
   if(el) el.classList.remove('open');
 }
+
+// ترحيل المحدد من مهام الأمس إلى اليوم: حلقة فوق moveSingleTask المركزية
+// (نفس قواعد النقل المفرد: بلا تكرار بالاسم، وتحفظ نسخ الجدول المرتبطة).
+// تُنقل فقط المعلمة التي ما زالت غير منجزة لحظة الضغط — من أنجزها في
+// هذه الأثناء تُتجاهل بصمت. والتراجع يعيد الكل لمكانه (بلا حفظ الترتيب
+// الأصلي — مقبول لعملية يومية سريعة وموثق هنا عمدًا).
+export async function moveMissedSelected(){
+  const today = todayStr();
+  const yesterday = addDays(today, -1);
+  const listEl = document.getElementById('missedTasksList');
+  const checked = listEl
+    ? [...listEl.querySelectorAll('input[data-missed-id]:checked')].map(el => el.dataset.missedId)
+    : [];
+  if(!checked.length){ showToast(t('missed.none_selected')); return; }
+  const moved = [];
+  for(const id of checked){
+    const cur = (state.days[yesterday] || []).find(x => x.id === id);
+    if(!cur || cur.done || cur._dupOf) continue;
+    const res = await moveSingleTask(id, yesterday, today);
+    if(res === true) moved.push({ id, fromDate: yesterday });
+  }
+  closeMissedTasksModal();
+  render();
+  await saveData();
+  if(!moved.length){ showToast(t('missed.none_moved')); return; }
+  showUndoToast(t('missed.moved'), async () => {
+    for(const m of moved){
+      try{ await moveSingleTask(m.id, today, m.fromDate); }catch(e){}
+    }
+    render();
+    await saveData();
+  });
+}
+
+const moveMissedBtn = document.getElementById('moveMissedBtn');
+if(moveMissedBtn) moveMissedBtn.onclick = moveMissedSelected;
 
 function buildTimerItemHtml(timer){
   const isCountdown = timer.mode === 'countdown';
