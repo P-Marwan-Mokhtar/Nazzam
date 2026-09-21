@@ -21,16 +21,21 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   text-align: center;
-  padding: 22px 22px 14px;
+  padding: 20px 22px 12px;
+  overflow-y: auto;
+  min-height: 0;
 }
 .onboarding-step {
   display: none;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  gap: 14px;
   width: 100%;
+  max-width: 340px;
+  margin-inline: auto;
 }
 .onboarding-step.active {
   display: flex;
@@ -46,54 +51,77 @@
     transform: translateY(0);
   }
 }
-.onboarding-illust {
-  width: 84px;
-  height: 84px;
-  border-radius: 24px;
+/* الفكرة الواحدة: أيقونة كبيرة في مربع ناعم بلون المنصة — بلا موكابات */
+.onboarding-icon {
+  width: 88px;
+  height: 88px;
+  border-radius: 28px;
   background: var(--pen-soft);
   color: var(--pen);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 4px;
+  flex: 0 0 auto;
 }
-.onboarding-illust .material-icons {
+.onboarding-icon .material-icons {
   font-size: 42px;
 }
 .onboarding-step-title {
   font-family: "Almarai", sans-serif;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   margin: 0;
   color: var(--ink);
 }
-.onboarding-step-text {
+.onboarding-step-sub {
   margin: 0;
-  line-height: 1.9;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
+  line-height: 1.8;
+  color: var(--ink-soft);
+  max-width: 320px;
+}
+/* المميزات: صف أفقي من ٣ — أيقونة صغيرة بلون المنصة + نص قصير */
+.onboard-features {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 12px;
+}
+.onboard-feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  text-align: center;
+  font-size: 0.72rem;
+  line-height: 1.5;
   color: var(--ink-soft);
 }
-.onboarding-dots {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  padding: 6px 0;
+.onboard-feature .material-icons {
+  font-size: 24px;
+  color: var(--pen);
 }
-.onboarding-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
+/* شريط التقدم الرفيع بدل النقاط — يمتلئ بنسبة المحطة الحالية */
+.onboarding-progress {
+  height: 3px;
   background: var(--paper-line);
-  transition: var(--transition);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 2px 2px 0;
 }
-.onboarding-dot.active {
-  width: 22px;
+#onboardingProgressFill {
+  display: block;
+  height: 100%;
+  width: 16.6667%;
   background: var(--pen);
+  border-radius: inherit;
+  transition: width 0.3s ease;
 }
 .onboarding-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: flex-end;
+  gap: 12px;
   padding: 12px 18px 18px;
 }
 .onboarding-skip-btn {
@@ -116,23 +144,18 @@
   color: #fff;
   font-family: inherit;
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  padding: 10px 22px;
-  border-radius: 10px;
+  padding: 12px 30px;
+  border-radius: 12px;
   box-shadow: var(--shadow);
   transition: var(--transition);
 }
 .onboarding-next-btn:hover {
   filter: brightness(1.08);
 }
-.onboarding-step-hint {
-  margin: 0;
-  font-size: 0.78rem;
-  color: var(--ink-soft);
-}
 
-/* رقائق الأهداف (خطوة التخصيص) */
+/* رقائق الأهداف: خفيفة تندمج مع خلفية المودال — مضغوطة لتقصر الخطوة */
 .goal-chips {
   display: flex;
   flex-wrap: wrap;
@@ -143,48 +166,63 @@
 .goal-chip {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--ink);
-  background: var(--paper);
-  border: 1.5px solid var(--paper-line);
+  background: transparent;
+  border: 1px solid var(--paper-line);
   border-radius: 999px;
-  padding: 8px 14px;
+  padding: 6px 11px;
   cursor: pointer;
   transition: var(--transition);
 }
-.goal-chip .material-icons {
-  font-size: 19px;
-  color: var(--ink-soft);
-}
 .goal-chip .goal-chip-check {
   display: none;
-  font-size: 18px;
+  font-size: 16px;
   color: var(--pen);
 }
 .goal-chip.active {
   border-color: var(--pen);
   background: var(--pen-soft);
 }
-.goal-chip.active .material-icons:first-child {
-  color: var(--pen);
-}
 .goal-chip.active .goal-chip-check {
   display: inline;
 }
 
-/* أزرار خطوة التنبيهات */
-.notify-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+/* شارة التجربة في محطة البدء */
+.ob-trial-badge {
+  display: inline-flex;
   align-items: center;
-  width: 100%;
+  gap: 6px;
+  background: var(--pen-soft);
+  color: var(--pen);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.76rem;
+  font-weight: 700;
 }
-.notify-actions .onboarding-next-btn {
-  width: 100%;
+.ob-trial-badge .material-icons {
+  font-size: 15px;
+}
+/* عدّاد الخطوات الصغير أعلى المحتوى (2/5) */
+.step-kicker {
+  direction: ltr;
+  font-size: 0.7rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  background: var(--paper);
+  border: 1px solid var(--paper-line);
+  border-radius: 999px;
+  padding: 3px 12px;
+}
+@media (prefers-reduced-motion: reduce) {
+  #onboardingProgressFill {
+    transition: none;
+  }
 }
 
 /* ===== تخطيط موحّد: خلفية واحدة (نقاط) والـ components أقسام فوقها ===== */

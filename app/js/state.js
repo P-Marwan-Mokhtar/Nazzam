@@ -60,11 +60,12 @@ export let state = {
   planPendingCycle: null, // نية اشتراك مسجلة من شاشة الترقية (واجهة فقط قبل Paymob): null | 'monthly' | 'yearly'
   trialStartedAt: null, // طابع بدء التجربة المجانية (ms) — يُضبط مرة واحدة فقط ولا يُمسح أبدًا (تجربة واحدة للأبد)
   proLegacy: false, // ختم قدامى البيتا: حساب قائم بخطة pro يُختم مرة واحدة ولا يُمسح أبدًا — التسوية لا تنزّله لتجربة/مجاني حتى لو فارغًا (plans.js)
+  onboardingSeen: false, // ختم مشاهدة التدفق التعريفي: يُضبط مرة واحدة ويُزامَن مع الحساب — فلا يظهر مجددًا على جهاز جديد أو متخفٍّ (onboarding.js)
   templates: [], // قوالب المهام: { id, name, type, priority, duration, note } — ميزة Pro
 };
 
 export function resetState(){
-  state = { lang: 'ar', keywords: [], drafts: [], trash: [], notes: {}, days: {}, filters: [], timers: {}, darkMode: false, accentLight: 'blue', accentDark: 'blue', recurringTasks: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null }, plan: 'pro', planCycle: null, planPendingCycle: null, trialStartedAt: null, proLegacy: false, templates: [] };
+  state = { lang: 'ar', keywords: [], drafts: [], trash: [], notes: {}, days: {}, filters: [], timers: {}, darkMode: false, accentLight: 'blue', accentDark: 'blue', recurringTasks: {}, notificationSettings: { morningEnabled: false, morningTime: '08:00', eveningEnabled: false, eveningTime: '21:00', lastMorningFiredDate: null, lastEveningFiredDate: null }, plan: 'pro', planCycle: null, planPendingCycle: null, trialStartedAt: null, proLegacy: false, onboardingSeen: false, templates: [] };
 }
 
 export const ui = {

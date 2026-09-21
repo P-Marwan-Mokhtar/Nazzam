@@ -479,6 +479,10 @@ function applyLoadedState(parsed, opts){
   state.planPendingCycle = (parsed.planPendingCycle === 'monthly' || parsed.planPendingCycle === 'yearly') ? parsed.planPendingCycle : null;
   // ختم البيتا مزلاج أحادي: يُضاف فقط ولا يُمسح أبدًا
   if(parsed.proLegacy === true) state.proLegacy = true;
+  // ختم مشاهدة التدفق التعريفي مزلاج أحادي مثله: يُضبط ولا يُمسح بتحميل
+  // نسخة أقدم — وإلا جهاز بلا مزامنة حديثة يعيد العرض رغم المشاهدة.
+  // (ينطبق على الاستيراد أيضًا: نسختك الخاصة تحمل تاريخك، فلا عرض مكرر.)
+  if(parsed.onboardingSeen === true) state.onboardingSeen = true;
   if(fromImport && keepSub){
     // مسار الاستيراد: رجّع اشتراك الجلسة (الملف لا يغيّر الخطة/التجربة/الختم)
     Object.assign(state, keepSub);
