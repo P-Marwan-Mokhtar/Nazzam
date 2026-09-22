@@ -459,22 +459,14 @@ async function saveNewPassword(){
 // ------------------------------------------------------------
 // شاشة الدخول الإجبارية (Gate): تظهر لما محدش مسجّل دخوله، ومينفعش تتقفل غير بعد نجاح الدخول
 // ------------------------------------------------------------
-// رابط العودة للاندينج داخل الشاشة الإجبارية (يُحقن في كل أوضاعها):
+// لوجو نظم فوق كارت الحساب/الدخول قابل للنقر — نفس وظيفة العودة للاندينج:
 // المستخدم اللي غيّر رأيه كان محبوسًا — علَم "جوا التطبيق" يرجّعه لـ app/
-// مع كل محاولة رجوع للجذر. الزر يمسح العلم (والتلميح) ثم ينتقل للجذر،
-// فتبقى اللاندينج مستقرة بدل حلقة تحويل لا نهائية.
-// (بـ DOM API مباشرة بلا innerHTML — لا مدخلات هنا أصلًا.)
-function wireGateHomeLink(){
-  const bodyEl = document.getElementById('accountBody');
-  if(!bodyEl || document.getElementById('accHomeBtn')) return;
-  const line = document.createElement('div');
-  line.className = 'account-switch-line';
-  const btn = document.createElement('button');
-  btn.id = 'accHomeBtn';
-  btn.textContent = t('auth.back_to_home');
-  btn.onclick = backToLanding;
-  line.appendChild(btn);
-  bodyEl.appendChild(line);
+// مع كل محاولة رجوع للجذر. الضغط على اللوجو يمسح العلم (والتلميح) ثم ينتقل
+// للجذر، فتبقى اللاندينج مستقرة بدل حلقة تحويل لا نهائية.
+function wireModalLogo(){
+  const logo = document.querySelector('#accountOverlay .modal-top-logo');
+  if(!logo) return;
+  logo.onclick = backToLanding;
 }
 
 export function backToLanding(){
@@ -505,7 +497,7 @@ function renderAuthGate(errorMsg){
     const submit = () => { if(accountFormBusy) return; handleForgotPassword(document.getElementById('accEmail').value.trim()); };
     document.getElementById('accSubmitBtn').onclick = submit;
     wireEnterSubmit('#accForm', submit);
-    wireGateHomeLink();
+    wireModalLogo();
     return;
   }
 
@@ -521,7 +513,7 @@ function renderAuthGate(errorMsg){
       <div class="account-switch-line"><button id="accSwitchMode">${t('auth.back_to_login')}</button></div>
     `;
     document.getElementById('accSwitchMode').onclick = () => { gateMode = 'signin'; renderAuthGate(); };
-    wireGateHomeLink();
+    wireModalLogo();
     return;
   }
 
@@ -537,13 +529,12 @@ function renderAuthGate(errorMsg){
       <div class="account-switch-line"><button id="accSwitchMode">${t('auth.back_to_login')}</button></div>
     `;
     document.getElementById('accSwitchMode').onclick = () => { gateMode = 'signin'; renderAuthGate(); };
-    wireGateHomeLink();
+    wireModalLogo();
     return;
   }
 
   if(gateMode === 'signup'){
     bodyEl.innerHTML = `
-      <div class="account-hint">${t('auth.signup_hint')}</div>
       ${errorHtml}
       <div class="account-form" id="accForm">
         <input type="email" class="account-input" id="accEmail" placeholder="${t('auth.email_placeholder')}" autocomplete="email" />
@@ -574,13 +565,12 @@ function renderAuthGate(errorMsg){
     wireEnterSubmit('#accForm', submit);
     document.getElementById('accSwitchMode').onclick = () => { gateMode = 'signin'; renderAuthGate(); };
     document.getElementById('accGoogleBtn').onclick = signInWithGoogle;
-    wireGateHomeLink();
+    wireModalLogo();
     return;
   }
 
   // الوضع الافتراضي: تسجيل الدخول
   bodyEl.innerHTML = `
-    <div class="account-hint">${t('auth.signin_hint')}</div>
     ${errorHtml}
     <div class="account-form" id="accForm">
       <input type="email" class="account-input" id="accEmail" placeholder="${t('auth.login_placeholder')}" autocomplete="email" />
@@ -606,7 +596,7 @@ function renderAuthGate(errorMsg){
   document.getElementById('accForgotBtn').onclick = () => { gateMode = 'forgot'; renderAuthGate(); };
   document.getElementById('accSwitchMode').onclick = () => { gateMode = 'signup'; renderAuthGate(); };
   document.getElementById('accGoogleBtn').onclick = signInWithGoogle;
-  wireGateHomeLink();
+  wireModalLogo();
 }
 
 async function signUpNewAccount(email, password, passwordConfirm){
@@ -854,6 +844,7 @@ export function openAccountModal(){
   showPwForm = false;
   pwOnlyMode = false;
   renderAccountModal();
+  wireModalLogo();
   const overlay = document.getElementById('accountOverlay');
   overlay.classList.remove('is-gate');
   overlay.classList.add('open');
@@ -865,6 +856,7 @@ export function openPasswordChange(){
   showPwForm = true;
   pwOnlyMode = true;
   renderAccountModal();
+  wireModalLogo();
   const overlay = document.getElementById('accountOverlay');
   overlay.classList.remove('is-gate');
   overlay.classList.add('open');
@@ -954,6 +946,7 @@ export function verifyIdentityForDelete(){
 export function openAuthGate(){
   gateMode = 'signin';
   renderAuthGate();
+  wireModalLogo();
   const overlay = document.getElementById('accountOverlay');
   overlay.classList.add('open', 'is-gate');
 }

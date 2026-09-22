@@ -18,8 +18,8 @@ export function renderHeader(p) {
       </a>
       <nav class="nav-links" aria-label="التنقل الرئيسي">
         <a href="${p}#organize">المميزات</a>
-        <a href="${p}#plan">التخطيط</a>
         <a href="${p}#focus">التركيز</a>
+        <a href="${p}#plan">التخطيط</a>
         <a href="${p}#stats">الإحصائيات</a>
         <a href="${p}#pricing">الأسعار</a>
       </nav>
@@ -35,8 +35,8 @@ export function renderHeader(p) {
       <div class="nav-mobile-group">
         <span class="nav-mobile-label">النظام</span>
         <a href="${p}#organize">المميزات</a>
-        <a href="${p}#plan">التخطيط</a>
         <a href="${p}#focus">التركيز</a>
+        <a href="${p}#plan">التخطيط</a>
         <a href="${p}#stats">الإحصائيات</a>
         <a href="${p}#pricing">الأسعار</a>
       </div>

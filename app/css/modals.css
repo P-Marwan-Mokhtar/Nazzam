@@ -449,6 +449,18 @@
 .modal-overlay.is-gate #closeAccountBtn {
   display: none;
 }
+/* لوجو نظم فوق كارت الحساب/تسجيل الدخول */
+#accountOverlay.open {
+  flex-direction: column;
+  gap: 18px;
+}
+.modal-top-logo {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  flex: 0 0 auto;
+  cursor: pointer;
+}
 .modal-card {
   background: var(--card);
   border-radius: var(--radius);

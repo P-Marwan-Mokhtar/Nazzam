@@ -104,22 +104,23 @@ if (burger && header) {
   revealEls.forEach((el) => io.observe(el));
 })();
 
-// ===== تبويبات الجدول الزمني: يومي / أسبوعي / شهري =====
-(function initTbTabs() {
-  const tabs = document.querySelectorAll('.tb-tab');
-  const panes = document.querySelectorAll('.tb-pane');
-  if (!tabs.length || !panes.length) return;
+// ===== التنقل بين عروض الجدول الزمني: يومي / أسبوعي / شهري بسهمين =====
+(function initTbSlider() {
+  const panes = [...document.querySelectorAll('.tb-pane')];
+  const prev = document.getElementById('tbPrevBtn');
+  const next = document.getElementById('tbNextBtn');
+  if (!panes.length) return;
 
-  tabs.forEach((tab) => {
-    tab.addEventListener('click', () => {
-      tabs.forEach((t) => {
-        const on = t === tab;
-        t.classList.toggle('on', on);
-        t.setAttribute('aria-selected', String(on));
-      });
-      panes.forEach((p) => p.classList.toggle('on', p.dataset.pane === tab.dataset.pane));
-    });
-  });
+  let idx = 0;
+
+  function show(i) {
+    idx = ((i % panes.length) + panes.length) % panes.length;
+    panes.forEach((p, j) => p.classList.toggle('on', j === idx));
+  }
+
+  if (prev) prev.addEventListener('click', () => show(idx - 1));
+  if (next) next.addEventListener('click', () => show(idx + 1));
+  show(0);
 })();
 
 // ===== شريط «تفاصيل صغيرة»: loop بلا نهاية + كروت مكررة =====

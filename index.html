@@ -139,7 +139,6 @@
             <a href="app/" class="btn btn-primary btn-lg" id="heroStartBtn">ابدأ مجانًا</a>
             <a href="#organize" class="btn btn-ghost btn-lg">اكتشف المميزات</a>
           </div>
-
         </div>
 
         <div class="container hero-media-wrap" id="heroShotWrap">
@@ -152,26 +151,93 @@
       </section>
 
       <!-- ============================================================
-           نَظَّم كمركز — مميزات الموقع في نظامٍ واحد
+           الجسر — تنظيم يومك لا ينبغي أن يكون معقداً
       ============================================================ -->
-      <section class="section" id="organize">
+      <section class="bridge" id="organize">
         <div class="container">
-          <div class="orbital reveal">
-            <div class="orbital-grid" aria-hidden="true"></div>
-            <div class="orbital-core">
-              <span class="orbital-icon"><img src="app/img/nazzam-logo.png" alt="" width="32" height="32" loading="lazy" decoding="async" /></span>
-              <h2 class="orbital-title">رتّب يومك <span>كاملاً</span><br />بلا تعقيد، في دقائق</h2>
-              <p class="orbital-sub">كل ما تحتاج لإدارة يومك .. في مكان واحد</p>
-            </div>
+          <div class="sec-head reveal bridge-head">
+            <h2>تنظيم يومك لا ينبغي أن يكون معقداً</h2>
+            <p class="sec-lead">
+              تخلص من تشتت التطبيقات المجهزة بتعقيدات لا تحتاجها. يوفر لك تطبيق
+              «نظّم» تجربة سلسة تدمج أدواتك اليومية في مكان واحد بأسلوب بسيط ومباشر.
+            </p>
+          </div>
 
-            <div class="orbital-tag tag-1"><span>قائمة المهام</span><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg></div>
-            <div class="orbital-tag tag-2"><span>الجدول الزمني</span><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg></div>
-            <div class="orbital-tag tag-3"><span>مؤقّتات التركيز</span><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg></div>
-            <div class="orbital-tag tag-4"><span>يُثبَّت كتطبيق</span><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg></div>
-            <div class="orbital-tag tag-5"><span>التذكيرات</span><svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg></div>
-            <div class="orbital-tag tag-6"><span>الإحصائيات</span><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg></div>
-            <div class="orbital-tag tag-7"><span>يعمل دون اتصال</span><svg class="ic" aria-hidden="true"><use href="#i-wifi-off"/></svg></div>
-            <div class="orbital-tag tag-8"><span>التحكم الكامل</span><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg></div>
+          <div class="bridge-stack">
+            <article class="bridge-row reveal">
+              <div class="bridge-row-head">
+                <span class="bridge-ic" aria-hidden="true"><svg class="ic"><use href="#i-chart"/></svg></span>
+                <h3>إحصائيات واضحة</h3>
+              </div>
+              <p>وقتك الفعلي ونسب إنجازك وتوزيع وقتك في لوحة واحدة، لتعرف أين يذهب يومك وتتقدم بثقة.</p>
+              <span class="bridge-num digits">01</span>
+            </article>
+            <article class="bridge-row reveal">
+              <div class="bridge-row-head">
+                <span class="bridge-ic" aria-hidden="true"><svg class="ic"><use href="#i-wifi-off"/></svg></span>
+                <h3>استمرارية دون انقطاع</h3>
+              </div>
+              <p>دعم كامل للعمل دون اتصال بالإنترنت، لتظل إنتاجيتك مستمرة في أي وقت وأي مكان.</p>
+              <span class="bridge-num digits">02</span>
+            </article>
+            <article class="bridge-row reveal">
+              <div class="bridge-row-head">
+                <span class="bridge-ic" aria-hidden="true"><svg class="ic"><use href="#i-zap"/></svg></span>
+                <h3>سلاسة وسرعة بالغة</h3>
+              </div>
+              <p>تصميم خالٍ من القوائم المعقدة، يتيح لك تدوين مهامك ومتابعة يومك بنقرة زر واحدة.</p>
+              <span class="bridge-num digits">03</span>
+            </article>
+            <article class="bridge-row reveal">
+              <div class="bridge-row-head">
+                <span class="bridge-ic" aria-hidden="true"><svg class="ic"><use href="#i-devices"/></svg></span>
+                <h3>تكامل بلا تشتت</h3>
+              </div>
+              <p>بدلاً من التنقل بين عدة تطبيقات للمهام والمؤقت، تجد جميع أدواتك الأساسية متناغمة في واجهة واحدة.</p>
+              <span class="bridge-num digits">04</span>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           كيف يعمل — خطوات مرقمة
+      ============================================================ -->
+      <section class="section" id="focus">
+        <div class="container">
+          <div class="sec-head reveal how-head">
+            <p class="how-kicker">كيف يعمل</p>
+            <h2>نظام واحد ليومك كله</h2>
+            <p class="sec-lead">
+              دورة يومك كاملة في مكان واحد — بدون تنقل بين التطبيقات وبدون إعدادات معقدة.
+            </p>
+          </div>
+
+          <div class="how-timeline">
+            <article class="tl-step reveal">
+              <span class="tl-dot" aria-hidden="true"></span>
+              <span class="tl-meta digits">01</span>
+              <h3>دوّن مهامك</h3>
+              <p>أضف مهامك وعاداتك وهواياتك إلى بنك المهام أو مباشرة إلى يومك بنقرة واحدة.</p>
+            </article>
+            <article class="tl-step reveal">
+              <span class="tl-dot" aria-hidden="true"></span>
+              <span class="tl-meta digits">02</span>
+              <h3>خطط يومك بالساعة</h3>
+              <p>اسحب كل مهمة إلى الساعة التي تناسبها وحدّد مدّتها لتتحول قائمتك لخارطة زمنية.</p>
+            </article>
+            <article class="tl-step reveal">
+              <span class="tl-dot" aria-hidden="true"></span>
+              <span class="tl-meta digits">03</span>
+              <h3>ركّز ونفّذ</h3>
+              <p>شغّل المؤقت على مهمتك وادخل وضع التركيز — ووقتك الفعلي يُسجَّل تلقائيًا.</p>
+            </article>
+            <article class="tl-step reveal">
+              <span class="tl-dot" aria-hidden="true"></span>
+              <span class="tl-meta digits">04</span>
+              <h3>تابع تقدمك</h3>
+              <p>شاهد نسب إنجازك ووقتك الفعلي في الإحصائيات، واعرف أين ذهب يومك.</p>
+            </article>
           </div>
         </div>
       </section>
@@ -183,20 +249,20 @@
         <div class="container">
           <div class="sec-head reveal">
 <h2>خطّط ليومك بالساعة لا بالتقدير</h2>
-            <p class="sec-lead">
-              اسحب أي مهمة إلى الساعة التي تناسبها وحدّد مدّتها، فتتحوّل قائمتك
-              إلى خارطة زمنية واضحة — والمهام غير المجدولة تنتظر في لوحتها الجانبية.
-            </p>
+            <div class="tb-head-row">
+              <p class="sec-lead">
+                اسحب أي مهمة إلى الساعة التي تناسبها وحدّد مدّتها، فتتحوّل قائمتك
+                إلى خارطة زمنية واضحة — والمهام غير المجدولة تنتظر في لوحتها الجانبية.
+              </p>
+              <div class="tb-nav" role="group" aria-label="التنقل بين عروض الجدول الزمني">
+                <button type="button" class="tb-arrow" id="tbPrevBtn" aria-label="العرض السابق"><svg class="ic"><use href="#i-chev"/></svg></button>
+                <button type="button" class="tb-arrow" id="tbNextBtn" aria-label="العرض التالي"><svg class="ic"><use href="#i-chev"/></svg></button>
+              </div>
+            </div>
           </div>
 
           <div class="reveal">
             <div class="mk-card tb-shot wide tb-real">
-              <div class="tb-tabs tb-tabs-overlay" role="tablist" aria-label="عرض الجدول الزمني">
-                <button type="button" class="tb-tab on" data-pane="day" role="tab" aria-selected="true">يومي</button>
-                <button type="button" class="tb-tab" data-pane="week" role="tab" aria-selected="false">أسبوعي</button>
-                <button type="button" class="tb-tab" data-pane="month" role="tab" aria-selected="false">شهري</button>
-              </div>
-
               <div class="tb-pane on" data-pane="day">
                 <figure class="tb-shot-img">
                   <img src="app/img/shots/time-block-day1.png" alt="الجدول الزمني — عرض اليوم مع البلوكات الزمنية الملونة" width="2534" height="1437" loading="lazy" decoding="async" />
@@ -213,90 +279,6 @@
                 <figure class="tb-shot-img">
                   <img src="app/img/shots/time-block-month1.png" alt="الجدول الزمني — عرض الشهر مع خلايا الأيام والمهام المصغرة" width="2548" height="1437" loading="lazy" decoding="async" />
                 </figure>
-              </div>
-            </div>
-
-            <div class="mini-strip reveal">
-              <div><b>١</b><span>اسحب المهمة إلى ساعتها وحدّد مدّتها</span></div>
-              <div><b>٢</b><span>بدّل بين اليوم والأسبوع والشهر بنقرة</span></div>
-              <div><b>٣</b><span>المهام بلا وقت تنتظر في اللوحة الجانبية</span></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ============================================================
-           ٤:٠٠ م · التنفيذ — المؤقّتات ووضع التركيز
-      ============================================================ -->
-      <section class="section" id="focus">
-        <div class="container focus-grid">
-          <div class="focus-copy reveal">
-<h2>من الخطة إلى عمل حقيقي</h2>
-            <p class="sec-lead">
-              شغّل مؤقّتًا على مهمتك — مفتوحًا أو بمدّة محدّدة — وادخل وضع التركيز،
-              وسيُسجَّل وقتك الفعلي تلقائيًا ليغذّي إحصائياتك.
-            </p>
-            <ul class="check-points">
-              <li><svg class="ic"><use href="#i-check-circle"/></svg>مؤقّت مفتوح أو مؤقّت بمدّة محدّدة لكل مهمة</li>
-              <li><svg class="ic"><use href="#i-check-circle"/></svg>وضع تركيز بشاشةٍ واحدة بلا تشتيت</li>
-              <li><svg class="ic"><use href="#i-check-circle"/></svg>الوقت الفعلي يُسجَّل تلقائيًا</li>
-            </ul>
-          </div>
-
-          <div class="focus-visual reveal">
-            <div class="mk-card duo-timers">
-              <div class="mk-head">
-                <strong>مؤقّتات اليوم</strong>
-                <span class="mk-ic"><svg class="ic"><use href="#i-timer"/></svg></span>
-              </div>
-              <div class="ti-input">
-                <span class="ti-ph">اسم المهمة التي ستعمل عليها…</span>
-                <span class="ti-add-btn"><svg class="ic"><use href="#i-plus"/></svg></span>
-              </div>
-              <div class="timer-item">
-                <div class="ti-top"><span class="ti-dot"></span><strong>المذاكرة</strong><span class="ti-dur"><svg class="ic"><use href="#i-timer"/></svg> ١ ساعة</span></div>
-                <div class="ti-bottom">
-                  <span class="ti-clock digits">٠٠:٥٩:٥٩</span>
-                  <div class="ti-btns">
-                    <span class="tib full"><svg class="ic"><use href="#i-target"/></svg></span>
-                    <span class="tib play"><svg class="ic"><use href="#i-play"/></svg></span>
-                    <span class="tib trash"><svg class="ic"><use href="#i-archive"/></svg></span>
-                  </div>
-                </div>
-              </div>
-              <div class="timer-item">
-                <div class="ti-top"><span class="ti-dot"></span><strong>بودكاست</strong><span class="ti-dur"><svg class="ic"><use href="#i-timer"/></svg> ١٥ س</span></div>
-                <div class="ti-bottom">
-                  <span class="ti-clock digits">٠١:١٤:٥٩</span>
-                  <div class="ti-btns">
-                    <span class="tib full"><svg class="ic"><use href="#i-target"/></svg></span>
-                    <span class="tib play"><svg class="ic"><use href="#i-play"/></svg></span>
-                    <span class="tib trash"><svg class="ic"><use href="#i-archive"/></svg></span>
-                  </div>
-                </div>
-              </div>
-              <div class="timer-item">
-                <div class="ti-top"><span class="ti-dot"></span><strong>القراءة</strong><span class="ti-dur"><svg class="ic"><use href="#i-timer"/></svg> ٣٠ دقيقة</span></div>
-                <div class="ti-bottom">
-                  <span class="ti-clock digits">٠٠:٢٩:٥٨</span>
-                  <div class="ti-btns">
-                    <span class="tib full"><svg class="ic"><use href="#i-target"/></svg></span>
-                    <span class="tib play"><svg class="ic"><use href="#i-play"/></svg></span>
-                    <span class="tib trash"><svg class="ic"><use href="#i-archive"/></svg></span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="phone-shot" aria-hidden="true">
-              <div class="phone-notch"></div>
-              <span class="ph-task"><svg class="ic"><use href="#i-palette"/></svg>قراءة كتاب</span>
-              <div class="ph-digits digits">٠٠:٢٥:٠١</div>
-              <div class="ph-bar"><i style="--w: 42%"></i></div>
-              <div class="ph-scale"><span>الوقت الفعلي ٠٠:٢٥:٠١</span><span>الهدف ٠١:٠٠:٠٠</span></div>
-              <div class="ph-actions">
-                <span class="ph-btn main"><svg class="ic"><use href="#i-pause"/></svg></span>
-                <span class="ph-btn ghost"><svg class="ic"><use href="#i-check"/></svg>إنهاء</span>
               </div>
             </div>
           </div>
@@ -404,14 +386,11 @@
         <div class="container">
           <div class="sec-head reveal">
 <h2>ابدأ مجانًا وارتقِ عندما تحتاج</h2>
-            <p class="sec-lead">
-              جرّب نَظَّم بكل المميزات مجانًا ٧ أيام — وبعدها أكمل مجانًا بالأساسيات،
-              أو فعّل كل المميزات باشتراك شهري أو سنوي.
-            </p>
           </div>
 
           <div class="pricing-grid reveal">
             <div class="price-card spot">
+              <span class="price-badge">٧ أيام تجربة مجانية</span>
               <h3>مجاني</h3>
               <div class="price-num"><span class="digits">$0</span><small>للأبد</small></div>
               <p class="price-for">أساسيات للاستخدام الخفيف — بحدود واضحة.</p>
@@ -422,7 +401,7 @@
                 <li><svg class="ic"><use href="#i-check"/></svg>٣ تذكيرات و٣ مؤقّتات محفوظة</li>
                 <li><svg class="ic"><use href="#i-check"/></svg>يعمل دون اتصال</li>
               </ul>
-              <a href="app/" class="btn btn-ghost btn-lg price-btn" id="lpPriceBtn">ابدأ مجانًا</a>
+              <a href="app/" class="btn btn-ghost btn-lg price-btn" id="lpPriceBtn">ابدأ التجربة المجانية</a>
             </div>
 
             <div class="price-card spot">
@@ -456,8 +435,6 @@
               <a href="checkout.html?plan=yearly" class="btn btn-primary btn-lg price-btn">اشتراك</a>
             </div>
           </div>
-
-          <p class="pricing-note reveal">بعد التجربة تنتقل تلقائيًا إلى الخطة المجانية — بدون أي التزام.</p>
         </div>
       </section>
 
