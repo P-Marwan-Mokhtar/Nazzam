@@ -25,8 +25,8 @@ const TRIAL_MS = TRIAL_DAYS * 24 * 60 * 60 * 1000;
 // عند تغيير الأسعار: حدّث هنا + قسم #pricing في index.html معًا.
 export const PLANS = {
   free:    { price: 0,  currency: '$', period: null },
-  monthly: { price: 3,  currency: '$', period: 'month' },
-  yearly:  { price: 30, currency: '$', period: 'year' },
+  monthly: { price: 4,  currency: '$', period: 'month' },
+  yearly:  { price: 40, currency: '$', period: 'year' },
 };
 
 // الحدود عدّية اللي بتفرض محليًا: 'null' = بلا حدود

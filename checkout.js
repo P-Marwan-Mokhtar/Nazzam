@@ -21,7 +21,7 @@ function selectedCycle(){
 }
 
 function updateTotal(){
-  total.textContent = selectedCycle() === 'yearly' ? '$30 / سنة' : '$3 / شهر';
+  total.textContent = selectedCycle() === 'yearly' ? '$40 / سنة' : '$4 / شهر';
   // تغيير الاختيار يعيد ضبط حالة المنع — الحارس يُعاد تقييمه عند الضغط
   const notice = document.getElementById('proNotice');
   if(notice) notice.hidden = true;

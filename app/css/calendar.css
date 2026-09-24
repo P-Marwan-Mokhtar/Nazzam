@@ -81,14 +81,6 @@
   gap: 8px;
   transition: box-shadow var(--transition);
 }
-.section-title::before {
-  content: "";
-  display: block;
-  width: 6px;
-  height: 18px;
-  background: var(--pen);
-  border-radius: 4px;
-}
 .day-filter-wrap {
   position: relative;
   display: flex;
@@ -282,15 +274,6 @@
 }
 .bank-wrap:has(.bank-content) .bank-toggle:hover {
   border-radius: var(--radius) var(--radius) 0 0;
-}
-.bank-toggle::before {
-  content: "";
-  display: block;
-  width: 6px;
-  height: 18px;
-  background: var(--pen);
-  border-radius: 4px;
-  flex-shrink: 0;
 }
 .bank-toggle-label {
   display: flex;

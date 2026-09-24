@@ -44,7 +44,7 @@
 | `routing.js` | مزامنة الشاشة مع الرابط: `#stats` / `#week` / `#timeblock` / `#smartlists` + استهلاك `#checkout=` و `?billing=paymob` (مرة واحدة) |
 | `i18n.js` | عربي/إنجليزي: `t(key, params)` + `initLang/setLang/getLang` + `applyStaticTranslations()` لعناصر `data-i18n` — اللغة محفوظة في `nazam-lang` وبتقلب `dir` تلقائيًا |
 | `plans.js` | مصدر حقيقة الخطط: `free` / `trial` (7 أيام تلقائيًا، مرة واحدة للأبد) / `pro` — `PLAN_LIMITS` + `PRO_FEATURES` + `settlePlan()` |
-| `billing.js` | طبقة Paymob (عرض فقط): الأسعار للعرض (`150 جنيه شهري / 1500 سنوي`)، `startCheckout` ينادي `paymob-checkout`، والمنح حصرًا عبر `paymob-webhook` — `syncPlanFromServer()` تصحّح المحلية |
+| `billing.js` | طبقة الفوترة (عرض فقط): الأسعار للعرض (`4 دولار شهري / 40 سنوي`)، `startCheckout` ينادي `paymob-checkout`، والمنح حصرًا عبر `paymob-webhook` — `syncPlanFromServer()` تصحّح المحلية |
 | `upgrade.js` | مودال الترقية + بوابة Pro (`gateFree(feature)` / `enforceLimit` / `enforceTaskNameLimit`) — أي ميزة Pro لازم تعدّي من هنا + فحص `canUse` في `routing.js` (دفاع عمقي) |
 | `calendar.js` | ويدجت التقويم (`openCalendarModal`) |
 | `timers.js` | نظام المؤقت (open/countdown) + `renderTimerPanel` + `tickTimers` + بوب اختيار النوع + مودال مهام الأمس (`checkMissedTasksPopup`) |

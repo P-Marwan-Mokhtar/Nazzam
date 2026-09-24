@@ -12,11 +12,12 @@ import { t, getLang } from './i18n.js';
 
 export const BILLING_CYCLES = ['monthly', 'yearly'];
 
-// المبالغ الفعلية المحصَّلة (جنيه — تطابق خريطة السيرفر في paymob-checkout).
+// المبالغ المعروضة (دولار).
 // للعرض فقط: المنح والتحقق يتممان على السيرفر دائمًا.
+// ملحوظة: خريطة السيرفر في paymob-checkout لسه بالجنيه لحين التحويل لبوابة Polar.
 const CYCLE_AMOUNT_LABEL = {
-  monthly: { ar: '150 جنيه', en: 'EGP 150' },
-  yearly: { ar: '1500 جنيه', en: 'EGP 1500' },
+  monthly: { ar: '4 دولار', en: '$4' },
+  yearly: { ar: '40 دولار', en: '$40' },
 };
 
 export function cycleAmountLabel(cycle){
