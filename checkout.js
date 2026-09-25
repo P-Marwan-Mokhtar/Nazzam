@@ -10,6 +10,7 @@
 
 import { supabaseClient, CREATE_CHECKOUT_URL } from './app/js/config.js';
 import { fetchServerSubscription, isServerProActive } from './app/js/billing.js';
+import { tLanding } from './landing-i18n.js';
 
 const radios = [...document.querySelectorAll('input[name="plan"]')];
 const total = document.getElementById('total');
@@ -21,7 +22,7 @@ function selectedCycle(){
 }
 
 function updateTotal(){
-  total.textContent = selectedCycle() === 'yearly' ? '$40 / سنة' : '$4 / شهر';
+  total.textContent = selectedCycle() === 'yearly' ? tLanding('co.total_y') : tLanding('co.total_m');
   // تغيير الاختيار يعيد ضبط حالة المنع — الحارس يُعاد تقييمه عند الضغط
   const notice = document.getElementById('proNotice');
   if(notice) notice.hidden = true;
@@ -47,7 +48,7 @@ radios.forEach((r) => r.addEventListener('change', updateTotal));
 // فيبقى الزر ميتًا. نعيد الضبط الكامل مع كل عرض للصفحة (بما فيه الأول).
 window.addEventListener('pageshow', () => {
   checkoutBtn.disabled = false;
-  checkoutBtn.textContent = 'المتابعة للدفع عبر Paymob';
+  checkoutBtn.textContent = tLanding('co.pay');
   clearError();
   const notice = document.getElementById('proNotice');
   if(notice) notice.hidden = true;
@@ -108,7 +109,7 @@ checkoutBtn.addEventListener('click', async () => {
   // يفتح مودال الترقية خطأً عند العودة من البوابة.
   try{ localStorage.removeItem('nazam-pending-plan'); }catch(e){}
   try{
-    checkoutBtn.textContent = 'جارٍ تحويلك لبوابة الدفع…';
+    checkoutBtn.textContent = tLanding('co.redirecting');
     const res = await fetch(CREATE_CHECKOUT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -117,17 +118,17 @@ checkoutBtn.addEventListener('click', async () => {
     let data = null;
     try{ data = await res.json(); }catch(e){}
     if(res.status === 501){
-      showError('الدفع الإلكتروني لم يُفعَّل بعد — سيُعلن عنه قريبًا.');
+      showError(tLanding('co.err_501'));
     } else if(!res.ok || !data || typeof data.checkout_url !== 'string'){
-      showError('تعذّر بدء الدفع — تحقق من الاتصال وحاول مجددًا.');
+      showError(tLanding('co.err_net'));
     } else {
       try{ localStorage.setItem('nazam-pending-payment', JSON.stringify({ ts: Date.now() })); }catch(e){}
       location.href = data.checkout_url;
       return;
     }
   }catch(e){
-    showError('تعذّر بدء الدفع — تحقق من الاتصال وحاول مجددًا.');
+    showError(tLanding('co.err_net'));
   }
   checkoutBtn.disabled = false;
-  checkoutBtn.textContent = 'المتابعة للدفع عبر Paymob';
+  checkoutBtn.textContent = tLanding('co.pay');
 });

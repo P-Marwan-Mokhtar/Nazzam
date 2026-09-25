@@ -8,6 +8,17 @@
 // ============================================================
 document.documentElement.classList.add('js');
 
+// لغة الهبوط المبكرة (قبل أي رسم): نفس مفتاح التطبيق nazam-lang،
+/// وإلا لغة المتصفح — عشان اتجاه الصفحة يثبت من أول لحظة بلا وميض.
+try {
+  var _l = localStorage.getItem('nazam-lang');
+  if (_l !== 'ar' && _l !== 'en') {
+    _l = ((navigator.language || '').slice(0, 2).toLowerCase() === 'en') ? 'en' : 'ar';
+  }
+  document.documentElement.lang = _l;
+  document.documentElement.dir = (_l === 'ar') ? 'rtl' : 'ltr';
+} catch (e) {}
+
 (function () {
   try {
     var p = window.location.pathname;

@@ -337,15 +337,16 @@ html[dir="ltr"] .timeline-block {
   margin-right: auto;
 }
 
-/* === Dropdown menus alignment === */
+/* === Dropdown menus alignment — زرار المزيد على طرف الصف اليمين في
+   الإنجليزية، فالقايمة لازم تمتد لجوه (شمال) بدل ما تطلع بره الشاشة === */
 html[dir="ltr"] .task-more-dropdown {
-  left: 0;
-  right: auto;
+  left: auto;
+  right: 0;
   min-width: 165px;
 }
 html[dir="ltr"] .task-more-dropdown.task-more-up {
-  left: 0;
-  right: auto;
+  left: auto;
+  right: 0;
 }
 
 /* === Bank search icon === */
@@ -424,11 +425,11 @@ html[dir="ltr"] .stats-tab-dropdown {
   right: auto;
 }
 
-/* === Clock choice popover — RTL opens left of parent, LTR opens right === */
+/* === Clock choice popover — الداخل في الاتجاهين: RTL يمين الأصل، LTR شماله === */
 html[dir="ltr"] .clock-choice-popover {
-  left: calc(100% + 8px);
-  right: auto;
-  transform: translateX(-6px);
+  right: calc(100% + 8px);
+  left: auto;
+  transform: translateX(6px);
 }
 html[dir="ltr"] .clock-choice-popover.open {
   transform: translateX(0);
@@ -436,9 +437,9 @@ html[dir="ltr"] .clock-choice-popover.open {
 
 /* === Priority popover — same pattern as clock === */
 html[dir="ltr"] .priority-popover {
-  left: calc(100% + 8px);
-  right: auto;
-  transform: translateX(-6px);
+  right: calc(100% + 8px);
+  left: auto;
+  transform: translateX(6px);
 }
 html[dir="ltr"] .priority-popover.open {
   transform: translateX(0);

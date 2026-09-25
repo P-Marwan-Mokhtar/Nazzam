@@ -754,10 +754,13 @@ async function saveLocalBackup(){
   // ختم الملكية مع كل حفظ محلي — بس لو فيه حساب معروف (أونلاين). أوفلاين
   // currentUserId بيبقى null، ولو كتبنا ختم فارغ هنا هنمسح ملكية الحساب الأصلي
   // اللي بيتصل بيها بالشبكة لما يرجّع نت. فنحافظ على (أو نرجّع) آخر ملكية حقيقية.
+  // علة التبديل بين الحسابات: ممنوع قلب الخانة لجلسة تخالف ختم الحالة نفسها —
+  // (حالة A محمّلة + جلسة B تحفظ) كانت الخانة تتقلب لـ B والملف يفضل مختومًا
+  // لـ A، فيرى الإقلاع التالي "نسخته" ويطبّقها تحت B. الخانة تتبع الختم دائمًا.
   try{
-    if(currentUserId){
+    if(currentUserId && (!state._owner || state._owner === currentUserId)){
       setBackupOwner(currentUserId);
-    } else if(!getBackupOwner()){
+    } else if(!currentUserId && !getBackupOwner()){
       // لأول مرة من غير حساب (مثلًا بعد تسجيل خروج) بنسجّل إنها ملك فارغة
       setBackupOwner('');
     }
@@ -1091,7 +1094,12 @@ export async function loadData(skipAuthCheck){
       // لا تكسب مقارنة الحداثة أمام صف السيرفر أبدًا؛ السيرفر مرجعها. مسار المعلّق
       // (وله علمه الخاص) هو الوحيد الذي يقبل غير المختومة — فلا ضياع لشغل حقيقي.
       const localStamped = !!(local && typeof local._owner === 'string' && local._owner);
-      const effectiveLocalRev = (ownBackup && localStamped) ? localRev : 0;
+      // علة التبديل بين الحسابات: الختم وحده لا يكفي — ختم حساب آخر مع خانة ملكية
+      // مقلوبة لصالح الجلسة الحالية (حفظ بجلسة مخالفة للحالة) كان يمر هنا فيُطبَّق
+      // ملف أجنبي تحت الجلسة الحالية (ثم يُرفض دفعه — بلا تلوث سيرفر لكن بواجهة
+      // مضللة). الختم يجب أن يطابق الجلسة نفسها حرفيًا.
+      const localStampMatches = !!(local && local._owner === currentUserId);
+      const effectiveLocalRev = (ownBackup && localStampMatches) ? localRev : 0;
       let useLocal = ownBackup && effectiveLocalRev > serverRev;
       const nowMs = Date.now();
       if(ownBackup && localRev > nowMs + SKEW_TOL_MS && !(serverRev > nowMs + SKEW_TOL_MS)){
@@ -1112,7 +1120,8 @@ export async function loadData(skipAuthCheck){
       } else {
         // تغليب السيرفر: لو المحلية مختلفة فعلًا عن السيرفر، نحتفظ بها كنسخة
         // تعارض قبل الكتابة فوقها — وإلا ضاع شغل جهاز آخر/جلسة أخرى بصمت.
-        if(ownBackup && localStamped && local && localRev !== serverRev){
+        // (المطابقة الصارمة أيضًا: نسخة أجنبية الختم لا تُؤرشف هنا.)
+        if(ownBackup && localStampMatches && local && localRev !== serverRev){
           stashConflictCopy(local);
           showToast('تم العثور على نسخة أحدث على جهاز آخر، وتم الاحتفاظ بنسخة محلية احتياطية');
         }

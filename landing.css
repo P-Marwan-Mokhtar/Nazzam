@@ -222,6 +222,24 @@ body.menu-open { overflow: hidden; }
 
 .nav-burger .ic { width: 24px; height: 24px; }
 
+/* زرار اللغة (أيقونة كوكب) في الهيدر */
+.nav-lang-btn {
+  width: 38px; height: 38px; aspect-ratio: 1 / 1;
+  padding: 0;
+  display: inline-grid; place-items: center;
+  flex-shrink: 0;
+  color: var(--ink-2);
+  border: 1.5px solid var(--line);
+  border-radius: 50%;
+  transition: border-color var(--t-fast) ease, color var(--t-fast) ease;
+}
+
+.nav-lang-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+.nav-lang-btn .ic { width: 19px; height: 19px; }
+
+.nav-lang-mobile { width: 100%; height: auto; border-radius: 12px; padding: 12px; }
+
 .nav-mobile {
   display: none;
   position: fixed;
@@ -297,21 +315,21 @@ body.menu-open { overflow: hidden; }
 .hero-title {
   font-family: var(--font-display);
   font-size: clamp(2.5rem, 6vw, 4.4rem);
-  font-weight: 700; line-height: 1.22;
+  font-weight: 700; line-height: 1.08;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  padding-block: 0.06em;
+  padding-block: 0.04em;
 }
 @media (max-width: 560px) {
   .hero-title { font-size: clamp(1.7rem, 8.2vw, 2.35rem); line-height: 1.28; } }
 
-.hero-title .line { display: block; overflow: visible; padding-block: 0.08em; }
+.hero-title .line { display: block; overflow: visible; padding-block: 0.02em; }
 
-.hero-title .line > span { display: inline-block; padding-block: 0.06em; }
+.hero-title .line > span { display: inline-block; padding-block: 0.02em; }
 
-.hero-title em { font-style: normal; color: var(--blue); }
+.hero-title em { font-style: normal; color: var(--ink); }
 
-.hero-title .dot { color: var(--blue); }
+.hero-title .dot { color: var(--ink); }
 
 .hero-sub { max-width: 600px; margin: var(--s3) auto 0; color: var(--ink-2); font-size: clamp(1rem, 1.6vw, 1.12rem); }
 
@@ -494,7 +512,14 @@ body.menu-open { overflow: hidden; }
   padding-block: clamp(72px, 9vh, 110px);
 }
 
-.bridge-head { margin-bottom: var(--s5); text-align: right; }
+.bridge-head {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: clamp(20px, 4vw, 56px);
+  align-items: end;
+  text-align: start;
+  margin-bottom: var(--s5);
+}
 
 .bridge-head h2 {
   font-family: var(--font-display);
@@ -502,9 +527,31 @@ body.menu-open { overflow: hidden; }
   font-weight: 800; line-height: 1.35;
   color: var(--ink);
   text-wrap: balance;
+  max-width: 22ch;
 }
 
-.bridge-head .sec-lead { color: var(--ink-2); margin-inline: 0; }
+.bridge-head .sec-lead { color: var(--ink-2); margin: 0; }
+
+@media (max-width: 760px) {
+  .bridge-head { grid-template-columns: 1fr; }
+}
+
+/* هيدر مقسوم: عنوان ووصف جنب بعض (يُستخدم في stats وغيره) */
+.split-head {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: clamp(20px, 4vw, 56px);
+  align-items: end;
+  text-align: start;
+}
+
+.split-head h2 { max-width: 24ch; }
+
+.split-head .sec-lead { margin: 0; }
+
+@media (max-width: 760px) {
+  .split-head { grid-template-columns: 1fr; }
+}
 
 .bridge-stack {
   display: flex;
@@ -1077,3 +1124,24 @@ body.menu-open { overflow: hidden; }
   html { scroll-behavior: auto; }
   .anim, .frame, .reveal { animation: none !important; opacity: 1 !important; transform: none !important; transition: none !important; }
   .btn, .btn-primary::after, .bcard, .bcard::after, .price-card, .pg-dot, .pg-pill { transition: none !important; } }
+
+/* ---------- 20) الإنجليزية (LTR): عكس المحاذاة اليمين لليسار ---------- */
+[dir="ltr"] .sec-head,
+[dir="ltr"] .bridge-row p,
+[dir="ltr"] .tl-step,
+[dir="ltr"] .fsc-body,
+[dir="ltr"] .price-card,
+[dir="ltr"] .footer-copy,
+[dir="ltr"] .footer-bottom { text-align: left; }
+
+[dir="ltr"] .price-badge { translate: -50% 0; }
+
+[dir="ltr"] #tbPrevBtn .ic { transform: rotate(90deg); }
+
+[dir="ltr"] #tbNextBtn .ic { transform: rotate(-90deg); }
+
+[dir="ltr"] .fs-track { direction: ltr; }
+
+[dir="ltr"] .fs-card { direction: ltr; }
+
+[dir="ltr"] .bridge-row-head h3 { white-space: normal; }

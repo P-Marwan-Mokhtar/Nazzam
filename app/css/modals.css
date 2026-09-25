@@ -302,11 +302,11 @@
   display: flex;
 }
 .account-pass-wrap .account-input {
-  padding-left: 40px;
+  padding-right: 40px;
 }
 .account-pass-toggle {
   position: absolute;
-  left: 6px;
+  right: 6px;
   top: 50%;
   transform: translateY(-50%);
   background: none;

@@ -648,10 +648,12 @@
   z-index: 150;
 }
 
+/* بوب اختيار الهدف/الفعلي/المؤقت — بيفتح ناحية جسم الصف (الداخل) عشان
+   متتقصّش على حافة الشاشة: قبل كده كان بيفتح لبره في الاتجاهين */
 .clock-choice-popover {
   position: absolute;
   top: -6px;
-  right: calc(100% + 8px);
+  left: calc(100% + 8px);
   z-index: 110;
   background: var(--popup);
   border: 1px solid var(--popup-border);
@@ -663,7 +665,7 @@
   flex-direction: column;
   gap: 3px;
   opacity: 0;
-  transform: translateX(6px);
+  transform: translateX(-6px);
   pointer-events: none;
   transition:
     opacity 0.15s ease,
@@ -748,7 +750,7 @@
 .priority-popover {
   position: absolute;
   top: -6px;
-  right: calc(100% + 8px);
+  left: calc(100% + 8px);
   z-index: 110;
   background: var(--popup);
   border: 1px solid var(--popup-border);
@@ -760,7 +762,7 @@
   flex-direction: column;
   gap: 3px;
   opacity: 0;
-  transform: translateX(6px);
+  transform: translateX(-6px);
   pointer-events: none;
   transition:
     opacity 0.15s ease,
@@ -1685,16 +1687,17 @@
   margin-inline-start: auto;
   font-size: 17px !important;
 }
-/* ف الإنجليزي الفرع بيفتح يمين الأصل، فيتقلب السهم عشان يشاور الاتجاه الصحيح */
-html[dir="ltr"] .add-arrow-chev {
+/* الفرع بيفتح يمين البند في العربي، فيتقلب السهم عشان يشاور الاتجاه الصحيح */
+html[dir="rtl"] .add-arrow-chev {
   transform: scaleX(-1);
 }
-/* القايمة الجانبية (فروع السهم) — بتفتح على الطرف المنطقي تبع اللغة:
-   في العربي (RTL) على الشمال وفي الإنجليزي (LTR) على اليمين */
+/* القايمة الجانبية (فروع السهم) — بتفتح ناحية جسم الصف (الداخل) عشان متتقصّش
+   على حافة الكارت: في العربي (RTL) يمين البند وفي الإنجليزي (LTR) شماله —
+   قبل كده كانت بتفتح لبره الصف فكانت بتتاكل من الطرف في الاتجاهين */
 .add-arrow-sub {
   position: absolute;
   top: -6px;
-  inset-inline-start: calc(100% + 8px);
+  inset-inline-end: calc(100% + 8px);
   z-index: 110;
   background: var(--popup);
   border: 1px solid var(--popup-border);

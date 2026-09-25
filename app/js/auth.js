@@ -479,7 +479,8 @@ function renderAuthGate(errorMsg){
   const bodyEl = document.getElementById('accountBody');
   const titleEl = document.getElementById('accountModalTitle');
   if(!bodyEl) return;
-  if(titleEl) titleEl.textContent = t('auth.login_button');
+  // عنوان البوابة حسب الوضع — كان ثابتًا على "تسجيل الدخول" حتى في وضع إنشاء الحساب
+  if(titleEl) titleEl.textContent = gateMode === 'signup' ? t('auth.create_account') : gateMode === 'forgot' ? t('auth.forgot_link') : t('auth.login_button');
 
   const errorHtml = errorMsg ? `<div class="account-error">${escapeHtml(errorMsg)}</div>` : '';
 

@@ -5,6 +5,7 @@
 ## البنية العامة
 
 - `index.html` + `landing.css` + `landing.js` + `landing-head.js` + `clarity-loader.js` — صفحة الهبوط (تعرض التطبيق وتربطه، وقسم `#pricing` هو مرجع أسعار الخطط).
+- `landing-i18n.js` — قاموس عربي/إنجليزي للهبوط (`STRINGS` + `applyLandingLang/toggleLandingLang`) — النصوص عبر `data-lp` (نص) / `data-lp-html` / `data-lp-alt` / `data-lp-aria`، والمفتاح نفس مفتاح التطبيق `nazam-lang` (التبديل = حفظ + reload).
 - `components.js` — الهيدر والفوتر المشتركان لكل صفحات اللاندينج (`renderHeader(prefix)` + `renderFooter(prefix)`)، بيرسمهم `landing.js` تلقائيًا في `<header id="siteHeader">` و `<footer class="footer">` الفاضيين. `prefix = ''` للرئيسية و `'./'` للصفحات الفرعية.
 - `checkout.html` + `checkout.js` — صفحة الدفع الوسيطة (بتحوّل لـ `app/#checkout=monthly|yearly` مع نية محفوظة `nazam-pending-plan`).
 - `privacy.html` / `terms.html` / `refund.html` / `404.html` — صفحات ثابتة بنفس هيدر/فوتر اللاندينج.

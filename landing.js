@@ -1,6 +1,7 @@
 // ============================================================
 // landing.js — صفحة «نظم»
 //   • تحميل الهيدر والفوتر المشتركين (components.js)
+//   • اللغة عربي/إنجليزي (landing-i18n.js — تطبيق مبكر + زرار .lp-lang-btn)
 //   • خط تقدم التمرير + حالة الهيدر
 //   • قائمة الموبايل + الإظهار عند التمرير
 //   • السيكشن التاني: تناثر مميزات حول عبارة المركز (أوربيتال)
@@ -10,6 +11,7 @@
 // ============================================================
 
 import { renderHeader, renderFooter } from './components.js';
+import { getLandingLang, applyLandingLang, toggleLandingLang, restoreLandingScroll, tLanding } from './landing-i18n.js';
 
 // ===== رسم الهيدر والفوتر المشتركين =====
 // GitHub Pages ممكن يشغّل الموقع في مسار فرعي (/repo/index.html) — مش بس الجذر.
@@ -29,6 +31,13 @@ if (footerSlot && !footerSlot.querySelector('.footer-grid')) {
 
 const yearEl = document.getElementById('lpYear');
 if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+// ===== اللغة (عربي/إنجليزي): تطبيق مبكر قبل أي تهيئة تعتمد على النصوص =====
+applyLandingLang(getLandingLang());
+restoreLandingScroll();
+document.querySelectorAll('.lp-lang-btn').forEach((b) => {
+  b.addEventListener('click', toggleLandingLang);
+});
 
 const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -151,7 +160,7 @@ if (burger && header) {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'fs-dot';
-    b.setAttribute('aria-label', 'الانتقال إلى الشريحة ' + (i + 1));
+    b.setAttribute('aria-label', tLanding('more.dot') + (i + 1));
     b.addEventListener('click', () => goTo(k + i, true));
     dotsEl.appendChild(b);
     return b;
@@ -167,13 +176,15 @@ if (burger && header) {
   const SNAP_MS = 650; /* بعد مدة الأنيميشن نعيد توجيه المؤشر للكارت الحقيقي بنفس المكان */
 
   /* تمركز الكارت النشط — الـ track RTL (الفات الأول يمين والشمال نهايته) */
+  /* في الإنجليزية (LTR) الاتجاه معكوس فبنعكس الإزاحة */
+  const isLTR = getLandingLang() === 'en';
   function layout() {
     if (!viewport) return;
     const cardW = items[0].getBoundingClientRect().width;
     const gap = 16;
     const vw = viewport.clientWidth;
     const shift = (cardW - vw) / 2 + pos * (cardW + gap);
-    track.style.transform = 'translate3d(' + shift + 'px, 0, 0)';
+    track.style.transform = 'translate3d(' + (isLTR ? -shift : shift) + 'px, 0, 0)';
   }
 
   function setActive() {
@@ -293,14 +304,14 @@ if (burger && header) {
             if(cardCycle === cycle){
               const badge = document.createElement('span');
               badge.className = 'btn btn-ghost btn-lg price-btn current-plan-btn';
-              badge.textContent = 'خطتك الحالية';
+              badge.textContent = tLanding('billing.current_plan');
               badge.setAttribute('aria-disabled', 'true');
               a.replaceWith(badge);
             } else {
-              a.textContent = cardCycle === 'yearly' ? 'الترقية إلى سنوي' : 'التبديل إلى شهري';
+              a.textContent = cardCycle === 'yearly' ? tLanding('billing.to_yearly') : tLanding('billing.to_monthly');
             }
           } else {
-            a.textContent = 'إدارة اشتراكك';
+            a.textContent = tLanding('billing.manage');
             a.setAttribute('href', 'app/');
           }
         });
@@ -314,20 +325,22 @@ if (burger && header) {
 })();
 
 function showLoggedInHeaderState() {
-  const authBtnHtml = (id) => `<a href="app/" class="btn btn-primary btn-sm" id="${id}">اذهب إلى نظم</a>`;
+  const goApp = tLanding('nav.go_app');
+  const authBtnHtml = (id) => `<a href="app/" class="btn btn-primary btn-sm" id="${id}">${goApp}</a>`;
+  // كلمات أزرار الدخول/البدء باللغتين (للحذف والتحويل مهما كانت اللغة)
+  const killRe = /ابدأ|مجانًا|الدفع|اشتراك|تسجيل|Start free|Start using|Subscribe|Log in|Sign/i;
 
   // الهيدر: زر واحد فقط — نحذف كل أزرار الدخول/البدء/الدفع ثم نزرع زر واحد قبل البرجر
   const navActions = document.querySelector('.nav-actions');
   // فحص صح: نتأكد إن مفيش زرار "اذهب إلى نظم" مركّب أصلًا — مش أي زرار بـ href="app/".
   // (الفحص القديم كان بينطبق على زرار "ابدأ مجانًا" الافتراضي نفسه، فيتخطّى التحويل بالكامل.)
   const alreadyTransformed = navActions && [...navActions.querySelectorAll('a.btn')].some(
-    (a) => a.textContent.trim() === 'اذهب إلى نظم'
+    (a) => a.textContent.trim() === goApp
   );
   if (navActions && !alreadyTransformed) {
     navActions.querySelectorAll('.nav-login').forEach(el => el.remove());
     [...navActions.querySelectorAll('.btn')].forEach(el => {
-      const t = el.textContent.trim();
-      if (t.includes('ابدأ') || t.includes('مجانًا') || t.includes('الدفع') || t.includes('اشتراك') || t.includes('تسجيل')) el.remove();
+      if (killRe.test(el.textContent)) el.remove();
     });
     const burger = navActions.querySelector('.nav-burger');
     if (burger) burger.insertAdjacentHTML('beforebegin', authBtnHtml('lpStartBtn'));
@@ -337,15 +350,15 @@ function showLoggedInHeaderState() {
   // أزرار الدخول داخل الصفحة (هيرو، ختام، والكارت المجاني في الأسعار)
   ['heroStartBtn', 'finaleStartBtn', 'lpPriceBtn'].forEach((id) => {
     const b = document.getElementById(id);
-    if (b) { b.textContent = 'اذهب إلى نظم'; b.setAttribute('href','app/'); }
+    if (b) { b.textContent = goApp; b.setAttribute('href','app/'); }
   });
   // الفوتر: روابط الدخول/البدء تتحوّل لرابط واحد "افتح التطبيق" (مفيش تكرار)
   let converted = false;
   document.querySelectorAll('.footer a[href="app/"]').forEach(el => {
     const txt = el.textContent.trim();
-    if (txt.includes('تسجيل الدخول') || txt.includes('ابدأ') || txt.includes('مجانًا')) {
+    if (killRe.test(txt)) {
       if (!converted) {
-        el.textContent = 'افتح التطبيق';
+        el.textContent = tLanding('footer.open_app');
         converted = true;
       } else {
         const li = el.closest('li');

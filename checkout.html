@@ -1,9 +1,10 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-lp-title="co.title" data-lp-desc="co.desc">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>الدفع — نظّم</title>
+  <script src="landing-head.js"></script>
   <meta name="description" content="إتمام اشتراك نظّم الاحترافي عبر Paymob — دفع آمن." />
   <link rel="icon" href="app/icons/favicon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -34,30 +35,30 @@
   <header class="nav" id="siteHeader"></header>
 
   <main class="checkout">
-    <h1>إتمام الاشتراك</h1>
-    <p class="lead">اختر خطتك — الدفع آمن عبر Paymob. يمكنك الإلغاء في أي وقت.</p>
+    <h1 data-lp="co.h1">إتمام الاشتراك</h1>
+    <p class="lead" data-lp="co.lead">اختر خطتك — الدفع آمن عبر Paymob. يمكنك الإلغاء في أي وقت.</p>
 
     <div class="cart" id="cart">
-      <div class="cart-head">سلة الاشتراك</div>
+      <div class="cart-head" data-lp="co.cart">سلة الاشتراك</div>
       <label class="cart-row" style="cursor:pointer">
-        <div><b>الاحترافية — شهري</b><br><span>$4 / شهر — كل المزايا</span></div>
+        <div><b data-lp="co.m_name">الاحترافية — شهري</b><br><span data-lp="co.m_sub">$4 / شهر — كل المزايا</span></div>
         <input type="radio" name="plan" value="monthly" checked />
       </label>
       <label class="cart-row" style="cursor:pointer">
-        <div><b>الاحترافية — سنوي — وفّر 17%</b><br><span>$40 / سنة</span></div>
+        <div><b data-lp="co.y_name">الاحترافية — سنوي — وفّر 17%</b><br><span data-lp="co.y_sub">$40 / سنة</span></div>
         <input type="radio" name="plan" value="yearly" />
       </label>
-      <div class="cart-total"><span>الإجمالي</span><span id="total">$4 / شهر</span></div>
+      <div class="cart-total"><span data-lp="co.total">الإجمالي</span><span id="total" data-lp="co.total_m">$4 / شهر</span></div>
     </div>
 
     <div class="checkout-actions">
-      <button class="btn btn-primary" id="checkoutBtn">المتابعة للدفع عبر Paymob</button>
-      <a href="./#pricing" class="btn btn-ghost">العودة للأسعار</a>
+      <button class="btn btn-primary" id="checkoutBtn" data-lp="co.pay">المتابعة للدفع عبر Paymob</button>
+      <a href="./#pricing" class="btn btn-ghost" data-lp="co.back">العودة للأسعار</a>
     </div>
     <p class="hint form-error" id="checkoutError" hidden></p>
-    <p class="hint form-note" id="proNotice" hidden>اشتراكك الاحترافي مفعّل بالفعل — <a href="app/" style="color:var(--blue);text-decoration:underline">أدر اشتراكك من التطبيق</a></p>
-    <p class="hint">بالمتابعة توافق على <a href="terms.html" style="color:var(--blue);text-decoration:underline">الشروط</a> و <a href="refund.html" style="color:var(--blue);text-decoration:underline">الاسترجاع</a>. التجربة 7 أيام بدون بطاقة.</p>
-    <p class="hint">بعد الدفع ستعود للتطبيق وتُفعَّل الاحترافية تلقائياً. للاستفسار: <a href="mailto:support@nazzam.app" style="color:var(--blue)">support@nazzam.app</a></p>
+    <p class="hint form-note" id="proNotice" hidden data-lp-html="co.pronotice">اشتراكك الاحترافي مفعّل بالفعل — <a href="app/" style="color:var(--blue);text-decoration:underline">أدر اشتراكك من التطبيق</a></p>
+    <p class="hint" data-lp-html="co.agree">بالمتابعة توافق على <a href="terms.html" style="color:var(--blue);text-decoration:underline">الشروط</a> و <a href="refund.html" style="color:var(--blue);text-decoration:underline">الاسترجاع</a>. التجربة 7 أيام بدون بطاقة.</p>
+    <p class="hint" data-lp-html="co.after">بعد الدفع ستعود للتطبيق وتُفعَّل الاحترافية تلقائياً. للاستفسار: <a href="mailto:support@nazzam.app" style="color:var(--blue)">support@nazzam.app</a></p>
   </main>
 
   <footer class="footer"></footer>

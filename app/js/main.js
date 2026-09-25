@@ -48,6 +48,7 @@ import { waitForServerPlan } from './billing.js';
     if(authed === false){
       const splash = document.getElementById('bootSplash');
       if(splash) splash.remove();
+      initLang(); // قبل بوابة الدخول عشان تترسم بلغته المحفوظة (نفس مفتاح اللاندينج)
       openAuthGate();
       return;
     }

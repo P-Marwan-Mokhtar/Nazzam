@@ -1,9 +1,10 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-lp-title="nf.title">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>الصفحة غير موجودة — نَظَّم</title>
+    <script src="landing-head.js"></script>
     <meta name="robots" content="noindex" />
     <meta name="theme-color" content="#ffffff" />
     <link rel="icon" href="/app/icons/favicon.ico" />
@@ -82,18 +83,24 @@
     </style>
   </head>
   <body>
+    <button type="button" id="nfLangBtn" class="lp-lang-btn" aria-label="تغيير اللغة" style="position:fixed;top:16px;inset-inline-start:16px;width:40px;height:40px;display:grid;place-items:center;color:#414d5c;background:#fff;border:1.5px solid #e2e8f0;border-radius:50%;cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a13.5 13.5 0 010 18M12 3a13.5 13.5 0 000 18"/></svg></button>
     <div class="wrap">
-      <img src="/app/img/nazzam-logo.png" alt="نظم" class="logo" width="88" height="88" />
+      <img src="/app/img/nazzam-logo.png" data-lp-alt="nf.logo" alt="نظم" class="logo" width="88" height="88" />
       <div class="code">404</div>
-      <h1>الصفحة غير موجودة</h1>
-      <p>
+      <h1 data-lp="nf.h1">الصفحة غير موجودة</h1>
+      <p data-lp="nf.p">
         يبدو أن الرابط الذي وصلت إليه غير صحيح أو أن الصفحة نُقلت.
         يمكنك العودة إلى الصفحة الرئيسية أو الدخول إلى التطبيق.
       </p>
       <div class="actions">
-        <a href="/" class="btn btn-primary">العودة إلى الرئيسية</a>
-        <a href="/app/" class="btn btn-ghost">الدخول إلى التطبيق</a>
+        <a href="/" class="btn btn-primary" data-lp="nf.home">العودة إلى الرئيسية</a>
+        <a href="/app/" class="btn btn-ghost" data-lp="nf.app">الدخول إلى التطبيق</a>
       </div>
     </div>
+    <script type="module">
+      import { getLandingLang, applyLandingLang, toggleLandingLang } from '/landing-i18n.js';
+      applyLandingLang(getLandingLang());
+      document.getElementById('nfLangBtn')?.addEventListener('click', toggleLandingLang);
+    </script>
   </body>
 </html>
