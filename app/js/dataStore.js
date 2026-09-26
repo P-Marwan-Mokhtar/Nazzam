@@ -1008,6 +1008,29 @@ export async function trySyncPending(quiet = false){
     markPendingSync(false);
     return;
   }
+  // حارس الكتابة فوق جهاز آخر (نفس حارس flushPendingSave — كان هذا المسار
+  // يرفع عميانيًا عند رجوع النت فيمسح شغل جهاز آخر حُفظ أثناء الانقطاع):
+  // سيرفر أحدث من آخر مزامنة ومحتواه مختلف فعلًا = تعارض حقيقي، لا رفع —
+  // نحتفظ بالمعلّق لمعالجته عند الإقلاع (مقارنة محتوى كاملة هناك) بدل المسح
+  // الصامت. (المحتوى المطابق يمر عاديًا — مجرد تحديث طوابع.)
+  try{
+    const lastTs = getLastServerTs();
+    if(lastTs > 0 && supabaseClient){
+      const { data: srv, error: srvErr } = await supabaseClient
+        .from('user_data')
+        .select('data,updated_at')
+        .eq('user_id', currentUserId)
+        .maybeSingle();
+      if(!srvErr && srv && srv.updated_at && srv.data){
+        const srvMs = new Date(srv.updated_at).getTime();
+        if(isFinite(srvMs) && srvMs > lastTs && contentHashOf(srv.data) !== stateContentHash()){
+          stashConflictCopy(JSON.parse(JSON.stringify(state)));
+          showToast('يوجد نسخة أحدث على جهاز آخر — أعد تحميل الصفحة قبل الحفظ حتى لا يضيع شغلك');
+          return; // العلم يفضل مرفوعًا؛ يُحسم عند الإقلاع التالي
+        }
+      }
+    }
+  }catch(guardErr){}
   try{
     await pushToServer();
     warnedNoServer = false;
