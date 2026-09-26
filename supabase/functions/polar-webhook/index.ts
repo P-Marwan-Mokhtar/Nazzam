@@ -162,7 +162,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ ok: true, ignored: true });
     }
 
-    const grantTypes = ["subscription.active"];
+    const grantTypes = ["subscription.active", "subscription.created"];
     const syncTypes = ["subscription.updated"];
     const cancelTypes = ["subscription.canceled"];
     const revokeTypes = ["subscription.revoked", "order.refunded", "refund.created"];
@@ -226,7 +226,12 @@ Deno.serve(async (req) => {
     }
 
     // منح/مزامنة: الدفع المتكرر يُمدَّد من أبعد نقطة —
-    // دفعة مبكرة تُضاف لنهاية المدة القائمة بدل الكتابة فوقها وضياع قيمتها
+    // دفعة مبكرة تُضاف لنهاية المدة القائمة بدل الكتابة فوقها وضياع قيمتها.
+    // created بحالة غير مفعّلة (incomplete) تُتجاهل بانتظار active — لا منح مبكر.
+    const grantStatus = typeof data.status === "string" ? data.status : "active";
+    if (type === "subscription.created" && !["active", "trialing"].includes(grantStatus)) {
+      return jsonResponse({ ok: true, ignored: true });
+    }
     let baseMs = Date.now();
     if (existing && typeof existing.current_period_end === "string") {
       const curEnd = new Date(existing.current_period_end).getTime();
@@ -247,6 +252,7 @@ Deno.serve(async (req) => {
       current_period_end: finalPeriodEnd,
     });
     if (upsertErr) throw upsertErr;
+    console.log(`polar-webhook: granted pro user=${userId} cycle=${cycle} event=${type}`);
 
     return jsonResponse({ ok: true, plan: "pro", cycle });
   } catch (e) {
