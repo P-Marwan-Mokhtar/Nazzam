@@ -124,10 +124,10 @@ async function saveRecurrence(){
   // خواص القالب (لو الاسم مطابق لقالب) تُقرأ من القالب الحي وقت الحقن.
   if(newDays.length === 0){
     delete state.recurringTasks[taskName];
-    showToast('تم إلغاء تكرار المهمة');
+    showToast(t('rec.cleared'));
   } else {
     state.recurringTasks[taskName] = newDays;
-    showToast('تم حفظ تكرار المهمة');
+    showToast(t('rec.saved'));
   }
 
   removeStaleRecurringInstances(taskName, newDays);

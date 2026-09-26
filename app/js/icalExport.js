@@ -5,6 +5,7 @@
 // ============================================================
 
 import { addDays, fromISO, parseDurationToMinutes, toISO, todayStr } from './utils.js';
+import { t } from './i18n.js';
 import { showToast, state } from './state.js';
 
 const DEFAULT_EVENT_DURATION_MIN = 30;
@@ -107,7 +108,7 @@ export function exportCalendarAsICS(){
     lines.push('END:VCALENDAR');
 
     if(eventCount === 0){
-      showToast('لا توجد مهام لتصديرها');
+      showToast(t('ics.empty'));
       return;
     }
 
@@ -124,6 +125,6 @@ export function exportCalendarAsICS(){
     showToast(`تم تصدير ${eventCount} مهمة لملف تقويم بنجاح`);
   }catch(e){
     console.error('iCal export failed:', e);
-    showToast('حدث خطأ أثناء تصدير ملف التقويم');
+    showToast(t('ics.fail'));
   }
 }

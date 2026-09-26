@@ -54,14 +54,14 @@ import { waitForServerPlan } from './billing.js';
     }
     document.getElementById('app').style.display = '';
     if(authed === 'offline'){
-      showToast('تعذّر التحقق من الاتصال بالخادم، يعمل التطبيق حاليًا بنسخة محلية');
+      showToast(t('app.offline_boot'));
     }
     await startApp();
   }catch(e){
     // حدود خطأ عند الإقلاع: أي استثناء غير متوقع هنا كان بيسيب شاشة فاضية تمامًا
     // من غير أي رسالة — بنسجل الخطأ ونعرض رسالة واضحة بدل موت صامت.
     console.error('فشل تهيئة التطبيق:', e);
-    showToast('حدث خطأ أثناء تشغيل التطبيق، جرّب تحديث الصفحة');
+    showToast(t('app.boot_fail'));
   }
 
   // لو النت رجع والتطبيق لسه مفتوح (من غير ما المستخدم يعمل reload)،
@@ -94,6 +94,9 @@ async function startApp(){
     if(sideNavEl && localStorage.getItem('nazam-side-nav') === 'collapsed') sideNavEl.classList.add('collapsed');
   }catch(e){}
 
+  // اللغة أولًا قبل أي نص يظهر للمستخدم — loadData نفسها قد تعرض توستات
+  // (تعارض/أوفلاين) وكانت تظهر دائمًا بالعربية لأن التهيئة كانت بعدها.
+  initLang();
   // مهم: نجيب بيانات المستخدم الحقيقية الأول قبل أي render، عشان مايبقاش
   // فيه أي لحظة (ولو صغيرة) الشاشة بترسم فيها بحالة فاضية افتراضية. لو المستخدم
   // تفاعل مع التطبيق (زي إضافة مهمة) في اللحظة دي، كان بيتسجّل فوق الحالة الفاضية
@@ -109,7 +112,6 @@ async function startApp(){
   // التقاط كتابة تبويب آخر — ضد ضياع البيانات عند الريستارت المفاجئ.
   armPersistenceGuards();
 
-  initLang(); // تهيئة اللغة المحفوظة
   applyTheme(); // نطبّق الثيم المحفوظ (themeName + darkMode) قبل أول رسم
   render();
   // نمسح شاشة التحميل (اللوجو + النقاط) بعد ما أول render يخلص فعليًا،
