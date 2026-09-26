@@ -16,6 +16,24 @@
     navigator.serviceWorker.addEventListener("controllerchange", function () {
       window.location.reload();
     });
+
+    // فحص استباقي للتحديثات: المتصفح بيفحص SW جديد مع تحميل الصفحة بس،
+    // وتطبيق الموبايل المثبت بيفضل مفتوح/معلّق لأيام من غير تحميل — فيفضل
+    // على نسخة قديمة (ومنطق مزامنة قديم يمسح شغل الأجهزة المحدّثة).
+    // فمع كل رجوع للتطبيق أو رجوع النت بنطلب فحصًا صريحًا؛ ولو فيه جديد
+    // بيتثبت (skipWaiting) والـ controllerchange اللي فوق بيعيد التحميل.
+    function checkSwUpdate() {
+      try {
+        navigator.serviceWorker.getRegistration().then(function (reg) {
+          if (reg) reg.update().catch(function () {});
+        });
+      } catch (e) {}
+    }
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") checkSwUpdate();
+    });
+    window.addEventListener("focus", checkSwUpdate);
+    window.addEventListener("online", checkSwUpdate);
   } catch (e) {
     console.warn("تعذّر تسجيل Service Worker:", e);
   }
