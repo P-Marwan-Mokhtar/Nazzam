@@ -3,6 +3,7 @@
 // ============================================================
 
 import { supabaseClient } from './config.js';
+import { t } from './i18n.js';
 import { detectTimezone, todayStr, uid } from './utils.js';
 import { LOCAL_BACKUP_KEY, BACKUP_OWNER_KEY, LAST_SERVER_TS_KEY, PENDING_SYNC_KEY, THEME_PREF_KEY, showToast, state, ui } from './state.js';
 import { currentUserId, ensureAuth } from './auth.js';
@@ -55,10 +56,10 @@ export function exportDataAsJSON(){
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    showToast('تم تصدير نسخة احتياطية بنجاح');
+    showToast(t('ds.export_ok'));
   }catch(e){
     console.error('Export failed:', e);
-    showToast('حدث خطأ أثناء تصدير البيانات');
+    showToast(t('ds.export_fail'));
   }
 }
 
@@ -380,11 +381,11 @@ function sanitizeLoadedState(obj){
 export function importDataFromFile(file){
   if(!file) return;
   if(!file.name.toLowerCase().endsWith('.json')){
-    showToast('من فضلك اختر ملف JSON صالح');
+    showToast(t('ds.pick_json'));
     return;
   }
   if(file.size > MAX_IMPORT_SIZE){
-    showToast('حجم الملف كبير جدًا (الحد الأقصى 10 ميجابايت)');
+    showToast(t('ds.file_too_big'));
     return;
   }
   const reader = new FileReader();
@@ -393,11 +394,11 @@ export function importDataFromFile(file){
     try{
       parsed = JSON.parse(e.target.result);
     }catch(err){
-      showToast('الملف تالف أو ليس ملف JSON صحيحًا');
+      showToast(t('ds.bad_json'));
       return;
     }
     if(!isPlainObject(parsed)){
-      showToast('هذا الملف ليس نسخة احتياطية معروفة من التطبيق');
+      showToast(t('ds.unknown_backup'));
       return;
     }
 
@@ -405,24 +406,24 @@ export function importDataFromFile(file){
     if(parsed.__nazzam === EXPORT_MARKER){
       // نسخة مصدّرة من التطبيق الحديث: لازم البصمة والتحقق من المحتوى يعدّوا الأول
       if(!isPlainObject(parsed.data)){
-        showToast('هذا الملف ليس نسخة احتياطية معروفة من التطبيق');
+        showToast(t('ds.unknown_backup'));
         return;
       }
       if(parsed.checksum !== checksumOf(JSON.stringify(parsed.data))){
-        showToast('هذا الملف يبدو تالفًا أو معدّلًا بعد التصدير');
+        showToast(t('ds.tampered'));
         return;
       }
       payload = parsed.data;
     } else if(!isPlausibleBackupShape(payload)){
       // نسخة قديمة مالتصدّرتـش بالبصمة الجديدة: نقبلها بس لو شكلها معروف
-      showToast('هذا الملف ليس نسخة احتياطية معروفة من التطبيق');
+      showToast(t('ds.unknown_backup'));
       return;
     }
 
     // التحقق من نوع كل حقل قبل التطبيق — أي حقل من نوع غلط بيتم رفضه
     const sanitized = sanitizeLoadedState(payload);
     if(!sanitized){
-      showToast('هذا الملف ليس نسخة احتياطية معروفة من التطبيق');
+      showToast(t('ds.unknown_backup'));
       return;
     }
 
@@ -444,10 +445,10 @@ export function importDataFromFile(file){
     // (من غير السطر ده الاستيراد الأوفلاين كان بيفضل محليًا للأبد.)
     markPendingSync(true);
     await flushPendingSave();
-    showToast('تم استيراد البيانات بنجاح');
+    showToast(t('ds.import_ok'));
   };
   reader.onerror = () => {
-    showToast('تعذّرت قراءة الملف');
+    showToast(t('ds.read_fail'));
   };
   reader.readAsText(file);
 }
@@ -645,9 +646,24 @@ export function stateContentHash(){
 
 // بصمة أي لقطة (محلية/سيرفر) بنفس القاعدة — لمقارنة "الأحدث يكسب" بالمحتوى
 // لا بالطوابع وحدها (الطوابع تُسمَّم بإعادة الختم دون تغيير).
+// canonical: ترتيب المفاتيح أبجديًا بعمق — لأن Supabase jsonb يعيد ترتيب
+// المفاتيح عند التخزين، فالمقارنة بترتيب الإدخال كانت تنتج اختلافًا وهميًا
+// (وتعارضًا كاذبًا مع كل تحديث) رغم تطابق المحتوى منطقيًا.
 function contentHashOf(obj){
   try{
-    const s = JSON.stringify(obj, (k, v) => (k === '_savedAt' || k === '_owner' ? undefined : v));
+    const canon = (v) => {
+      if(Array.isArray(v)) return v.map(canon);
+      if(v && typeof v === 'object'){
+        const o = {};
+        Object.keys(v).sort().forEach((k) => {
+          if(k === '_savedAt' || k === '_owner') return;
+          o[k] = canon(v[k]);
+        });
+        return o;
+      }
+      return v;
+    };
+    const s = JSON.stringify(canon(obj));
     let h = 0x811c9dc5;
     for(let i = 0; i < s.length; i++){
       h ^= s.charCodeAt(i);
@@ -666,6 +682,60 @@ function setSyncedHash(h){
     if(h == null) localStorage.removeItem(SYNCED_HASH_KEY);
     else localStorage.setItem(SYNCED_HASH_KEY, h);
   }catch(e){}
+}
+
+// يُستدعى كلما تأكدنا أن الحالة الحالية مطابقة للسيرفر (رفع ناجح أو تنزيل) —
+// فيشفى مؤشر "آخر مزامنة" ويمنع تعارضات وهمية لاحقة مع نفس المحتوى.
+function markSynced(){
+  const h = stateContentHash();
+  if(h !== null) setSyncedHash(h);
+}
+
+// القرار المركزي للتزامن (ثلاثي الأطراف بالمحتوى لا بالطوابع — الطوابع تُختم
+// مع كل حفظ حتى بلا تغيير، فالمقارنة بها وحدها تنتج تعارضات وهمية متكررة):
+//   'equal'    — المحلية والسيرفر متطابقتان: لا رفع ولا تنزيل ولا تنبيه.
+//   'upload'   — السيرفر لم يتحرك منذ آخر مزامنة (أو لا صف له): ارفع المحلية.
+//   'download' — المحلية لم تتغير منذ آخر مزامنة: نزّل السيرفر بصمت.
+//   'conflict' — الطرفان تغيّرا: السيرفر يكسب + أرشفة المحلية + تنبيه واحد.
+// serverData = حمولة data.data من صف السيرفر (أو null لو لا صف).
+function decideSync(localObj, serverData){
+  const lh = contentHashOf(localObj);
+  const synced = getSyncedHash();
+  if(!serverData) return 'upload';
+  const sh = contentHashOf(serverData);
+  if(sh !== null && sh === lh) return 'equal';
+  if(synced !== null && lh !== null && lh === synced) return 'download';
+  if(synced !== null && sh !== null && sh === synced) return 'upload';
+  if(synced === null || lh === null || sh === null){
+    // بلا مرجع مزامنة (جهاز/متصفح جديد أو نسخ ما قبل البصمات): احتياط الطوابع
+    const srv = serverData;
+    const srvRev = (srv && typeof srv._savedAt === 'number' && isFinite(srv._savedAt)) ? srv._savedAt : 0;
+    const loc = localObj;
+    const locRev = (loc && typeof loc._savedAt === 'number' && isFinite(loc._savedAt)) ? loc._savedAt : 0;
+    return (locRev > srvRev) ? 'upload' : 'download';
+  }
+  return 'conflict';
+}
+
+// سحب نسخة السيرفر وتطبيقها (بعد قرار download/conflict): أرشفة اختيارية
+// للمحلية + حفظ محلي + شفاء مؤشر المزامنة + رسم. `toastKey` للتعارض الحقيقي
+// فقط (التنزيل الصامت بلا تنبيه). تُستخدم في loadData/flush/trySync.
+async function adoptServerRow(srv, { stash, toastKey } = {}){
+  // stash: true = أرشف الحالة الحالية / كائن = أرشفه هو (مهم في الإقلاع حيث
+  // الحالة الحالية ليست هي النسخة المهملة بعد — بل backup/local)
+  if(stash) stashConflictCopy(stash === true ? JSON.parse(JSON.stringify(state)) : stash);
+  cancelPendingSave();
+  applyLoadedState(srv.data);
+  await saveLocalBackup();
+  markSynced();
+  trackFileRev();
+  try{
+    const ts = srv.updated_at ? new Date(srv.updated_at).getTime() : 0;
+    if(isFinite(ts) && ts > 0) setLastServerTs(ts);
+  }catch(e){}
+  markPendingSync(false);
+  render();
+  if(toastKey) showToast(t(toastKey));
 }
 
 // بصمة آخر كتابة محلية ناجحة — كاتب الطوارئ يقارن بها ويتخطى الكتابة
@@ -750,7 +820,7 @@ async function saveLocalBackup(){
       if(!warnedQuota){
         warnedQuota = true;
         console.error('فشلت الكتابة في localStorage (غالبًا امتلاء):', e);
-        showToast('مساحة التخزين ممتلئة — احفظ نسخة احتياطية فورًا فقد تضيع بياناتك بعد الإغلاق');
+        showToast(t('ds.quota'));
       }
     }
     return;
@@ -937,8 +1007,8 @@ async function settlePlanAfterLoad(markExpired = true){
   // علَم لمرة واحدة يلتقطه main.js بعد الإقلاع ليفتح الترقية تلقائيًا
   // في لحظة الانتهاء (أهم لحظة تحويل) — ثم يُصفَّر هناك.
   ui.trialJustExpired = markExpired && res.expired;
-  if(res.expired) showToast('انتهت فترتك التجريبية — انتقلت إلى الخطة المجانية');
-  else if(res.trialJustStarted) showToast('بدأت تجربتك المجانية — كل المميزات مفتوحة لمدة ٧ أيام');
+  if(res.expired) showToast(t('ds.trial_expired'));
+  else if(res.trialJustStarted) showToast(t('ds.trial_started'));
   // ختم بيتا جديد يحتاج حفظًا فوريًا (محلي + رفع) حتى تستقر بصمة المزامنة —
   // وإلا ظهر تنبيه "تمت المزامنة" مع كل إقلاع رغم عدم وجود تغيير حقيقي.
   if(res.changed || proLegacyLatched){
@@ -1008,25 +1078,35 @@ export async function trySyncPending(quiet = false){
     markPendingSync(false);
     return;
   }
-  // حارس الكتابة فوق جهاز آخر (نفس حارس flushPendingSave — كان هذا المسار
-  // يرفع عميانيًا عند رجوع النت فيمسح شغل جهاز آخر حُفظ أثناء الانقطاع):
-  // سيرفر أحدث من آخر مزامنة ومحتواه مختلف فعلًا = تعارض حقيقي، لا رفع —
-  // نحتفظ بالمعلّق لمعالجته عند الإقلاع (مقارنة محتوى كاملة هناك) بدل المسح
-  // الصامت. (المحتوى المطابق يمر عاديًا — مجرد تحديث طوابع.)
+  // حارس الكتابة فوق جهاز آخر عبر decideSync: سيرفر متحرك ومختلف فعلًا =
+  // سحبه وتطبيقه (تعارض: أرشفة + تنبيه / تنزيل صامت) بدل الرفع الأعمى.
+  // (المحتوى المطابق يمر عاديًا — مجرد تحديث طوابع.)
+  // توفيرًا للقراءات: الطابع أولًا، والمحتوى الكامل عند الحركة فقط.
   try{
-    const lastTs = getLastServerTs();
-    if(lastTs > 0 && supabaseClient){
-      const { data: srv, error: srvErr } = await supabaseClient
+    if(supabaseClient){
+      const { data: meta, error: metaErr } = await supabaseClient
         .from('user_data')
-        .select('data,updated_at')
+        .select('updated_at')
         .eq('user_id', currentUserId)
         .maybeSingle();
-      if(!srvErr && srv && srv.updated_at && srv.data){
-        const srvMs = new Date(srv.updated_at).getTime();
-        if(isFinite(srvMs) && srvMs > lastTs && contentHashOf(srv.data) !== stateContentHash()){
-          stashConflictCopy(JSON.parse(JSON.stringify(state)));
-          showToast('يوجد نسخة أحدث على جهاز آخر — أعد تحميل الصفحة قبل الحفظ حتى لا يضيع شغلك');
-          return; // العلم يفضل مرفوعًا؛ يُحسم عند الإقلاع التالي
+      let moved = false;
+      if(!metaErr && meta && meta.updated_at){
+        const srvMs = new Date(meta.updated_at).getTime();
+        moved = isFinite(srvMs) && getLastServerTs() > 0 && srvMs > getLastServerTs();
+      }
+      if(moved){
+        const { data: srv, error: srvErr } = await supabaseClient
+          .from('user_data')
+          .select('data,updated_at')
+          .eq('user_id', currentUserId)
+          .maybeSingle();
+        if(!srvErr && srv && srv.data){
+          const verdict = decideSync(state, srv.data);
+          if(verdict === 'conflict' || verdict === 'download'){
+            await adoptServerRow(srv, verdict === 'conflict'
+              ? { stash: true, toastKey: quiet ? undefined : 'sync.newer_elsewhere' } : undefined);
+            return;
+          }
         }
       }
     }
@@ -1040,7 +1120,7 @@ export async function trySyncPending(quiet = false){
     // (العلة المُبلغ عنها: العلم كان يُعلَّم مع كل إغلاق).
     const h = stateContentHash();
     if(!quiet && (h === null || h !== getSyncedHash())){
-      showToast('تمت مزامنة التغييرات التي أجريتها دون اتصال بالإنترنت بنجاح');
+      showToast(t('sync.offline_done'));
     }
     if(h !== null) setSyncedHash(h);
   }catch(e){
@@ -1058,7 +1138,7 @@ export async function loadData(skipAuthCheck){
     // أوفلاين: بنرجّع آخر نسخة محلية بس لو هي ملك مستخدم كان مسجّل دخوله فعلًا.
     // النسخ اللي اتكتبت بعد تسجيل خروج (owner فاضي) ما نعرضهاش كبيانات حساب —
     // وإلا جلسة وهمية فاضية ممكن تتلصق فوق بيانات الحساب الحقيقي عند أول دخول بعدها.
-    showToast('تعذّر الاتصال بالخادم، يعمل التطبيق حاليًا بنسخة محلية');
+    showToast(t('sync.offline_mode'));
     if(getBackupOwner()){
       const offBackup = await loadLocalBackup();
       // أوفلاين بلا جلسة (currentUserId فارغ): نطابق ختم الملف مع ختم الملكية
@@ -1075,10 +1155,10 @@ export async function loadData(skipAuthCheck){
   // دخوله على الجهاز ده بعد التحديث (وسيرفر بيغلب المحلي في أي تناقض)
   if(getBackupOwner() === null) setBackupOwner(currentUserId);
 
-  // لو فيه تعديلات محلية اتعملت من غير نت ولسه ماوصلتش للسيرفر: منجيبش نسخة
-  // السيرفر (القديمة) دلوقتي، عشان منكتبش فوق التعديلات دي. الأول نستخدم
-  // النسخة المحلية كما هي، ونحاول نرفعها للسيرفر؛ لو نجحنا يبقى الاتنين اتزامنوا،
-  // ولو فشلنا (لسه أوفلاين فعليًا) هنفضل نستخدم المحلية ونعيد المحاولة تاني بعدين.
+  // لو فيه تعديلات محلية اتعملت من غير نت ولسه ماوصلتش للسيرفر: القرار عبر
+  // decideSync (ثلاثي الأطراف بالمحتوى) — لا رفع أعمى يمسح شغل جهاز آخر،
+  // ولا تنزيل أعمى يمسح المعلّق. ولو تعذّر الوصول للسيرفر (أوفلاين فعليًا)
+  // هنفضل نستخدم المحلية ونعيد المحاولة تاني بعدين.
   if(hasPendingSync()){
     const backup = await loadLocalBackup();
     // بنرفع التعديلات المعلّقة بس لو مكتوبة باسم الحساب نفسه —
@@ -1086,38 +1166,20 @@ export async function loadData(skipAuthCheck){
     // + ختم الحمولة: نسخة تبويب/حساب آخر (كاتب طوارئ واضح) تُرفض حتى لو
     // مفتاح الملكية المشترك يوحي بغير ذلك — ضد تلوث الحسابات.
     if(backup && getBackupOwner() === currentUserId && backupOwnedBy(backup, currentUserId)){
-      // علة التزامن بين جهازين: الرفع الأعمى هنا كان يمسح شغل جهاز آخر —
-      // المعلّق قد يكون أقدم من صف السيرفر (تعديل أوفلاين قديم + جهاز ثانٍ
-      // حفظ بعده). فنقارن بالمحتوى أولًا: سيرفر أحدث ومختلف = تعارض،
-      // والسيرفر يكسب مع أرشفة المحلية بدل مسحها بصمت.
       let serverRow = null;
-      let serverNewer = false;
       try{
         if(supabaseClient){
           const { data, error } = await supabaseClient
             .from('user_data').select('data,updated_at').eq('user_id', currentUserId).maybeSingle();
-          if(!error && data && data.data){
-            serverRow = data;
-            const srv = data.data;
-            const srvRev = (typeof srv._savedAt === 'number' && isFinite(srv._savedAt)) ? srv._savedAt : 0;
-            const locRev = (typeof backup._savedAt === 'number' && isFinite(backup._savedAt)) ? backup._savedAt : 0;
-            if(srvRev > locRev && contentHashOf(srv) !== contentHashOf(backup)) serverNewer = true;
-          }
+          if(!error && data && data.data) serverRow = data;
         }
       }catch(e){ serverRow = null; }
-      if(serverRow && serverNewer){
-        stashConflictCopy(backup);
-        cancelPendingSave();
-        applyLoadedState(serverRow.data);
-        await saveLocalBackup();
-        trackFileRev();
+      const verdict = serverRow ? decideSync(backup, serverRow.data) : 'upload';
+      if(verdict === 'conflict' || verdict === 'download' || verdict === 'equal'){
+        // السيرفر يكسب (أو متطابقان): تنزيل صامت إلا التعارض الحقيقي بتنبيه واحد
+        await adoptServerRow(serverRow, verdict === 'conflict'
+          ? { stash: backup, toastKey: 'sync.conflict_applied' } : undefined);
         serverBootLoadedFor = currentUserId; // الجلسة رأت صف السيرفر لهذا الحساب
-        try{
-          const ts = serverRow.updated_at ? new Date(serverRow.updated_at).getTime() : 0;
-          if(isFinite(ts) && ts > 0) setLastServerTs(ts);
-        }catch(e){}
-        markPendingSync(false);
-        showToast('وجدنا نسخة أحدث على جهاز آخر — اعتمدنا الأحدث واحتفظنا بنسختك احتياطيًا');
         await settlePlanAfterLoad();
         return;
       }
@@ -1147,57 +1209,34 @@ export async function loadData(skipAuthCheck){
       // عشان التعديلات اللي لسه متسجّلتش (وكانت هتترفع فوق سطر الـ upsert ده)
       // متبقاش عالقة ترفع نسخة متآكلة؛ وبعد التطبيق بنحفظ نسخة نظيفة مطابقة.
       cancelPendingSave();
-      // الأحدث يكسب (ملف-ضد-ملف) بمرجع سيرفر: updated_at ساعة قاعدة البيانات
-      // (trigger) لا ساعات الأجهزة — فجهاز بساعة متقدمة خطأً لا يفرض نسخة عتيقة
-      // فوق شغل جهاز آخر. ملحوظة صدق: مقارنة _savedAt تبقى احتياطًا للأجهزة
-      // القديمة بلا ختم مرجع، وتقريبية بين ساعتين مختلفتين.
-      const serverUpdatedAtMs = (data.updated_at && isFinite(new Date(data.updated_at).getTime())) ? new Date(data.updated_at).getTime() : 0;
-      let serverRev = (data.data && typeof data.data._savedAt === 'number' && isFinite(data.data._savedAt)) ? data.data._savedAt : 0;
-      // صف قديم بلا ختم ملف: الطابع السيرفر مرجع أصدق من الصفر
-      if(!serverRev && serverUpdatedAtMs) serverRev = serverUpdatedAtMs;
+      // القرار عبر decideSync (ثلاثي الأطراف بالمحتوى) بدل مقارنة الطوابع —
+      // الطوابع تُختم مع كل حفظ فكانت تنتج "أحدثية" وهمية وتعارضات وهمية.
       const local = await loadLocalBackup();
-      const localRev = (local && typeof local._savedAt === 'number' && isFinite(local._savedAt)) ? local._savedAt : 0;
       const ownBackup = !!(local && getBackupOwner() === currentUserId);
-      // نسخة بلا ختم مصدر مع مفتاح ملكية قائم = بقايا ما قبل الختم (أو أجنبية) —
-      // لا تكسب مقارنة الحداثة أمام صف السيرفر أبدًا؛ السيرفر مرجعها. مسار المعلّق
-      // (وله علمه الخاص) هو الوحيد الذي يقبل غير المختومة — فلا ضياع لشغل حقيقي.
-      const localStamped = !!(local && typeof local._owner === 'string' && local._owner);
-      // علة التبديل بين الحسابات: الختم وحده لا يكفي — ختم حساب آخر مع خانة ملكية
-      // مقلوبة لصالح الجلسة الحالية (حفظ بجلسة مخالفة للحالة) كان يمر هنا فيُطبَّق
-      // ملف أجنبي تحت الجلسة الحالية (ثم يُرفض دفعه — بلا تلوث سيرفر لكن بواجهة
-      // مضللة). الختم يجب أن يطابق الجلسة نفسها حرفيًا.
-      const localStampMatches = !!(local && local._owner === currentUserId);
-      const effectiveLocalRev = (ownBackup && localStampMatches) ? localRev : 0;
-      let useLocal = ownBackup && effectiveLocalRev > serverRev;
-      const nowMs = Date.now();
-      if(ownBackup && localRev > nowMs + SKEW_TOL_MS && !(serverRev > nowMs + SKEW_TOL_MS)){
-        // نسختنا مختومة بتاريخ مستقبلي مستحيل (ساعة الجهاز كانت متقدمة لحظة
-        // الكتابة) — لا تفرض نفسها فوق نسخة سيرفر سليمة التوقيت.
-        useLocal = false;
-      } else if(serverUpdatedAtMs > 0 && getLastServerTs() > 0 && serverUpdatedAtMs > getLastServerTs()){
-        // السيرفر تحرّك بساعاته هو منذ آخر مزامنة (جهاز آخر كتب فعلًا) —
-        // السيرفر يكسب مهما ادّعت طوابع الملفات بساعات أجهزتها.
-        useLocal = false;
+      // علة التبديل بين الحسابات: نسخة مختومة لغير الجلسة (أو خانة مخالفة)
+      // لا تكسب أبدًا — تُؤرشف لو مختلفة بدل تطبيقها أو رفعها.
+      const usableLocal = (ownBackup && local && local._owner === currentUserId) ? local : null;
+      if(local && !usableLocal && contentHashOf(local) !== contentHashOf(data.data)){
+        stashConflictCopy(local);
       }
-      if(useLocal){
+      const serverUpdatedAtMs = (data.updated_at && isFinite(new Date(data.updated_at).getTime())) ? new Date(data.updated_at).getTime() : 0;
+      let verdict;
+      if(!usableLocal){
+        verdict = 'download';
+      } else {
+        verdict = decideSync(local, data.data);
+      }
+      if(verdict === 'upload'){
         applyLoadedState(local);
         trackFileRev();
         serverBootLoadedFor = currentUserId; // المحلية المعتمدة من نسب الجهاز نفسه
         markPendingSync(true);
         await flushPendingSave(); // ارفع الأحدث فورًا بدل انتظار الـ debounce
       } else {
-        // تغليب السيرفر: لو المحلية مختلفة فعلًا عن السيرفر، نحتفظ بها كنسخة
-        // تعارض قبل الكتابة فوقها — وإلا ضاع شغل جهاز آخر/جلسة أخرى بصمت.
-        // (المطابقة الصارمة أيضًا: نسخة أجنبية الختم لا تُؤرشف هنا.)
-        if(ownBackup && localStampMatches && local && localRev !== serverRev){
-          stashConflictCopy(local);
-          showToast('تم العثور على نسخة أحدث على جهاز آخر، وتم الاحتفاظ بنسخة محلية احتياطية');
-        }
-        applyLoadedState(data.data);
-        await saveLocalBackup(); // حدّث النسخة المحلية بأحدث بيانات من السيرفر
-        trackFileRev();
+        // download/equal بصمت؛ conflict بتنبيه واحد وأرشفة (تمت الأرشفة؟ نعم لو usable)
+        await adoptServerRow(data, verdict === 'conflict' && usableLocal
+          ? { stash: local, toastKey: 'sync.conflict_server' } : undefined);
         serverBootLoadedFor = currentUserId; // الجلسة رأت صف السيرفر لهذا الحساب
-        if(serverUpdatedAtMs) setLastServerTs(serverUpdatedAtMs);
       }
     } else {
       // أول مرة للمستخدم ده: لو عنده بيانات قديمة في localStorage، ارفعها لـ Supabase.
@@ -1293,32 +1332,43 @@ async function flushPendingSave(){
           .maybeSingle();
         if(!emptyGuardErr && emptyGuardRow && emptyGuardRow.data && !isContentEmpty(emptyGuardRow.data)){
           stashConflictCopy(JSON.parse(JSON.stringify(state)));
-          showToast('تم إيقاف حفظ نسخة فارغة فوق بياناتك المحفوظة، وجارٍ استرجاعها من الخادم');
+          showToast(t('sync.empty_blocked'));
           markPendingSync(true);
           await loadData(true);
           return;
         }
       }catch(guardErr){}
     }
-    // حارس الكتابة فوق جهاز آخر: لو السيرفر تحرّك منذ آخر مزامنة ناجحة
-    // (جهاز آخر رفع فعلًا)، لا نرفع فوقه عميانيًا — نُبقي التعديل معلّقًا
-    // ونطلب إعادة تحميل، بدل مسح شغل الجهاز الآخر بصمت (last-writer-wins).
+    // حارس الكتابة فوق جهاز آخر عبر decideSync (ثلاثي الأطراف بالمحتوى):
+    // سيرفر متحرك ومختلف فعلًا = ننزّله (تعارض: أرشفة + تنبيه واحد / مطابق:
+    // بصمت) بدل الرفع فوقه. توفيرًا للقراءات: نفحص updated_at (بضع بايتات)
+    // أولًا، ولا نجلب المحتوى الكامل إلا لو السيرفر تحرك فعلًا.
     // فشل الفحص (أوفلاين) = إكمال الرفع كالمعتاد وترك الخطأ للدفع نفسه.
     try{
-      const lastTs = getLastServerTs();
-      if(lastTs > 0){
-        const { data: srv, error: srvErr } = await supabaseClient
+      if(supabaseClient){
+        const { data: meta, error: metaErr } = await supabaseClient
           .from('user_data')
           .select('updated_at')
           .eq('user_id', currentUserId)
           .maybeSingle();
-        if(!srvErr && srv && srv.updated_at){
-          const srvMs = new Date(srv.updated_at).getTime();
-          if(isFinite(srvMs) && srvMs > lastTs){
-            stashConflictCopy(JSON.parse(JSON.stringify(state)));
-            showToast('يوجد نسخة أحدث على جهاز آخر — أعد تحميل الصفحة قبل الحفظ حتى لا يضيع شغلك');
-            markPendingSync(true);
-            return;
+        let moved = false;
+        if(!metaErr && meta && meta.updated_at){
+          const srvMs = new Date(meta.updated_at).getTime();
+          moved = isFinite(srvMs) && getLastServerTs() > 0 && srvMs > getLastServerTs();
+        }
+        if(moved){
+          const { data: srv, error: srvErr } = await supabaseClient
+            .from('user_data')
+            .select('data,updated_at')
+            .eq('user_id', currentUserId)
+            .maybeSingle();
+          if(!srvErr && srv && srv.data){
+            const verdict = decideSync(state, srv.data);
+            if(verdict === 'conflict' || verdict === 'download'){
+              await adoptServerRow(srv, verdict === 'conflict'
+                ? { stash: true, toastKey: 'sync.conflict_server' } : undefined);
+              return;
+            }
           }
         }
       }
@@ -1332,7 +1382,7 @@ async function flushPendingSave(){
     if(syncedHash !== null) setSyncedHash(syncedHash);
   }catch(e){
     console.error('Save failed:', e);
-    showToast('تعذّر الحفظ على الخادم، تم الحفظ محليًا وسيتم إعادة المحاولة تلقائيًا عند توفر الاتصال');
+    showToast(t('sync.save_fail'));
   }finally{
     saveInFlight = false;
     if(savePending){
@@ -1350,7 +1400,7 @@ export async function saveData(){
   if(!currentUserId){
     if(!warnedNoServer){
       warnedNoServer = true;
-      showToast('تعذّر الحفظ على الخادم (لا يوجد اتصال)، تم الحفظ محليًا فقط');
+      showToast(t('sync.save_offline'));
     }
     return;
   }
