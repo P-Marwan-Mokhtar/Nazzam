@@ -32,6 +32,8 @@ const PUBLISH = [
   'components.js',
   'clarity-loader.js',
   'sw.js',
+  'robots.txt',
+  'sitemap.xml',
   'app',
 ];
 

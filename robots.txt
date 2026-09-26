@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /checkout.html
+Disallow: /app/?billing=
+
+Sitemap: https://nazzam.app/sitemap.xml
