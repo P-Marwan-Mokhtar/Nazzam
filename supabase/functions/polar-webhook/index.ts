@@ -158,11 +158,13 @@ Deno.serve(async (req) => {
     const eventId = typeof evt.id === "string" ? evt.id : "";
 
     // أحداث لا تمنح ولا تسحب — نستلمها لإيقاف إعادة المحاولة فقط
-    if (type === "checkout.updated" || type === "checkout.created" || type === "checkout.expired" || type === "order.paid" || type === "order.created" || type === "order.updated") {
+    if (type === "checkout.updated" || type === "checkout.created" || type === "checkout.expired" || type === "order.created" || type === "order.updated") {
       return jsonResponse({ ok: true, ignored: true });
     }
 
-    const grantTypes = ["subscription.active", "subscription.created"];
+    // order.paid تُمنح أيضًا (احتياط لو أحداث الاشتراكات غير مفعّلة على الـ endpoint،
+    // وتجديدًا للمدد الشهرية) — الـ metadata منسوخة من الـ checkout فتعرّف المستخدم
+    const grantTypes = ["subscription.active", "subscription.created", "order.paid"];
     const syncTypes = ["subscription.updated"];
     const cancelTypes = ["subscription.canceled"];
     const revokeTypes = ["subscription.revoked", "order.refunded", "refund.created"];
@@ -176,7 +178,11 @@ Deno.serve(async (req) => {
       return jsonResponse({ ok: true, ignored: true });
     }
 
-    const subId = typeof data.id === "string" ? data.id : null;
+    const isOrderPaid = type === "order.paid";
+    // في order.paid: data.id هو الطلب، والاشتراك في data.subscription_id
+    const subId = isOrderPaid
+      ? (typeof data.subscription_id === "string" ? data.subscription_id : null)
+      : (typeof data.id === "string" ? data.id : null);
     const customerId = typeof data.customer_id === "string" ? data.customer_id : null;
     const periodEnd = pickPeriodEnd(data);
     const existingCycle = existing && (existing.plan_cycle === "monthly" || existing.plan_cycle === "yearly")
@@ -199,7 +205,9 @@ Deno.serve(async (req) => {
     if (subId && (grantTypes.includes(type) || syncTypes.includes(type) || cancelTypes.includes(type))) {
       base.polar_subscription_id = subId;
     }
-    const orderId = typeof data.order_id === "string" ? data.order_id : null;
+    const orderId = isOrderPaid
+      ? (typeof data.id === "string" ? data.id : null)
+      : (typeof data.order_id === "string" ? data.order_id : null);
     if (orderId) base.polar_order_id = orderId;
 
     if (revokeTypes.includes(type)) {
