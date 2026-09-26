@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "node scripts/build-sw.js && node scripts/minify-js.js",
+  "buildCommand": "node scripts/build.js",
+  "outputDirectory": "public",
   "headers": [
     {
       "source": "/(sw.js|app/sw.js|index.html|app/index.html|privacy.html|terms.html|refund.html|checkout.html|404.html|checkout.js|clarity-loader.js|landing-head.js|landing.js|landing.css|components.js|app/manifest.json)",

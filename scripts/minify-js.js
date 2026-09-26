@@ -16,8 +16,12 @@ const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = path.resolve(__dirname, '..');
+const ROOT = process.env.PUBLISH_DIR
+  ? path.resolve(process.env.PUBLISH_DIR)
+  : path.resolve(__dirname, '..');
 const ESBUILD_VERSION = '0.24.0';
+// ويندوز لا ينفّذ ملفات .cmd بدون shell — والخيار يعمل على لينكس أيضًا
+const SHELL = true;
 
 // ملفات تُصغَّر كوحدات ES (type="module" في HTML)
 const ESM_FILES = [
@@ -91,7 +95,7 @@ function minifyOne(rel, format) {
       '--allow-overwrite',
       `--outfile=${abs}`,
     ],
-    { cwd: ROOT, stdio: 'inherit' }
+    { cwd: ROOT, stdio: 'inherit', shell: SHELL }
   );
 }
 

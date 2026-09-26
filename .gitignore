@@ -8,3 +8,6 @@ Thumbs.db
 # ملفات مؤقتة
 *.log
 supabase/.temp/
+
+# مخرجات البناء المحلية (تُنتَج على Vercel فقط ولا تُرفع)
+public/
