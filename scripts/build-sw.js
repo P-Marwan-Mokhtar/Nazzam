@@ -143,13 +143,18 @@ const swSource =
 '        )\n' +
 '      )\n' +
 '      .then(() => {\n' +
-'        // لو أي ملف من هيكل التطبيق فشل، بنفشّل التثبيت كله (من غير skipWaiting):\n' +
-'        // الـ Service Worker القديم بيفضل شغال بالكاش الكامل بتاعه، والمتصفح بيعيد\n' +
-'        // محاولة التثبيت تلقائيًا بعدين. ده أفضل من Service Worker ناقص ملفات\n' +
-"        // يفضل شغال لحد النشر اللي بعده.\n" +
-'        if (failed.length > 0) {\n' +
-"          throw new Error('precache incomplete: ' + failed.join(', '));\n" +
-'        }\n' +
+'        // التثبيت المرن: لو ملفات فشلت (نت متقطع على الموبايل) بنكمّل بالتخزين\n' +
+'        // الناجح بدل فشل التثبيت كله — الفشل الكامل كان بيعلّق التحديث للأبد\n' +
+'        // فيفضل المستخدم على نسخة قديمة بكود مزامنة قديم يمسح شغل الأجهزة\n' +
+'        // المحدّثة. علامة النقص محفوظة في نفس الكاش للـ activate.\n' +
+'        return caches.open(CACHE_NAME).then((cache) =>\n' +
+'          cache.put(\n' +
+'            new URL(\'./__precache-incomplete__\', self.location.href).href,\n' +
+'            new Response(JSON.stringify({ failed: failed }), {\n' +
+'              headers: { \'Content-Type\': \'application/json\' }\n' +
+'            })\n' +
+'          ).catch(() => {})\n' +
+'        );\n' +
 '      })\n' +
 "      .then(() => self.skipWaiting())\n" +
 '  );\n' +
@@ -158,11 +163,20 @@ const swSource =
 "self.addEventListener('activate', (event) => {\n" +
 '  event.waitUntil(\n' +
 '    caches.keys()\n' +
-'      .then((keys) => Promise.all(\n' +
-'        keys\n' +
-"          .filter((key) => key.startsWith('daily-tasks-shell-') && key !== CACHE_NAME)\n" +
-'          .map((key) => caches.delete(key))\n' +
-'      ))\n' +
+'      .then((keys) => {\n' +
+'        const olds = keys.filter((key) => key.startsWith(\'daily-tasks-shell-\') && key !== CACHE_NAME);\n' +
+'        // لو التخزين الجديد ناقص ملفات، نحتفظ بأحدث كاش قديم كاحتياط للأوفلاين\n' +
+'        // (ترتيب keys() بتاريخ الإنشاء — الأخير هو الأحدث). وإلا نمسح الكل.\n' +
+'        return caches.open(CACHE_NAME).then((cache) =>\n' +
+'          cache.match(new URL(\'./__precache-incomplete__\', self.location.href).href).then((marker) =>\n' +
+'            (marker ? marker.json().catch(() => ({ failed: [] })) : Promise.resolve({ failed: [] })).then((info) => {\n' +
+'              const bad = info && info.failed && info.failed.length;\n' +
+'              const drop = bad ? olds.slice(0, -1) : olds;\n' +
+'              return Promise.all(drop.map((key) => caches.delete(key)));\n' +
+'            })\n' +
+'          )\n' +
+'        );\n' +
+'      })\n' +
 "      .then(() => self.clients.claim())\n" +
 '  );\n' +
 '});\n' +

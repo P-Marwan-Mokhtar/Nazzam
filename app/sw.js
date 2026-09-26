@@ -94,13 +94,18 @@ self.addEventListener('install', (event) => {
         )
       )
       .then(() => {
-        // لو أي ملف من هيكل التطبيق فشل، بنفشّل التثبيت كله (من غير skipWaiting):
-        // الـ Service Worker القديم بيفضل شغال بالكاش الكامل بتاعه، والمتصفح بيعيد
-        // محاولة التثبيت تلقائيًا بعدين. ده أفضل من Service Worker ناقص ملفات
-        // يفضل شغال لحد النشر اللي بعده.
-        if (failed.length > 0) {
-          throw new Error('precache incomplete: ' + failed.join(', '));
-        }
+        // التثبيت المرن: لو ملفات فشلت (نت متقطع على الموبايل) بنكمّل بالتخزين
+        // الناجح بدل فشل التثبيت كله — الفشل الكامل كان بيعلّق التحديث للأبد
+        // فيفضل المستخدم على نسخة قديمة بكود مزامنة قديم يمسح شغل الأجهزة
+        // المحدّثة. علامة النقص محفوظة في نفس الكاش للـ activate.
+        return caches.open(CACHE_NAME).then((cache) =>
+          cache.put(
+            new URL('./__precache-incomplete__', self.location.href).href,
+            new Response(JSON.stringify({ failed: failed }), {
+              headers: { 'Content-Type': 'application/json' }
+            })
+          ).catch(() => {})
+        );
       })
       .then(() => self.skipWaiting())
   );
@@ -109,11 +114,20 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(
-        keys
-          .filter((key) => key.startsWith('daily-tasks-shell-') && key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      ))
+      .then((keys) => {
+        const olds = keys.filter((key) => key.startsWith('daily-tasks-shell-') && key !== CACHE_NAME);
+        // لو التخزين الجديد ناقص ملفات، نحتفظ بأحدث كاش قديم كاحتياط للأوفلاين
+        // (ترتيب keys() بتاريخ الإنشاء — الأخير هو الأحدث). وإلا نمسح الكل.
+        return caches.open(CACHE_NAME).then((cache) =>
+          cache.match(new URL('./__precache-incomplete__', self.location.href).href).then((marker) =>
+            (marker ? marker.json().catch(() => ({ failed: [] })) : Promise.resolve({ failed: [] })).then((info) => {
+              const bad = info && info.failed && info.failed.length;
+              const drop = bad ? olds.slice(0, -1) : olds;
+              return Promise.all(drop.map((key) => caches.delete(key)));
+            })
+          )
+        );
+      })
       .then(() => self.clients.claim())
   );
 });
