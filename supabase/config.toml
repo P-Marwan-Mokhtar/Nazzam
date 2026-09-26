@@ -39,3 +39,15 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/cancel-subscription/deno.json"
 entrypoint = "./functions/cancel-subscription/index.ts"
+
+[functions.polar-checkout]
+enabled = true
+verify_jwt = false
+import_map = "./functions/polar-checkout/deno.json"
+entrypoint = "./functions/polar-checkout/index.ts"
+
+[functions.polar-webhook]
+enabled = true
+verify_jwt = false
+import_map = "./functions/polar-webhook/deno.json"
+entrypoint = "./functions/polar-webhook/index.ts"
