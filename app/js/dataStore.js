@@ -532,6 +532,10 @@ function applyLoadedState(parsed, opts){
     }
   }
   applyTheme();
+  // بصمة المحتوى المطبَّق: أي كاتب لاحق (خصوصًا طوارئ الإغلاق) يقارن بها،
+  // فإعادة ختم نسخة لم تتغير لا ترفع مراجعتها ولا تجعل القديم يبدو أحدث —
+  // (تسميم الطوابع الذي كان يقلب "الأحدث يكسب" ضد الشغل الجديد).
+  lastWrittenHash = stateContentHash();
 }
 
 // ملكية النسخة المحلية: بتتسجل مع كل كتابة عشان نعرف بعدين النسخة دي
@@ -636,8 +640,14 @@ const SYNCED_HASH_KEY = 'habit-data-synced-hash-v1';
 // مع كل حفظ). FNV-1a + الطول: كافية لمقارنة "هل تغيّر شيء؟" — ليست توقيعًا أمنيًا.
 // مُصدَّرة للاختبارات فقط (الاستخدام الإنتاجي داخلي).
 export function stateContentHash(){
+  return contentHashOf(state);
+}
+
+// بصمة أي لقطة (محلية/سيرفر) بنفس القاعدة — لمقارنة "الأحدث يكسب" بالمحتوى
+// لا بالطوابع وحدها (الطوابع تُسمَّم بإعادة الختم دون تغيير).
+function contentHashOf(obj){
   try{
-    const s = JSON.stringify(state, (k, v) => (k === '_savedAt' || k === '_owner' ? undefined : v));
+    const s = JSON.stringify(obj, (k, v) => (k === '_savedAt' || k === '_owner' ? undefined : v));
     let h = 0x811c9dc5;
     for(let i = 0; i < s.length; i++){
       h ^= s.charCodeAt(i);
@@ -1053,6 +1063,41 @@ export async function loadData(skipAuthCheck){
     // + ختم الحمولة: نسخة تبويب/حساب آخر (كاتب طوارئ واضح) تُرفض حتى لو
     // مفتاح الملكية المشترك يوحي بغير ذلك — ضد تلوث الحسابات.
     if(backup && getBackupOwner() === currentUserId && backupOwnedBy(backup, currentUserId)){
+      // علة التزامن بين جهازين: الرفع الأعمى هنا كان يمسح شغل جهاز آخر —
+      // المعلّق قد يكون أقدم من صف السيرفر (تعديل أوفلاين قديم + جهاز ثانٍ
+      // حفظ بعده). فنقارن بالمحتوى أولًا: سيرفر أحدث ومختلف = تعارض،
+      // والسيرفر يكسب مع أرشفة المحلية بدل مسحها بصمت.
+      let serverRow = null;
+      let serverNewer = false;
+      try{
+        if(supabaseClient){
+          const { data, error } = await supabaseClient
+            .from('user_data').select('data,updated_at').eq('user_id', currentUserId).maybeSingle();
+          if(!error && data && data.data){
+            serverRow = data;
+            const srv = data.data;
+            const srvRev = (typeof srv._savedAt === 'number' && isFinite(srv._savedAt)) ? srv._savedAt : 0;
+            const locRev = (typeof backup._savedAt === 'number' && isFinite(backup._savedAt)) ? backup._savedAt : 0;
+            if(srvRev > locRev && contentHashOf(srv) !== contentHashOf(backup)) serverNewer = true;
+          }
+        }
+      }catch(e){ serverRow = null; }
+      if(serverRow && serverNewer){
+        stashConflictCopy(backup);
+        cancelPendingSave();
+        applyLoadedState(serverRow.data);
+        await saveLocalBackup();
+        trackFileRev();
+        serverBootLoadedFor = currentUserId; // الجلسة رأت صف السيرفر لهذا الحساب
+        try{
+          const ts = serverRow.updated_at ? new Date(serverRow.updated_at).getTime() : 0;
+          if(isFinite(ts) && ts > 0) setLastServerTs(ts);
+        }catch(e){}
+        markPendingSync(false);
+        showToast('وجدنا نسخة أحدث على جهاز آخر — اعتمدنا الأحدث واحتفظنا بنسختك احتياطيًا');
+        await settlePlanAfterLoad();
+        return;
+      }
       applyLoadedState(backup);
       trackFileRev();
       serverBootLoadedFor = currentUserId; // الجلسة رأت نسخة هذا الحساب — الدفع اللاحق معلوم النسب لا أعمى

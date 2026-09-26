@@ -986,7 +986,7 @@ en: {
   'day.prev': 'Previous day',
   'day.next': 'Next day',
   'day.go_today': 'Back to today',
-  'day.empty_today': 'Your day is still empty — start positively \u2600\uFE0F',
+  'day.empty_today': 'Your day is still empty — start positively',
   'day.empty_past': 'No tasks recorded for this day',
   'day.empty_hint_today': 'Type a task above, or open the list and pick from it.',
   'day.empty_hint_past': 'No tasks available — you can pick another day from the calendar.',
