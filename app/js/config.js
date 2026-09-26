@@ -20,10 +20,10 @@ export const TURNSTILE_SITE_KEY = '0x4AAAAAAD-WN3zH063FV-FK';
 // حافظ على التفعيل ده دائمًا — إيقافه يرجّع الحماية للعميل وحده.
 export const AUTH_RATE_LIMIT_URL = `${SUPABASE_URL}/functions/v1/auth-rate-limit`;
 
-// Edge Function الخاصة بإنشاء عملية دفع Paymob (بوابة واحدة — Paymob):
-// تنشئ Intention بالمفتاح السري وترجع رابط صفحة Paymob المستضافة.
-// بلا مفاتيح مضبوطة ترجع 501 (not_configured) — الواجهة تعرض تنبيه "قريبًا".
-export const CREATE_CHECKOUT_URL = `${SUPABASE_URL}/functions/v1/paymob-checkout`;
+// Edge Function الخاصة بإنشاء جلسة دفع Polar (البوابة الحالية):
+// تستقبل الدورة وتُرجع رابط صفحة Polar المستضافة (المنتجات والمبالغ من السيرفر).
+// بلا مفاتيح/منتجات مضبوطة ترجع 501 (not_configured) — الواجهة تعرض تنبيه "قريبًا".
+export const CREATE_CHECKOUT_URL = `${SUPABASE_URL}/functions/v1/polar-checkout`;
 
 // Edge Function الخاصة بإلغاء تجديد الاشتراك (إدارة Pro — v2):
 // تحوّل الحالة لـ canceled مع بقاء المدة المدفوعة — بلا رد أموال هنا.

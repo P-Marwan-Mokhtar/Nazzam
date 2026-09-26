@@ -80,9 +80,9 @@ import { waitForServerPlan } from './billing.js';
 async function startApp(){
   applyHashToState(); // نظبط الشاشة الحالية (إحصائيات/أسبوعي/جدول زمني) حسب الرابط قبل أول render، عشان منعملش وميض لمهام اليوم الأول ثم نتنقل
   const shortcutView = consumeShortcutViewParam(); // Shortcuts الـ PWA (manifest.json): ?view=stats أو ?view=calendar — بنحولهم للشاشة الصح عند بدء التطبيق
-  // الفوترة (Paymob): نية دفع من checkout.html (#checkout=+نية محلية) تُستهلك
-  // مرة واحدة وتُفتح في مودال الترقية بعد أول render؛ ورجوع Paymob
-  // (?billing=paymob) يُستهلك مرة واحدة ويُنتظر تأكيد الويبهوك بعد استقرار الواجهة.
+  // الفوترة (Polar): نية دفع من checkout.html (#checkout=+نية محلية) تُستهلك
+  // مرة واحدة وتُفتح في مودال الترقية بعد أول render؛ ورجوع البوابة
+  // (?billing=polar) يُستهلك مرة واحدة ويُنتظر تأكيد الويبهوك بعد استقرار الواجهة.
   const pendingCycle = consumePendingCheckout();
   if(pendingCycle) ui.pendingCheckoutCycle = pendingCycle;
   if(consumeBillingReturn()) ui.billingReturn = true;
@@ -134,7 +134,7 @@ async function startApp(){
     setBillingCycle(c);
     openUpgrade();
   } else if(ui.billingReturn){
-    // عودة من Paymob: ننتظر تأكيد الويبهوك (مصدر الحقيقة) ثم نعلن النتيجة
+    // عودة من البوابة: ننتظر تأكيد الويبهوك (مصدر الحقيقة) ثم نعلن النتيجة
     ui.billingReturn = false;
     handleBillingReturn();
   }
@@ -651,7 +651,7 @@ async function startApp(){
   }
 }
 
-// العودة من بوابة Paymob (?billing=paymob): التفعيل يحدث حصرًا عبر الويبهوك على
+// العودة من بوابة الدفع (?billing=polar): التفعيل يحدث حصرًا عبر الويبهوك على
 // السيرفر — هنا ننتظر نتيجته (حتى ٣٠ ثانية) ثم نعلنها ونعيد الرسم.
 // لا يُمنح Pro محليًا أبدًا في هذا المسار.
 async function handleBillingReturn(){

@@ -30,11 +30,11 @@ export function applyHashToState(){
 }
 
 // ------------------------------------------------------------
-// الفوترة (بوابة واحدة — Paymob):
+// الفوترة (البوابة الحالية — Polar، مع توافق عودات Paymob القديمة):
 // - checkout.html تحوّل إلى app/#checkout=monthly|yearly مع نية محفوظة
 //   (nazam-pending-plan) — تُستهلك مرة واحدة: تُقرأ الدورة، تُمسح النية،
 //   ويُنظَّف الرابط (بلا أثر في تاريخ Back).
-// - بعد الدفع تعود Paymob إلى app/?billing=paymob (مع تفاصيل العملية) —
+// - بعد الدفع تعود البوابة إلى app/?billing=polar (وقديَمًا ?billing=paymob) —
 //   تُستهلك مرة واحدة وmain.js ينتظر تأكيد الويبهوك عبر waitForServerPlan.
 // - احتياط علَم الدفع المعلّق (nazam-pending-payment من billing.js): لو
 //   الرابط العائد تشوّه وضاعت علامته، العلَم الطازج + أي query يكفيان
@@ -71,7 +71,8 @@ export function consumeBillingReturn(){
   const params = new URLSearchParams(location.search);
   let found = false;
   if(params.get('tap_id')){ params.delete('tap_id'); found = true; } // توافق قديم
-  if(params.get('billing') === 'paymob'){ params.delete('billing'); found = true; }
+  if(params.get('billing') === 'paymob'){ params.delete('billing'); found = true; } // توافق Paymob
+  if(params.get('billing') === 'polar'){ params.delete('billing'); found = true; }
   // علَم معلّق طازج + أي query عائد من البوابة = رجوع (يغطي تشويه الروابط).
   // بلا query (فتح عادي بعد إجهاض الدفع) = لا انتظار ولا إزعاج.
   if(!found){

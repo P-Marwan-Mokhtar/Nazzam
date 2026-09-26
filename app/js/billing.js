@@ -1,8 +1,8 @@
 // ============================================================
-// billing.js — طبقة الفوترة في التطبيق (بوابة واحدة — Paymob)
+// billing.js — طبقة الفوترة في التطبيق (البوابة الحالية — Polar)
 //
 // القاعدة الذهبية: العميل يطلب ويعرض فقط — المنح يحدث حصرًا عبر
-// paymob-webhook على السيرفر (بعد تحقق بصمة HMAC). أي خطة تُقرأ من
+// polar-webhook على السيرفر (بعد تحقق توقيع Standard Webhooks). أي خطة تُقرأ من
 // جدول subscriptions (السيرفر مصدر الحقيقة) وتصحَّح محليًا عند كل تحميل.
 // ============================================================
 
@@ -12,9 +12,8 @@ import { t, getLang } from './i18n.js';
 
 export const BILLING_CYCLES = ['monthly', 'yearly'];
 
-// المبالغ المعروضة (دولار).
+// المبالغ المعروضة (دولار — تطابق منتجات Polar في polar-checkout).
 // للعرض فقط: المنح والتحقق يتممان على السيرفر دائمًا.
-// ملحوظة: خريطة السيرفر في paymob-checkout لسه بالجنيه لحين التحويل لبوابة Polar.
 const CYCLE_AMOUNT_LABEL = {
   monthly: { ar: '4 دولار', en: '$4' },
   yearly: { ar: '40 دولار', en: '$40' },
@@ -56,7 +55,7 @@ async function authedToken(){
   }catch(e){ return null; }
 }
 
-// بدء الدفع: ينادي paymob-checkout ويرجع رابط Paymob، مع ختم علَم معلّق
+// بدء الدفع: ينادي polar-checkout ويرجع رابط Polar، مع ختم علَم معلّق
 // قبل التسليم (لالتقاط العودة حتى لو تشوّهت روابطها).
 // يرمي { code } بأحد: 'no-session' | 'not-configured' | 'failed'
 export async function startCheckout(cycle){
@@ -118,16 +117,18 @@ export async function syncPlanFromServer(){
     state.planPendingCycle = null;
     return;
   }
-  const ended = sub.status === 'canceled' || sub.status === 'expired' ||
-    (sub.current_period_end && isFinite(new Date(sub.current_period_end).getTime()) &&
-      new Date(sub.current_period_end).getTime() <= Date.now());
+  const periodMs = sub.current_period_end ? new Date(sub.current_period_end).getTime() : NaN;
+  const periodValid = isFinite(periodMs) && periodMs > Date.now();
+  // الملغي يبقى Pro حتى انقضاء مدته المدفوعة (وعد الإلغاء) — أما المنتهية
+  // فعلًا أو بلا مدة سارية فينزل للمجاني. إلا قدامى البيتا المحفوظ حقهم.
+  const ended = sub.status === 'expired' || (!periodValid && (sub.status === 'canceled' || isFinite(periodMs)));
   if(ended && !(state.proLegacy && state.plan === 'pro')){
     // اشتراك منتهي/ملغي = نزول للمجاني — إلا قدامى البيتا المحفوظ حقهم
     state.plan = 'free';
   }
 }
 
-// انتظار تأكيد الدفع بعد العودة من Paymob: يستعلم عن الصف دوريًا
+// انتظار تأكيد الدفع بعد العودة من Polar: يستعلم عن الصف دوريًا
 // (الويبهوك هو من يفعّل — هنا ننتظر نتيجته فقط، بلا منح محلي أبدًا).
 export async function waitForServerPlan(timeoutMs){
   const limit = typeof timeoutMs === 'number' ? timeoutMs : 30000;

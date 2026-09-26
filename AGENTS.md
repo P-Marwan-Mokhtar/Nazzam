@@ -27,7 +27,7 @@
   - `app/manifest.json` — إعدادات الـ PWA (فيه shortcuts `?view=stats` و `?view=calendar` بيستهلكهم `routing.js`).
   - `app/js/vendor/` — مكتبات خارجية محلية فقط: `supabase.js` + `chart.umd.min.js` (ممنوع الإضافة من CDN جوه التطبيق بسبب CSP).
 - `scripts/build-sw.js` — يولّد `app/sw.js`. رقم `CACHE_VERSION` بيتحسب تلقائيًا كبصمة `sha256` لمحتوى كل الملفات (مفيش رفع يدوي للأرقام). **شغّله بعد أي تعديل في ملفات التطبيق**، ولو ضفت ملف `js/` جديد ضيفه في `PRECACHE_URLS` جواه.
-- `supabase/` — `functions/` فيها 6 Edge Functions: `auth-rate-limit` / `cancel-subscription` / `delete-account` / `paymob-checkout` / `paymob-webhook` / `send-digest-push` — و `migrations/` فيها سكيما `user_data` + `subscriptions` + RLS.
+- `supabase/` — `functions/` فيها 8 Edge Functions: `auth-rate-limit` / `cancel-subscription` (تدعم Polar للإلغاء عند نهاية المدة + Paymob محليًا) / `delete-account` / `paymob-checkout` (قديمة — تُحذف بعد استقرار Polar) / `paymob-webhook` (قديمة) / `polar-checkout` (البوابة الحالية: جلسة Polar من `POLAR_*_PRODUCT_ID` + `success_url` على `?billing=polar`) / `polar-webhook` (تحقق Standard Webhooks + منح/سحب Pro) / `send-digest-push` — و `migrations/` فيها سكيما `user_data` + `subscriptions` (عمود `provider` + أعمدة `paymob_*` و `polar_*`) + RLS.
 - `tests/utils.test.mjs` — اختبارات الدوال النقية في `utils.js` فقط.
 
 ## الموديولات (app/js/) — ملخص كل ملف

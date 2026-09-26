@@ -805,7 +805,7 @@ ar: {
   'plan.terms': 'قرأت وأوافق على شروط الأسعار. تجديد تلقائي، ويمكن الإلغاء في أي وقت.',
   'plan.limit_reached': 'وصلت لحد الخطة المجانية — رقِّ للمتابعة',
 
-  // الفوترة (Paymob)
+  // الفوترة (Polar)
   'billing.starting': 'جارٍ تحويلك لبوابة الدفع الآمنة…',
   'billing.not_configured': 'الدفع الإلكتروني لم يُفعَّل بعد — سيُعلن عنه قريبًا، وتجربتك المجانية مستمرة',
   'billing.failed': 'تعذّر بدء الدفع — تحقق من الاتصال وحاول مجددًا',
@@ -1552,7 +1552,7 @@ en: {
   'plan.terms': 'I have read and accept the Pricing Terms. Auto-renewing, cancel anytime.',
   'plan.limit_reached': 'Free plan limit reached — upgrade to continue',
 
-  // Billing (Paymob)
+  // Billing (Polar)
   'billing.starting': 'Redirecting you to the secure payment page…',
   'billing.not_configured': 'Online payment is not enabled yet — coming soon, your free trial continues',
   'billing.failed': 'Could not start payment — check your connection and try again',

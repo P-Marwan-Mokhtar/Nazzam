@@ -57,7 +57,7 @@ export let state = {
   },
   plan: 'pro', // خطة المستخدم: 'free' | 'trial' | 'pro' — الحسابات الجديدة تبدأ trial تلقائيًا (plans.js)، والبيتا القدامى pro
   planCycle: null, // دورة الاشتراك المدفوع: null | 'monthly' | 'yearly' — يضبطها السيرفر عند تفعيل الدفع
-  planPendingCycle: null, // نية اشتراك مسجلة من شاشة الترقية (واجهة فقط قبل Paymob): null | 'monthly' | 'yearly'
+  planPendingCycle: null, // نية اشتراك مسجلة من شاشة الترقية (واجهة فقط قبل الدفع): null | 'monthly' | 'yearly'
   trialStartedAt: null, // طابع بدء التجربة المجانية (ms) — يُضبط مرة واحدة فقط ولا يُمسح أبدًا (تجربة واحدة للأبد)
   proLegacy: false, // ختم قدامى البيتا: حساب قائم بخطة pro يُختم مرة واحدة ولا يُمسح أبدًا — التسوية لا تنزّله لتجربة/مجاني حتى لو فارغًا (plans.js)
   onboardingSeen: false, // ختم مشاهدة التدفق التعريفي: يُضبط مرة واحدة ويُزامَن مع الحساب — فلا يظهر مجددًا على جهاز جديد أو متخفٍّ (onboarding.js)

@@ -7,6 +7,11 @@
 // - undo: يعيد الحالة إلى active (تراجع مجاني فوري — بلا دفع) ما دامت
 //   المدة سارية؛ المنتهية تُرفض (422) إذ لا شيء يُعاد تفعيله.
 // idempotent في الاتجاهين. بلا صف = 404.
+//
+// Polar (اشتراكات متكررة): الإلغاء/التراجع يُنفَّذ أولًا في Polar نفسها
+// (cancel_at_period_end) ثم تُزامَن الحالة محليًا — وإلا استمر Polar
+// في التجديد والتحصيل رغم الإلغاء المحلي. فشل Polar = فشل العملية.
+// Paymob (دفعات لمرة واحدة): قلب الحالة محليًا فقط كما قبل.
 // النشر: supabase functions deploy cancel-subscription
 // ============================================================
 
@@ -70,13 +75,40 @@ Deno.serve(async (req) => {
 
     const { data: sub } = await supabase
       .from("subscriptions")
-      .select("status,current_period_end")
+      .select("status,current_period_end,provider,polar_subscription_id")
       .eq("user_id", user.id)
       .maybeSingle();
     if (!sub) return jsonResponse(req, { error: "no_subscription" }, 404);
 
     const body = await req.json().catch(() => ({}));
     const action = body && body.action === "undo" ? "undo" : "cancel";
+    const subRow = sub as { status?: string; current_period_end?: string; provider?: string; polar_subscription_id?: string };
+    const isPolar = subRow.provider === "polar" && !!subRow.polar_subscription_id;
+
+    // مزامنة الإلغاء/التراجع مع Polar أولًا (قبل قلب الحالة محليًا)
+    if (isPolar) {
+      const polarToken = Deno.env.get("POLAR_ACCESS_TOKEN") || "";
+      if (!polarToken) {
+        console.error("cancel-subscription: POLAR_ACCESS_TOKEN missing");
+        return jsonResponse(req, { error: "not_configured" }, 501);
+      }
+      const polarApi = (Deno.env.get("POLAR_API_URL") || "https://sandbox-api.polar.sh").replace(/\/$/, "");
+      const polarRes = await fetch(
+        `${polarApi}/v1/subscriptions/${encodeURIComponent(subRow.polar_subscription_id as string)}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${polarToken}`,
+          },
+          body: JSON.stringify({ cancel_at_period_end: action === "cancel" }),
+        }
+      ).catch(() => null);
+      if (!polarRes || !polarRes.ok) {
+        console.error("cancel-subscription: polar update rejected:", polarRes && polarRes.status);
+        return jsonResponse(req, { error: "provider_failed" }, 502);
+      }
+    }
 
     if (action === "undo") {
       // تراجع مجاني: يعيد النشاط فقط والمدة سارية — المنتهية لا يُعاد تفعيلها
