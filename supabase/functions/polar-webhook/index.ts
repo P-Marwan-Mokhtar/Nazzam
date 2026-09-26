@@ -240,6 +240,10 @@ Deno.serve(async (req) => {
     if (type === "subscription.created" && !["active", "trialing"].includes(grantStatus)) {
       return jsonResponse({ ok: true, ignored: true });
     }
+    // دفع أولي فاشل/ناقص عبر updated — لا منح حتى يكتمل الدفع
+    if (type === "subscription.updated" && ["incomplete", "incomplete_expired"].includes(grantStatus)) {
+      return jsonResponse({ ok: true, ignored: true });
+    }
     let baseMs = Date.now();
     if (existing && typeof existing.current_period_end === "string") {
       const curEnd = new Date(existing.current_period_end).getTime();
