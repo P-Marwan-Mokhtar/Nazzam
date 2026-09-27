@@ -29,8 +29,9 @@ function flipTaskMoreDropdown(id){
   // بتبقى حقيقية. لو حسبناها فورًا بعد render ممكن offsetHeight يقرا 0 (القائمة
   // لسه متصفّدتش)، فالقايمة كانت بتفتح لتحت دايما حتى لو مفيش مكان.
   requestAnimationFrame(() => {
-    // في السكرول الداخلي القايمة fixed بإحداثيات محسوبة بدل نظام لفوق/لتحت المطلق
-    if(isWideListScroll()){ positionTaskMoreFixed(id); return; }
+    // القايمة fixed بإحداثيات مقيدة بالشاشة (سكرول داخلي أو موبايل) بدل
+    // نظام لفوق/لتحت المطلق — عشان متطلعش بره الشاشة في الإنجليزية خصوصًا
+    if(useFixedDropdown()){ positionTaskMoreFixed(id); return; }
     const wrap = document.querySelector(`.task-more-menu-wrap[data-wrap-id="${id}"]`);
     if(!wrap) return;
     const btn = wrap.querySelector('.task-more-btn');
@@ -50,6 +51,12 @@ function flipTaskMoreDropdown(id){
 // بتطبق على العريض بس (min-width:1237px، نفس breakpoint لوحة المؤقتات).
 export function isWideListScroll(){
   return document.body.classList.contains('list-scroll') && window.innerWidth >= 1237;
+}
+
+// القايمة fixed بإحداثيات محسوبة (مقيدة بالشاشة) في وضع السكرول الداخلي
+// وعلى الموبايل (≤640px) — عشان مفيش قايمة تطلع بره الشاشة وتعمل overflow.
+export function useFixedDropdown(){
+  return isWideListScroll() || window.innerWidth <= 640;
 }
 
 // تموضع قايمة المزيد كـ fixed في وضع السكرول الداخلي (list-scroll): القايمة
@@ -159,6 +166,33 @@ export async function deleteTaskById(id){
     render();
     await saveData();
   });
+}
+
+// إعادة تسمية مهمة في كل مكان (الأيام + التكرار + قرارات التثبيت) —
+// تشمل نسخ الجدول الزمني المكررة (_dupOf) لأنها عائلة المهمة نفسها.
+// تُستخدم من تحرير اليوم الداخلي ومن بوب مهمة الجدول الزمني (دالة واحدة بلا تكرار).
+export function renameTaskEverywhere(oldName, newName){
+  if(!oldName || !newName || oldName === newName) return false;
+  if(state.recurringTasks && state.recurringTasks[oldName]){
+    state.recurringTasks[newName] = state.recurringTasks[oldName];
+    delete state.recurringTasks[oldName];
+  }
+  Object.keys(state.days).forEach(dateStr => {
+    state.days[dateStr] = state.days[dateStr].map(t => {
+      if(t.name === oldName) return { ...t, name: newName };
+      return t;
+    });
+  });
+  if(state.pinnedInjected){
+    Object.keys(state.pinnedInjected).forEach(dateStr => {
+      const dayPinned = state.pinnedInjected[dateStr];
+      if(dayPinned && dayPinned[oldName]){
+        dayPinned[newName] = dayPinned[oldName];
+        delete dayPinned[oldName];
+      }
+    });
+  }
+  return true;
 }
 
 // ============================================================
@@ -419,10 +453,13 @@ const contentActions = {
   },
   'toggle-keyword-more': async (btn) => {
     const { id } = btn.dataset;
-    ui.openKeywordMoreId = ui.openKeywordMoreId === id ? null : id;
+    const willOpen = ui.openKeywordMoreId !== id;
+    ui.openKeywordMoreId = willOpen ? id : null;
     ui.openKeywordTypePopoverTaskId = null;
     ui.openTaskMoreId = null;
+    if(!willOpen) ui.openTaskMorePos = null;
     render();
+    if(willOpen) flipTaskMoreDropdown(id);
   },
   'toggle-keyword-type-popover': async (btn) => {
     const { id } = btn.dataset;
@@ -517,33 +554,7 @@ const contentActions = {
     if(task && (inp || ui.editingTaskId === id)){
       const newName = rawVal.trim();
       if(newName && newName !== task.name){
-        const oldName = task.name;
-        if(state.recurringTasks && state.recurringTasks[oldName]){
-          state.recurringTasks[newName] = state.recurringTasks[oldName];
-          delete state.recurringTasks[oldName];
-        }
-        // بنعيد التسمية على كل نسخ المهمة عبر كل الأيام (غير نسخ الجدول الزمني المكررة)
-        // عشان النسخ اللي اتحقنت تلقائيًا في الأيام الجاية بالاسم القديم ميتسابش ليها
-        // نسخ يتيمة بالاسم القديم، ونسخ جديدة بالاسم الجديد تتحقن جنبهم (تكرار).
-        // وبما إن التكرار متعرف بالاسم، فإعادة التسمية = إعادة تسمية المهمة في كل مكان.
-        Object.keys(state.days).forEach(dateStr => {
-          state.days[dateStr] = state.days[dateStr].map(t => {
-            if(t.name === oldName && !t._dupOf) return { ...t, name: newName };
-            return t;
-          });
-        });
-        // بنرحّل "قرار" الأيام بتاع الاسم القديم للاسم الجديد في pinnedInjected
-        // عشان القرارات اللي اتخدت (مثلاً: مسحت نسخة من يوم مستقبلي) تفضل شغالة
-        // على الاسم الجديد، وكل يوم يفضل مقرر مصيره مرة واحدة بس من غير تكرر.
-        if(state.pinnedInjected){
-          Object.keys(state.pinnedInjected).forEach(dateStr => {
-            const dayPinned = state.pinnedInjected[dateStr];
-            if(dayPinned && dayPinned[oldName]){
-              dayPinned[newName] = dayPinned[oldName];
-              delete dayPinned[oldName];
-            }
-          });
-        }
+        renameTaskEverywhere(task.name, newName);
       }
     }
     ui.editingTaskId = null;

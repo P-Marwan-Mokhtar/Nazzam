@@ -930,7 +930,7 @@ body.menu-open { overflow: hidden; }
 .fsc-chip .ic { width: 18px; height: 18px; }
 .fsc-copy { flex: 1; min-width: 0; }
 .fsc-name { font-size: 0.95rem; font-weight: 700; color: var(--ink); }
-.fsc-desc { font-size: 0.8rem; color: var(--ink-2); line-height: 1.6; }
+.fsc-desc { font-size: 0.8rem; color: var(--ink-2); line-height: 1.6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .fs-controls {
   display: flex; align-items: center; justify-content: center;

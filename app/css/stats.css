@@ -27,7 +27,7 @@
   margin-bottom: 14px;
 }
 .stats-view-header h2 {
-  font-family: "Almarai", sans-serif;
+  font-family: "Inter", "Almarai", sans-serif;
   font-size: 1.25rem;
   margin: 0;
   color: var(--ink);
@@ -656,4 +656,4 @@
 .heat-legend span{display:inline-flex;align-items:center;gap:5px}
 .heat-legend .heat-cell{display:inline-block;width:11px;height:11px;opacity:1}
 .heat-legend .heat-cell.rest{opacity:.35}
-
+

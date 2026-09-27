@@ -109,7 +109,7 @@
   background: var(--paper);
   border-radius: 8px;
   padding: 11px 12px;
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-size: 0.92rem;
   color: var(--ink);
   width: 100%;
@@ -123,7 +123,7 @@
   border: none;
   border-radius: 8px;
   padding: 11px;
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-weight: 700;
   font-size: 0.92rem;
   cursor: pointer;
@@ -137,7 +137,7 @@
   border: 1.5px solid var(--paper-line);
   border-radius: 8px;
   padding: 11px;
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-weight: 700;
   font-size: 0.88rem;
   cursor: pointer;
@@ -207,7 +207,7 @@
   border: 2px solid var(--paper-line);
   border-radius: 999px;
   padding: 5px 12px;
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-weight: 700;
   font-size: 0.8rem;
   color: var(--ink);
@@ -246,7 +246,7 @@
   border: 2px solid var(--paper-line);
   border-radius: 10px;
   padding: 9px 12px;
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-weight: 700;
   font-size: 0.85rem;
   color: var(--ink);
@@ -271,7 +271,7 @@
   background: none;
   border: none;
   color: var(--pen);
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-weight: 700;
   font-size: 0.82rem;
   cursor: pointer;
@@ -386,7 +386,7 @@
   border: 1.5px solid var(--paper-line);
   border-radius: 8px;
   padding: 10px;
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-weight: 700;
   font-size: 0.88rem;
   cursor: pointer;
@@ -481,7 +481,7 @@
   flex: 0 0 auto;
 }
 .modal-header h2 {
-  font-family: "Almarai", sans-serif;
+  font-family: "Inter", "Almarai", sans-serif;
   font-size: 1.3rem;
   margin: 0;
   color: var(--ink);
@@ -598,10 +598,23 @@ html[dir="ltr"] .bank-search.modal-search-box input {
   font-size: 20px;
   color: var(--pen);
 }
+/* خاصية hidden لازم تكسب فوق display الخاص بالبوب وقت التعديل */
+#timelineTaskOverlay [hidden] {
+  display: none !important;
+}
 .tl-task-actions {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+/* صف تحرير اسم المهمة جوه بوب الجدول (مخفي افتراضيًا بـ hidden) */
+.tl-task-edit:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tl-task-edit .addtl-input {
+  width: 100%;
 }
 .tl-task-btn {
   display: flex;

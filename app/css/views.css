@@ -259,7 +259,7 @@ body.locked-view .main-col {
   padding: 2px;
 }
 .tb-day-label {
-  font-family: "Almarai", sans-serif;
+  font-family: "Inter", "Almarai", sans-serif;
   font-size: 1rem;
   font-weight: 600;
   color: var(--pen);
@@ -414,8 +414,19 @@ body.locked-view .main-col {
   grid-template-columns: repeat(7, minmax(110px, 1fr)) 56px;
   margin-top: 16px;
   border: 1px solid var(--paper-line);
+  border-top: none;
   border-radius: 12px;
-  overflow-x: auto;
+  /* clip مش auto: بيقص الزوائد مع الحفاظ على الـ radius، ومبينشئش
+     حاوية سكرول — فـ sticky الهيدر الرأسي بيفضل شغال مع سكرول الصفحة.
+     (auto كانت بتخلي الشبكة هي حاوية السكرول فيهرب الهيدر مع المحتوى) */
+  overflow-x: clip;
+}
+@media (max-width: 1100px) {
+  /* الشاشات الضيقة: الأعمدة أعرض من الحاوية — سكرول أفقي عادي
+     (والهيدر الثابت بيضحي هنا لصالحه) */
+  .tbw-grid {
+    overflow-x: auto;
+  }
 }
 /* زرار «اليوم» العائم للموبايل بس — مخفي على الديسكتوب (بيظهر جوه الميديا كويري تحت) */
 .tb-today-fab {
@@ -458,6 +469,7 @@ body.locked-view .main-col {
   height: 54px;
   padding: 0 4px;
   border: none;
+  border-top: 1px solid var(--paper-line);
   border-bottom: 1px solid var(--paper-line);
   background: var(--card);
   color: var(--ink);
@@ -490,6 +502,7 @@ body.locked-view .main-col {
 }
 .tbw-hours-head {
   height: 54px;
+  border-top: 1px solid var(--paper-line);
   border-bottom: 1px solid var(--paper-line);
 }
 .tbw-hours-track {
@@ -711,7 +724,7 @@ body.locked-view .main-col {
   border: none;
   border-top: 1px solid var(--paper-line);
   color: var(--pen);
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-weight: 700;
   font-size: 0.82rem;
   cursor: pointer;
@@ -1044,12 +1057,15 @@ body.locked-view .main-col.tb-stretch {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
-/* رأس الأعمدة بيثبت فوق أثناء السكرول الداخلي */
-.tb-full-height .timeblock-calendar-col .tbw-col-head,
-.tb-full-height .timeblock-calendar-col .tbw-hours-head {
+/* رأس الأعمدة بيثبت فوق أثناء السكرول (داخلي أو صفحة) */
+.timeblock-calendar-col .tbw-col-head,
+.timeblock-calendar-col .tbw-hours-head {
   position: sticky;
   top: 0;
   z-index: 6;
+}
+.timeblock-calendar-col .tbw-hours-head {
+  background: var(--card);
 }
 /* ===== سكرول الصفحة الطبيعي لليوم/الأسبوع على الموبايل =====
    الكلاس body.tb-page-scroll بيترفع من timeBlocking.js على عرض اليوم/الأسبوع

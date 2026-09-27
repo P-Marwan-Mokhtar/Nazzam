@@ -133,12 +133,7 @@ export const TASK_TYPES = {
 ### قواعد الألوان:
 
 - **كل الـ popups تستخدم `var(--popup)`** مش `var(--card)`.
-- **أيقونات النوع** بتستخدم ألوان الـ palette:
-  - `.task-type-task` / `.tc-task .material-icons` → `var(--ink-soft)`
-  - `.task-type-habit` / `.tc-habit .material-icons` → `var(--pen)` (يتغير مع الباليتة)
-  - `.task-type-hobby` / `.tc-hobby .material-icons` → `var(--done)`
-- **كلاسات `tc-*`** بتتستخدم في أزرار الـ type popover (render.js + taskDetails.js).
-- **كلاسات `task-type-*`** بتتستخدم في عرض اليوم.
+- **أيقونات الأنواع لون موحد**: كل `task-type-*` و `tc-*` بلون الثيم `var(--pen)` في كل التطبيق — مفيش لون مستقل لكل نوع (بقرار مالك المشروع).
 
 ## نظام الفلاتر في عرض اليوم
 

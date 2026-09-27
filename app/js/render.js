@@ -13,7 +13,7 @@ import { emptyStateHtml, escapeAttr, escapeHtml, fmtDay, fromISO, highlightMatch
 import { t, formatHM } from './i18n.js';
 import { PRIORITY_LABELS, TASK_TYPES, contentEl, getDaySortMode, state, taskTypeKey, ui } from './state.js';
 import { saveData } from './dataStore.js';
-import { attachEvents, isWideListScroll, positionTaskMoreFixed } from './events.js';
+import { attachEvents, positionTaskMoreFixed, useFixedDropdown } from './events.js';
 import { buildFilterDropdown, hideDurationPopover } from './popovers.js';
 import { computeTaskStreak, renderStatsView, renderTaskStatsView, taskScheduleDays } from './stats.js';
 import { renderTimeBlockView, setTbStretch } from './timeBlocking.js';
@@ -96,9 +96,9 @@ export function render(){
   const isFullView = !!ui.weekViewOpen || !!ui.timeBlockViewOpen || !!ui.statsViewOpen || !!ui.taskStatsName || !!ui.smartListsOpen;
   const listScrollActive = !isFullView && ui.dayViewMode === 'list';
   document.body.classList.toggle('list-scroll', listScrollActive);
-  // إحداثيات الـ fixed صالحة مع السكرول الداخلي (العريض) بس — غير كده بتتنضف
+  // إحداثيات الـ fixed صالحة مع السكرول الداخلي أو الموبايل بس — غير كده بتتنضف
   // عشان القايمة المطلقة ماتاخدش top/left قديمة
-  if(!isWideListScroll()) ui.openTaskMorePos = null;
+  if(!useFixedDropdown()) ui.openTaskMorePos = null;
   if(ui.taskStatsName){
     renderTaskStatsView(ui.taskStatsName);
     return;
@@ -333,11 +333,11 @@ export function render(){
                 <span class="keyword-name" title="${escapeAttr(k.name)}">${highlightMatch(k.name, ui.bankSearchQuery)}</span>
                 ${kStreak >= 2 ? `<span class="keyword-streak" title="${kStreak} ${kStreakUnit} ${t('day.of_streak')}"><span class="material-icons">local_fire_department</span>${kStreak}</span>` : ``}
                 <div class="keyword-icons">
-                  <div class="task-more-menu-wrap">
+                  <div class="task-more-menu-wrap" data-wrap-id="${escapeAttr(k.id)}">
                     <button class="icon-btn task-more-btn" data-action="toggle-keyword-more" data-id="${escapeAttr(k.id)}" title="${t('c.more')}">
                       <span class="material-icons">more_vert</span>
                     </button>
-                    <div class="task-more-dropdown ${ui.openKeywordMoreId === k.id ? 'open' : ''}">
+                    <div class="task-more-dropdown ${ui.openKeywordMoreId === k.id ? 'open' : ''}"${ui.openKeywordMoreId === k.id && ui.openTaskMorePos ? ` style="top:${ui.openTaskMorePos.top}px;left:${ui.openTaskMorePos.left}px;"` : ''}>
                       <button class="tmd-btn" data-action="edit-keyword" data-id="${escapeAttr(k.id)}">
                         <span class="material-icons">edit</span><span>${t('c.edit')}</span>
                       </button>
@@ -555,7 +555,7 @@ export function render(){
               <button class="icon-btn task-more-btn" data-action="toggle-task-more" data-id="${escapeAttr(task.id)}" title="${t('c.more')}">
                 <span class="material-icons">more_vert</span>
               </button>
-              <div class="task-more-dropdown ${ui.openTaskMoreId === task.id ? 'open' : ''}"${ui.openTaskMoreId === task.id && listScrollActive && ui.openTaskMorePos ? ` style="top:${ui.openTaskMorePos.top}px;left:${ui.openTaskMorePos.left}px;"` : ''}>
+              <div class="task-more-dropdown ${ui.openTaskMoreId === task.id ? 'open' : ''}"${ui.openTaskMoreId === task.id && (listScrollActive || useFixedDropdown()) && ui.openTaskMorePos ? ` style="top:${ui.openTaskMorePos.top}px;left:${ui.openTaskMorePos.left}px;"` : ''}>
                 <button class="tmd-btn" data-action="edit-task-today" data-id="${escapeAttr(task.id)}">
                   <span class="material-icons">edit</span><span>${t('c.edit')}</span>
                 </button>
@@ -660,7 +660,9 @@ export function render(){
       }
     }
     // القايمة اتفتحت من غير إحداثيات (زي التبديل من chips لـ list والقايمة مفتوحة) — نحسبها بعد الرسم
-    if(isWideListScroll() && ui.openTaskMoreId && !ui.openTaskMorePos) positionTaskMoreFixed(ui.openTaskMoreId);
+    if(useFixedDropdown() && (ui.openTaskMoreId || ui.openKeywordMoreId) && !ui.openTaskMorePos){
+      positionTaskMoreFixed(ui.openTaskMoreId || ui.openKeywordMoreId);
+    }
     if(ui.timerPanelRenderedForDate !== ui.selectedDate){
       renderTimerPanel();
       ui.timerPanelRenderedForDate = ui.selectedDate;

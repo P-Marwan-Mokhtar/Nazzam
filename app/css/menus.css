@@ -39,6 +39,19 @@
   transform: translateY(0);
   pointer-events: auto;
 }
+/* الموبايل (≤640px): القايمة fixed بإحداثيات محسوبة من الـ JS (مقيدة
+   بالشاشة) بدل المطلقة — عشان متطلعش بره الشاشة وتعمل overflow */
+@media (max-width: 640px) {
+  .task-more-menu-wrap .task-more-dropdown.open {
+    position: fixed;
+    top: auto;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    margin: 0;
+    z-index: 200;
+  }
+}
 /* مهمان اليوم: قائمة المزيد بتفتح لفوق عشان ما يزيدش سكرول الصفحة */
 .task-more-menu-wrap.open-up .task-more-dropdown {
   top: auto;
@@ -139,7 +152,7 @@
   border-radius: 12px;
   padding: 12px 2px;
   min-height: 46px;
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-weight: 700;
   font-size: 0.8rem;
   cursor: pointer;
@@ -177,7 +190,7 @@
   color: var(--ink-soft);
   border-radius: 999px;
   padding: 8px 6px;
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-weight: 700;
   font-size: 0.78rem;
   cursor: pointer;
@@ -259,7 +272,7 @@
   border: 1px solid var(--paper-line);
   font-weight: 700;
   cursor: pointer;
-  font-family: "Almarai", sans-serif;
+  font-family: "Inter", "Almarai", sans-serif;
   transition:
     background 0.15s,
     color 0.15s;
@@ -338,7 +351,7 @@
 .subtask-edit-input {
   flex: 1;
   min-width: 0;
-  font-family: "Almarai", sans-serif;
+  font-family: "Inter", "Almarai", sans-serif;
   font-size: 0.9rem;
   color: var(--ink);
   background: var(--card);
@@ -362,7 +375,7 @@
   padding: 10px 12px;
   cursor: pointer;
   text-align: right;
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   transition:
     background 0.15s ease,
     border-color 0.15s ease;
@@ -499,7 +512,7 @@
   color: var(--ink);
   border-radius: 8px;
   padding: 5px 8px;
-  font-family: 'Almarai';
+  font-family: 'Inter', 'Almarai';
   font-weight: 700;
   font-size: 0.85rem;
 }
@@ -509,7 +522,7 @@
   color: var(--pen);
   border-radius: 8px;
   padding: 6px 14px;
-  font-family: 'Almarai';
+  font-family: 'Inter', 'Almarai';
   font-weight: 800;
   font-size: 0.88rem;
   cursor: pointer;

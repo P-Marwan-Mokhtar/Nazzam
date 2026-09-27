@@ -14,6 +14,7 @@ import { openCalendarModal } from './calendar.js';
 import { t, formatMinutes } from './i18n.js';
 import { canUse } from './plans.js';
 import { openUpgrade, enforceTaskNameLimit } from './upgrade.js';
+import { renameTaskEverywhere } from './events.js';
 
 const HOUR_PX = 64;
 const SNAP_MIN = 5;
@@ -1205,6 +1206,12 @@ function wireAddTimelineTaskPopup(){
     // مهمة الجدول قد تدخل اسمًا جديدًا — حد المهام الفريدة للمجانية
     if(!enforceTaskNameLimit(name)) return;
     if(!state.days[addTaskDate]) state.days[addTaskDate] = [];
+    // نفس قاعدة عرض اليوم: الاسم المكرر في اليوم مرفوض (زي addPendingTaskToDay)
+    if(state.days[addTaskDate].some(t => t.name === name)){
+      showToast(t('toast.exists_today'));
+      nameInput.focus();
+      return;
+    }
     const task = {
       id: uid(),
       name: name,
@@ -1636,6 +1643,7 @@ function suppressBlockClick(taskId){
 export function openTimelineTaskPopup(taskId, dateStr){
   ui.activeTimelineTaskId = taskId;
   ui.activeTimelineTaskDate = dateStr || ui.selectedDate;
+  setTimelineEditMode(false);
   renderTimelineTaskPopup();
   document.getElementById('timelineTaskOverlay').classList.add('open');
 }
@@ -1643,6 +1651,59 @@ export function openTimelineTaskPopup(taskId, dateStr){
 export function closeTimelineTaskPopup(){
   document.getElementById('timelineTaskOverlay').classList.remove('open');
   ui.activeTimelineTaskId = null;
+  editingTimelineTask = false;
+}
+
+// وضع تحرير اسم المهمة جوه بوب الجدول (module-local — البوب بره contentEl
+// فلا render يمسحه، ولا حاجة لعلم ui)
+let editingTimelineTask = false;
+
+function setTimelineEditMode(on){
+  editingTimelineTask = on;
+  const overlay = document.getElementById('timelineTaskOverlay');
+  if(!overlay) return;
+  const meta = overlay.querySelector('.tl-task-meta');
+  const actions = overlay.querySelector('.tl-task-actions');
+  const editRow = document.getElementById('timelineTaskEditRow');
+  const input = document.getElementById('timelineTaskNameInput');
+  if(meta) meta.hidden = on;
+  if(actions) actions.hidden = on;
+  if(editRow) editRow.hidden = !on;
+  if(on && input){
+    const dateStr = ui.activeTimelineTaskDate || ui.selectedDate;
+    const task = (state.days[dateStr] || []).find(t => t.id === ui.activeTimelineTaskId);
+    input.value = task ? task.name : '';
+    setTimeout(() => { input.focus(); input.select(); }, 60);
+  }
+}
+
+async function confirmTimelineTaskEdit(){
+  const dateStr = ui.activeTimelineTaskDate || ui.selectedDate;
+  const task = (state.days[dateStr] || []).find(t => t.id === ui.activeTimelineTaskId);
+  const input = document.getElementById('timelineTaskNameInput');
+  if(!task || !input) return;
+  const newName = input.value.trim();
+  if(!newName){
+    showToast(t('schedule.write_name_first'));
+    input.focus();
+    return;
+  }
+  if(newName === task.name){
+    setTimelineEditMode(false);
+    renderTimelineTaskPopup();
+    return;
+  }
+  // نفس قاعدة منع التكرار في اليوم (باستثناء المهمة نفسها)
+  if((state.days[dateStr] || []).some(t => t.id !== task.id && t.name === newName)){
+    showToast(t('toast.exists_today'));
+    input.focus();
+    return;
+  }
+  renameTaskEverywhere(task.name, newName);
+  setTimelineEditMode(false);
+  render();
+  renderTimelineTaskPopup();
+  await saveData();
 }
 
 function renderTimelineTaskPopup(){
@@ -1695,6 +1756,18 @@ if(timelineTaskOverlay){
     closeTimelineTaskPopup();
     await commitTaskTime(id, null, dateStr);
     showToast(isDup ? t('schedule.deleted_version') : t('schedule.returned_task'));
+  };
+  document.getElementById('timelineTaskEditBtn').onclick = () => {
+    if(!ui.activeTimelineTaskId) return;
+    setTimelineEditMode(true);
+  };
+  document.getElementById('cancelTimelineTaskEditBtn').onclick = () => {
+    setTimelineEditMode(false);
+    renderTimelineTaskPopup();
+  };
+  document.getElementById('confirmTimelineTaskEditBtn').onclick = confirmTimelineTaskEdit;
+  document.getElementById('timelineTaskNameInput').onkeydown = (e) => {
+    if(e.key === 'Enter') confirmTimelineTaskEdit();
   };
 }
 

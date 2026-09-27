@@ -159,9 +159,11 @@
 .task-type-icon .material-icons {
   font-size: 1rem;
 }
-.task-type-task, .tc-task .material-icons { color: var(--pen); }
-.task-type-habit, .tc-habit .material-icons { color: var(--pen); }
-.task-type-hobby, .tc-hobby .material-icons { color: var(--pen); }
+/* أيقونات الأنواع: لون الثيم الموحد في كل التطبيق (بقرار مالك المشروع —
+   مفيش لون مستقل لكل نوع) */
+.task-type-task, .task-type-habit, .task-type-hobby,
+.tc-task.material-icons, .tc-habit.material-icons, .tc-hobby.material-icons,
+.template-modal-row > .material-icons { color: var(--pen); }
 .task-row.done {
   background: var(--done-soft);
 }
@@ -309,7 +311,7 @@
   border-radius: 10px;
   background: var(--paper);
   color: var(--ink);
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-size: 0.9rem;
   line-height: 1.6;
   padding: 10px 12px;
@@ -684,7 +686,7 @@
   border: none;
   border-radius: 8px;
   padding: 9px 10px;
-  font-family: "Almarai", sans-serif;
+  font-family: "Inter", "Almarai", sans-serif;
   font-size: 0.88rem;
   font-weight: 700;
   color: var(--ink);
@@ -781,7 +783,7 @@
   border: none;
   border-radius: 8px;
   padding: 9px 10px;
-  font-family: "Almarai", sans-serif;
+  font-family: "Inter", "Almarai", sans-serif;
   font-size: 0.88rem;
   font-weight: 700;
   color: var(--ink);
@@ -846,7 +848,7 @@
   border-bottom: 1px solid var(--paper-line);
 }
 .picker-header h3 {
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-weight: 800;
   font-size: 1rem;
   margin: 0;
@@ -856,7 +858,7 @@
 .picker-done {
   background: none;
   border: none;
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-weight: 700;
   font-size: 0.92rem;
   cursor: pointer;
@@ -873,7 +875,7 @@
   margin: 14px auto 0;
   background: none;
   border: none;
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-weight: 700;
   font-size: 0.92rem;
   color: #d93025;
@@ -951,7 +953,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-weight: 700;
   font-size: 1.2rem;
   color: var(--ink);
@@ -1442,7 +1444,7 @@
 
 .edit-input {
   /* flex:1; */
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-size: 0.95rem;
   border: 1.5px solid var(--pen);
   border-radius: 6px;
@@ -1474,7 +1476,7 @@
   margin-bottom: 4px;
 }
 .empty-state-title {
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-weight: 700;
   font-size: 1rem;
   color: var(--ink);
@@ -1546,7 +1548,7 @@
   background: transparent;
   border-radius: 8px;
   padding: 10px 12px;
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-size: 0.95rem;
   color: var(--ink);
   outline: none;
@@ -1557,7 +1559,7 @@
   border: none;
   border-radius: 8px;
   padding: 0 18px;
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-weight: 700;
   font-size: 0.92rem;
   cursor: pointer;

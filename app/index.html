@@ -46,6 +46,15 @@
       href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&display=swap"
       rel="stylesheet"
     />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+    <link
+      href="https://api.fontshare.com/v2/css?f[]=cal-sans@400,500,600&display=swap"
+      rel="stylesheet"
+    />
     <script src="js/boot-theme.js"></script>
     <link rel="stylesheet" href="css/base.css" />
     <link rel="stylesheet" href="css/calendar.css" />
@@ -900,7 +909,18 @@
             <span class="material-icons">schedule</span>
             <span id="timelineTaskTime"></span>
           </div>
+          <div class="tl-task-edit" id="timelineTaskEditRow" hidden>
+            <input type="text" id="timelineTaskNameInput" class="addtl-input" maxlength="80" />
+            <div class="modal-actions addtl-actions">
+              <button class="tl-task-btn danger" id="cancelTimelineTaskEditBtn" type="button" data-i18n="modal.cancel">إلغاء</button>
+              <button class="tl-task-btn primary" id="confirmTimelineTaskEditBtn" type="button" data-i18n="c.save">حفظ</button>
+            </div>
+          </div>
           <div class="tl-task-actions">
+            <button class="tl-task-btn" id="timelineTaskEditBtn" type="button">
+              <span class="material-icons">edit</span>
+              <span data-i18n="c.edit">تعديل</span>
+            </button>
             <button class="tl-task-btn" id="timelineTaskDoneBtn" type="button">
               <span class="material-icons">radio_button_unchecked</span>
               <span id="timelineTaskDoneLabel" data-i18n="modal.task_done">إنجاز</span>

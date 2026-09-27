@@ -67,7 +67,7 @@
   font-size: 42px;
 }
 .onboarding-step-title {
-  font-family: "Almarai", sans-serif;
+  font-family: "Inter", "Almarai", sans-serif;
   font-size: 1.2rem;
   margin: 0;
   color: var(--ink);
@@ -279,4 +279,15 @@
     transform: none;
     z-index: 220;
   }
+}
+
+/* ===== عناوين العرض (Task List / Today / المودالات) =====
+   Cal Sans للاتيني مع Almarai للعربي (آخر ملف في الـ cascade فيغلّب السابق). */
+.bank-toggle,
+.date-display .day-name,
+.section-title,
+.modal-header h2,
+.stats-view-header h2,
+.timer-panel-title {
+  font-family: "Cal Sans", "Almarai", sans-serif;
 }

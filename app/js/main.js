@@ -27,7 +27,7 @@ import { applyTheme, closeAppearanceModal } from './theme.js';
 import { initMonitoring, trackView } from './monitoring.js';
 import { closeUpgrade, gateFree, maybeShowTrialNudge, openUpgrade, setBillingCycle } from './upgrade.js';
 import { wireOnboarding, checkOnboarding, closeOnboarding } from './onboarding.js';
-import { isWideListScroll, positionTaskMoreFixed } from './events.js';
+import { positionTaskMoreFixed, useFixedDropdown } from './events.js';
 import { openSmartLists } from './smartLists.js';
 import { closeAccountPanel, isAccountPanelOpen, toggleAccountPanel } from './accountMenu.js';
 import { addDays, todayStr } from './utils.js';
@@ -198,6 +198,7 @@ async function startApp(){
     if(ui.openKeywordMoreId && !e.target.closest('.task-more-dropdown') && !e.target.closest('.task-more-btn')){
       ui.openKeywordMoreId = null;
       ui.openKeywordTypePopoverTaskId = null;
+      ui.openTaskMorePos = null;
       render();
     }
     if(ui.openKeywordTypePopoverTaskId && !e.target.closest('.type-popover') && !e.target.closest('.type-btn')){
@@ -250,14 +251,15 @@ async function startApp(){
     }
   });
 
-  // وضع السكرول الداخلي (العريض بس): القايمة المفتوحة fixed فبنتابع أي سكرول/ريسايز —
+  // القايمة المفتوحة fixed (سكرول داخلي أو موبايل) فبنتابع أي سكرول/ريسايز —
   // بنحرّكها مع الزرار، ولو الزرار خرج بره الشاشة بنقفلها.
-  // على الضيق القايمة مطلقة مع الصفحة فبننضف أي إحداثيات fixed قديمة.
+  // غير كده القايمة مطلقة مع الصفحة فبننضف أي إحداثيات fixed قديمة.
   let taskMoreFollowQueued = false;
   const followTaskMoreDropdown = () => {
     taskMoreFollowQueued = false;
-    if(!ui.openTaskMoreId) return;
-    if(!isWideListScroll()){
+    const activeId = ui.openTaskMoreId || ui.openKeywordMoreId;
+    if(!activeId) return;
+    if(!useFixedDropdown()){
       if(ui.openTaskMorePos){
         ui.openTaskMorePos = null;
         const stale = document.querySelector('.task-more-dropdown.open');
@@ -265,17 +267,18 @@ async function startApp(){
       }
       return;
     }
-    const btn = document.querySelector(`.task-more-menu-wrap[data-wrap-id="${ui.openTaskMoreId}"] .task-more-btn`);
-    if(!btn){ ui.openTaskMoreId = null; ui.openTaskMorePos = null; render(); return; }
+    const btn = document.querySelector(`.task-more-menu-wrap[data-wrap-id="${activeId}"] .task-more-btn`);
+    if(!btn){ ui.openTaskMoreId = null; ui.openKeywordMoreId = null; ui.openTaskMorePos = null; render(); return; }
     const r = btn.getBoundingClientRect();
     if(r.bottom < 0 || r.top > window.innerHeight){
       ui.openTaskMoreId = null;
+      ui.openKeywordMoreId = null;
       ui.openTaskMorePos = null;
       ui.openTaskMoreUp = false;
       render();
       return;
     }
-    positionTaskMoreFixed(ui.openTaskMoreId);
+    positionTaskMoreFixed(activeId);
   };
   const queueTaskMoreFollow = () => {
     if(taskMoreFollowQueued) return;

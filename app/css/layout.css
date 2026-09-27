@@ -77,7 +77,7 @@
   padding: 18px;
 }
 .timer-panel-title {
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-weight: 800;
   font-size: 1.05rem;
   color: var(--ink);
@@ -404,7 +404,7 @@
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  font-family: 'Almarai', sans-serif;
+  font-family: 'Inter', 'Almarai', sans-serif;
 }
 .header-btn-label {
   font-size: 0.85rem;
@@ -842,4 +842,4 @@
     }
   }
 }
-
+

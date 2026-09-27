@@ -11,7 +11,7 @@
   margin-bottom: 12px;
 }
 .calendar-month-title {
-  font-family: "Almarai", sans-serif;
+  font-family: "Inter", "Almarai", sans-serif;
   font-size: 1.15rem;
   color: var(--ink);
 }
@@ -67,7 +67,7 @@
 
 /* Section Titles */
 .section-title {
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   padding: 14px 16px;
   background-color: var(--card);
   border-radius: var(--radius);
@@ -94,7 +94,7 @@
   color: var(--ink-soft);
   border-radius: 20px;
   padding: 6px 12px;
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-weight: 700;
   font-size: 0.82rem;
   cursor: pointer;
@@ -263,7 +263,7 @@
   cursor: pointer;
   text-align: right;
   padding: 14px 16px;
-  font-family: "Almarai";
+  font-family: "Inter", "Almarai";
   font-weight: 800;
   font-size: 1.1rem;
   color: var(--ink);
@@ -430,4 +430,4 @@
   padding: 0 2px;
   font-weight: 700;
 }
-
+
