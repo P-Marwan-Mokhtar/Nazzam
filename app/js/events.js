@@ -63,8 +63,7 @@ export function useFixedDropdown(){
 // جوّه حاوية overflow بتقصّ أي dropdown مطلق، فبنثبّتها بإحداثيات الـ viewport
 // عشان تهرب من القصّ — والبوب أبات الفرعية جواها absolute فبتهرب معاها.
 // بترجع false لو العناصر مش في الـ DOM.
-export function positionTaskMoreFixed(id){
-  const wrap = document.querySelector(`.task-more-menu-wrap[data-wrap-id="${id}"]`);
+export function positionTaskMoreFixed(id){  const wrap = document.querySelector(`.task-more-menu-wrap[data-wrap-id="${id}"]`);
   const btn = wrap ? wrap.querySelector('.task-more-btn') : null;
   const dropdown = wrap ? wrap.querySelector('.task-more-dropdown.open') : null;
   if(!wrap || !btn || !dropdown) return false;
@@ -80,6 +79,31 @@ export function positionTaskMoreFixed(id){
   ui.openTaskMoreUp = up;
   wrap.classList.toggle('open-up', up);
   return true;
+}
+
+// البوب أبات الفرعية (ساعة/أولوية/نوع) بتفتح جنب البند — والجهة الافتراضية
+// (ناحية الداخل) ممكن تطلع بره الشاشة لو البند قريب من الحافة (خصوصًا في
+// الـ chips). الدالة دي بتقيس أي بوب مفتوح بعد الرسم وبتقلبه للناحية التانية
+// (كلاس flip) لو خارج الشاشة. البوبات المثبتة بإحداثيات JS مباشرة (fixed)
+// تُتجاهل لأنها متموضعة أصلًا. تُستدعى من مفاتيح الفتح ومن attachEvents
+// (عشان أي render لاحق والبوب مفتوح).
+export function fitSubPopovers(){
+  requestAnimationFrame(() => {
+    ['.clock-choice-popover', '.priority-popover', '.type-popover'].forEach(sel => {
+      document.querySelectorAll(sel + '.open').forEach(pop => {
+        if(pop.style.left || pop.style.right) return;
+        const flipped = pop.classList.contains('flip');
+        const r = pop.getBoundingClientRect();
+        if(!flipped && r.right > window.innerWidth - 8){
+          pop.classList.add('flip');
+        } else if(flipped && r.left < 8){
+          pop.classList.remove('flip');
+          const r2 = pop.getBoundingClientRect();
+          if(r2.right > window.innerWidth - 8) pop.classList.add('flip');
+        }
+      });
+    });
+  });
 }
 
 // تذكير المهمة: بيفتح الـ time picker بتاع التطبيق (الموجود أصلًا لتنبيه الصباح/المساء)
@@ -370,6 +394,7 @@ const contentActions = {
       ui.openClockChoiceTaskId = id;
     }
     render();
+    fitSubPopovers();
   },
   'toggle-priority-popover': async (btn) => {
     const { id } = btn.dataset;
@@ -380,6 +405,7 @@ const contentActions = {
       ui.openPriorityPopoverTaskId = id;
     }
     render();
+    fitSubPopovers();
   },
   'set-task-priority': async (btn) => {
     const { id } = btn.dataset;
@@ -469,6 +495,7 @@ const contentActions = {
       ui.openKeywordTypePopoverTaskId = id;
     }
     render();
+    fitSubPopovers();
   },
   'set-keyword-type': async (btn) => {
     const { id } = btn.dataset;
@@ -999,6 +1026,9 @@ export function attachEvents(){
     render();
     saveData();
   });
+  // أي render لاحق والبوب الفرعي مفتوح (بحث البنك أثناء الكتابة مثلًا):
+  // نعيد فحص جهته بدل ما يرجع للافتراضي ويتقص
+  fitSubPopovers();
 }
 
 // ============================================================

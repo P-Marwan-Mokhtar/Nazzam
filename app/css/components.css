@@ -650,8 +650,20 @@
   z-index: 150;
 }
 
-/* بوب اختيار الهدف/الفعلي/المؤقت — بيفتح ناحية جسم الصف (الداخل) عشان
-   متتقصّش على حافة الشاشة: قبل كده كان بيفتح لبره في الاتجاهين */
+/* البوب الفرعي بيفتح ناحية جسم الصف (الداخل) افتراضيًا — ولو مفيش مساحة
+   (قرب حافة الشاشة) الـ JS بيضيف كلاس flip فيفتح الناحية التانية (fitSubPopovers) */
+.clock-choice-popover.flip,
+.priority-popover.flip,
+.type-popover.flip {
+  left: auto;
+  right: calc(100% + 8px);
+}
+html[dir="ltr"] .clock-choice-popover.flip,
+html[dir="ltr"] .priority-popover.flip,
+html[dir="ltr"] .type-popover.flip {
+  right: auto;
+  left: calc(100% + 8px);
+}
 .clock-choice-popover {
   position: absolute;
   top: -6px;
