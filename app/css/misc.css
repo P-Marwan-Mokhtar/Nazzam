@@ -282,12 +282,12 @@
 }
 
 /* ===== عناوين العرض (Task List / Today / المودالات) =====
-   Cal Sans للاتيني مع Almarai للعربي (آخر ملف في الـ cascade فيغلّب السابق). */
+   المتغيّر بيتبدّل مع اتجاه الصفحة: Cal Sans للإنجليزي، Almarai للعربي. */
 .bank-toggle,
 .date-display .day-name,
 .section-title,
 .modal-header h2,
 .stats-view-header h2,
 .timer-panel-title {
-  font-family: "Cal Sans", "Almarai", sans-serif;
+  font-family: var(--font-heading);
 }

@@ -201,6 +201,8 @@ export function render(){
         </div>
       </div>
     `;
+    const hasActiveFilter = ui.activeFilter !== 'all';
+    const searchOpen = ui.bankSearchOpen || !!ui.bankSearchQuery;
     html += `
       <div class="add-row bank-add-task-row">
         <input type="text" id="newKeywordInput" placeholder="${t('bank.add_placeholder')}" value="${escapeAttr(ui.addDraft)}" />
@@ -214,37 +216,17 @@ export function render(){
       </div>
     `;
 
-    const hasActiveFilter = ui.activeFilter !== 'all';
-    html += `
-      <div class="bank-search-row">
-        <div class="bank-search">
-          <span class="material-icons bank-search-icon">search</span>
-          <input type="text" id="bankSearchInput" placeholder="${t('bank.search_placeholder')}" value="${escapeAttr(ui.bankSearchQuery)}" />
-          ${ui.bankSearchQuery ? `<button class="bank-search-clear" id="bankSearchClear" title="${t('bank.search_clear')}"><span class="material-icons">close</span></button>` : ``}
-        </div>
-        <div class="bank-filters-panel-wrap">
-          <button class="bank-filters-toggle ${ui.bankFiltersPanelOpen ? 'open' : ''} ${hasActiveFilter ? 'has-active' : ''}" id="bankFiltersToggleBtn" data-action="toggle-bank-filters-panel" type="button" title="${t('bank.filters')}">
-            <span class="material-icons">filter_alt</span>
-          </button>
-          <div class="bank-filters-panel ${ui.bankFiltersPanelOpen ? 'open' : ''}">
-            <div class="bank-filter-add-wrap">
-              <button class="tmd-btn" data-action="toggle-bank-filter-input" type="button">
-                <span class="material-icons">add</span><span>${t('bank.filter_add_title')}</span>
-              </button>
-              <div class="filter-add-popover ${ui.bankFilterInputOpen ? 'open' : ''}">
-                <input type="text" id="newFilterInput" placeholder="${t('bank.filter_placeholder')}" maxlength="40" />
-              </div>
-            </div>
-            <button class="tmd-btn" data-action="toggle-mobile-filters" type="button">
-              <span class="material-icons">${ui.mobileFiltersOpen ? 'visibility_off' : 'visibility'}</span><span>${ui.mobileFiltersOpen ? t('bank.hide_filters') : t('bank.show_filters')}</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
-
     html += `<div class="filter-chips-wrap ${!ui.mobileFiltersOpen ? 'mobile-closed' : ''} ${ui.closingMobileFilters ? 'mobile-closed-anim' : ''} ${ui.justOpenedMobileFilters ? 'mobile-opening' : ''}" id="filterChipsWrap">`;
     html += `<div class="filter-chips">`;
+    html += `
+      <div class="bank-filters-panel-wrap">
+        <button class="filter-chip bank-filters-toggle ${ui.bankFilterInputOpen ? 'open' : ''} ${hasActiveFilter ? 'has-active' : ''}" id="bankFiltersToggleBtn" data-action="toggle-bank-filter-input" type="button" title="${t('bank.filter_add_title')}">
+          <span class="material-icons">filter_alt</span>
+        </button>
+        <div class="filter-add-popover ${ui.bankFilterInputOpen ? 'open' : ''}">
+          <input type="text" id="newFilterInput" placeholder="${t('bank.filter_placeholder')}" maxlength="40" />
+        </div>
+      </div>`;
     html += `<button class="filter-chip ${ui.activeFilter === 'all' ? 'active' : ''}" data-action="select-filter" data-filter-id="all">${t('c.all')}</button>`;
     const sortedFilters = [...state.filters].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
     sortedFilters.forEach(f => {
@@ -285,7 +267,22 @@ export function render(){
     html += `</div>`;
     html += `</div>`;
 
-    html += `<div class="bank-filters-divider"></div>`;
+    html += `
+      <div class="bank-search-divider-wrap">
+        <div class="bank-filters-divider"></div>
+        <button class="bank-search-reveal ${searchOpen ? 'open' : ''}" data-action="toggle-bank-search" type="button" title="${t('bank.search_placeholder')}" aria-label="${t('bank.search_placeholder')}" aria-expanded="${searchOpen ? 'true' : 'false'}">
+          <span class="material-icons">${searchOpen ? 'expand_less' : 'search'}</span>
+        </button>
+      </div>
+      <div class="bank-search-collapsible ${searchOpen ? 'open' : ''}">
+        <div class="bank-search-collapsible-inner">
+          <div class="bank-search">
+            <input type="text" id="bankSearchInput" placeholder="${t('bank.search_placeholder')}" value="${escapeAttr(ui.bankSearchQuery)}" />
+            <button class="bank-search-clear" id="bankSearchClear" title="${t('bank.search_clear')}" style="${ui.bankSearchQuery ? '' : 'display:none'}"><span class="material-icons">close</span></button>
+          </div>
+        </div>
+      </div>
+    `;
 
     const filterMatched = ui.activeFilter === 'all'
       ? state.keywords

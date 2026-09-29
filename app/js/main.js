@@ -209,8 +209,7 @@ async function startApp(){
       ui.openFilterMoreId = null;
       render();
     }
-    if(ui.bankFiltersPanelOpen && !e.target.closest('.bank-filters-panel-wrap')){
-      ui.bankFiltersPanelOpen = false;
+    if(ui.bankFilterInputOpen && !e.target.closest('.bank-filters-panel-wrap')){
       ui.bankFilterInputOpen = false;
       render();
     }
@@ -632,7 +631,8 @@ async function startApp(){
       if(ui.openTaskMoreId){ ui.openTaskMoreId = null; ui.openPriorityPopoverTaskId = null; ui.openTypePopoverTaskId = null; render(); }
       if(ui.openKeywordMoreId){ ui.openKeywordMoreId = null; render(); }
       if(ui.openFilterMoreId){ ui.openFilterMoreId = null; render(); }
-      if(ui.bankFiltersPanelOpen){ ui.bankFiltersPanelOpen = false; ui.bankFilterInputOpen = false; render(); }
+      if(ui.bankFilterInputOpen){ ui.bankFilterInputOpen = false; render(); }
+      if(ui.bankSearchOpen && !ui.bankSearchQuery.trim()){ ui.bankSearchOpen = false; render(); }
       if(ui.addArrowOpen){ ui.addArrowOpen = false; ui.addArrowSub = null; render(); }
     }
   });

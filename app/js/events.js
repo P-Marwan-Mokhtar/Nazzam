@@ -339,6 +339,7 @@ const contentActions = {
   'clear-bank-search': async () => {
     ui.bankSearchQuery = '';
     ui.bankDisplayLimit = 10;
+    ui.bankSearchOpen = true;
     render();
     afterRender(() => {
       const input = document.getElementById('bankSearchInput');
@@ -350,6 +351,22 @@ const contentActions = {
     ui.mobileFiltersOpen = true;
     ui.justChangedFilter = true;
     render();
+  },
+  'toggle-bank-search': async () => {
+    // أيقونة البحث تتمدد لحقل كامل (والعكس يقفله ويمسح البحث)
+    if(ui.bankSearchOpen || ui.bankSearchQuery){
+      ui.bankSearchOpen = false;
+      ui.bankSearchQuery = '';
+      ui.bankDisplayLimit = 10;
+      render();
+    } else {
+      ui.bankSearchOpen = true;
+      render();
+      afterRender(() => {
+        const input = document.getElementById('bankSearchInput');
+        if(input) input.focus();
+      });
+    }
   },
   'clear-day-filters': async () => {
     ui.dayStatusFilter = 'all';
@@ -640,11 +657,6 @@ const contentActions = {
     ui.openFilterMoreId = ui.openFilterMoreId === id ? null : id;
     render();
   },
-  'toggle-bank-filters-panel': async () => {
-    ui.bankFiltersPanelOpen = !ui.bankFiltersPanelOpen;
-    if(!ui.bankFiltersPanelOpen) ui.bankFilterInputOpen = false;
-    render();
-  },
   'toggle-bank-filter-input': async () => {
     ui.bankFilterInputOpen = !ui.bankFilterInputOpen;
     render();
@@ -911,6 +923,8 @@ export function attachEvents(){
   }
   const bankSearchClear = document.getElementById('bankSearchClear');
   if(bankSearchClear){
+    // منع سحب التركيز قبل الضغط — وإلا onblur يقفل الحقل وتضيع الضغطة
+    bankSearchClear.onmousedown = (e) => { e.preventDefault(); };
     bankSearchClear.onclick = () => {
       ui.bankSearchQuery = '';
       ui.bankDisplayLimit = 10;

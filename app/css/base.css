@@ -48,6 +48,13 @@
   --shadow: 0 1px 2px rgba(15, 18, 22, 0.05), 0 4px 12px rgba(15, 18, 22, 0.04);
   --shadow-hover: 0 2px 4px rgba(15, 18, 22, 0.06), 0 8px 20px rgba(15, 18, 22, 0.08);
   --transition: 0.2s ease;
+  /* خط العناوين: عربي = Almarai / إنجليزي = Cal Sans.
+     كل عنصر عنوان بياخد المتغيّر ده بدل ما يكرّر السلسلة، عشان الوضع الإنجليزي
+     ميقدرش يقع على Almarai (فونت عربي) لو Cal Sans ما اتحمّلش. */
+  --font-heading: "Almarai", "Cal Sans", sans-serif;
+}
+html[dir="ltr"] {
+  --font-heading: "Cal Sans", "Inter", "Segoe UI", system-ui, sans-serif;
 }
 
 /* ===== Dark Mode Variables & Overrides ===== */
@@ -218,7 +225,7 @@ body {
   flex: 1;
 }
 .date-display .day-name {
-  font-family: "Inter", "Almarai", sans-serif;
+  font-family: var(--font-heading);
   font-size: 1.25rem;
   font-weight: 600;
   line-height: 1.3;
@@ -357,8 +364,8 @@ html[dir="ltr"] .bank-search-icon {
   right: auto;
 }
 html[dir="ltr"] .bank-search input {
-  padding-left: 40px;
-  padding-right: 36px;
+  padding-left: 16px;
+  padding-right: 40px;
 }
 html[dir="ltr"] .bank-search-clear {
   left: auto;
@@ -475,13 +482,13 @@ html[dir="ltr"] .tb-range-menu {
 
 /* === Font family for English === */
 html[dir="ltr"] body {
-  font-family: "Inter", "Almarai", "Segoe UI", system-ui, sans-serif;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
 }
 html[dir="ltr"] .header-top-bar,
 html[dir="ltr"] .bank-section-title,
 html[dir="ltr"] .timer-panel-title,
 html[dir="ltr"] .stats-title,
 html[dir="ltr"] h2 {
-  font-family: "Cal Sans", "Inter", "Segoe UI", sans-serif;
+  font-family: var(--font-heading);
 }
 

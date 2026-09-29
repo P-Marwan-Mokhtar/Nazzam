@@ -80,6 +80,7 @@ export const ui = {
   closingBank: false,
   bankCloseTimeoutId: null,
   bankSearchQuery: '',
+  bankSearchOpen: false, // حقل بحث البنك متمدد (أيقونة تتمدد عند الضغط — ضد زحمة سطرين إدخال)
   globalSearchQuery: '',  // نص البحث الحالي في نافذة "البحث في كل المهام" (عبر كل الأيام)
   mobileFiltersOpen: true,  // الفلاتر ظاهرة افتراضياً، بتنفتح/بتتقفل بالزرار
   justOpenedMobileFilters: false,  // true لمرة واحدة بس لحظة فتح لوحة الفلاتر على الموبايل — عشان الأنيميشن يشتغل عند الفتح مش مع كل render
@@ -134,8 +135,7 @@ export const ui = {
   tbSideCloseTimeoutId: null,  // مؤقّت إنهاء أنيميشن الإغلاق
   tbSideExpanded: false,  // هل لوحة "مهام غير مجدولة" على الموبايل موسعّة (بتدّي كل المهام) ولا مقفولة (أول 4 بس)
   activeSubtasksTaskId: null,  // المهمة المفتوح لها نافذة المهام الفرعية
-  bankFiltersPanelOpen: false,  // هل لوحة زرار الفلاتر (إضافة + إظهار/إخفاء) مفتوحة دلوقتي
-  bankFilterInputOpen: false,  // هل حقل إضافة فلتر جديد ظاهر جوه اللوحة دلوقتي
+  bankFilterInputOpen: false,  // هل حقل إضافة فلتر جديد ظاهر تحت زرار الفلاتر
   dayStatusFilter: 'all',  // فلتر حالة مهام اليوم: all | pending | done
   dayStatusFilterOpen: false,  // هل قائمة فلتر الحالة مفتوحة دلوقتي
   dayViewMode: (() => { try { return localStorage.getItem('nazam-day-view-mode') === 'list' ? 'list' : 'chips'; } catch(e){ return 'chips'; } })(),  // عرض مهام اليوم: chips (الافتراضي المدمج) | list (سطر كامل لكل مهمة)

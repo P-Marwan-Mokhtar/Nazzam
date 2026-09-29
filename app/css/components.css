@@ -1062,6 +1062,10 @@ html[dir="ltr"] .type-popover.flip {
   overflow: visible;
   z-index: 60;
 }
+.filter-chips-wrap:has(.filter-add-popover.open) {
+  overflow: visible;
+  z-index: 60;
+}
 .filter-chips {
   display: flex;
   flex-wrap: wrap;
@@ -1112,40 +1116,22 @@ html[dir="ltr"] .type-popover.flip {
 .filter-chip-wrap.active .filter-chip-label {
   color: #fff;
 }
-/* لوحة زرار الفلاتر جنب السيرش: إضافة فلتر + إظهار/إخفاء في مكان واحد */
+/* غلاف زرار الفلاتر — يحمل بوب إضافة الفلتر تحته */
 .bank-filters-panel-wrap {
   position: relative;
   flex-shrink: 0;
 }
-.bank-filters-panel {
-  display: none;
-  position: absolute;
-  top: calc(100% + 6px);
-  inset-inline-end: 0;
-  z-index: 120;
-  flex-direction: column;
-  gap: 4px;
-  width: 140px;
-  background: var(--popup);
-  border: 1px solid var(--popup-border);
-  box-shadow: var(--shadow);
-  border-radius: 14px;
-  padding: 8px;
-}
-.bank-filters-panel.open {
-  display: flex;
-}
-/* بوب الإضافة الفرعي — عائم تحت زراره جوه اللوحة */
-.bank-filter-add-wrap {
-  position: relative;
-}
+/* بوب إضافة فلتر جديد — عائم تحت الزرار مباشرة.
+   مثبّت على حافة بداية السطر (مش النهاية) عشان الزرار أول شيب في الصف،
+   فالبوب يفضل جوّه الشاشة في العربي والإنجليزي على الموبايل */
 .filter-add-popover {
   display: none;
   position: absolute;
   top: calc(100% + 4px);
-  inset-inline-end: 0;
-  inset-inline-start: auto;
+  inset-inline-start: 0;
+  inset-inline-end: auto;
   width: 200px;
+  max-width: min(200px, calc(100vw - 24px));
   z-index: 130;
   background: var(--popup);
   border: 1px solid var(--popup-border);

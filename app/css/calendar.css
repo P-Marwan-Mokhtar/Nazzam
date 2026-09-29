@@ -326,17 +326,6 @@
   }
 }
 
-.bank-search-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
-  margin-top: 12px;
-}
-.bank-search-row .bank-search {
-  margin: 0;
-  flex: 1 1 auto;
-}
 .bank-filters-toggle {
   display: flex;
   flex-shrink: 0;
@@ -363,6 +352,16 @@
   border-color: var(--pen);
   color: var(--pen);
 }
+/* زرار الفلاتر جوه صف الشيبس: نفس ستايل الشيبس (pill) بدل المربع */
+.filter-chip.bank-filters-toggle {
+  width: auto;
+  height: auto;
+  border-radius: 999px;
+  padding: 6px 12px;
+}
+.filter-chip.bank-filters-toggle .material-icons {
+  font-size: 18px;
+}
 .bank-filters-toggle.has-active::after {
   content: "";
   position: absolute;
@@ -382,18 +381,66 @@
   margin-bottom: 14px;
   margin-top: 12px;
 }
-.bank-search-icon {
+/* مسافة بين حقل الإضافة وصف الفلاتر (كانوا لازقين في بعض) */
+.bank-add-task-row {
+  margin-bottom: 12px;
+}
+/* زرار كشف البحث: لسان طالع لفوق من الفاصل (بلا استدارة سفلية) —
+   مقفول: عدسة بحث / مفتوح: سهم لفوق */
+.bank-search-divider-wrap {
+  position: relative;
+  margin-bottom: 18px;
+}
+.bank-search-divider-wrap .bank-filters-divider {
+  margin-bottom: 18px;
+}
+.bank-search-reveal {
   position: absolute;
-  right: 12px;
-  font-size: 19px;
+  top: -12px;
+  inset-inline-end: 0px;
+  translate: 0 -50%;
+  width: 46px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px 12px 0 0;
+  background: var(--card);
+  border: 1px solid var(--paper-line);
+  border-bottom: none;
   color: var(--ink-soft);
-  pointer-events: none;
+  cursor: pointer;
+  z-index: 10;
+}
+.bank-search-reveal .material-icons {
+  font-size: 20px;
+}
+.bank-search-reveal:hover {
+  color: var(--pen);
+}
+.bank-search-reveal.open {
+  color: var(--pen);
+  border-color: var(--pen);
+}
+/* حقل البحث القابل للطي بأنيميشن (grid-rows trick بلا قياس JS) */
+.bank-search-collapsible {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.3s ease, opacity 0.25s ease;
+}
+.bank-search-collapsible.open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.bank-search-collapsible-inner {
+  overflow: hidden;
+  min-height: 0;
 }
 .bank-search input {
   width: 100%;
   border: 1px solid var(--paper-line);
   border-radius: 10px;
-  padding: 14px 40px 14px 36px;
+  padding: 14px 16px 14px 40px;
   font-family: inherit;
   font-size: 0.92rem;
   background: var(--paper);

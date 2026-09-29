@@ -641,12 +641,12 @@ ${estBlock}
 </div>
 
 <div class="no-print" style="margin-top:24px; text-align:center;">
-<button onclick="window.print()" style="
+<button id="pdfPrintBtn" type="button" style="
   background:#3e5c2e;color:#fff;border:none;border-radius:10px;
   padding:12px 36px;font-family:'Almarai';font-weight:700;font-size:1rem;
   cursor:pointer;margin-left:10px;
  ">${t('pdf.export_btn')}</button>
-<button onclick="window.close()" style="
+<button id="pdfCloseBtn" type="button" style="
   background:#f0ebe3;color:#666;border:none;border-radius:10px;
   padding:12px 24px;font-family:'Almarai';font-weight:700;font-size:1rem;cursor:pointer;
  ">${t('pdf.close_btn')}</button>
@@ -658,6 +658,12 @@ ${estBlock}
   if(!win){ showToast(t('pdf.popup_blocked')); return; }
   win.document.write(html);
   win.document.close();
+  // الربط من سياق التطبيق (addEventListener) بدل onclick المضمّن —
+  // نافذة about:blank بترث CSP التطبيق اللي بيمنع Inline scripts فالأزرار كانت ميتة
+  try{
+    win.document.getElementById('pdfPrintBtn').addEventListener('click', () => win.print());
+    win.document.getElementById('pdfCloseBtn').addEventListener('click', () => win.close());
+  }catch(e){}
 }
 
 function destroyStatsCharts(){
