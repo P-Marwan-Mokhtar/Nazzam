@@ -195,6 +195,9 @@ function sanitizeTask(t){
   if(typeof t._dupOf === 'string' && sanitizeId(t._dupOf)) out._dupOf = t._dupOf;
   else if(t._dupOf === true) out._dupOf = true;
   if(t._fromRecurrence === true) out._fromRecurrence = true;
+  // علامة المهمة اللي اتعملت من العرض الزمني نفسه (timeBlocking.js: بوب الإضافة).
+  // بتتحفظ عشان مسحها من الجدول يمسحها من اليوم خالص — وإلا ضاعت بعد reload/import.
+  if(t._fromSchedule === true) out._fromSchedule = true;
   if(Array.isArray(t.subtasks)){
     const subs = t.subtasks
       .filter(s => isPlainObject(s) && typeof s.title === 'string' && s.title.trim())

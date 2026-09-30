@@ -869,6 +869,15 @@ body.locked-view .main-col {
   gap: 1px;
   transition: box-shadow 0.15s ease;
 }
+/* البلوك المؤقت بتاع بوب الإضافة — شكله زي البلوك العادي بس منقّط ومش بيتسحب.
+   بيتشال لو البوب اتقفل من غير إضافة. */
+.timeline-block-ghost {
+  cursor: default;
+  border: 1.5px dashed var(--pen);
+  border-inline-start: 3px solid var(--pen);
+  background: var(--pen-soft);
+  z-index: 18;
+}
 .timeline-block.dragging,
 .timeline-block.resizing {
   cursor: grabbing;
@@ -968,6 +977,32 @@ body.locked-view .main-col {
   font-weight: 700;
   padding: 1px 6px;
   border-radius: 6px;
+}
+/* المعاينة أثناء سحب وقت جديد على مكان فاضي (من وقت البداية لحد النهاية) —
+   بلوك فاتح بيوضح المدى الزمني مع تسميته فوق */
+.timeline-range-preview {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: var(--pen-soft);
+  border: 1.5px solid var(--pen);
+  border-radius: 8px;
+  z-index: 15;
+  pointer-events: none;
+}
+.timeline-range-preview::before {
+  content: attr(data-label);
+  position: absolute;
+  top: -9px;
+  right: 4px;
+  background: var(--pen);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 1;
 }
 
 /* ===== عرض الشهر (زي Google Calendar): شبكة 7 أعمدة × أسابيع ===== */

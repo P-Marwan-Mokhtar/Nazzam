@@ -6,7 +6,7 @@ import { DAY_NAMES, addDays, escapeAttr, escapeHtml, fmtDay, fromISO, parseDurat
 import { contentEl, showToast, state, ui } from './state.js';
 import { render } from './render.js';
 import { currentPalette } from './theme.js';
-import { t, pl, formatHM, formatMinutes } from './i18n.js';
+import { t, pl, formatHM, formatMinutes, getLang } from './i18n.js';
 import { canUse } from './plans.js';
 import { gateFree, openUpgrade } from './upgrade.js';
 
@@ -62,6 +62,7 @@ function createStatsAccumulator(){
     totalTaskCount: 0,
     missedCount: 0, // مهام اتضافت ليوم فات ومتعملهاش check
     typeCounts: {}, // type -> count
+    noTimeCount: 0, // مهام ما اتسجلش لها وقت فعلي (مؤشر إن في أجزاء من الشغل بتتفوت من التتبّع)
     taskTimeMap: {},
     filterTotals: {}, // filterId -> ms (لرسم توزيع الوقت حسب التصنيف)
     typeTimeTotals: {}, // type -> ms (لرسم توزيع الوقت حسب النوع: مهمة/عادة/هواية)
@@ -80,6 +81,7 @@ function createStatsAccumulator(){
     if(t.done){ acc.doneCount++; }
     else if(isPastDay){ acc.missedCount++; }
     const ms = parseDurationToMinutes(t.actualDuration) * 60000;
+    if(ms <= 0) acc.noTimeCount++;
     if(ms > 0){
       acc.totalMs += ms;
       acc.taskTimeMap[t.name] = (acc.taskTimeMap[t.name] || 0) + ms;
@@ -155,7 +157,7 @@ export function computeWeekStats(offsetWeeks, typeFilter){
 
   return {
     totalMs: acc.totalMs, doneCount: acc.doneCount, totalTaskCount: acc.totalTaskCount,
-    missedCount: acc.missedCount, typeCounts: acc.typeCounts,
+    missedCount: acc.missedCount, typeCounts: acc.typeCounts, noTimeCount: acc.noTimeCount,
     topTasks, longestTask: acc.longestTask, streak, bestDay, bestDayMs,
     weekDays, dayTotals, dayTaskCounts, dayDoneCounts,
     filterTotals: acc.filterTotals, typeTimeTotals: acc.typeTimeTotals,
@@ -175,6 +177,7 @@ export function computeDayStats(dateStr, typeFilter){
   return {
     date: dateStr, totalMs: acc.totalMs, doneCount: acc.doneCount,
     totalTaskCount: tasks.length, missedCount: acc.missedCount, typeCounts: acc.typeCounts,
+    noTimeCount: acc.noTimeCount,
     topTasks, longestTask: acc.longestTask, filterTotals: acc.filterTotals, typeTimeTotals: acc.typeTimeTotals,
     estimationAccuracyPct, estimationTasks,
     streak: computeCurrentStreak(typeFilter),
@@ -507,7 +510,7 @@ function exportStatsPDF(mode){
 
   // جدول الملخص: صف لكل يوم في التقرير الأسبوعي، وصف واحد لليوم المعروض في اليومي
   const progressBarHtml = (pct) =>
-    `<div style="width:100%;background:#e8e0d5;border-radius:4px;height:6px;"><div style="width:${pct}%;background:#5c6e4e;border-radius:4px;height:6px;"></div></div>`;
+    `<div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>`;
   let daysTableRows;
   if(isDaily){
     const done = s.doneCount;
@@ -517,7 +520,7 @@ function exportStatsPDF(mode){
       <td>${fmtDay(dateStr)}</td>
       <td style="text-align:center">${done}/${total}</td>
       <td style="text-align:center">${s.totalMs > 0 ? formatHM(s.totalMs) : '—'}</td>
-      <td style="width:120px">${progressBarHtml(pct)}</td>
+      <td class="bar-cell">${progressBarHtml(pct)}</td>
     </tr>`;
   } else {
     const DAY_SHORT = [t('pdf.sun'),t('pdf.mon'),t('pdf.tue'),t('pdf.wed'),t('pdf.thu'),t('pdf.fri'),t('pdf.sat')];
@@ -532,7 +535,7 @@ function exportStatsPDF(mode){
         <td>${dayLabel} ${date.slice(5)}</td>
         <td style="text-align:center">${done}/${total}</td>
         <td style="text-align:center">${ms > 0 ? formatHM(ms) : '—'}</td>
-        <td style="width:120px">${progressBarHtml(pct)}</td>
+        <td class="bar-cell">${progressBarHtml(pct)}</td>
       </tr>`;
     }).join('');
   }
@@ -553,61 +556,206 @@ function exportStatsPDF(mode){
   if(!isDaily && s.bestDay){
     highlightCard = `<div class="card">
       <div class="card-title">${t('pdf.best_day')}</div>
-      <div class="big" style="font-size:1.1rem">${fmtDay(s.bestDay)}</div>
+      <div class="big sm">${fmtDay(s.bestDay)}</div>
       <div class="sub">${formatHM(s.bestDayMs)} ${t('pdf.time')}</div>
     </div>`;
   } else if(isDaily && s.longestTask){
     highlightCard = `<div class="card">
       <div class="card-title">${t('stats.task_time_today')}</div>
-      <div class="big" style="font-size:1.1rem">${escapeHtml(s.longestTask.name)}</div>
+      <div class="big sm">${escapeHtml(s.longestTask.name)}</div>
       <div class="sub">${formatHM(s.longestTask.ms)} ${t('pdf.time')}</div>
     </div>`;
   }
 
+  // النافذة بتفتح في about:blank فمفيش فيها أي تنسيق من التطبيق — لازم التقرير
+  // يجيب معاه كل حاجة: اتجاه ولغة الصفحة، خط اللغة، والوضع (فاتح/داكن).
+  // الطباعة بتفرض الفاتح دايمًا عشان الورق أبيض (توفير حبر + أوضح).
+  const lang = getLang();
+  const isRtl = lang === 'ar';
+  const isDark = !!state.darkMode;
+  const palNow = currentPalette();
+  const palPrint = currentPalette('light');
+  const varsOf = (pal) => Object.entries(pal)
+    .map(([k, v]) => `--${k}:${v};`).join('');
+  const fontStack = isRtl
+    ? "'Almarai', sans-serif"
+    : "'Cal Sans', 'Inter', 'Segoe UI', system-ui, sans-serif";
+  const sep = isRtl ? '،' : ' · ';
+
+  // ===== إحصائيات مشتقة من بيانات موجودة أصلًا (من غير جمع جديد) =====
+  // نسبة الإنجاز: الرقم المحوري اللي بيجاوب "قد إيه خلصت من اللي قدامك"
+  const completionPct = s.totalTaskCount > 0
+    ? Math.round((s.doneCount / s.totalTaskCount) * 100)
+    : 0;
+  // متوسط الوقت لكل مهمة منجزة — بيكشف لو الوقت ميعادَلش على المهام الحقيقية
+  const avgPerTaskMs = s.doneCount > 0 ? Math.round(s.totalMs / s.doneCount) : 0;
+  // صف توزيع: اسم + شريط نسبي + قيمة
+  const distRow = (label, ms, max) => {
+    const pct = max > 0 ? Math.round((ms / max) * 100) : 0;
+    return `<div class="dist-row">
+      <span class="dist-label">${label}</span>
+      <span class="dist-bar"><span class="dist-fill" style="width:${pct}%"></span></span>
+      <span class="dist-val">${formatHM(ms)}</span>
+    </div>`;
+  };
+  // توزيع الوقت حسب النوع (مهمة/عادة/هواية) — بيقول الوقت راح فين فعلًا
+  const TYPE_IDS = ['task', 'habit', 'hobby'];
+  const typeTotals = s.typeTimeTotals || {};
+  const typeMax = Math.max(0, ...TYPE_IDS.map(id => typeTotals[id] || 0));
+  const typeRows = typeMax > 0
+    ? TYPE_IDS.filter(id => (typeTotals[id] || 0) > 0)
+        .map(id => distRow(t('task.type_' + id), typeTotals[id], typeMax)).join('')
+    : '';
+  // توزيع الوقت حسب التصنيف (فلاتر البنك) — أعلى 6 تصنيفات
+  const filterTotals = s.filterTotals || {};
+  const filterRowsRaw = Object.entries(filterTotals)
+    .filter(([, ms]) => ms > 0)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([fid, ms]) => {
+      const f = state.filters.find(x => x.id === fid);
+      return { name: f ? f.name : '', ms };
+    });
+  const filterMax = filterRowsRaw.length ? filterRowsRaw[0].ms : 0;
+  const filterRows = filterMax > 0
+    ? filterRowsRaw.map(r => distRow(escapeHtml(r.name), r.ms, filterMax)).join('')
+    : '';
+
+  // الهدف مقابل الفعلي لكل مهمة — أكتر من رقم مفرد: بيقول فين التقديرك غلط
+  // بالظبط (estimationTasks = أكتر 5 مهام ليها هدف ووقت فعلي معًا)
+  const estimationRows = (s.estimationTasks || []).length
+    ? `<table class="est-table">
+        <thead><tr>
+          <th>${t('pdf.task_header')}</th>
+          <th style="text-align:center">${t('task.goal')}</th>
+          <th style="text-align:center">${t('pdf.actual_header')}</th>
+          <th style="text-align:center">${t('pdf.diff_header')}</th>
+        </tr></thead>
+        <tbody>${s.estimationTasks.map(task => {
+          const diff = task.targetMs > 0
+            ? Math.round(((task.actualMs - task.targetMs) / task.targetMs) * 100)
+            : 0;
+          const over = diff > 0;
+          return `<tr>
+            <td>${escapeHtml(task.name)}</td>
+            <td style="text-align:center">${formatHM(task.targetMs)}</td>
+            <td style="text-align:center">${formatHM(task.actualMs)}</td>
+            <td style="text-align:center">
+              <span class="pill ${over ? 'over' : 'under'}">${over ? '+' : ''}${diff}%</span>
+            </td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`
+    : '';
+
   const html = `<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="${lang}" dir="${isRtl ? 'rtl' : 'ltr'}"${isDark ? ' class="dark"' : ''}>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${reportTitle}</title>
 <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+<link href="https://api.fontshare.com/v2/css?f[]=cal-sans@400,500,600&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Almarai', sans-serif; background: #faf7f2; color: #2c2416; padding: 32px; direction: rtl; }
-h1 { font-size: 1.9rem; font-weight: 800; color: #3e5c2e; margin-bottom: 4px; }
-.sub-header { font-size: 0.85rem; color: #888; margin-bottom: 28px; }
-.grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 20px; }
-.card { background: #fff; border: 1px solid #e0d8cc; border-radius: 12px; padding: 16px 18px; }
-.card-title { font-size: 0.8rem; font-weight: 700; color: #888; margin-bottom: 6px; }
-.big { font-size: 1.7rem; font-weight: 800; color: #3e5c2e; }
-.sub { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
-.full { grid-column: 1 / -1; }
-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-th { background: #f0ebe3; padding: 8px 10px; text-align: right; font-weight: 700; font-size: 0.8rem; color: #666; }
-td { padding: 8px 10px; border-bottom: 1px solid #f0ebe3; }
-tr:last-child td { border-bottom: none; }
+:root { ${varsOf(palNow)}
+  --font: ${fontStack};
+  --radius: 14px;
+}
+body { font-family: var(--font); background: var(--paper); color: var(--ink);
+  padding: 28px; line-height: 1.6; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.wrap { max-width: 1000px; margin: 0 auto; }
+h1 { font-size: 1.75rem; font-weight: 800; color: var(--pen); letter-spacing: -0.01em; }
+.sub-header { font-size: 0.82rem; color: var(--ink-soft); margin-bottom: 24px; }
+.sub-header span { white-space: nowrap; }
+
+/* شريط الكروت: flex-wrap بدل شبكة ثابتة — الكارت الأخير بياخد عرض السطر
+   المتبقي فمفيش خانة فاضية (زي ما كان بيحصل في شبكة 3 أعمدة مع 5 كروت) */
+.cards { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.card { flex: 1 1 170px; background: var(--card); border: 1px solid var(--paper-line);
+  border-radius: var(--radius); padding: 14px 16px; }
+.card-title { font-size: 0.76rem; font-weight: 700; color: var(--ink-soft); margin-bottom: 4px; }
+.big { font-size: 1.65rem; font-weight: 800; color: var(--pen); line-height: 1.25; }
+.big.sm { font-size: 1.05rem; }
+.big .of { font-size: 0.95rem; font-weight: 600; color: var(--ink-soft); }
+.sub { font-size: 0.74rem; color: var(--ink-soft); margin-top: 3px; }
+
+.section { background: var(--card); border: 1px solid var(--paper-line);
+  border-radius: var(--radius); padding: 16px 18px; margin-bottom: 16px; }
+.section-title { font-size: 0.95rem; font-weight: 800; color: var(--ink); margin-bottom: 12px; }
+
+/* عمودين جنب بعض للتوزيعين (نوع/تصنيف) — على الشاشات الضيقة بيبقوا فوق بعض */
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+@media (max-width: 720px) { .split { grid-template-columns: 1fr; } }
+.split .section { margin-bottom: 0; }
+.dist-row { display: grid; grid-template-columns: minmax(70px, 1fr) 2fr auto;
+  align-items: center; gap: 10px; padding: 6px 0; font-size: 0.85rem; }
+.dist-label { color: var(--ink); font-weight: 600; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; }
+.dist-bar { background: var(--paper); border-radius: 4px; height: 8px; overflow: hidden; }
+.dist-fill { display: block; background: var(--pen); height: 8px; border-radius: 4px; }
+.dist-val { color: var(--ink-soft); font-weight: 700; white-space: nowrap; }
+.empty { font-size: 0.82rem; color: var(--ink-soft); }
+
+.pill { display: inline-block; border-radius: 999px; padding: 1px 9px;
+  font-size: 0.76rem; font-weight: 800; }
+.pill.over { background: var(--missed-soft); color: var(--missed); }
+.pill.under { background: var(--done-soft); color: var(--done); }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+th { background: var(--paper); color: var(--ink-soft); padding: 9px 10px; text-align: start;
+  font-weight: 700; font-size: 0.78rem; }
+th:first-child { border-start-start-radius: 8px; border-end-start-radius: 8px; }
+th:last-child { border-start-end-radius: 8px; border-end-end-radius: 8px; }
+td { padding: 9px 10px; border-bottom: 1px solid var(--paper-line); }
+tbody tr:last-child td { border-bottom: none; }
+.bar-cell { width: 150px; }
+.bar { width: 100%; background: var(--paper); border-radius: 4px; height: 6px; overflow: hidden; }
+.bar-fill { background: var(--pen); border-radius: 4px; height: 6px; }
+
 .task-list { list-style: none; padding: 0; }
-.task-list li { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #ede7dd; font-size: 0.88rem; }
+.task-list li { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  padding: 8px 0; border-bottom: 1px solid var(--paper-line); font-size: 0.88rem; }
 .task-list li:last-child { border-bottom: none; }
-.task-list strong { color: #3e5c2e; font-weight: 800; }
-.badge { display: inline-block; background: #e8f0e2; color: #3e5c2e; border-radius: 6px; padding: 2px 10px; font-size: 0.78rem; font-weight: 700; }
+.task-list strong { color: var(--pen); font-weight: 800; white-space: nowrap; }
+
+.actions { display: flex; gap: 10px; justify-content: center; margin-top: 22px; }
+.btn { border: 1px solid transparent; border-radius: 10px; padding: 11px 30px;
+  font-family: var(--font); font-weight: 700; font-size: 0.95rem; cursor: pointer; }
+.btn-primary { background: var(--pen); color: #fff; }
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-ghost { background: var(--paper); color: var(--ink-soft); border-color: var(--paper-line); }
+.btn-ghost:hover { color: var(--ink); }
+
+/* الطباعة: ورق أبيض دايمًا — الوضع الداكن للشاشة بس (توفير حبر + أوضح) */
 @media print {
-  body { padding: 16px; }
+  :root, html.dark { ${varsOf(palPrint)} }
+  body { padding: 0; background: #fff; }
+  .section, .card { break-inside: avoid; }
   .no-print { display: none !important; }
 }
 </style>
 </head>
 <body>
+<div class="wrap">
 <h1>${reportTitle}</h1>
-<div class="sub-header">${t('pdf.period')} ${periodLabel} &nbsp;|&nbsp; ${t('pdf.export_date')} ${printDate}</div>
+<div class="sub-header"><span>${t('pdf.period')} ${periodLabel}</span> <span>${sep}</span> <span>${t('pdf.export_date')} ${printDate}</span></div>
 
-<div class="grid">
+<div class="cards">
 <div class="card">
   <div class="card-title">${t('pdf.total_time')}</div>
   <div class="big">${formatHM(s.totalMs)}</div>
 </div>
 <div class="card">
   <div class="card-title">${t('pdf.tasks_done')}</div>
-  <div class="big">${s.doneCount}<span style="font-size:1rem;color:#aaa"> / ${s.totalTaskCount}</span></div>
+  <div class="big">${s.doneCount}<span class="of"> / ${s.totalTaskCount}</span></div>
+</div>
+<div class="card">
+  <div class="card-title">${t('pdf.completion_rate')}</div>
+  <div class="big">${completionPct}%</div>
+  <div class="bar" style="margin-top:8px"><div class="bar-fill" style="width:${completionPct}%"></div></div>
 </div>
 <div class="card">
   <div class="card-title">${t('pdf.day_streak')}</div>
@@ -617,44 +765,60 @@ tr:last-child td { border-bottom: none; }
 ${highlightCard}
 ${s.missedCount > 0 ? `<div class="card">
   <div class="card-title">${t('pdf.missed')}</div>
-  <div class="big" style="color:#c0392b">${s.missedCount}</div>
+  <div class="big" style="color:var(--missed)">${s.missedCount}</div>
   <div class="sub">${t('pdf.missed_desc')}</div>
 </div>` : ''}
 ${estBlock}
+${avgPerTaskMs > 0 ? `<div class="card">
+  <div class="card-title">${t('pdf.avg_per_task')}</div>
+  <div class="big sm">${formatHM(avgPerTaskMs)}</div>
+  <div class="sub">${t('pdf.avg_per_task_desc')}</div>
+</div>` : ''}
+${s.noTimeCount > 0 ? `<div class="card">
+  <div class="card-title">${t('pdf.no_time_count')}</div>
+  <div class="big">${s.noTimeCount}</div>
+  <div class="sub">${t('pdf.no_time_desc')}</div>
+</div>` : ''}
 </div>
 
-<div class="grid">
-<div class="card full">
-  <div class="card-title" style="margin-bottom:12px">${t(isDaily ? 'pdf.summary_title_day' : 'pdf.summary_title')}</div>
+<div class="split">
+<div class="section">
+  <div class="section-title">${t('pdf.by_type_title')}</div>
+  ${typeRows || `<div class="empty">${t('pdf.no_data')}</div>`}
+</div>
+<div class="section">
+  <div class="section-title">${t('pdf.by_category_title')}</div>
+  ${filterRows || `<div class="empty">${t('pdf.no_data')}</div>`}
+</div>
+</div>
+
+<div class="section">
+  <div class="section-title">${t(isDaily ? 'pdf.summary_title_day' : 'pdf.summary_title')}</div>
   <table>
     <thead><tr><th>${t('pdf.day_header')}</th><th style="text-align:center">${t('pdf.done_header')}</th><th style="text-align:center">${t('pdf.time_header')}</th><th>${t('pdf.progress_header')}</th></tr></thead>
     <tbody>${daysTableRows}</tbody>
   </table>
 </div>
-</div>
 
-<div class="grid">
-<div class="card full">
-  <div class="card-title" style="margin-bottom:12px">⭐ ${topTasksTitle}</div>
+${estimationRows ? `<div class="section">
+  <div class="section-title">${t('pdf.est_detail_title')}</div>
+  ${estimationRows}
+</div>` : ''}
+
+<div class="section">
+  <div class="section-title">⭐ ${topTasksTitle}</div>
   <ul class="task-list">${topTasksRows}</ul>
 </div>
-</div>
 
-<div class="no-print" style="margin-top:24px; text-align:center;">
-<button id="pdfPrintBtn" type="button" style="
-  background:#3e5c2e;color:#fff;border:none;border-radius:10px;
-  padding:12px 36px;font-family:'Almarai';font-weight:700;font-size:1rem;
-  cursor:pointer;margin-left:10px;
- ">${t('pdf.export_btn')}</button>
-<button id="pdfCloseBtn" type="button" style="
-  background:#f0ebe3;color:#666;border:none;border-radius:10px;
-  padding:12px 24px;font-family:'Almarai';font-weight:700;font-size:1rem;cursor:pointer;
- ">${t('pdf.close_btn')}</button>
+<div class="actions no-print">
+  <button id="pdfPrintBtn" class="btn btn-primary" type="button">${t('pdf.export_btn')}</button>
+  <button id="pdfCloseBtn" class="btn btn-ghost" type="button">${t('pdf.close_btn')}</button>
+</div>
 </div>
 </body>
 </html>`;
 
-  const win = window.open('', '_blank', 'width=820,height=700,scrollbars=yes');
+  const win = window.open('', '_blank', 'width=1040,height=760,scrollbars=yes');
   if(!win){ showToast(t('pdf.popup_blocked')); return; }
   win.document.write(html);
   win.document.close();

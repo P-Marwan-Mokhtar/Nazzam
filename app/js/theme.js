@@ -45,9 +45,11 @@ export function resolveLegacyTheme(name){
   return LEGACY_THEME_MAP[name] || null;
 }
 
-// الباليتة الكاملة الفعلية حسب الوضع الحالي: الأساس الثابت + اللون المميز بتاع الوضع ده
-export function currentPalette(){
-  const isDark = !!state.darkMode;
+// الباليتة الكاملة الفعلية حسب الوضع الحالي: الأساس الثابت + اللون المميز بتاع الوضع ده.
+// mode اختياري ('light'|'dark') للكود اللي محتاج باليتة وضع معيّن غير الحالي —
+// زي تقرير الـ PDF اللي بيتفتح في نافذة مستقلة ونطبعه فاتح دايمًا.
+export function currentPalette(mode){
+  const isDark = mode ? mode === 'dark' : !!state.darkMode;
   const accentId = (isDark ? state.accentDark : state.accentLight) || 'blue';
   const accent = ACCENT_BY_ID[accentId] || ACCENTS[0];
   return Object.assign({}, isDark ? BASE_DARK : BASE_LIGHT, accent[isDark ? 'dark' : 'light']);

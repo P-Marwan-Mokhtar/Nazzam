@@ -1216,6 +1216,16 @@ html[dir="ltr"] .type-popover.flip {
   transform: translateY(0);
   pointer-events: auto;
 }
+/* قايمة "المزيد" بتاعت الفلتر: مثبّتة على حافة الشيب الأقرب، ولو خرجت
+   بره الشاشة الـ JS (fitSubPopovers) بيضيف flip فيتنقل للحافة التانية */
+.filter-more-dropdown.flip {
+  left: auto;
+  right: 0;
+}
+html[dir="ltr"] .filter-more-dropdown.flip {
+  right: auto;
+  left: 0;
+}
 .filter-chip-edit {
   display: inline-flex;
   align-items: center;
@@ -1808,6 +1818,10 @@ html[dir="ltr"] .add-arrow-sub.open {
 
 /* الموبايل: التوست فوق الشريط السفلي الثابت (z60) بدل ما يستخبى تحته */
 @media (max-width: 640px) {
+  /* مسافة أكبر بين صف الفلاتر والفاصل/قائمة المهام — على الموبايل الشيبس بتلتف بسطرين فالمسافة بتظهر ضيقة */
+  .filter-chips-wrap {
+    margin-bottom: 16px;
+  }
   .toast {
     bottom: calc(96px + env(safe-area-inset-bottom));
     z-index: 80;

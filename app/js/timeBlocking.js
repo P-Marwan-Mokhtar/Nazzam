@@ -6,10 +6,10 @@
 // ============================================================
 
 import { DAY_NAMES, MONTH_NAMES, SHORT_DAY_NAMES, addDays, escapeAttr, escapeHtml, fmtDay, fromISO, getWeekStart, parseDurationToMinutes, timeStrToMinutes, todayStr, toISO, uid } from './utils.js';
-import { contentEl, showToast, state, ui } from './state.js';
+import { contentEl, showToast, showUndoToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { formatTimeArabic, openTimePicker } from './timePicker.js';
-import { ensureDayMaterialized, render } from './render.js';
+import { afterRender, ensureDayMaterialized, render } from './render.js';
 import { openCalendarModal } from './calendar.js';
 import { t, formatMinutes } from './i18n.js';
 import { canUse } from './plans.js';
@@ -465,8 +465,10 @@ function attachTimeBlockEvents(){
 
   // الضغط على مكان فاضي في الجدول بيفتح بوب إضافة مهمة في الوقت ده بالظبط (نفس عرض الأسبوع)
   contentEl.querySelectorAll('.timeblock-calendar-col .tbw-col-track').forEach(trackEl => {
+    wireTrackCreateDrag(trackEl, Number(trackEl.dataset.startHour), Number(trackEl.dataset.endHour));
     trackEl.addEventListener('click', (e) => {
       if(e.target.closest('.timeline-block')) return;
+      if(Date.now() - lastTrackDragAt < 400) return; // السحب خلاص فتح البوب — نكتم النقر المتخلف
       const rect = trackEl.getBoundingClientRect();
       const startHour = Number(trackEl.dataset.startHour);
       const endHour = Number(trackEl.dataset.endHour);
@@ -733,8 +735,10 @@ function renderTimeBlockWeekView(){
 
   // الضغط على مكان فاضي في عمود اليوم يفتح بوب إضافة مهمة في الوقت ده بالظبط
   contentEl.querySelectorAll('.tbw-col-track').forEach(trackEl => {
+    wireTrackCreateDrag(trackEl, startHour, endHour);
     trackEl.addEventListener('click', (e) => {
       if(e.target.closest('.timeline-block')) return;
+      if(Date.now() - lastTrackDragAt < 400) return; // السحب خلاص فتح البوب — نكتم النقر المتخلف
       const rect = trackEl.getBoundingClientRect();
       const relY = e.clientY - rect.top;
       let startMin = startHour * 60 + Math.round((relY / HOUR_PX) * 60 / SNAP_MIN) * SNAP_MIN;
@@ -1128,12 +1132,15 @@ let addTaskStartMin = 8 * 60;
 let addTaskDurationMin = DEFAULT_DURATION_MIN;
 let addTaskPriority = null;
 
-function openAddTimelineTaskPopup(dateStr, startMin){
+// durationMin اختياري: بيجي من السحب على الجدول (المدة اللي المستخدم سحبها).
+// من غيره بيفتح بالمدة الافتراضية زي أول.
+function openAddTimelineTaskPopup(dateStr, startMin, durationMin){
   addTaskDate = dateStr;
   addTaskStartMin = startMin;
-  addTaskDurationMin = DEFAULT_DURATION_MIN;
+  addTaskDurationMin = Math.max(MIN_DURATION_MIN, durationMin || DEFAULT_DURATION_MIN);
   addTaskPriority = null;
   renderAddTimelineTaskPopup();
+  showPendingGhost(dateStr, addTaskStartMin, addTaskDurationMin);
   document.getElementById('addTimelineTaskOverlay').classList.add('open');
   const nameInput = document.getElementById('addTimelineTaskName');
   if(nameInput) setTimeout(() => nameInput.focus(), 80);
@@ -1146,6 +1153,23 @@ function renderAddTimelineTaskPopup(){
   if(dateEl) dateEl.textContent = fmtDay(addTaskDate);
   const startLabel = document.getElementById('addTimelineTaskStartLabel');
   if(startLabel) startLabel.textContent = formatTimeArabic(minutesToHHMM(addTaskStartMin));
+  // المدة اللي اتسحبت ممكن متبقاش جوه الشيبسات الجاهزة — فنعمل لها شيب مخصص
+  // عشان المستخدم يشوف المدة اللي اختارها ويقدر يرجع لأي شيب تاني.
+  const chipsWrap = document.getElementById('addTimelineTaskDurationChips');
+  let customChip = chipsWrap ? chipsWrap.querySelector('.addtl-duration-chip.custom') : null;
+  const isStandard = Array.from(overlay.querySelectorAll('.addtl-duration-chip:not(.custom)')).some(chip => Number(chip.dataset.min) === addTaskDurationMin);
+  if(isStandard){
+    if(customChip) customChip.remove();
+  } else {
+    if(!customChip){
+      customChip = document.createElement('button');
+      customChip.className = 'addtl-duration-chip custom';
+      customChip.type = 'button';
+      if(chipsWrap) chipsWrap.appendChild(customChip);
+    }
+    customChip.dataset.min = String(addTaskDurationMin);
+    customChip.textContent = formatMinutes(addTaskDurationMin);
+  }
   overlay.querySelectorAll('.addtl-duration-chip').forEach(chip => {
     chip.classList.toggle('active', Number(chip.dataset.min) === addTaskDurationMin);
   });
@@ -1156,6 +1180,8 @@ function renderAddTimelineTaskPopup(){
 
 function closeAddTimelineTaskPopup(){
   document.getElementById('addTimelineTaskOverlay').classList.remove('open');
+  // أي بلوك مؤقت لسه معروض (المستخدم قفل البوب من غير ما يضيف) بيتشال
+  removePendingGhost();
   const nameInput = document.getElementById('addTimelineTaskName');
   if(nameInput) nameInput.value = '';
 }
@@ -1181,12 +1207,14 @@ function wireAddTimelineTaskPopup(){
     });
   };
 
-  overlay.querySelectorAll('.addtl-duration-chip').forEach(chip => {
-    chip.onclick = () => {
-      addTaskDurationMin = Number(chip.dataset.min);
-      renderAddTimelineTaskPopup();
-    };
-  });
+  // مفوّض على الحاوية (مش onclick لكل شيب) عشان الشيب المخصص للمدة المسحوبة
+  // بيتعمل وقت العرض، فلازم يشتغل عليه نفس الـ handler
+  document.getElementById('addTimelineTaskDurationChips').onclick = (e) => {
+    const chip = e.target.closest('.addtl-duration-chip');
+    if(!chip) return;
+    addTaskDurationMin = Number(chip.dataset.min);
+    renderAddTimelineTaskPopup();
+  };
 
   overlay.querySelectorAll('.addtl-priority .priority-choice-btn').forEach(btn => {
     btn.onclick = () => {
@@ -1219,6 +1247,9 @@ function wireAddTimelineTaskPopup(){
       createdAt: Date.now(),
       startTime: minutesToHHMM(addTaskStartMin),
       duration: formatMinutes(addTaskDurationMin),
+      // علامة إن المهمة اتعملت من العرض الزمني نفسه (مش جاية من قائمة اليوم):
+      // عشان مسحها من الجدول يمسحها من اليوم خالص بدل ما ترجع غير مجدولة
+      _fromSchedule: true,
     };
     if(addTaskPriority) task.priority = addTaskPriority;
     const tlKw = state.keywords.find(k => k.name === name);
@@ -1285,6 +1316,156 @@ function armTouchBlockDrag(downEvent, blockEl){
   document.addEventListener('pointermove', onGateMove);
   document.addEventListener('pointerup', onGateUp);
   document.addEventListener('pointercancel', onGateUp);
+}
+
+// السحب على مكان فاضي في الجدول (زي Google Calendar): بتدوس على وقت البداية
+// وبتسحب لوقت النهاية، ولما تسيب الماوس بيفتح بوب إضافة المهمة بالمدة اللي سحبتها.
+// ضغطة من غير سحب (نقرة بسيطة) بتفتح البوب بالمدة الافتراضية زي الأول.
+let lastTrackDragAt = 0;
+let trackCreatePreview = null;
+
+function removeTrackCreatePreview(){
+  if(!trackCreatePreview) return;
+  trackCreatePreview.remove();
+  trackCreatePreview = null;
+}
+
+function trackMinutesAt(trackEl, clientY){
+  const startHour = Number(trackEl.dataset.startHour);
+  const rect = trackEl.getBoundingClientRect();
+  return snapMinutes(startHour * 60 + (clientY - rect.top) * (60 / HOUR_PX));
+}
+
+// بلوك مؤقت بيظهر في الجدول طول ما بوب الإضافة مفتوح، عشان المستخدم يشوف
+// البلوك في مكانه وهو بيكتب الاسم. بيتشال لو قفل البوب من غير ما يضيف ( Dismiss)،
+// والبلوك الحقيقي بيحل محله بعد الإضافة والـ render.
+let pendingGhostEl = null;
+let pendingGhostInfo = null;
+
+function showPendingGhost(dateStr, startMin, durationMin){
+  removePendingGhost();
+  pendingGhostInfo = { dateStr, startMin, durationMin };
+  paintPendingGhost();
+  const nameInput = document.getElementById('addTimelineTaskName');
+  if(nameInput){
+    nameInput.oninput = () => {
+      const el = pendingGhostEl && pendingGhostEl.querySelector('.timeline-block-name');
+      if(el) el.textContent = nameInput.value.trim();
+    };
+  }
+}
+
+function paintPendingGhost(){
+  if(!pendingGhostInfo) return;
+  const { dateStr, startMin, durationMin } = pendingGhostInfo;
+  const track = contentEl.querySelector(`.tbw-col-track[data-date="${CSS.escape(dateStr)}"]`);
+  if(!track) return;
+  const startHour = Number(track.dataset.startHour);
+  const top = (startMin - startHour * 60) * (HOUR_PX / 60);
+  const height = Math.max(MIN_DURATION_MIN * (HOUR_PX / 60), durationMin * (HOUR_PX / 60));
+  const ghost = document.createElement('div');
+  ghost.className = 'timeline-block timeline-block-ghost';
+  ghost.innerHTML = `<span class="timeline-block-time">${blockTimeLabel(startMin, durationMin)}</span><span class="timeline-block-name"></span>`;
+  ghost.style.top = top + 'px';
+  ghost.style.height = (height - BLOCK_GAP_PX) + 'px';
+  ghost.style.right = '2px';
+  ghost.style.width = 'calc(100% - 6px)';
+  const nameInput = document.getElementById('addTimelineTaskName');
+  const nameEl = ghost.querySelector('.timeline-block-name');
+  if(nameEl && nameInput) nameEl.textContent = nameInput.value.trim();
+  track.appendChild(ghost);
+  pendingGhostEl = ghost;
+}
+
+function removePendingGhost(){
+  pendingGhostInfo = null;
+  if(!pendingGhostEl) return;
+  pendingGhostEl.remove();
+  pendingGhostEl = null;
+}
+
+// البلوك المؤقت جوه contentEl، فأي render() طارئ (تذكير/تاير) بيبنيه من الصفر
+// ويمسح البلوك — فنرجّعه تاني بعد كل رسم طول ما بوب الإضافة مفتوح.
+afterRender(() => {
+  if(pendingGhostInfo && !pendingGhostEl) paintPendingGhost();
+});
+
+function wireTrackCreateDrag(trackEl, startHour, endHour){
+  let anchorMin = 0;
+  let dragging = false;
+  let pointerId = null;
+
+  const rangeOf = (minA, minB) => {
+    const lo = Math.max(startHour * 60, Math.min(minA, minB));
+    const hi = Math.min(endHour * 60, Math.max(minA, minB));
+    return { startMin: lo, durationMin: Math.max(MIN_DURATION_MIN, hi - lo) };
+  };
+
+  function paint(minB){
+    const { startMin, durationMin } = rangeOf(anchorMin, minB);
+    if(!trackCreatePreview){
+      trackCreatePreview = document.createElement('div');
+      trackCreatePreview.className = 'timeline-range-preview';
+      trackEl.appendChild(trackCreatePreview);
+    }
+    const top = (startMin - startHour * 60) * (HOUR_PX / 60);
+    const height = Math.max(MIN_DURATION_MIN * (HOUR_PX / 60), durationMin * (HOUR_PX / 60));
+    trackCreatePreview.style.top = top + 'px';
+    trackCreatePreview.style.height = height + 'px';
+    trackCreatePreview.dataset.label = `${formatTimeArabic(minutesToHHMM(startMin))} – ${formatTimeArabic(minutesToHHMM(startMin + durationMin))}`;
+  }
+
+  function onDown(e){
+    if(e.button !== undefined && e.button !== 0) return;
+    if(e.target.closest('.timeline-block')) return;
+    // على الموبايل (اللمس) سكرول العمود الرأسي أهم من سحب مدى زمني —
+    // فالنقطة العادية بتفتح البوب بالمدة الافتراضية زي أول، والسحب للماوس/القلم بس
+    if(e.pointerType === 'touch') return;
+    e.preventDefault(); // يمنع تحديد النص وانتقاءه أثناء السحب على الجدول
+    anchorMin = trackMinutesAt(trackEl, e.clientY);
+    dragging = false;
+    pointerId = e.pointerId;
+    try { trackEl.setPointerCapture(e.pointerId); } catch(err) {}
+  }
+
+  function onMove(e){
+    if(pointerId === null || e.pointerId !== pointerId) return;
+    const minB = trackMinutesAt(trackEl, e.clientY);
+    if(!dragging && Math.abs(minB - anchorMin) < SNAP_MIN) return;
+    dragging = true;
+    e.preventDefault();
+    paint(minB);
+  }
+
+  function onUp(e){
+    if(pointerId === null || e.pointerId !== pointerId) return;
+    try { trackEl.releasePointerCapture(e.pointerId); } catch(err) {}
+    pointerId = null;
+    const minB = trackMinutesAt(trackEl, e.clientY);
+    const wasDragging = dragging;
+    dragging = false;
+    removeTrackCreatePreview();
+    if(!wasDragging) return; // نقرة بسيطة — الـ click handler هيفتح البوب بالمدة الافتراضية
+    // كنا شايفين نقرة، فلازم نكتمها عشان البوب ما يفتحش مرتين
+    lastTrackDragAt = Date.now();
+    e.preventDefault();
+    const { startMin, durationMin } = rangeOf(anchorMin, minB);
+    openAddTimelineTaskPopup(trackEl.dataset.date, startMin, durationMin);
+  }
+
+  function onCancel(e){
+    if(pointerId !== null && e && e.pointerId !== undefined){
+      try { trackEl.releasePointerCapture(e.pointerId); } catch(err) {}
+    }
+    pointerId = null;
+    dragging = false;
+    removeTrackCreatePreview();
+  }
+
+  trackEl.addEventListener('pointerdown', onDown);
+  trackEl.addEventListener('pointermove', onMove);
+  trackEl.addEventListener('pointerup', onUp);
+  trackEl.addEventListener('pointercancel', onCancel);
 }
 
 function startBlockMove(e, blockEl, fromLongPress = false){
@@ -1723,6 +1904,13 @@ function renderTimelineTaskPopup(){
   doneBtn.classList.toggle('is-done', !!task.done);
   doneBtn.querySelector('.material-icons').textContent = task.done ? 'check_circle' : 'radio_button_unchecked';
   document.getElementById('timelineTaskDoneLabel').textContent = task.done ? t('task.undo_done') : t('task.mark_done');
+  // المسح بيختلف حسب مصدر المهمة: اللي جاي من العرض الزمني نفسه بيمسح من اليوم
+  // خالص، واللي كان في اليوم بيرجع غير مجدول — فالتسمية لازم تقول السلوك الصح
+  const fullDelete = !!(task._fromSchedule || task._dupOf);
+  const delLabel = document.getElementById('timelineTaskDelLabel');
+  const delIcon = document.getElementById('timelineTaskDelIcon');
+  if(delLabel) delLabel.textContent = t(fullDelete ? 'modal.task_delete_full' : 'modal.task_delete_schedule');
+  if(delIcon) delIcon.textContent = fullDelete ? 'delete' : 'close';
 }
 
 const timelineTaskOverlay = document.getElementById('timelineTaskOverlay');
@@ -1751,11 +1939,34 @@ if(timelineTaskOverlay){
   document.getElementById('timelineTaskDelBtn').onclick = async () => {
     const id = ui.activeTimelineTaskId;
     const dateStr = ui.activeTimelineTaskDate || ui.selectedDate;
-    const task = (state.days[dateStr] || []).find(t => t.id === id);
-    const isDup = !!(task && task._dupOf);
+    const tasks = state.days[dateStr] || [];
+    const idx = tasks.findIndex(t => t.id === id);
+    const task = idx === -1 ? null : tasks[idx];
+    if(!task){ closeTimelineTaskPopup(); return; }
+    // المهمة اللي اتعملت من العرض الزمني نفسه (أو نسخة مكررة منه) عايشة في
+    // الجدول بس — مسحها من هنا بيمسحها من اليوم خالص. أي مهمة تانية (جاية من
+    // قائمة اليوم) بتفضل موجودة وبترجع غير مجدولة زي الأول.
+    const fullDelete = !!(task._fromSchedule || task._dupOf);
     closeTimelineTaskPopup();
-    await commitTaskTime(id, null, dateStr);
-    showToast(isDup ? t('schedule.deleted_version') : t('schedule.returned_task'));
+    if(!fullDelete){
+      await commitTaskTime(id, null, dateStr);
+      showToast(t('schedule.returned_task'));
+      return;
+    }
+    tasks.splice(idx, 1);
+    render();
+    await saveData();
+    showUndoToast(t('toast.task_deleted', {name: task.name}), async () => {
+      // التراجع على المصفوفة الحالية لتاريخ الحذف (لا المرجع الملتقط لحظة الحذف)
+      const cur = state.days[dateStr] || (state.days[dateStr] = []);
+      if(cur.some(t => t.name === task.name && !t._dupOf && !t._fromRecurrence)){
+        showToast(t('toast.exists_today'));
+        return;
+      }
+      cur.splice(Math.min(idx, cur.length), 0, task);
+      render();
+      await saveData();
+    });
   };
   document.getElementById('timelineTaskEditBtn').onclick = () => {
     if(!ui.activeTimelineTaskId) return;

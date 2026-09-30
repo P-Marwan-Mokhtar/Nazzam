@@ -84,22 +84,27 @@ export function positionTaskMoreFixed(id){  const wrap = document.querySelector(
 // البوب أبات الفرعية (ساعة/أولوية/نوع) بتفتح جنب البند — والجهة الافتراضية
 // (ناحية الداخل) ممكن تطلع بره الشاشة لو البند قريب من الحافة (خصوصًا في
 // الـ chips). الدالة دي بتقيس أي بوب مفتوح بعد الرسم وبتقلبه للناحية التانية
-// (كلاس flip) لو خارج الشاشة. البوبات المثبتة بإحداثيات JS مباشرة (fixed)
-// تُتجاهل لأنها متموضعة أصلًا. تُستدعى من مفاتيح الفتح ومن attachEvents
+// (كلاس flip) لو خارج الشاشة من أي حافة. البوبات المثبتة بإحداثيات JS مباشرة
+// (fixed) تُتجاهل لأنها متموضعة أصلًا. تُستدعى من مفاتيح الفتح ومن attachEvents
 // (عشان أي render لاحق والبوب مفتوح).
 export function fitSubPopovers(){
   requestAnimationFrame(() => {
-    ['.clock-choice-popover', '.priority-popover', '.type-popover'].forEach(sel => {
+    ['.clock-choice-popover', '.priority-popover', '.type-popover', '.filter-more-dropdown'].forEach(sel => {
       document.querySelectorAll(sel + '.open').forEach(pop => {
         if(pop.style.left || pop.style.right) return;
         const flipped = pop.classList.contains('flip');
         const r = pop.getBoundingClientRect();
-        if(!flipped && r.right > window.innerWidth - 8){
+        // نقيس الحافتين: البوب ممكن يخرج من اليمين أو من الشمال
+        // (لما الشيب يكون قريب من حافة الشاشة في الاتجاهين)
+        const outRight = r.right > window.innerWidth - 8;
+        const outLeft = r.left < 8;
+        if(!flipped && (outRight || outLeft)){
           pop.classList.add('flip');
-        } else if(flipped && r.left < 8){
+        } else if(flipped && outRight && outLeft){
+          // القلب مش هيساعد لو الاتنين بره الشاشة — ارجع للافتراضي
           pop.classList.remove('flip');
           const r2 = pop.getBoundingClientRect();
-          if(r2.right > window.innerWidth - 8) pop.classList.add('flip');
+          if(r2.right > window.innerWidth - 8 || r2.left < 8) pop.classList.add('flip');
         }
       });
     });
@@ -656,6 +661,7 @@ const contentActions = {
     const { id } = btn.dataset;
     ui.openFilterMoreId = ui.openFilterMoreId === id ? null : id;
     render();
+    if(ui.openFilterMoreId === id) fitSubPopovers();
   },
   'toggle-bank-filter-input': async () => {
     ui.bankFilterInputOpen = !ui.bankFilterInputOpen;
