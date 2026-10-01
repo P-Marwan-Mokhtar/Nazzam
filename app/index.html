@@ -704,55 +704,58 @@
             ></strong>
             <span data-i18n="modal.recurrence_desc_suffix">تتكرر فيها تلقائيًا كل أسبوع:</span>
           </p>
-          <div class="recurrence-presets" id="recurrencePresets">
-            <button
-              type="button"
-              class="recurrence-preset"
-              data-preset="once"
-              data-i18n="modal.recurrence_once"
-            >
-              مرة واحدة
-            </button>
-            <button
-              type="button"
-              class="recurrence-preset"
-              data-preset="daily"
-              data-i18n="modal.recurrence_all"
-            >
-              كل يوم
-            </button>
-            <button
-              type="button"
-              class="recurrence-preset"
-              data-preset="workdays"
-              data-i18n="modal.recurrence_workdays"
-            >
-              أيام العمل
-            </button>
-            <button
-              type="button"
-              class="recurrence-preset"
-              data-preset="weekend"
-              data-i18n="modal.recurrence_weekend"
-            >
-              العطلة
-            </button>
+          <div class="recurrence-card">
+            <div class="recurrence-segment" id="recurrencePresets" role="group">
+              <button
+                type="button"
+                class="recurrence-preset"
+                data-preset="once"
+                data-i18n="modal.recurrence_once"
+              >
+                مرة واحدة
+              </button>
+              <button
+                type="button"
+                class="recurrence-preset"
+                data-preset="daily"
+                data-i18n="modal.recurrence_all"
+              >
+                كل يوم
+              </button>
+              <button
+                type="button"
+                class="recurrence-preset"
+                data-preset="workdays"
+                data-i18n="modal.recurrence_workdays"
+              >
+                أيام العمل
+              </button>
+              <button
+                type="button"
+                class="recurrence-preset"
+                data-preset="weekend"
+                data-i18n="modal.recurrence_weekend"
+              >
+                العطلة
+              </button>
+            </div>
+            <div class="recurrence-days-grid" id="recurrenceDaysGrid"></div>
           </div>
-          <div class="recurrence-days-grid" id="recurrenceDaysGrid"></div>
-          <div class="recurrence-move-divider"></div>
-          <p class="recurrence-move-label">
-            <span data-i18n="task.move_to">نقل إلى</span>
-          </p>
-          <div class="recurrence-presets recurrence-move-chips">
-            <button type="button" class="recurrence-preset" data-movedays="1">
-              <span data-i18n="task.move_tomorrow">غدًا</span>
-            </button>
-            <button type="button" class="recurrence-preset" data-movedays="2">
-              <span data-i18n="task.move_day_after">بعد غد</span>
-            </button>
-            <button type="button" class="recurrence-preset" id="recurrenceMovePickBtn">
-              <span data-i18n="task.move_pick_date">اختيار يوم...</span>
-            </button>
+          <div class="recurrence-card">
+            <p class="recurrence-move-label">
+              <span data-i18n="task.move_to">نقل إلى</span>
+            </p>
+            <div class="recurrence-move-chips">
+              <button type="button" class="recurrence-preset" data-movedays="1">
+                <span data-i18n="task.move_tomorrow">غدًا</span>
+              </button>
+              <button type="button" class="recurrence-preset" data-movedays="2">
+                <span data-i18n="task.move_day_after">بعد غد</span>
+              </button>
+              <button type="button" class="recurrence-preset" id="recurrenceMovePickBtn">
+                <span data-i18n="task.move_pick_date">اختيار يوم...</span>
+              </button>
+            </div>
           </div>
           <div class="recurrence-footer">
             <button

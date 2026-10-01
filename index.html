@@ -41,10 +41,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Almarai:wght@400;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Almarai:wght@400;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,900&display=swap" rel="stylesheet" />
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,900&f[]=cal-sans@400,500,600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="landing.css" />
 
     <script type="application/ld+json">
@@ -564,7 +564,7 @@
       <section class="section band-alt" id="plan">
         <div class="container">
           <div class="sec-head reveal">
-<h2 data-lp="plan.title">خطّط ليومك بالساعة لا بالتقدير</h2>
+<h2 data-lp="plan.title">خطّط يومك ساعة بساعة</h2>
             <div class="tb-head-row">
               <p class="sec-lead" data-lp="plan.lead">
                 اسحب أي مهمة إلى الساعة التي تناسبها وحدّد مدّتها، فتتحوّل قائمتك
@@ -681,16 +681,6 @@
                   </div>
                 </article>
                 <article class="fs-card" data-slide="3">
-                  <div class="fsc-shot"><img data-src="app/img/features/recurrence.png" data-lp-alt="more.f6n" alt="التكرار الأسبوعي" loading="lazy" decoding="async" /></div>
-                  <div class="fsc-body">
-                    <span class="fsc-chip" aria-hidden="true"><svg class="ic"><use href="#i-repeat"/></svg></span>
-                    <div class="fsc-copy">
-                      <h3 class="fsc-name" data-lp="more.f6n">التكرار الأسبوعي</h3>
-                      <p class="fsc-desc" data-lp="more.f6d">حدد أيام إعادة المهمة مرة واحدة — وتنزل لوحدها كل أسبوع مع حساب الالتزام.</p>
-                    </div>
-                  </div>
-                </article>
-                <article class="fs-card" data-slide="4">
                   <div class="fsc-shot"><img data-src="app/img/features/notifications.png" data-lp-alt="more.f4n" alt="التنبيهات" loading="lazy" decoding="async" /></div>
                   <div class="fsc-body">
                     <span class="fsc-chip" aria-hidden="true"><svg class="ic"><use href="#i-bell"/></svg></span>
@@ -700,7 +690,7 @@
                     </div>
                   </div>
                 </article>
-                <article class="fs-card" data-slide="5">
+                <article class="fs-card" data-slide="4">
                   <div class="fsc-shot"><img data-src="app/img/features/task-details.png" data-lp-alt="more.f5n" alt="تفاصيل المهمة" loading="lazy" decoding="async" /></div>
                   <div class="fsc-body">
                     <span class="fsc-chip" aria-hidden="true"><svg class="ic"><use href="#i-list"/></svg></span>
@@ -769,11 +759,13 @@
               <div class="price-num"><span class="digits">$40</span><small data-lp="pricing.y_per">/ سنويًا</small></div>
               <p class="price-for" data-lp="pricing.y_for">كل مميزات Pro، بسعر أقل من شهرين اشتراك.</p>
               <ul class="price-feats">
-                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f1">كل مميزات Pro كاملة، بلا استثناء</span></li>
-                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f2">٧ أيام تجربة مجانية بكل المميزات قبل الدفع</span></li>
-                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f3">٣٫٣٣$ شهريًا بدلًا من ٤$ — الخدمة نفسها</span></li>
-                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f4">توفير ٨$ سنويًا — ما يعادل شهرين مجانًا</span></li>
-                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f5">إلغاء في أي وقت بضغطة واحدة — ويبقى الاشتراك فعّالًا حتى آخر يوم مدفوع</span></li>
+                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f1">بلا حدود: مهام، أقسام، تذكيرات، ومؤقّتات</span></li>
+                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f2">الجدول الزمني الكامل والقوائم الذكية</span></li>
+                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f3">القوالب والروتينات الجاهزة</span></li>
+                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f4">تصدير ICS وPDF مع إحصائيات كاملة</span></li>
+                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f5">تذكيرات وملخصات فورية</span></li>
+                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f6">شهران مجانًا — ٤٠$ بدل ٤٨$ في السنة</span></li>
+                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f7">إلغاء بضغطة واحدة — ويبقى فعالًا حتى آخر يوم مدفوع</span></li>
               </ul>
               <a href="checkout.html?plan=yearly" class="btn btn-primary btn-lg price-btn" data-lp="pricing.y_cta">اشتراك</a>
             </div>

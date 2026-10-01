@@ -143,15 +143,15 @@
 .recurrence-days-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  gap: 10px;
 }
 .recurrence-day-chip {
   background: transparent;
   border: 1.5px solid var(--paper-line);
   color: var(--ink-soft);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 12px 2px;
-  min-height: 46px;
+  min-height: 52px;
   font-family: "Inter", "Almarai";
   font-weight: 700;
   font-size: 0.8rem;
@@ -174,25 +174,68 @@
 .recurrence-task-line {
   color: var(--ink-soft);
   font-size: 0.85rem;
-  margin: 0 0 12px;
+  margin: 0 0 16px;
   line-height: 1.7;
 }
-.recurrence-presets {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+/* كارت مجموعة: يفصل التكرار عن النقل بصريًا بدل الفواصل والزحمة */
+.recurrence-card {
+  background: var(--paper);
+  border: 1px solid var(--paper-line);
+  border-radius: 16px;
+  padding: 14px;
   margin-bottom: 12px;
 }
-.recurrence-preset {
-  flex: 1 1 auto;
+/* شريط متصل واحد للبريستات الأربعة (نفس لغة مفاتيح Day/Week في الإحصائيات)
+   بدل 4 حبات مرمية — المفعّل أزرق سادة */
+.recurrence-segment {
+  display: flex;
+  gap: 4px;
+  background: var(--card);
+  border: 1px solid var(--paper-line);
+  border-radius: 14px;
+  padding: 4px;
+  margin-bottom: 12px;
+}
+.recurrence-segment .recurrence-preset {
+  flex: 1 1 0;
+  min-width: 0;
   background: transparent;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 4px;
+  color: var(--ink-soft);
+  font-family: "Inter", "Almarai";
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.recurrence-segment .recurrence-preset:hover {
+  color: var(--ink);
+}
+.recurrence-segment .recurrence-preset.active {
+  background: var(--pen);
+  color: #fff;
+}
+/* أزرار النقل: حبات مستقلة بحدود (تمييز بصري عن شريط البريستات) */
+.recurrence-move-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.recurrence-move-chips .recurrence-preset {
+  flex: 1 1 auto;
+  background: var(--card);
   border: 1.5px solid var(--paper-line);
   color: var(--ink-soft);
   border-radius: 999px;
-  padding: 8px 6px;
+  padding: 12px 8px;
   font-family: "Inter", "Almarai";
   font-weight: 700;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   cursor: pointer;
   white-space: nowrap;
   transition:
@@ -200,20 +243,15 @@
     color 0.15s ease,
     border-color 0.15s ease;
 }
-.recurrence-preset:hover {
+.recurrence-move-chips .recurrence-preset:hover {
   border-color: var(--pen);
   color: var(--ink);
-}
-.recurrence-preset.active {
-  background: var(--pen-soft);
-  border-color: var(--pen);
-  color: var(--pen);
 }
 /* فوتر ثابت: إلغاء + حفظ بعرض متساوٍ */
 .recurrence-footer {
   display: flex;
-  gap: 8px;
-  margin-top: 16px;
+  gap: 12px;
+  margin-top: 20px;
 }
 .recurrence-footer .btn-secondary {
   flex: 1;
@@ -225,18 +263,24 @@
   padding: 12px;
 }
 
-/* ===== قسم النقل لمرة واحدة جوه مودال التكرار ===== */
-.recurrence-move-divider {
-  height: 1px;
-  background: var(--paper-line);
-  margin: 18px 0 14px;
+/* أيام الأسبوع بخلفية الكارت للتباين */
+.recurrence-card .recurrence-day-chip {
+  background: var(--card);
 }
+
+/* ===== قسم النقل لمرة واحدة جوه مودال التكرار ===== */
 /* عنوان قسم النقل — label صغير هادي */
 .recurrence-move-label {
-  margin: 0 0 10px;
+  margin: 0 0 12px;
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--ink-soft);
+}
+
+@media (max-width: 480px) {
+  .recurrence-card { padding: 12px; }
+  .recurrence-segment .recurrence-preset { font-size: 0.72rem; padding: 10px 2px; }
+  .recurrence-days-grid { gap: 6px; }
 }
 
 /* ===== Task Inline Edit ===== */

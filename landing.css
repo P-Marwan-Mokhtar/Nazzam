@@ -70,6 +70,12 @@
   --t-fast: 180ms;
   --t-med: 240ms;
 }
+/* الإنجليزية (LTR): خطوط لاتينية مخصصة (نفس هوية التطبيق) — العربي يفضل كما هو */
+[dir="ltr"] {
+  --font-display: "Cal Sans", "Inter", "Segoe UI", sans-serif;
+  --font-body: "Inter", "Segoe UI", Tahoma, sans-serif;
+  --font-latin: "Satoshi", "Inter", sans-serif;
+}
 /* ---------- 2) الأساس ---------- */
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
