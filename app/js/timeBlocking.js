@@ -5,13 +5,14 @@
 // زي Google Calendar.
 // ============================================================
 
-import { DAY_NAMES, MONTH_NAMES, SHORT_DAY_NAMES, addDays, escapeAttr, escapeHtml, fmtDay, fromISO, getWeekStart, parseDurationToMinutes, timeStrToMinutes, todayStr, toISO, uid } from './utils.js';
+import { DAY_NAMES, MONTH_NAMES, SHORT_DAY_NAMES, addDays, escapeAttr, escapeHtml, fmtDay,
+fromISO, getWeekStart, isWeekendDay, parseDurationToMinutes, timeStrToMinutes, todayStr, toISO, uid } from './utils.js';
 import { contentEl, showToast, showUndoToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { formatTimeArabic, openTimePicker } from './timePicker.js';
 import { afterRender, ensureDayMaterialized, render } from './render.js';
 import { openCalendarModal } from './calendar.js';
-import { t, formatMinutes } from './i18n.js';
+import { getLang, t, formatMinutes } from './i18n.js';
 import { canUse } from './plans.js';
 import { openUpgrade, enforceTaskNameLimit } from './upgrade.js';
 import { renameTaskEverywhere } from './events.js';
@@ -597,7 +598,7 @@ function renderTimeBlockWeekView(){
 
     const d = fromISO(dateStr);
     colsHtml += `
-      <div class="tbw-col ${isToday ? 'today' : ''} ${(d.getDay() === 5 || d.getDay() === 6) ? 'weekend' : ''}">
+      <div class="tbw-col ${isToday ? 'today' : ''} ${isWeekendDay(d.getDay(), getLang()) ? 'weekend' : ''}">
         <button class="tbw-col-head ${isToday ? 'today' : ''}" data-action="tb-open-day" data-date="${dateStr}" title="${t('week.open_day', {day: d.getDate()})}">
           <span class="tbw-col-day">${SHORT_DAY_NAMES[d.getDay()]}</span>
           <span class="tbw-col-num">${d.getDate()}</span>
@@ -826,7 +827,7 @@ function renderTimeBlockMonthView(){
       const inMonth = dt.getMonth() === month;
       const isToday = dateStr === today;
       const dow = dt.getDay();
-      const isWeekend = dow === 5 || dow === 6; // الجمعة والسبت
+      const isWeekend = isWeekendDay(dow, getLang());
 
       let chipsHtml = '';
       scheduled.slice(0, TBM_MAX_EVENTS).forEach(({ task, startMin }) => {

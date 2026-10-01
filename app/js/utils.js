@@ -196,3 +196,18 @@ export function emptyStateHtml(icon, title, hint, animate = true, action = null)
     </div>
   `;
 }
+
+// أيام العطلة وأيام العمل حسب اللغة — عربي: جمعة/سبت، إنجليزي: سبت/أحد.
+// نقية وتستقبل اللغة صراحةً عشان تفضل قابلة للاختبار في Node بلا DOM.
+// أي استخدام لهاردكود [5,6] بدلها يبقى غلط لناطق الإنجليزية.
+export function weekendDays(lang){
+  return lang === 'en' ? [6, 0] : [5, 6];
+}
+
+export function workweekDays(lang){
+  return lang === 'en' ? [1, 2, 3, 4, 5] : [0, 1, 2, 3, 4];
+}
+
+export function isWeekendDay(dow, lang){
+  return weekendDays(lang).includes(dow);
+}

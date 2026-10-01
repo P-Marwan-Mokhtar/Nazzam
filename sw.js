@@ -8,7 +8,7 @@
 // Worker بتاعه هو (app/sw.js)، وده مكمّل له وميفضّلش عليه.
 // ============================================================
 
-const CACHE_VERSION = 'landing-v58';
+const CACHE_VERSION = 'landing-v112';
 const CACHE_NAME = 'nazzam-site-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -21,13 +21,15 @@ const PRECACHE_URLS = [
   './checkout.js',
   './clarity-loader.js',
   './landing-head.js',
+  './app/js/vendor/chart.umd.min.js',
   './app/icons/favicon.ico',
   './app/icons/icon-192.png',
   './app/icons/icon-512.png',
   './app/icons/apple-touch-icon.png',
   './app/img/nazzam-logo.png',
   './app/img/shots/app.png',
-  './app/img/shots/stats.png'
+  './app/img/shots/stats.png',
+  './app/img/shots/task-stats.png'
 ];
 
 // بنخزّن كل صور الهبوط (تبويبات المميزات) اللي بتتظهر في التطبيق

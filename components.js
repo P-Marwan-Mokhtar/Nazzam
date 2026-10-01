@@ -17,10 +17,10 @@ export function renderHeader(p) {
         <img src="app/img/nazzam-logo.png" alt="نظّم" class="logo-mark" width="80" height="80" decoding="async" fetchpriority="high" />
       </a>
       <nav class="nav-links" aria-label="التنقل الرئيسي">
-        <a href="${p}#organize" data-lp="nav.features">المميزات</a>
-        <a href="${p}#focus" data-lp="nav.focus">التركيز</a>
+        <a href="${p}#how" data-lp="nav.focus">كيف يعمل</a>
         <a href="${p}#plan" data-lp="nav.plan">التخطيط</a>
         <a href="${p}#stats" data-lp="nav.stats">الإحصائيات</a>
+        <a href="${p}#features" data-lp="nav.features">المميزات</a>
         <a href="${p}#pricing" data-lp="nav.pricing">الأسعار</a>
       </nav>
       <div class="nav-actions">
@@ -35,10 +35,10 @@ export function renderHeader(p) {
     <div class="nav-mobile" id="navMobile">
       <div class="nav-mobile-group">
         <span class="nav-mobile-label" data-lp="nav.system">النظام</span>
-        <a href="${p}#organize" data-lp="nav.features">المميزات</a>
-        <a href="${p}#focus" data-lp="nav.focus">التركيز</a>
+        <a href="${p}#how" data-lp="nav.focus">كيف يعمل</a>
         <a href="${p}#plan" data-lp="nav.plan">التخطيط</a>
         <a href="${p}#stats" data-lp="nav.stats">الإحصائيات</a>
+        <a href="${p}#features" data-lp="nav.features">المميزات</a>
         <a href="${p}#pricing" data-lp="nav.pricing">الأسعار</a>
       </div>
       <div class="nav-mobile-group">
@@ -58,8 +58,8 @@ export function renderFooter(p) {
         <div class="footer-col">
           <h4 data-lp="footer.product">المنتج</h4>
           <ul>
-<li><a href="${p}#organize" data-lp="nav.features">المميزات</a></li>
               <li><a href="${p}#stats" data-lp="nav.stats">الإحصائيات</a></li>
+              <li><a href="${p}#features" data-lp="nav.features">المميزات</a></li>
               <li><a href="${p}#pricing" data-lp="nav.pricing">الأسعار</a></li>
           </ul>
         </div>

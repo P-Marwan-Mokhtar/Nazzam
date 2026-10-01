@@ -113,23 +113,480 @@ if (burger && header) {
   revealEls.forEach((el) => io.observe(el));
 })();
 
-// ===== التنقل بين عروض الجدول الزمني: يومي / أسبوعي / شهري بسهمين =====
+// ===== التنقل بين صور السكاشن بالسهمين (الجدول الزمني / الإحصائيات) =====
+// كل .tb-nav بيشغّل الـ .tb-pane اللي في نفس السكشن بتاعه فقط.
 (function initTbSlider() {
-  const panes = [...document.querySelectorAll('.tb-pane')];
-  const prev = document.getElementById('tbPrevBtn');
-  const next = document.getElementById('tbNextBtn');
-  if (!panes.length) return;
+  const navs = [...document.querySelectorAll('.tb-nav')];
+  if (!navs.length) return;
 
-  let idx = 0;
+  navs.forEach((nav) => {
+    const section = nav.closest('section');
+    if (!section) return;
+    const panes = [...section.querySelectorAll('.tb-pane')];
+    if (!panes.length) return;
+    const arrows = [...nav.querySelectorAll('.tb-arrow')];
+    const prev = arrows[0];
+    const next = arrows[1];
 
-  function show(i) {
-    idx = ((i % panes.length) + panes.length) % panes.length;
-    panes.forEach((p, j) => p.classList.toggle('on', j === idx));
+    let idx = 0;
+
+    function show(i) {
+      idx = ((i % panes.length) + panes.length) % panes.length;
+      panes.forEach((p, j) => p.classList.toggle('on', j === idx));
+    }
+
+    if (prev) prev.addEventListener('click', () => show(idx - 1));
+    if (next) next.addEventListener('click', () => show(idx + 1));
+    show(0);
+  });
+})();
+
+// ===== "كيف يعمل" — ديمو متحرك للواجهة =====
+// موك مبني من بنية التطبيق الحقيقية (بنية .timer-item و .timer-panel-card
+// من timers.js). الـ JS بيشغّل ٤ مشاهد بالترتيب، وكل مشهد فيه حركات
+// صغيرة بالـ CSS عبر كلاسات state على الجذر (at-*). كل التوقيتات في مكان
+// واحد (TIMING) عشان يكون ضبط الإيقاع سهل.
+//
+// مع prefers-reduced-motion أو من غير IntersectionObserver: بنعرض النسخة
+// الساكنة (المهمة مضافة + التايمر شغال) بدون أي تشغيل تلقائي.
+// ===== "كيف يعمل" — ديمو متحرك للواجهة =====
+// موك مبني من بنية التطبيق الحقيقية: كارت المؤقت ولوحة المؤقتات من
+// timers.js (buildTimerItemHtml / renderTimerPanel)، وصف الإضافة من render.js.
+// الجذر بيتحكم في 4 مشاهد بالترتيب، وكل مشهد بيتحرك بحركات صغيرة بالـ CSS
+// عبر كلاسات state على الجذر (at-*). كل التوقيتات في مكان واحد (T).
+//
+// مع prefers-reduced-motion أو من غير IntersectionObserver: بنعرض النسخة
+// ===== "كيف يعمل" — ديمو الواجهة الحقيقي =====
+// الموك عناصر التطبيق الحقيقية بالكلاسات الحقيقية، والـ CSS بتاعها متنسخ
+// من app/css ومنسوب بـ .dm-app. الحركات بس هي الحية: الكتابة جوّه الـ input
+// الحقيقي، ضغط زر الإضافة، ظهور صف المهمة، البلوك، كارت المؤقت، والعدّادات.
+(function initHowDemo() {
+  const root = document.getElementById('howDemo');
+  if (!root) return;
+
+  const $ = (id) => root.querySelector('#' + id);
+  const els = {
+    date: $('dmDate'), dateSub: $('dmDateSub'),
+    typed: $('dmTyped'), addBtn: $('dmAddBtn'),
+    newRow: $('dmNewRow'), newName: $('dmNewName'),
+    block: $('dmBlock'), blockName: $('dmBlockName'), blockTime: $('dmBlockTime'),
+    colHead: $('dmColHead'), tbDay: $('dmTbDay'),
+    moreBtn: $('dmMoreBtn'), moreDrop: $('dmMoreDrop'),
+    timeBtn: $('dmTimeBtn'), timePop: $('dmTimePop'), startTimerBtn: $('dmStartTimerBtn'),
+    timerName: $('dmTimerName'), clock: $('dmClock'), playBtn: $('dmPlayBtn'),
+    time: $('dmTime'), rate: $('dmRate'), missed: $('dmMissed'),
+    total: $('dmTotal'),
+    navTasks: $('dmNavTasks'), navSchedule: $('dmNavSchedule'), navStats: $('dmNavStats'),
+    caps: [...root.querySelectorAll('.dm-cap')],
+    play: $('dmPlay'), playIcon: $('dmPlayIcon'), replay: $('dmReplay')
+  };
+  if (!els.typed || !els.clock) return;
+
+  // ===== ملاءمة المقياس لعرض المسرح (منع قصّ التايمر) =====
+  // الكانفس بعرض ثابت 1426px (نافذة التطبيق الحقيقية) والمسرح بعرض الحاوية
+  // (~1040px ديسكتوب). أي نسبة ثابتة أكبر من (العرض ÷ 1426) بتقص جزء التايمر
+  // يمينًا في مشهدَي اليوم (01 و03). التايمر مخفي بالتصميم في 02 و04 مثل
+  // التطبيق الحقيقي. نحسب المقياس من العرض الفعلي كمصدر حقيقة، وقيم CSS
+  // تبقى fallback فقط لبلا-JS.
+  const DM_CANVAS_W = 1426;
+  const dmStage = root.querySelector('.dm-stage');
+  function fitDemoScale() {
+    if (!dmStage) return;
+    const w = dmStage.clientWidth;
+    if (!w) return;
+    const s = Math.min(1, w / DM_CANVAS_W);
+    dmStage.style.setProperty('--dm-s', s.toFixed(4));
+  }
+  fitDemoScale();
+  window.addEventListener('resize', fitDemoScale);
+  if ('ResizeObserver' in window && dmStage) {
+    try { new ResizeObserver(fitDemoScale).observe(dmStage); } catch (e) {}
   }
 
-  if (prev) prev.addEventListener('click', () => show(idx - 1));
-  if (next) next.addEventListener('click', () => show(idx + 1));
-  show(0);
+  // ===== رسوم Chart.js الحقيقية (نفس المكتبة ونفس خيارات التطبيق) =====
+  // بتتبني لحظة دخول المشهد ٣ (الكانفس مخفي قبلها فمقاسه صفر)، وبتتهدم
+  // مع كل reset عشان الإعادة تشغّل الأنيميشن من الأول زي أول مرة.
+  let demoCharts = [];
+  const DMC = {
+    pen: '#3a6fa5', penSoft: '#dbe6f1', done: '#3e7a5c',
+    ink: '#1f2328', inkSoft: '#6b7280', paperLine: '#e2e4e8'
+  };
+  const DM_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  // بيانات واقعية مختلفة عن سكرينشوت الصفحة، ومتماسكة مع مهام الديمو
+  const DM_TOP = [
+    ['Deep Work', 660], ['Client Meeting', 360], ['Submit the report', 270],
+    ['Reading', 180], ['Podcast', 135]
+  ];
+  const DM_COUNTS = [6, 5, 7, 4, 3, 5, 4];
+  const DM_PCT = [83, 60, 71, 50, 100, 80, 75];
+  const DM_TREND = [270, 180, 330, 120, 390, 240, 180];
+  const dmFmtH = (v) => String(Math.round(v / 60));
+  const dmFmtMin = (m) => m >= 60 ? (Math.floor(m / 60) + 'h' + (m % 60 ? ' ' + (m % 60) + 'm' : '')) : (m + 'm');
+
+  function destroyDemoCharts() {
+    demoCharts.forEach((c) => { try { c.destroy(); } catch (e) {} });
+    demoCharts = [];
+  }
+
+  function buildDemoCharts(animate) {
+    destroyDemoCharts();
+    if (typeof Chart === 'undefined') return;
+    // الأنيميشن طويلة ومتدرجة عشان تتلحق تتشاف: كل رسم يبدأ بعد اللي قبله،
+    // والمدة الكلية (~2.5 ثانية) أطول من لحظة الدخول بكتير
+    const animFor = (delay) => animate ? { animation: { duration: 1800, delay, easing: 'easeOutQuart' } } : { animation: { duration: 0 } };
+    // ١) دونات نسبة الإنجاز — نفس completionDonutCfg
+    const donutEl = document.getElementById('dmChartDonut');
+    if (donutEl) demoCharts.push(new Chart(donutEl, {
+      type: 'doughnut',
+      data: {
+        labels: ['Completed', 'Not completed yet'],
+        datasets: [{
+          data: [22, 9],
+          backgroundColor: [DMC.done, DMC.penSoft],
+          borderColor: 'transparent'
+        }]
+      },
+      options: Object.assign({
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { color: DMC.ink, font: { size: 12 } } } }
+      }, animFor(0))
+    }));
+    // ٢) بار أكثر المهام وقتًا — نفس topTasksBarCfg
+    const topEl = document.getElementById('dmChartTop');
+    if (topEl) demoCharts.push(new Chart(topEl, {
+      type: 'bar',
+      data: {
+        labels: DM_TOP.map((t) => t[0]),
+        datasets: [{
+          label: 'Minutes',
+          data: DM_TOP.map((t) => t[1]),
+          backgroundColor: DMC.pen,
+          borderRadius: 6,
+          maxBarThickness: 40
+        }]
+      },
+      options: Object.assign({
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (ctx) => dmFmtMin(ctx.parsed.y) } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: DMC.ink } },
+          y: {
+            beginAtZero: true,
+            grid: { color: DMC.paperLine },
+            ticks: { color: DMC.ink, stepSize: 60, callback: dmFmtH },
+            afterDataLimits(s) { if (s.max < 60) s.max = 60; }
+          }
+        }
+      }, animFor(200))
+    }));
+    // ٣) بار + خط مدمج: عدد المهام ونسبة الإنجاز
+    const dailyEl = document.getElementById('dmChartDaily');
+    if (dailyEl) demoCharts.push(new Chart(dailyEl, {
+      data: {
+        labels: DM_DAYS,
+        datasets: [
+          {
+            type: 'bar',
+            label: 'Tasks count',
+            data: DM_COUNTS,
+            backgroundColor: DMC.inkSoft + '99',
+            borderRadius: 6,
+            yAxisID: 'y'
+          },
+          {
+            type: 'line',
+            label: 'Completion %',
+            data: DM_PCT,
+            borderColor: DMC.pen,
+            backgroundColor: DMC.pen,
+            tension: 0.4,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: Object.assign({
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { color: DMC.ink, font: { size: 12 } } } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: DMC.ink } },
+          y: { beginAtZero: true, position: 'left', grid: { color: DMC.paperLine }, ticks: { color: DMC.ink, precision: 0 } },
+          y1: { beginAtZero: true, max: 100, position: 'right', grid: { display: false }, ticks: { color: DMC.ink, callback: (v) => v + '%' } }
+        }
+      }, animFor(400))
+    }));
+    // ٤) خط اتجاه الوقت — نفس trend config
+    const trendEl = document.getElementById('dmChartTrend');
+    if (trendEl) demoCharts.push(new Chart(trendEl, {
+      type: 'line',
+      data: {
+        labels: DM_DAYS,
+        datasets: [{
+          label: 'Minutes per day',
+          data: DM_TREND,
+          borderColor: DMC.pen,
+          backgroundColor: DMC.pen + '33',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: DMC.pen
+        }]
+      },
+      options: Object.assign({
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (ctx) => dmFmtMin(ctx.parsed.y) } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: DMC.ink } },
+          y: {
+            beginAtZero: true,
+            grid: { color: DMC.paperLine },
+            ticks: { color: DMC.ink, stepSize: 60, callback: dmFmtH },
+            afterDataLimits(s) { if (s.max < 60) s.max = 60; }
+          }
+        }
+      }, animFor(600))
+    }));
+  }
+
+  // الموك إنجليزي ثابت (LTR) — النصوص الإنجليزية مكتوبة مباشرة هنا
+  const T = { task: 'Submit the report', blockTime: '2:00 PM - 4:00 PM', done: '3 of 7 completed • Actual time: 32m', total: '28h 15m', rate: '72%', missed: '3', items: '31' };
+
+  // تاريخ النهاردة بالإنجليزي (زي fmtDay في التطبيق)
+  if (els.date) {
+    try {
+      const d = new Date();
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      els.date.textContent = days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+      // رأس عمود الجدول وتسمية اليوم — نفس التاريخ عشان ميبقاش فيه تناقض
+      if (els.colHead) els.colHead.textContent = d.getDate() + ' ' + days[d.getDay()];
+      if (els.tbDay) els.tbDay.textContent = days[d.getDay()];
+    } catch (err) { /* النص الثابت يكفي */ }
+  }
+  if (els.dateSub) els.dateSub.textContent = T.done;
+
+  const pad = (n) => String(n).padStart(2, '0');
+  const clockText = (s) => pad(Math.floor(s / 3600)) + ':' + pad(Math.floor((s % 3600) / 60)) + ':' + pad(s % 60);
+  const clockToMs = (s) => { const p = String(s).split(':').map(Number); return (p[0] * 3600 + p[1] * 60 + p[2]) * 1000; };
+
+  const T_TYPE = 80;                     // سرعة الكتابة حرف/ثانية
+  const T_PRESS = 280;                   // مدة الضغط على زر الإضافة
+  const T_DUR = [3600, 3600, 6400, 6000];   // مدة كل مشهد قبل الانتقال (الأخير بيلف للأول تلقائيًا)
+
+  let timeouts = [], frames = [];
+  const after = (fn, ms) => { timeouts.push(setTimeout(fn, ms)); };
+  const frame = (fn) => { frames.push(requestAnimationFrame(fn)); };
+  function clearTimers() {
+    timeouts.forEach(clearTimeout); timeouts = [];
+    frames.forEach(cancelAnimationFrame); frames = [];
+  }
+
+  let scene = -1, playing = false, clockBase = 0;
+  // المهمة المضافة بتفضل موجودة بعد ما تتضاف (زي التطبيق — مشهد ورا مشهد)،
+  // ومبتتمسحش غير لما نبدأ من الأول (مشهد ٠ من جديد / إعادة التشغيل).
+  let taskAdded = false;
+
+  // إبراز لحظي لزرار كأنه اتداس (للمنيو والقوائم الفرعية في المشهد ٢)
+  function hit(el) {
+    if (!el) return;
+    el.classList.add('dm-hit');
+    after(() => el.classList.remove('dm-hit'), 620);
+  }
+
+  function reset() {
+    clearTimers();
+    destroyDemoCharts();
+    ['at-press', 'at-tb-drop', 'at-tb-resize', 'at-timer-in', 'at-timer-run', 'at-stats', 'dm-static']
+      .forEach((c) => root.classList.remove(c));
+    // قفل أي منيو مفتوحة من مشهد سابق
+    if (els.moreDrop) els.moreDrop.classList.remove('open');
+    if (els.timePop) els.timePop.classList.remove('open');
+    els.typed.value = '';
+    els.newName.textContent = '';
+    els.clock.textContent = '00:00:00';
+    els.time.textContent = '0';
+    els.rate.textContent = '0%';
+    els.missed.textContent = '0';
+    els.total.textContent = '0';
+    els.playBtn.classList.remove('is-running');
+    els.playBtn.querySelector('.material-icons').textContent = 'play_arrow';
+    els.newName.textContent = T.task;
+    els.blockName.textContent = T.task;
+    els.blockTime.textContent = T.blockTime;
+    els.timerName.textContent = T.task;
+  }
+
+  function countTo(el, to, ms, fmt) {
+    const t0 = performance.now();
+    (function step(now) {
+      const p = Math.min(1, (now - t0) / ms);
+      el.textContent = fmt(Math.round(to * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) frame(step);
+    })(performance.now());
+  }
+
+  function runClock() {
+    frame(function tick(now) {
+      if (!playing) return;
+      els.clock.textContent = clockText(Math.floor((now - clockBase) / 1000));
+      frame(tick);
+    });
+  }
+
+  const SCENES = [
+    // ٠ — دوّن: يُكتب الاسم في الـ input الحقيقي، يُضغط +، يظهر الصف
+    function () {
+      const text = T.task;
+      let i = 0;
+      (function type() {
+        if (i > text.length) return;
+        els.typed.value = text.slice(0, i);
+        i++;
+        after(type, T_TYPE);
+      })();
+      after(() => {
+        root.classList.add('at-press');
+        after(() => { taskAdded = true; root.classList.add('has-task'); }, T_PRESS);
+      }, text.length * T_TYPE + 420);
+    },
+    // ١ — خطّط: البلوك ينزل ثم تُمدّ مدّته
+    function () {
+      after(() => {
+        root.classList.add('at-tb-drop');
+        after(() => root.classList.add('at-tb-resize'), 1200);
+      }, 400);
+    },
+    // ٢ — ركّز: ⋮ تتفتح → Time تتفتح → Start Timer → الكارت ينزلق ويشتغل
+    function () {
+      after(() => {
+        hit(els.moreBtn);
+        after(() => {
+          els.moreDrop.classList.add('open');
+          after(() => {
+            hit(els.timeBtn);
+            after(() => {
+              els.timePop.classList.add('open');
+              after(() => {
+                hit(els.startTimerBtn);
+                after(() => {
+                  els.moreDrop.classList.remove('open');
+                  els.timePop.classList.remove('open');
+                  root.classList.add('at-timer-in');
+                  after(() => {
+                    root.classList.add('at-timer-run');
+                    els.playBtn.classList.add('is-running');
+                    els.playBtn.querySelector('.material-icons').textContent = 'pause';
+                    clockBase = performance.now();
+                    runClock();
+                  }, 700);
+                }, 650);
+              }, 750);
+            }, 650);
+          }, 650);
+        }, 450);
+      }, 400);
+    },
+    // ٣ — تابع: كل حاجة تبدأ فورًا بلا تأخير — العدّادات والرسوم مع بعض
+    function () {
+      countTo(els.time, 1695, 2200, (v) => Math.floor(v / 60) + 'h ' + (v % 60) + 'm');
+      countTo(els.rate, 72, 2200, (v) => v + '%');
+      els.missed.textContent = T.missed;
+      countTo(els.total, 31, 2200, (v) => String(v));
+      // البناء ودخول الكروت في أول فريم بعد ظهور المشهد: reset() شال الكلاسات
+      // في نفس التاسك، فالإضافة هنا بتشتغل كإعادة تشغيل حقيقية للأنيميشن
+      frame(() => {
+        if (scene !== 3) return;
+        root.classList.add('at-stats');
+        // قراءة إجبارية تجبر المتصفح على حساب الفليكس النهائي قبل البناء،
+        // فالرسوم تتولد بمقاسها النهائي من أول فريم بلا أنيميشن نمو وبلا قفزة
+        if (dmStage) void dmStage.offsetHeight;
+        buildDemoCharts(false);
+      });
+    }
+  ];
+
+  function setScene(i) {
+    scene = i;
+    root.dataset.scene = String(i);
+    els.caps.forEach((c, j) => c.classList.toggle('is-on', j === i));
+    reset();
+    // إبراز زر الصفحة في الـ side bar حسب المشهد — التفاعل هنا:
+    // 01 و03 (اليوم + التركيز) → مهام اليوم، 02 → الجدول الزمني، 04 → الإحصائيات
+    const navBtns = [els.navTasks, els.navSchedule, els.navStats];
+    const navForScene = [els.navTasks, els.navSchedule, els.navTasks, els.navStats][i];
+    navBtns.forEach((b) => { if (b) b.classList.remove('active', 'dm-hit'); });
+    if (navForScene) {
+      navForScene.classList.add('active');
+      hit(navForScene);
+    }
+    if (i === 0) {
+      // بداية جديدة: المهمة لسه متضافتش (هتتكتب وتتضاف قدّامك)
+      taskAdded = false;
+      root.classList.remove('has-task');
+    } else {
+      // أي مشهد بعد الإضافة: المهمة موجودة (حتى لو قفزت عليه مباشرة)
+      taskAdded = true;
+      root.classList.add('has-task');
+    }
+    SCENES[i]();
+    if (T_DUR[i]) after(() => { if (playing) setScene((i + 1) % SCENES.length); }, T_DUR[i]);
+  }
+
+  function setPlayIcon(running) {
+    if (els.playIcon) els.playIcon.setAttribute('href', running ? '#i-pause' : '#i-play');
+  }
+
+  function play() {
+    // إعادة تشغيل المشهد الحالي من الأول: الإيقاف مسح كل التايمرات والفريمات،
+    // فالاستكمال من المنتصف مستحيل — نعيد المشهد ونكمل اللفة تلقائيًا.
+    // (الحالة الخاصة القديمة للمشهد 2 بقت زائدة: إعادة المشهد نفسه بتعيد
+    // تسلسل المنيو ← التايمر ← العدّاد كاملًا.)
+    setScene(scene < 0 ? 0 : scene);
+    playing = true;
+    setPlayIcon(true);
+  }
+
+  function pause() { playing = false; setPlayIcon(false); clearTimers(); }
+
+  els.play.addEventListener('click', () => (playing ? pause() : play()));
+  els.replay.addEventListener('click', () => { pause(); setScene(0); playing = true; setPlayIcon(true); });
+  els.caps.forEach((c) => c.addEventListener('click', () => {
+    pause();
+    setScene(Number(c.dataset.goto));
+    playing = true;
+    setPlayIcon(true);
+    if (T_DUR[scene]) after(() => { if (playing) setScene((scene + 1) % SCENES.length); }, T_DUR[scene]);
+  }));
+
+  // النسخة الساكنة (بلا JS أو مع تقليل الحركة)
+  if (REDUCE_MOTION || !('IntersectionObserver' in window)) {
+    root.classList.add('dm-static', 'has-task', 'at-timer-in', 'at-timer-run');
+    root.dataset.scene = '2';
+    els.typed.value = T.task;
+    els.clock.textContent = clockText(102);
+    els.time.textContent = T.total;
+    els.rate.textContent = T.rate;
+    els.missed.textContent = T.missed;
+    els.total.textContent = '31';
+    // ملاحظة: رسوم المشهد ٣ مش بتتبني هنا لأنها مخفية (الكانفس المخفي مقاسه صفر)
+    els.play.style.display = 'none';
+    els.replay.style.display = 'none';
+    els.caps.forEach((c, j) => c.classList.toggle('is-on', j === 2));
+    return;
+  }
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      io.disconnect();
+      play();
+    });
+  }, { threshold: 0.3 });
+  io.observe(root);
 })();
 
 // ===== شريط «تفاصيل صغيرة»: loop بلا نهاية + كروت مكررة =====

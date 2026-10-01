@@ -2,8 +2,8 @@
 // recurrence.js — تم فصله تلقائيًا من app.js الأصلي (تقسيم بدون تغيير المنطق)
 // ============================================================
 
-import { SHORT_DAY_NAMES, addDays, fromISO, todayStr } from './utils.js';
-import { t } from './i18n.js';
+import { SHORT_DAY_NAMES, addDays, fromISO, todayStr, weekendDays, workweekDays } from './utils.js';
+import { getLang, t } from './i18n.js';
 import { showToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
 import { render } from './render.js';
@@ -96,18 +96,21 @@ function renderRecurrenceDaysGrid(){
 }
 
 // تمييز البريست المطابق للأيام المختارة (يومي/عمل/عطلة/مرة واحدة) — أي تعديل
-// يدوي على الشبكة بيوقع التمييز لأنه بقى مخصص
-const RECURRENCE_PRESETS = {
-  once: [],
-  daily: [0,1,2,3,4,5,6],
-  workdays: [0,1,2,3,4],
-  weekend: [5,6]
-};
+// يدوي على الشبكة بيوقع التمييز لأنه بقى مخصص.
+// العطلة وأيام العمل حسب لغة الواجهة (عربي: جمعة/سبت — إنجليزي: سبت/أحد)،
+// فالثوابت هنا دالة مش كائن ثابت عشان متتجمدش على أول لغة.
+function recurrencePresetDays(name){
+  const lang = getLang();
+  if(name === 'weekend') return weekendDays(lang);
+  if(name === 'workdays') return workweekDays(lang);
+  if(name === 'daily') return [0, 1, 2, 3, 4, 5, 6];
+  return [];
+}
 
 function syncRecurrencePresets(){
   const sorted = [...ui.pendingRecurrenceDays].sort((a,b) => a-b).join(',');
   document.querySelectorAll('#recurrencePresets [data-preset]').forEach(b => {
-    const preset = RECURRENCE_PRESETS[b.dataset.preset] || [];
+    const preset = recurrencePresetDays(b.dataset.preset);
     b.classList.toggle('active', preset.join(',') === sorted);
   });
 }
@@ -173,7 +176,7 @@ document.getElementById('saveRecurrenceBtn').onclick = saveRecurrence;
 
 document.querySelectorAll('#recurrencePresets [data-preset]').forEach(btn => {
   btn.onclick = () => {
-    ui.pendingRecurrenceDays = [...(RECURRENCE_PRESETS[btn.dataset.preset] || [])];
+    ui.pendingRecurrenceDays = [...recurrencePresetDays(btn.dataset.preset)];
     syncRecurrencePresets();
     renderRecurrenceDaysGrid();
   };

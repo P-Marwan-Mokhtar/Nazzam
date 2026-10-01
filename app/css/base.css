@@ -317,6 +317,13 @@ html[dir="ltr"] #calNextMonth .material-icons {
   transform: scaleX(-1);
 }
 
+/* === Day/timeline nav chevrons flip in LTR (prev/next were showing reversed) ===
+   .nav-btn is only ever used for prev/next day chevrons (day, week, stats,
+   smart-lists, timeline), so a class rule is safe and covers them all. */
+html[dir="ltr"] .nav-btn .material-icons {
+  transform: scaleX(-1);
+}
+
 /* === Calendar month name alignment === */
 html[dir="ltr"] .calendar-month-title {
   text-align: center;

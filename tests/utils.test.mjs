@@ -10,6 +10,7 @@ import {
   parseDurationToMinutes, timeStrToMinutes,
   escapeHtml, escapeAttr, normalizeArabic, highlightMatch,
   reorderArrayById, uid, formatElapsed,
+  weekendDays, workweekDays, isWeekendDay,
 } from '../app/js/utils.js';
 
 // ---------- التواريخ ----------
@@ -144,4 +145,26 @@ test('formatElapsed يسجل الساعات والدقائق والثواني ب
   assert.equal(formatElapsed(65_000), '00:01:05');
   assert.equal(formatElapsed(3_600_000 + 120_000), '01:02:00');
   assert.equal(formatElapsed(-5000), '00:00:00'); // القيم السالبة تتقص على صفر
+});
+
+// ---------- أيام العطلة حسب اللغة ----------
+
+test('weekendDays عربي جمعة/سبت وإنجليزي سبت/أحد', () => {
+  assert.deepEqual(weekendDays('ar'), [5, 6]);
+  assert.deepEqual(weekendDays('en'), [6, 0]);
+  assert.deepEqual(weekendDays('fr'), [5, 6]); // أي لغة غير en ترجع للعربي
+});
+
+test('workweekDays عربي أحد-خميس وإنجليزي اثنين-جمعة', () => {
+  assert.deepEqual(workweekDays('ar'), [0, 1, 2, 3, 4]);
+  assert.deepEqual(workweekDays('en'), [1, 2, 3, 4, 5]);
+});
+
+test('isWeekendDay يطابق أيام العطلة لكل لغة', () => {
+  assert.equal(isWeekendDay(5, 'ar'), true);
+  assert.equal(isWeekendDay(6, 'ar'), true);
+  assert.equal(isWeekendDay(0, 'ar'), false);
+  assert.equal(isWeekendDay(6, 'en'), true);
+  assert.equal(isWeekendDay(0, 'en'), true);
+  assert.equal(isWeekendDay(5, 'en'), false);
 });

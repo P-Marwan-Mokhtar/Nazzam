@@ -41,7 +41,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Almarai:wght@400;700;800&display=swap"
       rel="stylesheet"
     />
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,900&display=swap" rel="stylesheet" />
@@ -78,6 +78,7 @@
         <symbol id="i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 002.5 2.5z"/></symbol>
         <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor" stroke="none"/></symbol>
         <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5.5v13M15 5.5v13"/></symbol>
+    <symbol id="i-replay" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.4-5.7M20 3.5V9h-5.5"/></symbol>
         <symbol id="i-square" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2"/></symbol>
         <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M17 2.5l3.5 3.5L17 9.5M3.5 11.5v-1a4 4 0 014-4H20M7 21.5l-3.5-3.5L7 14.5M20.5 12.5v1a4 4 0 01-4 4H4"/></symbol>
         <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3.5 11V4.5a1 1 0 011-1H11l9 9-7.5 7.5-9-9z"/><circle cx="8" cy="8" r="1.4"/></symbol>
@@ -140,7 +141,7 @@
           </p>
           <div class="hero-cta anim" style="--ad: 0.4s">
             <a href="app/" class="btn btn-primary btn-lg" id="heroStartBtn" data-lp="hero.start">ابدأ مجانًا</a>
-            <a href="#organize" class="btn btn-ghost btn-lg" data-lp="hero.discover">اكتشف المميزات</a>
+            <a href="#features" class="btn btn-ghost btn-lg" data-lp="hero.discover">اكتشف المميزات</a>
           </div>
         </div>
 
@@ -154,93 +155,405 @@
       </section>
 
       <!-- ============================================================
-           الجسر — تنظيم يومك لا ينبغي أن يكون معقداً
-      ============================================================ -->
-      <section class="bridge" id="organize">
-        <div class="container">
-          <div class="sec-head reveal bridge-head">
-            <h2 data-lp="bridge.title">تنظيم يومك لا ينبغي أن يكون معقداً</h2>
-            <p class="sec-lead" data-lp="bridge.lead">
-              تخلص من تشتت التطبيقات المجهزة بتعقيدات لا تحتاجها. يوفر لك تطبيق
-              «نظّم» تجربة سلسة تدمج أدواتك اليومية في مكان واحد بأسلوب بسيط ومباشر.
-            </p>
-          </div>
-
-          <div class="bridge-stack">
-            <article class="bridge-row reveal">
-              <div class="bridge-row-head">
-                <span class="bridge-ic" aria-hidden="true"><svg class="ic"><use href="#i-chart"/></svg></span>
-                <h3 data-lp="bridge.c1t">إحصائيات واضحة</h3>
-              </div>
-              <p data-lp="bridge.c1d">وقتك الفعلي ونسب إنجازك وتوزيع وقتك في لوحة واحدة، لتعرف أين يذهب يومك وتتقدم بثقة.</p>
-              <span class="bridge-num digits">01</span>
-            </article>
-            <article class="bridge-row reveal">
-              <div class="bridge-row-head">
-                <span class="bridge-ic" aria-hidden="true"><svg class="ic"><use href="#i-wifi-off"/></svg></span>
-                <h3 data-lp="bridge.c2t">استمرارية دون انقطاع</h3>
-              </div>
-              <p data-lp="bridge.c2d">دعم كامل للعمل دون اتصال بالإنترنت، لتظل إنتاجيتك مستمرة في أي وقت وأي مكان.</p>
-              <span class="bridge-num digits">02</span>
-            </article>
-            <article class="bridge-row reveal">
-              <div class="bridge-row-head">
-                <span class="bridge-ic" aria-hidden="true"><svg class="ic"><use href="#i-zap"/></svg></span>
-                <h3 data-lp="bridge.c3t">سلاسة وسرعة بالغة</h3>
-              </div>
-              <p data-lp="bridge.c3d">تصميم خالٍ من القوائم المعقدة، يتيح لك تدوين مهامك ومتابعة يومك بنقرة زر واحدة.</p>
-              <span class="bridge-num digits">03</span>
-            </article>
-            <article class="bridge-row reveal">
-              <div class="bridge-row-head">
-                <span class="bridge-ic" aria-hidden="true"><svg class="ic"><use href="#i-devices"/></svg></span>
-                <h3 data-lp="bridge.c4t">تكامل بلا تشتت</h3>
-              </div>
-              <p data-lp="bridge.c4d">بدلاً من التنقل بين عدة تطبيقات للمهام والمؤقت، تجد جميع أدواتك الأساسية متناغمة في واجهة واحدة.</p>
-              <span class="bridge-num digits">04</span>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <!-- ============================================================
            كيف يعمل — خطوات مرقمة
       ============================================================ -->
-      <section class="section" id="focus">
+      <section class="section" id="how">
         <div class="container">
           <div class="sec-head reveal how-head">
-            <p class="how-kicker" data-lp="how.kicker">كيف يعمل</p>
             <h2 data-lp="how.title">نظام واحد ليومك كله</h2>
             <p class="sec-lead" data-lp="how.lead">
               دورة يومك كاملة في مكان واحد — بدون تنقل بين التطبيقات وبدون إعدادات معقدة.
             </p>
           </div>
 
-          <div class="how-timeline">
-            <article class="tl-step reveal">
-              <span class="tl-dot" aria-hidden="true"></span>
-              <span class="tl-meta digits">01</span>
-              <h3 data-lp="how.s1t">دوّن مهامك</h3>
-              <p data-lp="how.s1d">أضف مهامك وعاداتك وهواياتك إلى بنك المهام أو مباشرة إلى يومك بنقرة واحدة.</p>
-            </article>
-            <article class="tl-step reveal">
-              <span class="tl-dot" aria-hidden="true"></span>
-              <span class="tl-meta digits">02</span>
-              <h3 data-lp="how.s2t">خطط يومك بالساعة</h3>
-              <p data-lp="how.s2d">اسحب كل مهمة إلى الساعة التي تناسبها وحدّد مدّتها لتتحول قائمتك لخارطة زمنية.</p>
-            </article>
-            <article class="tl-step reveal">
-              <span class="tl-dot" aria-hidden="true"></span>
-              <span class="tl-meta digits">03</span>
-              <h3 data-lp="how.s3t">ركّز ونفّذ</h3>
-              <p data-lp="how.s3d">شغّل المؤقت على مهمتك وادخل وضع التركيز — ووقتك الفعلي يُسجَّل تلقائيًا.</p>
-            </article>
-            <article class="tl-step reveal">
-              <span class="tl-dot" aria-hidden="true"></span>
-              <span class="tl-meta digits">04</span>
-              <h3 data-lp="how.s4t">تابع تقدمك</h3>
-              <p data-lp="how.s4d">شاهد نسب إنجازك ووقتك الفعلي في الإحصائيات، واعرف أين ذهب يومك.</p>
-            </article>
+          <div class="how-demo" id="howDemo" data-scene="0">
+            <div class="dm-stage" dir="ltr">
+              <!-- الكانفس: نسخة بحجم التطبيق الحقيقي (1426px) ومضروب في scale
+                   عشان يظهر بنفس النِسَب في أي عرض. جوه بت转会 لقواعد CSS
+                   الحقيقية من التطبيق (scoped بـ .dm-app). -->
+              <div class="dm-canvas dm-app">
+                <div class="app-shell">
+
+                <!-- ===== الشريط الجانبي: نفس بنية app/index.html ===== -->
+                <aside class="side-nav collapsed" aria-hidden="true">
+                  <div class="side-nav-head">
+                    <button class="side-nav-btn side-nav-collapse-btn"><span class="material-icons">chevron_right</span></button>
+                    <button class="side-nav-btn"><span class="material-icons">person_outline</span><span class="side-nav-label">Account</span></button>
+                  </div>
+                  <button class="side-nav-btn active" id="dmNavTasks"><span class="material-icons">checklist</span><span class="side-nav-label">Today's Tasks</span></button>
+                  <button class="side-nav-btn" id="dmNavStats"><span class="material-icons">insights</span><span class="side-nav-label">Statistics</span></button>
+                  <button class="side-nav-btn" id="dmNavSchedule"><span class="material-icons">event_note</span><span class="side-nav-label">Schedule</span></button>
+                  <button class="side-nav-btn"><span class="material-icons">view_week</span><span class="side-nav-label">Week View</span></button>
+                  <button class="side-nav-btn"><span class="material-icons">auto_awesome</span><span class="side-nav-label">Smart Lists</span></button>
+                  <div class="side-nav-divider"></div>
+                  <button class="side-nav-btn"><span class="material-icons">manage_search</span><span class="side-nav-label">Search All Tasks</span></button>
+                  <button class="side-nav-btn"><span class="material-icons">drafts</span><span class="side-nav-label">Drafts</span></button>
+                  <button class="side-nav-btn"><span class="material-icons">content_copy</span><span class="side-nav-label">Templates</span></button>
+                  <button class="side-nav-btn"><span class="material-icons">calendar_today</span><span class="side-nav-label">Calendar</span></button>
+                  <button class="side-nav-btn"><span class="material-icons">notifications</span><span class="side-nav-label">Notifications</span></button>
+                </aside>
+
+                <div class="app-main">
+                  <div class="main-layout">
+                <!-- ===== العمود الرئيسي: نفس بنية render.js ===== -->
+                <div class="main-col">
+                  <!-- ===== مشهد اليوم (٠ و٢): محتوى اليوم الحقيقي ===== -->
+                  <div class="dm-scene-day">
+                  <div class="date-nav">
+                    <button class="nav-btn"><span class="material-icons">chevron_right</span></button>
+                    <div class="date-display">
+                      <div class="day-name" id="dmDate"></div>
+                      <div class="day-sub" id="dmDateSub"></div>
+                    </div>
+                    <button class="nav-btn"><span class="material-icons">chevron_left</span></button>
+                  </div>
+
+                  <div class="bank-wrap">
+                    <button class="bank-toggle">
+                      <span class="bank-toggle-label">Task List</span>
+                      <span class="bank-toggle-arrow open"><span class="material-icons">expand_more</span></span>
+                    </button>
+
+                    <div class="bank-content">
+                      <!-- صف الإضافة: نفس .add-row في render.js:207 -->
+                      <div class="add-row bank-add-task-row">
+                        <input type="text" id="dmTyped" readonly />
+                        <div class="add-arrow-wrap">
+                          <button class="add-arrow-btn"><span class="material-icons">expand_more</span></button>
+                        </div>
+                        <button class="add-btn icon-only add-keyword-btn" id="dmAddBtn"><span class="material-icons">add</span></button>
+                      </div>
+
+                      <!-- شرائح الفلاتر: الفانل أول واحدة، نفس render.js:219 -->
+                      <div class="filter-chips-wrap">
+                        <div class="filter-chips">
+                          <div class="bank-filters-panel-wrap">
+                            <button class="filter-chip bank-filters-toggle"><span class="material-icons">filter_alt</span></button>
+                            <div class="filter-add-popover">
+                              <input type="text" placeholder="New filter..." maxlength="40" readonly />
+                            </div>
+                          </div>
+                          <button class="filter-chip active">All</button>
+                          <span class="filter-chip-outer"><span class="filter-chip-wrap"><button class="filter-chip-label">work</button><button class="filter-chip-more"><span class="material-icons">more_vert</span></button></span></span>
+                          <span class="filter-chip-outer"><span class="filter-chip-wrap"><button class="filter-chip-label">learn</button><button class="filter-chip-more"><span class="material-icons">more_vert</span></button></span></span>
+                          <span class="filter-chip-outer"><span class="filter-chip-wrap"><button class="filter-chip-label">personal</button><button class="filter-chip-more"><span class="material-icons">more_vert</span></button></span></span>
+                        </div>
+                      </div>
+                      <!-- البحث: لسان صغير على الفاصل، نفس render.js:271 -->
+                      <div class="bank-search-divider-wrap">
+                        <div class="bank-filters-divider"></div>
+                        <button class="bank-search-reveal"><span class="material-icons">search</span></button>
+                      </div>
+                      <div class="bank-search-collapsible">
+                        <div class="bank-search-collapsible-inner">
+                          <div class="bank-search">
+                            <input type="text" placeholder="Search the list..." readonly />
+                            <button class="bank-search-clear" style="display:none"><span class="material-icons">close</span></button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- شيبات البنك: نفس .keyword-row في render.js:327 -->
+                      <div class="keyword-list" id="dmBankRows">
+                        <div class="keyword-row"><button class="add-to-day-btn"><span class="material-icons">add</span></button><div class="keyword-main"><span class="keyword-name">Team meeting</span><div class="keyword-icons"><div class="task-more-menu-wrap"><button class="icon-btn task-more-btn"><span class="material-icons">more_vert</span></button></div></div></div></div>
+                        <div class="keyword-row"><button class="add-to-day-btn"><span class="material-icons">add</span></button><div class="keyword-main"><span class="keyword-name">Project task</span><div class="keyword-icons"><div class="task-more-menu-wrap"><button class="icon-btn task-more-btn"><span class="material-icons">more_vert</span></button></div></div></div></div>
+                        <div class="keyword-row"><button class="add-to-day-btn added" disabled><span class="material-icons">check</span></button><div class="keyword-main"><span class="keyword-name">gym</span><div class="keyword-icons"><div class="task-more-menu-wrap"><button class="icon-btn task-more-btn"><span class="material-icons">more_vert</span></button></div></div></div></div>
+                        <div class="keyword-row"><button class="add-to-day-btn added" disabled><span class="material-icons">check</span></button><div class="keyword-main"><span class="keyword-name">Reading</span><div class="keyword-icons"><div class="task-more-menu-wrap"><button class="icon-btn task-more-btn"><span class="material-icons">more_vert</span></button></div></div></div></div>
+                        <div class="keyword-row"><button class="add-to-day-btn added" disabled><span class="material-icons">check</span></button><div class="keyword-main"><span class="keyword-name">Podcast</span><div class="keyword-icons"><div class="task-more-menu-wrap"><button class="icon-btn task-more-btn"><span class="material-icons">more_vert</span></button></div></div></div></div>
+                        <div class="keyword-row"><button class="add-to-day-btn added" disabled><span class="material-icons">check</span></button><div class="keyword-main"><span class="keyword-name">Morning walk</span><div class="keyword-icons"><div class="task-more-menu-wrap"><button class="icon-btn task-more-btn"><span class="material-icons">more_vert</span></button></div></div></div></div>
+                        <div class="keyword-row"><button class="add-to-day-btn"><span class="material-icons">add</span></button><div class="keyword-main"><span class="keyword-name">Journaling</span><div class="keyword-icons"><div class="task-more-menu-wrap"><button class="icon-btn task-more-btn"><span class="material-icons">more_vert</span></button></div></div></div></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- ===== اليوم: نفس .section-title + .task-list في render.js ===== -->
+                  <div class="section-title">
+                    <span>Today</span>
+                    <div class="day-actions-wrap">
+                      <button class="day-actions-toggle"><span class="material-icons">view_module</span></button>
+                      <button class="day-actions-toggle"><span class="material-icons">bookmark_add</span></button>
+                      <button class="day-actions-toggle"><span class="material-icons">grid_view</span></button>
+                    </div>
+                  </div>
+
+                  <div class="task-list" id="dmTaskList">
+                    <div class="task-row" id="dmNewRow">
+                      <button class="task-check"><span class="material-icons">radio_button_unchecked</span></button>
+                      <button class="task-name-btn"><span class="task-type-icon task-type-task"><span class="material-icons">assignment</span></span><span class="task-name" id="dmNewName"></span></button>
+                      <div class="task-more-menu-wrap open-up">
+                        <button class="icon-btn task-more-btn" id="dmMoreBtn"><span class="material-icons">more_vert</span></button>
+                        <div class="task-more-dropdown" id="dmMoreDrop">
+                          <button class="tmd-btn"><span class="material-icons">edit</span><span>Edit</span></button>
+                          <button class="tmd-btn"><span class="material-icons">note_add</span><span>Note</span></button>
+                          <div class="time-choice-submenu-wrap">
+                            <button class="tmd-btn" id="dmTimeBtn"><span class="material-icons">schedule</span><span>Time</span></button>
+                            <div class="clock-choice-popover" id="dmTimePop">
+                              <button class="clock-choice-btn"><span class="material-icons">flag</span>Goal</button>
+                              <button class="clock-choice-btn"><span class="material-icons">timelapse</span>Actual Time</button>
+                              <button class="clock-choice-btn" id="dmStartTimerBtn"><span class="material-icons">play_circle_outline</span>Start Timer</button>
+                            </div>
+                          </div>
+                          <button class="tmd-btn"><span class="material-icons">account_tree</span><span>Subtasks</span></button>
+                          <button class="tmd-btn"><span class="material-icons">event_repeat</span><span>Repeat & move</span></button>
+                          <button class="tmd-btn"><span class="material-icons">flag</span><span>Priority</span></button>
+                          <button class="tmd-btn"><span class="material-icons">notifications_none</span><span>Reminder</span></button>
+                          <button class="tmd-btn"><span class="material-icons">content_copy</span><span>Save as template</span></button>
+                          <button class="tmd-btn delete"><span class="material-icons">delete</span><span>Delete</span></button>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="task-row">
+                      <button class="task-check"><span class="material-icons">radio_button_unchecked</span></button>
+                      <button class="task-name-btn"><span class="task-type-icon task-type-task"><span class="material-icons">assignment</span></span><span class="task-name">Deep Work</span></button>
+                      <div class="task-more-menu-wrap"><button class="icon-btn task-more-btn"><span class="material-icons">more_vert</span></button></div>
+                    </div>
+                    <div class="task-row done">
+                      <button class="task-check"><span class="material-icons">check_circle</span></button>
+                      <button class="task-name-btn"><span class="task-type-icon task-type-habit"><span class="material-icons">loop</span></span><span class="task-name">Reading</span></button>
+                      <div class="task-more-menu-wrap"><button class="icon-btn task-more-btn"><span class="material-icons">more_vert</span></button></div>
+                    </div>
+                    <div class="task-row">
+                      <button class="task-check"><span class="material-icons">radio_button_unchecked</span></button>
+                      <button class="task-name-btn"><span class="task-type-icon task-type-task"><span class="material-icons">assignment</span></span><span class="task-name">Client Meeting</span></button>
+                      <div class="task-more-menu-wrap"><button class="icon-btn task-more-btn"><span class="material-icons">more_vert</span></button></div>
+                    </div>
+                    <div class="task-row done">
+                      <button class="task-check"><span class="material-icons">check_circle</span></button>
+                      <button class="task-name-btn"><span class="task-type-icon task-type-hobby"><span class="material-icons">palette</span></span><span class="task-name">Podcast</span></button>
+                      <div class="task-more-menu-wrap"><button class="icon-btn task-more-btn"><span class="material-icons">more_vert</span></button></div>
+                    </div>
+                    <div class="task-row done">
+                      <button class="task-check"><span class="material-icons">check_circle</span></button>
+                      <button class="task-name-btn"><span class="task-type-icon task-type-task"><span class="material-icons">assignment</span></span><span class="task-name">gym</span></button>
+                      <div class="task-more-menu-wrap"><button class="icon-btn task-more-btn"><span class="material-icons">more_vert</span></button></div>
+                    </div>
+                    <div class="task-row">
+                      <button class="task-check"><span class="material-icons">radio_button_unchecked</span></button>
+                      <button class="task-name-btn"><span class="task-type-icon task-type-task"><span class="material-icons">assignment</span></span><span class="task-name">Morning walk</span></button>
+                      <div class="task-more-menu-wrap"><button class="icon-btn task-more-btn"><span class="material-icons">more_vert</span></button></div>
+                    </div>
+                  </div>
+                  </div>
+
+                  <!-- ===== مشهد الجدول الزمني (١): نفس بنية renderTimeBlockView ===== -->
+                  <div class="dm-scene-tb" id="dmSceneTb">
+                    <div class="date-nav tb-date-nav">
+                      <div class="tb-range-dropdown">
+                        <button class="tb-range-drop-btn"><span>Day</span><span class="material-icons tb-drop-arrow">expand_more</span></button>
+                      </div>
+                      <div class="tb-nav-group">
+                        <button class="nav-btn"><span class="material-icons">chevron_right</span></button>
+                        <button class="tb-day-label" id="dmTbDay">Sunday</button>
+                        <button class="nav-btn"><span class="material-icons">chevron_left</span></button>
+                      </div>
+                      <div class="tb-actions-group">
+                        <button class="tb-today-btn current">Day</button>
+                        <button class="tb-unscheduled-icon-btn">
+                          <span class="material-icons">playlist_add</span>
+                          <span class="tb-unscheduled-badge">12</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="timeblock-layout">
+                      <div class="timeblock-calendar-col">
+                        <div class="tbw-grid tbw-single">
+                          <div class="tbw-col today">
+                            <div class="tbw-col-head today">
+                              <span class="tbw-col-num" id="dmColHead">27 Sunday</span>
+                            </div>
+                            <div class="tbw-col-track" style="height:576px">
+                              <div class="tbw-hour-line" style="top:0px"></div>
+                              <div class="tbw-hour-line" style="top:64px"></div>
+                              <div class="tbw-hour-line" style="top:128px"></div>
+                              <div class="tbw-hour-line" style="top:192px"></div>
+                              <div class="tbw-hour-line" style="top:256px"></div>
+                              <div class="tbw-hour-line" style="top:320px"></div>
+                              <div class="tbw-hour-line" style="top:384px"></div>
+                              <div class="tbw-hour-line" style="top:448px"></div>
+                              <div class="tbw-hour-line" style="top:512px"></div>
+                              <div class="tbw-hour-line" style="top:575px"></div>
+                              <div class="timeline-block" style="--blk:var(--task-c6);top:0px;height:61px;right:2px;width:calc(100% - 6px)">
+                                <span class="timeline-block-time">8:00 AM - 9:00 AM</span>
+                                <span class="timeline-block-name">Client Meeting</span>
+                                <div class="timeline-block-resize-handle"></div>
+                              </div>
+                              <div class="timeline-block" style="--blk:var(--task-c2);top:96px;height:189px;right:2px;width:calc(100% - 6px)">
+                                <span class="timeline-block-time">9:30 AM - 12:30 PM</span>
+                                <span class="timeline-block-name">Deep Work</span>
+                                <div class="timeline-block-resize-handle"></div>
+                              </div>
+                              <div class="timeline-block" id="dmBlock" style="--blk:var(--task-c0);top:384px;height:29px;right:2px;width:calc(100% - 6px)">
+                                <span class="timeline-block-time" id="dmBlockTime"></span>
+                                <span class="timeline-block-name" id="dmBlockName"></span>
+                                <div class="timeline-block-resize-handle"></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="tbw-hours">
+                            <div class="tbw-hours-head"></div>
+                            <div class="tbw-hours-track" style="height:576px">
+                              <span class="tbw-hour-label" style="top:-7px">8:00 AM</span>
+                              <span class="tbw-hour-label" style="top:57px">9:00 AM</span>
+                              <span class="tbw-hour-label" style="top:121px">10:00 AM</span>
+                              <span class="tbw-hour-label" style="top:185px">11:00 AM</span>
+                              <span class="tbw-hour-label" style="top:249px">12:00 PM</span>
+                              <span class="tbw-hour-label" style="top:313px">1:00 PM</span>
+                              <span class="tbw-hour-label" style="top:377px">2:00 PM</span>
+                              <span class="tbw-hour-label" style="top:441px">3:00 PM</span>
+                              <span class="tbw-hour-label" style="top:494px">4:00 PM</span>
+                              <span class="tbw-hour-label" style="top:558px">5:00 PM</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- ===== مشهد الإحصائيات (٣): نفس بنية renderWeekStatsView ===== -->
+                  <div class="dm-scene-stats" id="dmSceneStats">
+                    <div class="stats-view">
+                      <div class="stats-view-header">
+                        <div class="stats-tab-dropdown-wrap">
+                          <button class="stats-tab-trigger">
+                            <span class="material-icons">done_all</span>
+                            <span class="stats-tab-trigger-label">All</span>
+                            <span class="material-icons stats-tab-arrow">expand_more</span>
+                          </button>
+                        </div>
+                        <div class="stats-range-toggle" role="tablist">
+                          <button class="stats-range-btn">Day</button>
+                          <button class="stats-range-btn active">Week</button>
+                        </div>
+                        <button class="nav-btn export-pdf-btn"><span class="material-icons">picture_as_pdf</span></button>
+                      </div>
+                      <div class="stats-summary-row">
+                        <div class="stats-summary-pill">
+                          <span class="material-icons">schedule</span>
+                          <strong id="dmTime">0h 0m</strong>
+                          <small>Total Time</small>
+                        </div>
+                        <div class="stats-summary-pill">
+                          <span class="material-icons">task_alt</span>
+                          <strong id="dmRate">0%</strong>
+                          <small>Completion Rate</small>
+                        </div>
+                        <div class="stats-summary-pill">
+                          <span class="material-icons" style="color: var(--missed);">event_busy</span>
+                          <strong id="dmMissed" style="color: var(--missed);">0</strong>
+                          <small>Missed</small>
+                        </div>
+                        <div class="stats-summary-pill">
+                          <span class="material-icons">functions</span>
+                          <strong id="dmTotal">0</strong>
+                          <small>Total Items</small>
+                        </div>
+                      </div>
+                      <div class="chart-grid">
+                        <div class="chart-card">
+                          <div class="chart-card-title"><span class="material-icons">task_alt</span>Weekly Completion Rate</div>
+                          <div class="chart-card-body">
+                            <canvas id="dmChartDonut"></canvas>
+                          </div>
+                        </div>
+                        <div class="chart-card">
+                          <div class="chart-card-title"><span class="material-icons">local_fire_department</span>Tasks consuming the most time</div>
+                          <div class="chart-card-body">
+                            <canvas id="dmChartTop"></canvas>
+                          </div>
+                        </div>
+                        <div class="chart-card">
+                          <div class="chart-card-title"><span class="material-icons">insights</span>Daily Performance</div>
+                          <div class="chart-card-body">
+                            <canvas id="dmChartDaily"></canvas>
+                          </div>
+                        </div>
+                        <div class="chart-card">
+                          <div class="chart-card-title"><span class="material-icons">show_chart</span>Time Trend During the Week</div>
+                          <div class="chart-card-body">
+                            <canvas id="dmChartTrend"></canvas>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="timer-col">
+                <!-- ===== لوحة المؤقتات: نفس بنية timers.js ===== -->
+                <div class="timer-panel" id="dmTimers">
+                  <div class="timer-panel-card">
+                    <div class="timer-panel-header">
+                      <div class="timer-panel-title"><span class="material-icons">timer</span><span>Today's Timers</span></div>
+                      <div class="timer-add-row">
+                        <input type="text" placeholder="Task name..." readonly />
+                        <div class="timer-add-wrap"><button class="timer-add-btn"><span class="material-icons">add</span></button></div>
+                      </div>
+                    </div>
+                    <div class="timer-list">
+                      <div class="timer-item">
+                        <div class="timer-item-top">
+                          <span class="timer-name">Podcast</span>
+                          <span class="timer-status-dot"></span>
+                        </div>
+                        <div class="timer-item-bottom">
+                          <span class="timer-clock digits">01:02:57</span>
+                          <div class="timer-controls">
+                            <button class="timer-btn timer-focus-btn"><span class="material-icons">center_focus_strong</span></button>
+                            <button class="timer-btn timer-toggle-btn"><span class="material-icons">play_arrow</span></button>
+                            <button class="timer-btn timer-delete-btn"><span class="material-icons">delete</span></button>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="timer-item">
+                        <div class="timer-item-top">
+                          <span class="timer-name">Reading</span>
+                          <span class="timer-status-dot"></span>
+                        </div>
+                        <div class="timer-item-bottom">
+                          <span class="timer-clock digits">00:30:28</span>
+                          <div class="timer-controls">
+                            <button class="timer-btn timer-focus-btn"><span class="material-icons">center_focus_strong</span></button>
+                            <button class="timer-btn timer-toggle-btn"><span class="material-icons">play_arrow</span></button>
+                            <button class="timer-btn timer-delete-btn"><span class="material-icons">delete</span></button>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="timer-item" id="dmTimerItem">
+                        <div class="timer-item-top">
+                          <span class="timer-name" id="dmTimerName"></span>
+                          <span class="timer-status-dot"></span>
+                        </div>
+                        <div class="timer-item-bottom">
+                          <span class="timer-clock digits" id="dmClock">00:00:00</span>
+                          <div class="timer-controls">
+                            <button class="timer-btn timer-focus-btn"><span class="material-icons">center_focus_strong</span></button>
+                            <button class="timer-btn timer-toggle-btn" id="dmPlayBtn"><span class="material-icons">play_arrow</span></button>
+                            <button class="timer-btn timer-delete-btn"><span class="material-icons">delete</span></button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                </div>
+              </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+            <div class="dm-bar-strip">
+              <div class="dm-captions" id="dmCaptions">
+                <button class="dm-cap is-on" type="button" data-goto="0"><span class="dm-cap-num digits">01</span><span class="dm-cap-t" data-lp="how.s1t">دوّن مهامك</span></button>
+                <button class="dm-cap" type="button" data-goto="1"><span class="dm-cap-num digits">02</span><span class="dm-cap-t" data-lp="how.s2t">خطّط يومك بالساعة</span></button>
+                <button class="dm-cap" type="button" data-goto="2"><span class="dm-cap-num digits">03</span><span class="dm-cap-t" data-lp="how.s3t">ركّز ونفّذ</span></button>
+                <button class="dm-cap" type="button" data-goto="3"><span class="dm-cap-num digits">04</span><span class="dm-cap-t" data-lp="how.s4t">تابع تقدّمك</span></button>
+              </div>
+              <div class="dm-controls">
+                <button class="dm-ctrl" id="dmPlay" type="button" data-lp-aria="demo.pause" aria-label="إيقاف مؤقت"><svg class="ic" aria-hidden="true"><use id="dmPlayIcon" href="#i-pause"/></svg></button>
+                <button class="dm-ctrl" id="dmReplay" type="button" data-lp-aria="demo.replay" aria-label="إعادة"><svg class="ic" aria-hidden="true"><use href="#i-replay"/></svg></button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -293,18 +606,33 @@
       ============================================================ -->
       <section class="section band-alt" id="stats">
         <div class="container">
-          <div class="sec-head reveal split-head">
-<h2 data-lp="stats.title">اعرف ماذا أنجزت وأين ذهب وقتك</h2>
-            <p class="sec-lead" data-lp="stats.lead">
-              كل مؤقّت ومهمة تتحوّل إلى أرقام: وقتك الفعلي، نسبة إنجازك، توزيع وقتك حسب النوع،
-              واتجاه أسبوعك — وإحصائية مستقلة لكل مهمة، وتقرير PDF جاهز للمشاركة.
-            </p>
+          <div class="sec-head reveal">
+            <h2 data-lp="stats.title">إنجازك ووقتك بالأرقام</h2>
+            <div class="tb-head-row">
+              <p class="sec-lead" data-lp="stats.lead">
+                وقتك الفعلي ونسب إنجازك في رسوم واضحة — مع صفحة مستقلة لكل مهمة وتقرير PDF.
+              </p>
+              <div class="tb-nav" role="group" data-lp-aria="stats.group" aria-label="التنقل بين صور الإحصائيات">
+                <button type="button" class="tb-arrow" id="stPrevBtn" data-lp-aria="stats.prev" aria-label="الصورة السابقة"><svg class="ic"><use href="#i-chev"/></svg></button>
+                <button type="button" class="tb-arrow" id="stNextBtn" data-lp-aria="stats.next" aria-label="الصورة التالية"><svg class="ic"><use href="#i-chev"/></svg></button>
+              </div>
+            </div>
           </div>
 
           <div class="reveal">
-            <figure class="stats-shot-img">
-              <img src="app/img/shots/stats.png" data-lp-alt="stats.alt" alt="لوحة الإحصائيات — نسب الإنجاز والوقت الفعلي والرسوم البيانية" width="2841" height="1545" loading="lazy" decoding="async" />
-            </figure>
+            <div class="mk-card tb-shot wide tb-real">
+              <div class="tb-pane on" data-pane="week">
+                <figure class="tb-shot-img">
+                  <img src="app/img/shots/stats.png" data-lp-alt="stats.alt" alt="لوحة الإحصائيات — نسب الإنجاز والوقت الفعلي والرسوم البيانية" width="2841" height="1545" loading="lazy" decoding="async" />
+                </figure>
+              </div>
+
+              <div class="tb-pane" data-pane="task">
+                <figure class="tb-shot-img">
+                  <img src="app/img/shots/task-stats.png" data-lp-alt="stats.alt_task" alt="إحصائيات مهمة — خريطة الالتزام والوقت اليومي" width="2841" height="1545" loading="lazy" decoding="async" />
+                </figure>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -312,7 +640,7 @@
       <!-- ============================================================
            تفاصيل صغيرة… تصنع فرقًا كبيرًا — تبويبات وصور
       ============================================================ -->
-      <section class="section" id="more">
+      <section class="section" id="features">
         <div class="container">
           <div class="sec-head reveal">
             <h2 data-lp="more.title">ميزات توفر لك الوقت والجهد</h2>
@@ -353,6 +681,16 @@
                   </div>
                 </article>
                 <article class="fs-card" data-slide="3">
+                  <div class="fsc-shot"><img data-src="app/img/features/recurrence.png" data-lp-alt="more.f6n" alt="التكرار الأسبوعي" loading="lazy" decoding="async" /></div>
+                  <div class="fsc-body">
+                    <span class="fsc-chip" aria-hidden="true"><svg class="ic"><use href="#i-repeat"/></svg></span>
+                    <div class="fsc-copy">
+                      <h3 class="fsc-name" data-lp="more.f6n">التكرار الأسبوعي</h3>
+                      <p class="fsc-desc" data-lp="more.f6d">حدد أيام إعادة المهمة مرة واحدة — وتنزل لوحدها كل أسبوع مع حساب الالتزام.</p>
+                    </div>
+                  </div>
+                </article>
+                <article class="fs-card" data-slide="4">
                   <div class="fsc-shot"><img data-src="app/img/features/notifications.png" data-lp-alt="more.f4n" alt="التنبيهات" loading="lazy" decoding="async" /></div>
                   <div class="fsc-body">
                     <span class="fsc-chip" aria-hidden="true"><svg class="ic"><use href="#i-bell"/></svg></span>
@@ -362,7 +700,7 @@
                     </div>
                   </div>
                 </article>
-                <article class="fs-card" data-slide="4">
+                <article class="fs-card" data-slide="5">
                   <div class="fsc-shot"><img data-src="app/img/features/task-details.png" data-lp-alt="more.f5n" alt="تفاصيل المهمة" loading="lazy" decoding="async" /></div>
                   <div class="fsc-body">
                     <span class="fsc-chip" aria-hidden="true"><svg class="ic"><use href="#i-list"/></svg></span>
@@ -403,6 +741,7 @@
                 <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.free_f3">التقويم وعرض اليوم</span></li>
                 <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.free_f4">٣ تذكيرات و٣ مؤقّتات محفوظة</span></li>
                 <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.free_f5">يعمل دون اتصال</span></li>
+                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.free_f6">تصنيفات (أقسام) لتنظيم مهامك — حتى ٥</span></li>
               </ul>
               <a href="app/" class="btn btn-ghost btn-lg price-btn" id="lpPriceBtn" data-lp="pricing.free_cta">ابدأ التجربة المجانية</a>
             </div>
@@ -419,21 +758,22 @@
                 <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.m_f5">تصدير التقويم (ICS) وتقارير PDF</span></li>
                 <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.m_f6">إحصائيات كاملة وتفاصيل المهام</span></li>
                 <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.m_f7">تذكيرات وملخصات فورية</span></li>
+                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.m_f8">روتينات جاهزة: احفظ يومك كاملًا وطبّقه على أي يوم آخر</span></li>
               </ul>
               <a href="checkout.html?plan=monthly" class="btn btn-primary btn-lg price-btn" data-lp="pricing.m_cta">اشتراك</a>
             </div>
 
             <div class="price-card featured spot">
-              <span class="price-badge" data-lp="pricing.y_badge">وفّر ١٧٪</span>
+              <span class="price-badge" data-lp="pricing.y_badge">الأكثر اختيارًا — خصم ١٧٪</span>
               <h3 data-lp="pricing.y_name">سنوي</h3>
               <div class="price-num"><span class="digits">$40</span><small data-lp="pricing.y_per">/ سنويًا</small></div>
-              <p class="price-for" data-lp="pricing.y_for">بدلًا من ٤٨$ سنويًا — لأصحاب اليوم المزدحم.</p>
+              <p class="price-for" data-lp="pricing.y_for">كل مميزات Pro، بسعر أقل من شهرين اشتراك.</p>
               <ul class="price-feats">
-                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f1">كل مميزات الخطة الشهرية بلا حدود</span></li>
-                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f2">٧ أيام تجربة مجانية بكل المميزات</span></li>
-                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f3">سعر الإطلاق مثبّت لك</span></li>
-                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f4">أولوية في المميزات الجديدة</span></li>
-                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f5">دعم مباشر أسرع</span></li>
+                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f1">كل مميزات Pro كاملة، بلا استثناء</span></li>
+                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f2">٧ أيام تجربة مجانية بكل المميزات قبل الدفع</span></li>
+                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f3">٣٫٣٣$ شهريًا بدلًا من ٤$ — الخدمة نفسها</span></li>
+                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f4">توفير ٨$ سنويًا — ما يعادل شهرين مجانًا</span></li>
+                <li><svg class="ic"><use href="#i-check"/></svg><span data-lp="pricing.y_f5">إلغاء في أي وقت بضغطة واحدة — ويبقى الاشتراك فعّالًا حتى آخر يوم مدفوع</span></li>
               </ul>
               <a href="checkout.html?plan=yearly" class="btn btn-primary btn-lg price-btn" data-lp="pricing.y_cta">اشتراك</a>
             </div>
@@ -471,6 +811,18 @@
               <summary><span data-lp="faq.q5">هل أستطيع استخدام التطبيق بالإنجليزية؟</span><svg class="ic faq-ic"><use href="#i-chev"/></svg></summary>
               <p data-lp="faq.a5">نعم — الواجهة عربية أصلًا من اليمين إلى اليسار، وتتحول إلى الإنجليزية بضغطة واحدة مع انعكاس كامل للاتجاه.</p>
             </details>
+            <details>
+              <summary><span data-lp="faq.q6">هل يلزم إنشاء حساب؟ وبالبريد الإلكتروني أم بحساب Google؟</span><svg class="ic faq-ic"><use href="#i-chev"/></svg></summary>
+              <p data-lp="faq.a6">إنشاء الحساب إلزامي؛ لأن بياناتك تُحفظ في حسابك لا على جهاز واحد، وهذا ما يتيح للتطبيق أن يعمل دون اتصال وأن يزامن بين أجهزتك. ويمكنك التسجيل بالبريد الإلكتروني أو بحساب Google في خطوة واحدة.</p>
+            </details>
+            <details>
+              <summary><span data-lp="faq.q7">هل تُحمى بياناتي؟</span><svg class="ic faq-ic"><use href="#i-chev"/></svg></summary>
+              <p data-lp="faq.a7">تُشفَّر بياناتك على جهازك قبل تخزينها، وعند حدوث تعارض تحسم المزامنة لصالح أحدث النسخ بدلًا من إتلاف عملك. وإذا رغبت في حذف حسابك نهائيًا، نطلب التحقق من هويتك أولًا — كما تفعل المصارف.</p>
+            </details>
+            <details>
+              <summary><span data-lp="faq.q8">هل يمكنني إلغاء الاشتراك في أي وقت؟</span><svg class="ic faq-ic"><use href="#i-chev"/></svg></summary>
+              <p data-lp="faq.a8">نعم، من داخل التطبيق خلال ضغطة واحدة، ودون الحاجة إلى التواصل مع أي جهة. ويبقى اشتراكك فعّالًا حتى آخر يوم من الفترة المدفوعة، ويمكنك التراجع عن الإلغاء فورًا.</p>
+            </details>
           </div>
         </div>
       </section>
@@ -490,6 +842,7 @@
     <footer class="footer"></footer>
 
     <script src="app/js/vendor/supabase.js" defer></script>
+    <script src="app/js/vendor/chart.umd.min.js" defer></script>
     <script type="module" src="landing.js"></script>
   </body>
 </html>
