@@ -20,8 +20,8 @@ export function getLandingLang() {
 
 export const STRINGS = {
   ar: {
-    'meta.title': 'نظم — ركّز على أهدافك، واترك التنظيم على نَظَّم',
-    'meta.desc': 'نظم يجمع يومك في نظام واحد: بنك مهام متكرر، جدول زمني بالسحب والإفلات، مؤقّت تركيز يسجّل وقتك الفعلي، وإحصائيات تُريك أين ذهب وقتك — عربي بالكامل ويعمل دون اتصال.',
+    'meta.title': 'نظم — تطبيق الإنتاجية وإدارة المهام',
+    'meta.desc': 'نظم تطبيق إنتاجية وإدارة مهام لتخطيط يومك، وتتبع وقتك، والحفاظ على تركيزك، وتنظيم مهامك المتكررة في مكان واحد.',
     'nav.features': 'المميزات',
     'nav.plan': 'التخطيط',
     'nav.focus': 'كيف يعمل',
@@ -35,7 +35,7 @@ export const STRINGS = {
     'nav.go_app': 'اذهب إلى نظم',
     'hero.t1': 'ركّز على أهدافك،',
     'hero.t2': 'واترك التنظيم على <em>نَظَّم</em><b class="dot">.</b>',
-    'hero.sub': 'مهامك وعاداتك ووقتك في نظامٍ واحد — يخطّط معك بالساعة، ويذكّرك في وقتها، ويُريك أين ذهب وقتك. عربي بالكامل، ويعمل حتى دون إنترنت.',
+    'hero.sub': 'خطّط لمهامك، ونظّم يومك، وتتبّع وقتك، وحافظ على تركيزك — كل ذلك في نظام إنتاجية واحد بسيط.',
     'hero.start': 'ابدأ مجانًا',
     'hero.discover': 'اكتشف المميزات',
     'hero.shot_aria': 'لقطة حقيقية من تطبيق نظم: القائمة والمهام والمؤقتات',
@@ -229,8 +229,8 @@ export const STRINGS = {
     'co.err_net': 'تعذّر بدء الدفع — تحقق من الاتصال وحاول مجددًا.',
   },
   en: {
-    'meta.title': 'Nazzam — Focus on your goals, leave organizing to Nazzam',
-    'meta.desc': 'Nazzam brings your day into one system: a recurring task bank, a drag-and-drop timeline, a focus timer that logs your real time, and stats that show where your time went — fully Arabic and offline-capable.',
+    'meta.title': 'Nazzam — Productivity & Task Management App',
+    'meta.desc': 'Nazzam is a productivity and task management app for planning your day, tracking time, staying focused, and organizing recurring tasks in one place.',
     'nav.features': 'Features',
     'nav.login': 'Sign in',
     'nav.start': 'Start free',
@@ -244,7 +244,7 @@ export const STRINGS = {
     'nav.go_app': 'Open Nazzam',
     'hero.t1': 'Focus on your goals,',
     'hero.t2': 'leave organizing to <em>Nazzam</em><b class="dot">.</b>',
-    'hero.sub': 'Your tasks, habits, and time in one system — it plans with you by the hour, reminds you on time, and shows where your time went. Fully Arabic, and works even offline.',
+    'hero.sub': 'Plan your tasks, schedule your day, track your time, and stay focused — all in one simple productivity system.',
     'hero.start': 'Start free',
     'hero.discover': 'Explore features',
     'hero.shot_aria': 'Real screenshot from Nazzam: task bank, tasks, and timers',
