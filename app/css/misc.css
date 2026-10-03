@@ -291,3 +291,151 @@
 .timer-panel-title {
   font-family: var(--font-heading);
 }
+
+/* ===== مساعد نظم: زر عائم + لوحة شات (قواعد محلية، بلا شبكة) ===== */
+.assistant-fab {
+  position: fixed;
+  inset-inline-end: 18px;
+  bottom: 18px;
+  z-index: 400;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: var(--pen);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+.assistant-fab:hover { filter: brightness(0.94); }
+.assistant-fab:active { transform: scale(0.94); }
+.assistant-fab .material-icons { font-size: 26px; }
+
+.assistant-overlay { z-index: 401; }
+.assistant-panel {
+  background: var(--card);
+  border: 1px solid var(--paper-line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  width: min(380px, calc(100vw - 32px));
+  max-height: min(560px, calc(100dvh - 120px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: fixed;
+  inset-inline-end: 18px;
+  bottom: 82px;
+  animation: popupIn 0.18s ease;
+}
+.assistant-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--paper-line);
+  background: var(--card);
+}
+.assistant-head .material-icons { color: var(--pen); font-size: 22px; }
+.assistant-head h2 { font-size: 1rem; margin: 0; flex: 1; }
+.assistant-messages {
+  flex: 1;
+  min-height: 120px;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--paper);
+}
+.assistant-empty { color: var(--ink-soft); font-size: 0.85rem; text-align: center; padding: 16px 8px; }
+.assistant-msg { display: flex; }
+.assistant-msg.user { justify-content: flex-end; }
+.assistant-msg.bot { justify-content: flex-start; }
+.assistant-bubble {
+  max-width: 88%;
+  padding: 9px 12px;
+  border-radius: 14px;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.assistant-msg.user .assistant-bubble { background: var(--pen); color: #fff; }
+.assistant-msg.bot .assistant-bubble { background: var(--card); border: 1px solid var(--paper-line); color: var(--ink); }
+/* مؤشر "بيكتب…": 3 نقط نابضة بالتتابع */
+.assistant-typing { display: inline-flex; gap: 5px; padding: 12px 14px; }
+.assistant-typing span {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--ink-soft);
+  animation: assistantBlink 1.1s ease-in-out infinite;
+}
+.assistant-typing span:nth-child(2) { animation-delay: 0.18s; }
+.assistant-typing span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes assistantBlink {
+  0%, 100% { opacity: 0.35; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .assistant-typing span { animation: none; opacity: 0.8; }
+}
+.assistant-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.assistant-action-btn {
+  border: 1.5px solid var(--pen);
+  background: transparent;
+  color: var(--pen);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.assistant-action-btn:hover { background: var(--pen-soft); }
+.assistant-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--paper-line);
+  background: var(--card);
+}
+.assistant-input-row input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--paper-line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  background: var(--paper);
+  color: var(--ink);
+  outline: none;
+}
+.assistant-input-row input:focus { border-color: var(--pen); }
+.assistant-send {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: none;
+  background: var(--pen);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.assistant-send:hover { filter: brightness(0.94); }
+.assistant-send .material-icons { font-size: 20px; }
+html[dir="rtl"] .assistant-send .material-icons { transform: scaleX(-1); }
+
+@media (max-width: 640px) {
+  .assistant-fab { bottom: calc(76px + env(safe-area-inset-bottom)); inset-inline-end: 14px; }
+  .assistant-panel {
+    inset-inline: 12px;
+    bottom: calc(140px + env(safe-area-inset-bottom));
+    width: auto;
+  }
+}

@@ -1060,6 +1060,29 @@
       </div>
     </div>
 
+    <!-- مساعد نظم: زر عائم + لوحة شات (قواعد محلية فقط، بلا شبكة) -->
+    <button class="assistant-fab" id="assistantFab" type="button" data-i18n-title="assistant.title" title="مساعد نظم" aria-label="مساعد نظم">
+      <span class="material-icons">smart_toy</span>
+    </button>
+    <div class="modal-overlay assistant-overlay" id="assistantOverlay">
+      <div class="assistant-panel" role="dialog" aria-modal="true" aria-labelledby="assistantTitle">
+        <div class="assistant-head">
+          <span class="material-icons">smart_toy</span>
+          <h2 id="assistantTitle" data-i18n="assistant.title">مساعد نظم</h2>
+          <button class="icon-btn" id="closeAssistantBtn" type="button" data-i18n-title="c.close" title="إغلاق">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+        <div class="assistant-messages" id="assistantMessages"></div>
+        <div class="assistant-input-row">
+          <input id="assistantInput" type="text" maxlength="200" autocomplete="off" placeholder="اسألني: لخص يومي، أضف مهمة غدًا…" />
+          <button class="assistant-send" id="assistantSendBtn" type="button" data-i18n-aria="assistant.send" aria-label="إرسال">
+            <span class="material-icons">send</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script src="js/vendor/supabase.js" defer></script>
     <script src="js/vendor/chart.umd.min.js" defer></script>
     <script

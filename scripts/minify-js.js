@@ -59,6 +59,7 @@ const ESM_FILES = [
   'app/js/config.js',
   'app/js/auth.js',
   'app/js/accountMenu.js',
+  'app/js/assistant.js',
   'app/js/billing.js',
   'landing.js',
   'landing-i18n.js',

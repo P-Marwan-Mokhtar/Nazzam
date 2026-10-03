@@ -150,6 +150,8 @@ export const ui = {
   emptyAnimated: false,  // true أول ما الأنيميشن يتشغل على أي empty state — بيتصفّر لما المحتوى يتغير
   smartListsOpen: false,  // لما تبقى true، #content بيعرض القوائم الذكية بدل مهام اليوم
   smartListKey: 'today',  // القائمة الذكية المعروضة: 'today' | 'overdue' | 'week' | 'no-time' | 'high'
+  assistantOpen: false,  // هل لوحة مساعد نظم (الشات) مفتوحة دلوقتي
+  assistantMessages: [],  // سجل محادثة المساعد {role, text, actions} — حالة واجهة فقط، لا تُحفظ ولا تُزامَن
   templateAddOpen: false,  // هل حقل إضافة قالب جديد (جوه بنك المهام) مفتوح دلوقتي
   templatesSearchQuery: '',  // نص البحث الحالي في مودال القوالب الجاهزة
   templatesTab: 'task',  // تبويب مودال القوالب: 'task' (قوالب المهام) | 'day' (قوالب الأيام) — واحد ظاهر فقط

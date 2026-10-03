@@ -1,7 +1,7 @@
 // ============================================================
 // smartLists.js — القوائم الذكية (ميزة Pro): عرض واحد بيلفّ
-// شوية قوائم جاهزة بتقرأ عبر الأيام: متأخرة / اليوم / هذا الأسبوع
-// / بلا وقت / عالية الأهمية.
+// شوية قوائم جاهزة بتقرأ عبر الأيام: متأخرة / اليوم / بكرا
+// / هذا الأسبوع / الأسبوع القادم / عالية الأهمية.
 // ============================================================
 
 import { addDays, escapeAttr, escapeHtml, emptyStateHtml, fmtDay, getWeekStart, todayStr, uid } from './utils.js';
@@ -38,14 +38,16 @@ export function closeSmartLists(){
 
 export function renderSmartLists(){
   const today = todayStr();
-  const listKey = ui.smartListKey || 'today';
+  const validKeys = ['overdue', 'today', 'tomorrow', 'week', 'next-week', 'high'];
+  const listKey = validKeys.includes(ui.smartListKey) ? ui.smartListKey : 'today';
   const rowsHtml = buildRows(listKey, today);
 
   const tabs = [
     { key: 'overdue', icon: 'hourglass_empty', label: t('smart.overdue') },
     { key: 'today', icon: 'today', label: t('smart.today') },
+    { key: 'tomorrow', icon: 'event', label: t('smart.tomorrow') },
     { key: 'week', icon: 'date_range', label: t('smart.week') },
-    { key: 'no-time', icon: 'access_time', label: t('smart.no_time') },
+    { key: 'next-week', icon: 'calendar_month', label: t('smart.next_week') },
     { key: 'high', icon: 'flag', label: t('smart.high') },
   ].map(sl => {
     const count = countFor(sl.key, today);
@@ -100,11 +102,14 @@ function collectTasks(key, today, limited = true){
       .sort()
       .reverse()
       .forEach(pushDay);
+  } else if(key === 'tomorrow'){
+    pushDay(addDays(today, 1));
   } else if(key === 'week'){
     const start = getWeekStart(today);
     for(let i = 0; i < 7; i++) pushDay(addDays(start, i));
-  } else if(key === 'no-time'){
-    Object.keys(state.days).forEach(pushDay);
+  } else if(key === 'next-week'){
+    const start = addDays(getWeekStart(today), 7);
+    for(let i = 0; i < 7; i++) pushDay(addDays(start, i));
   } else if(key === 'high'){
     Object.keys(state.days).forEach(pushDay);
   }
@@ -112,8 +117,9 @@ function collectTasks(key, today, limited = true){
   return out.filter(({ task, date }) => {
     if(key === 'today') return true;
     if(key === 'overdue') return !task.done;
+    if(key === 'tomorrow') return !task.done;
     if(key === 'week') return !task.done;
-    if(key === 'no-time') return !task.done && !task.startTime;
+    if(key === 'next-week') return !task.done;
     if(key === 'high') return !task.done && task.priority === 'high';
     return true;
   }).sort((a, b) => a.date.localeCompare(b.date))
@@ -158,7 +164,7 @@ function buildRows(key, today){
 
 // توغل في أحداث القوائم الذكية — بيتنادي من contentActions في events.js
 export function smartTab(key){
-  ui.smartListKey = key;
+  ui.smartListKey = ['overdue', 'today', 'tomorrow', 'week', 'next-week', 'high'].includes(key) ? key : 'today';
   render();
 }
 

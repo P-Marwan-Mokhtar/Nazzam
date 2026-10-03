@@ -43,6 +43,7 @@
 | `config.js` | ثوابت فقط: `SUPABASE_URL` + `supabaseClient` (null-safe لو المكتبة متحملتش)، مفاتيح VAPID/Turnstile، روابط الـ Edge Functions |
 | `auth.js` | الدخول إجباري (`ensureAuth` / `openAuthGate`)، الجلسة المجهولة والربط بإيميل، تغيير الباسورد، مسح الحساب، `clearDeviceCaches()` |
 | `accountMenu.js` | لوحة الحساب المنسدلة (`toggleAccountPanel`): الحساب + المظهر + اللغة + تصدير JSON/ICS + مسح الكاش — تُفتح من 3 أزرار (هيدر/جانبي/سفلي) |
+| `assistant.js` | مساعد نظم (شات قواعد محلية بلا AI): زر عائم + `toggleAssistant` + تنفيذ الأوامر عبر الدوال الأصلية فقط (الفهم في `parseAssistantCommand` بـ `utils.js`) |
 | `routing.js` | مزامنة الشاشة مع الرابط: `#stats` / `#week` / `#timeblock` / `#smartlists` + استهلاك `#checkout=` و `?billing=paymob` (مرة واحدة) |
 | `i18n.js` | عربي/إنجليزي: `t(key, params)` + `initLang/setLang/getLang` + `applyStaticTranslations()` لعناصر `data-i18n` — اللغة محفوظة في `nazam-lang` وبتقلب `dir` تلقائيًا |
 | `plans.js` | مصدر حقيقة الخطط: `free` / `trial` (7 أيام تلقائيًا، مرة واحدة للأبد) / `pro` — `PLAN_LIMITS` + `PRO_FEATURES` + `settlePlan()` |
@@ -53,7 +54,7 @@
 | `timeBlocking.js` | الجدول الزمني (time block view) — البلوكات، السحب والإفلات، side panel، إضافة مهمة من الجدول |
 | `weekView.js` | عرض الأسبوع البسيط (`toggleWeekView`) |
 | `stats.js` | شاشة الإحصائيات العامة + شاشة إحصائيات مهمة واحدة (`renderTaskStatsView`) + `computeTaskStreak` |
-| `smartLists.js` | القوائم الذكية (Pro): متأخرة / اليوم / الأسبوع / بلا وقت / عالية — حد 50 عنصر، وتستخدم `handleContentAction` نفسه |
+| `smartLists.js` | القوائم الذكية (Pro): متأخرة / اليوم / بكرا / هذا الأسبوع / الأسبوع القادم / عالية — حد 50 عنصر، وتستخدم `handleContentAction` نفسه |
 | `templates.js` | القوالب الجاهزة (Pro): قوالب مهام + قوالب يوم (روتين) — بحث + تبويبا `task/day` + تأكيد استبدال المكرر |
 | `taskDetails.js` | مودال تفاصيل المهمة — أولوية، نوع، وقت، ملاحظة، مهام فرعية |
 | `popovers.js` | البوب أبات العائمة (`showDurationPopover` / فلتر الكلمة / `wireCustomSelects` / `wireDragAndDrop`) |

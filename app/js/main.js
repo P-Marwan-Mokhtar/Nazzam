@@ -30,6 +30,7 @@ import { wireOnboarding, checkOnboarding, closeOnboarding } from './onboarding.j
 import { positionTaskMoreFixed, useFixedDropdown } from './events.js';
 import { openSmartLists } from './smartLists.js';
 import { closeAccountPanel, isAccountPanelOpen, toggleAccountPanel } from './accountMenu.js';
+import { closeAssistant, toggleAssistant, wireAssistantInput } from './assistant.js';
 import { addDays, todayStr } from './utils.js';
 import { waitForServerPlan } from './billing.js';
 
@@ -208,6 +209,9 @@ async function startApp(){
     if(ui.openFilterMoreId && !e.target.closest('.filter-more-dropdown') && !e.target.closest('.filter-chip-more')){
       ui.openFilterMoreId = null;
       render();
+    }
+    if(ui.assistantOpen && !e.target.closest('#assistantOverlay .assistant-panel') && !e.target.closest('#assistantFab') && !e.target.closest('[data-assist-action]')){
+      closeAssistant();
     }
     if(ui.bankFilterInputOpen && !e.target.closest('.bank-filters-panel-wrap')){
       ui.bankFilterInputOpen = false;
@@ -523,6 +527,17 @@ async function startApp(){
     if(e.target === upgradeOverlay) closeUpgrade();
   });
 
+  // مساعد نظم (شات القواعد المحلي): زر عائم + إغلاق + إدخال
+  const assistantFab = document.getElementById('assistantFab');
+  if(assistantFab) assistantFab.onclick = (e) => { e.stopPropagation(); toggleAssistant(); };
+  const closeAssistantBtn = document.getElementById('closeAssistantBtn');
+  if(closeAssistantBtn) closeAssistantBtn.onclick = closeAssistant;
+  const assistantOverlay = document.getElementById('assistantOverlay');
+  if(assistantOverlay) assistantOverlay.addEventListener('click', (e) => {
+    if(e.target === assistantOverlay) closeAssistant();
+  });
+  wireAssistantInput();
+
   // Modal الترحيبي الاحترافي (onboarding.js): يظهر لأول زيارة فقط
   wireOnboarding();
   checkOnboarding();
@@ -620,6 +635,7 @@ async function startApp(){
       if(document.getElementById('templatesOverlay').classList.contains('open')) closeTemplatesModal();
       if(document.getElementById('templatesReplaceOverlay').classList.contains('open')) closeReplaceDialog();
       if(document.getElementById('notificationSettingsOverlay').classList.contains('open')) closeNotificationSettingsModal();
+      if(ui.assistantOpen) closeAssistant();
       if(document.getElementById('timelineTaskOverlay').classList.contains('open')) closeTimelineTaskPopup();
       const rm = document.getElementById('tbRangeMenu');
       if(rm && rm.classList.contains('open')) rm.classList.remove('open');

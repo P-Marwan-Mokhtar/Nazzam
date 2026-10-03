@@ -13,7 +13,7 @@ export function renderGlobalSearchResults(){
   const q = normalizeArabic(ui.globalSearchQuery.trim());
 
   if(!q){
-    listEl.innerHTML = emptyStateHtml('manage_search', t('search.title'), t('search.hint'));
+    listEl.innerHTML = emptyStateHtml('search', t('search.title'), t('search.hint'));
     return;
   }
 
