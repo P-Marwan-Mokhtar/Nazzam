@@ -42,11 +42,7 @@ export function renderHeader(p) {
         <a href="${p}#extras" data-lp="nav.extras">أدوات ذكية</a>
         <a href="${p}#features" data-lp="nav.features">الجولة</a>
         <a href="${p}#pricing" data-lp="nav.pricing">الأسعار</a>
-      </div>
-      <div class="nav-mobile-group">
-        <button type="button" class="nav-lang-btn lp-lang-btn nav-lang-mobile" aria-label="تغيير اللغة"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a13.5 13.5 0 010 18M12 3a13.5 13.5 0 000 18"/></svg></button>
-      </div>
-    </div>`;
+      </div>`;
 }
 
 export function renderFooter(p) {
