@@ -431,6 +431,46 @@
 .assistant-send .material-icons { font-size: 20px; }
 html[dir="rtl"] .assistant-send .material-icons { transform: scaleX(-1); }
 
+/* ===== الإدخال الصوتي: زر الميك + نبض التسجيل ===== */
+/* نفس ستايل زرار الإضافة (+): شفاف بأيقونة بلون الثيم، بلا خلفية */
+.add-btn.add-voice-btn {
+  background: transparent;
+  border: none;
+  color: var(--pen);
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+}
+.add-btn.add-voice-btn:hover {
+  background: var(--pen-soft);
+  filter: none;
+}
+.add-voice-btn.listening { background: var(--missed-soft); color: var(--missed); animation: voicePulse 1.2s ease-in-out infinite; }
+.add-voice-btn .voice-svg { width: 22px; height: 22px; }
+.assistant-mic {
+  flex: 0 0 42px;
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--pen);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+.assistant-mic:hover { background: var(--pen-soft); }
+.assistant-mic .voice-svg { width: 22px; height: 22px; }
+.assistant-mic.listening { background: var(--missed-soft); color: var(--missed); animation: voicePulse 1.2s ease-in-out infinite; }
+@keyframes voicePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(197, 56, 46, 0.35); }
+  50% { box-shadow: 0 0 0 7px rgba(197, 56, 46, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .add-voice-btn.listening, .assistant-mic.listening { animation: none; }
+}
+
 @media (max-width: 640px) {
   .assistant-fab { bottom: calc(76px + env(safe-area-inset-bottom)); inset-inline-end: 14px; }
   .assistant-panel {

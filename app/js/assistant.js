@@ -21,6 +21,7 @@ import { toggleWeekView } from './weekView.js';
 import { toggleTimeBlockView } from './timeBlocking.js';
 import { openSmartLists } from './smartLists.js';
 import { enforceTaskNameLimit, gateFree } from './upgrade.js';
+import { isVoiceSupported, stopVoice, toggleVoice } from './voice.js';
 
 // أسماء الوجهات من مفاتيح i18n الموجودة أصلًا (بلا مفاتيح جديدة)
 const TARGET_PLACE_KEY = {
@@ -269,7 +270,8 @@ async function executeDelete(cmd){
 }
 
 // إنجاز مهمة/مهام أو الكل — تعليم مباشر على نفس الكائنات + حفظ، والبحث
-// في اليوم المعروض ثم النهاردة، متسامح (بلا "ال" أيضًا)
+// في اليوم المعروض ثم النهاردة، متسامح (بلا "ال" أيضًا).
+// undo=true يعكسها (إلغاء الإنجاز) بنفس البحث.
 async function executeComplete(cmd){
   const variantsOf = (n) => [n, n.replace(/^ال/, '')].filter((v, i, a) => v && a.indexOf(v) === i);
   const sameName = (a, b) => a === b || normalizeArabic(a) === normalizeArabic(b);
@@ -277,14 +279,18 @@ async function executeComplete(cmd){
     const date = ui.selectedDate;
     const list = state.days[date] || [];
     let count = 0;
-    list.forEach(x => { if(!x._dupOf && !x.done){ x.done = true; count++; } });
+    list.forEach(x => {
+      if(x._dupOf || (!cmd.undo && x.done) || (cmd.undo && !x.done)) return;
+      x.done = !cmd.undo;
+      count++;
+    });
     if(!count){
-      pushMessage('bot', t('assistant.completed_none', { date: fmtDay(date) }));
+      pushMessage('bot', t(cmd.undo ? 'assistant.uncompleted_none' : 'assistant.completed_none', { date: fmtDay(date) }));
       return;
     }
     render();
     await saveData();
-    pushMessage('bot', t('assistant.completed_all', { count, date: fmtDay(date) }));
+    pushMessage('bot', t(cmd.undo ? 'assistant.uncompleted_all' : 'assistant.completed_all', { count, date: fmtDay(date) }));
     return;
   }
   if(!cmd.names || !cmd.names.length){
@@ -297,18 +303,18 @@ async function executeComplete(cmd){
   for(const name of cmd.names){
     const hit = findIn(name, ui.selectedDate) || findIn(name, todayStr());
     if(!hit){ missing.push(name); continue; }
-    hit.done = true;
+    hit.done = !cmd.undo;
     done.push(hit.name);
   }
   if(done.length){ render(); await saveData(); }
   if(!done.length){
     pushMessage('bot', t('assistant.deleted_none', { names: missing.join('، ') }));
   } else if(missing.length){
-    pushMessage('bot', t('assistant.completed_partial', {
+    pushMessage('bot', t(cmd.undo ? 'assistant.uncompleted_partial' : 'assistant.completed_partial', {
       names: done.join('، '), missing: missing.join('، '),
     }));
   } else {
-    pushMessage('bot', t('assistant.completed', { names: done.join('، ') }));
+    pushMessage('bot', t(cmd.undo ? 'assistant.uncompleted' : 'assistant.completed', { names: done.join('، ') }));
   }
 }
 
@@ -337,8 +343,11 @@ async function executeUpdate(cmd){
   }
 }
 
-export async function sendAssistantMessage(){
+export async function sendAssistantMessage(prefill){
   const input = document.getElementById('assistantInput');
+  if(typeof prefill === 'string') {
+    if(input) input.value = prefill;
+  }
   const raw = input ? input.value.trim() : '';
   if(!raw) return;
   pushMessage('user', raw);
@@ -361,13 +370,15 @@ export async function sendAssistantMessage(){
     await executeComplete({ all: true, names: [] });
   } else if(cmd.intent === 'complete'){
     await executeComplete({ all: false, names: cmd.names || [] });
+  } else if(cmd.intent === 'uncomplete'){
+    await executeComplete({ all: false, names: cmd.names || [], undo: true });
   } else if(cmd.intent === 'update'){
     await executeUpdate(cmd);
   } else if(cmd.intent === 'goto'){
     const ok = goTarget(cmd.target);
     if(ok !== false) pushMessage('bot', t('assistant.goto_done', { place: t(TARGET_PLACE_KEY[cmd.target] || 'nav.tasks_today') }));
   } else if(cmd.intent === 'where'){
-    if(cmd.target === 'recurrence' || cmd.target === 'reminder' || cmd.target === 'subtasks' || cmd.target === 'theme' || cmd.target === 'timers' || cmd.target === 'taskstats' || cmd.target === 'tasktype'){
+    if(cmd.target === 'recurrence' || cmd.target === 'reminder' || cmd.target === 'subtasks' || cmd.target === 'theme' || cmd.target === 'timers' || cmd.target === 'taskstats' || cmd.target === 'tasktype' || cmd.target === 'darkmode' || cmd.target === 'language' || cmd.target === 'backup' || cmd.target === 'account'){
       pushMessage('bot', t('assistant.where_' + cmd.target));
     } else {
       pushMessage('bot', t('assistant.where_' + cmd.target), [
@@ -457,6 +468,7 @@ export function openAssistant(){
 }
 
 export function closeAssistant(){
+  stopVoice();
   ui.assistantOpen = false;
   const overlay = document.getElementById('assistantOverlay');
   if(overlay) overlay.classList.remove('open');
@@ -479,5 +491,13 @@ export function wireAssistantInput(){
   if(sendBtn && !sendBtn.dataset.wired){
     sendBtn.dataset.wired = '1';
     sendBtn.onclick = () => sendAssistantMessage();
+  }
+  const micBtn = document.getElementById('assistantMicBtn');
+  if(micBtn){
+    micBtn.style.display = isVoiceSupported() ? '' : 'none';
+    if(!micBtn.dataset.wired){
+      micBtn.dataset.wired = '1';
+      micBtn.onclick = () => toggleVoice('assistant', (text) => sendAssistantMessage(text));
+    }
   }
 }

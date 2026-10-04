@@ -328,6 +328,7 @@ test('parseAssistantCommand إنجاز الكل أو مهمة', () => {
   assert.deepEqual(parseAssistantCommand('خلص كل المهام', 'ar'), { intent: 'complete_all' });
   assert.deepEqual(parseAssistantCommand('انهي كلهم', 'ar'), { intent: 'complete_all' });
   assert.deepEqual(parseAssistantCommand('complete all tasks', 'en'), { intent: 'complete_all' });
+  assert.deepEqual(parseAssistantCommand('أنجز كل المهام', 'ar'), { intent: 'complete_all' });
 
   const c1 = parseAssistantCommand('خلص المذاكرة', 'ar');
   assert.equal(c1.intent, 'complete');
@@ -341,6 +342,24 @@ test('parseAssistantCommand إنجاز الكل أو مهمة', () => {
   const c3 = parseAssistantCommand('خلص أكل الكلب', 'ar');
   assert.equal(c3.intent, 'complete');
   assert.deepEqual(c3.names, ['اكل الكلب']);
+
+  const c4 = parseAssistantCommand('أنجز المذاكرة', 'ar');
+  assert.equal(c4.intent, 'complete');
+  assert.deepEqual(c4.names, ['المذاكره']);
+});
+
+test('parseAssistantCommand إلغاء الإنجاز', () => {
+  const u1 = parseAssistantCommand('شيل الصح من المذاكرة', 'ar');
+  assert.equal(u1.intent, 'uncomplete');
+  assert.deepEqual(u1.names, ['المذاكره']);
+
+  const u2 = parseAssistantCommand('رجع المذاكرة غير منجزة', 'ar');
+  assert.equal(u2.intent, 'uncomplete');
+  assert.deepEqual(u2.names, ['المذاكره']);
+
+  const u3 = parseAssistantCommand('uncheck gym', 'en');
+  assert.equal(u3.intent, 'uncomplete');
+  assert.deepEqual(u3.names, ['gym']);
 });
 
 test('parseAssistantCommand وجهة الإضافة (يوم/بنك/الاتنين)', () => {

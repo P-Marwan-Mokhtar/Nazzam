@@ -890,7 +890,7 @@ ar: {
   'assistant.ex_brief': 'لخص يومي',
   'assistant.ex_add': 'أضف مذاكرة غدًا',
   'assistant.ex_where': 'أين التقويم',
-  'assistant.help': 'يمكنني: 1) تلخيص اليوم — اكتب: لخص يومي 2) إضافة مهمة أو عدة مهام — مثال: أضف مذاكرة غدًا الساعة 6، أو: سأعمل 5 ساعات وسأقرأ كتابًا أضفها إلى المهام 3) الانتقال إلى أي صفحة — مثال: افتح الإحصائيات 4) السؤال عن مكان ميزة — مثال: أين التقويم 5) ضبط هدف مهمة — مثال: خلي هدف المذاكرة 3 ساعات 6) مسح مهمة — مثال: امسح المذاكرة',
+  'assistant.help': 'يمكنني: 1) تلخيص اليوم — اكتب: لخص يومي 2) إضافة مهمة أو عدة مهام — مثال: أضف مذاكرة غدًا الساعة 6، أو: سأعمل 5 ساعات وسأقرأ كتابًا أضفها إلى المهام 3) الانتقال إلى أي صفحة — مثال: افتح الإحصائيات 4) السؤال عن مكان ميزة — مثال: أين التقويم 5) ضبط هدف مهمة — مثال: خلي هدف المذاكرة 3 ساعات 6) مسح مهمة — مثال: امسح المذاكرة 7) إنجاز أو إلغاء إنجاز — مثال: أنجز المذاكرة، أو: شيل الصح منها',
   'assistant.unknown': 'لم أفهم — جرّب: لخص يومي، أو: أضف مهمة غدًا، أو: أين التقويم',
   'assistant.brief': '{date}: لديك {total} مهام، أنجزت {done} — والوقت الفعلي {actual}.',
   'assistant.brief_missed': 'فاتك أمس ({date}) {count} مهام: {names}.',
@@ -913,6 +913,10 @@ ar: {
   'assistant.completed_none': 'لا مهام متبقية في {date} — كله منجز.',
   'assistant.completed': 'تم إنجاز: {names}.',
   'assistant.completed_partial': 'تم إنجاز: {names} (لم أجد: {missing}).',
+  'assistant.uncompleted': 'تم إلغاء إنجاز: {names}.',
+  'assistant.uncompleted_partial': 'تم إلغاء إنجاز: {names} (لم أجد: {missing}).',
+  'assistant.uncompleted_all': 'تم إلغاء إنجاز كل مهام {date} ({count}).',
+  'assistant.uncompleted_none': 'لا مهام منجزة في {date} لإلغاء إنجازها.',
   'assistant.deleted_partial': 'تم مسح {names} (لم أجد: {missing}).',
   'assistant.deleted_none': 'لم أجد {names} في اليوم المعروض ولا النهاردة.',
   'assistant.goal_notfound': 'لم أجد مهمة باسم "{name}" في اليوم المعروض ولا النهاردة.',
@@ -934,7 +938,16 @@ ar: {
   'assistant.where_theme': 'المظهر من لوحة الحساب (أيقونة الشخص) ← المظهر: فاتح/داكن وألوان مميزة.',
   'assistant.where_timers': 'المؤقتات في اللوحة الجانبية لمهام اليوم — الزر + يضيف مؤقتًا جديدًا.',
   'assistant.where_taskstats': 'إحصائيات أي مهمة من قائمتها (⋮) في البنك أو اليوم ← الإحصائيات: خريطة الالتزام والوقت اليومي.',
-  'assistant.where_tasktype': 'نوع المهمة من قائمتها (⋮) ← دوس على النوع الحالي واختر: مهمة أو عادة أو هواية.',
+  'assistant.where_tasktype': 'نوع المهمة من قائمتها (⋮) ← اضغط على النوع الحالي واختر: مهمة أو عادة أو هواية.',
+  'assistant.where_darkmode': 'الوضع الداكن من لوحة الحساب (أيقونة الشخص) ← المظهر ← داكن أو فاتح.',
+  'assistant.where_language': 'اللغة من لوحة الحساب (أيقونة الشخص) ← اللغة ← العربية أو English.',
+  'assistant.where_backup': 'نسخة البيانات من لوحة الحساب (أيقونة الشخص) ← البيانات: زر التنزيل للتصدير (JSON) وزر الرفع للاستيراد.',
+  'assistant.where_account': 'لوحة الحساب من أيقونة الشخص (في الهيدر أو الشريط الجانبي أو السفلي): الحساب والمظهر واللغة والبيانات.',
+
+  // الإدخال الصوتي (Web Speech — مجاني ومدمج في المتصفح)
+  'voice.listen': 'إدخال صوتي',
+  'voice.error': 'تعذر التعرف على الصوت — جرّب مجددًا.',
+  'voice.unsupported': 'الإدخال الصوتي غير مدعوم على هذا المتصفح.',
 
   // Misc
   'misc.cancel': 'إلغاء',
@@ -1732,7 +1745,7 @@ en: {
   'assistant.ex_brief': 'brief my day',
   'assistant.ex_add': 'add gym tomorrow',
   'assistant.ex_where': 'where is the calendar',
-  'assistant.help': 'I can: 1) Brief your day — type: brief my day 2) Add one or several tasks — e.g.: add gym tomorrow at 7am, or: gym 1 hour and reading 30 minutes, add them 3) Open any screen — e.g.: open stats 4) Locate a feature — e.g.: where is the calendar 5) Set a task goal — e.g.: set gym goal to 2 hours 6) Delete a task — e.g.: delete gym',
+  'assistant.help': 'I can: 1) Brief your day — type: brief my day 2) Add one or several tasks — e.g.: add gym tomorrow at 7am, or: gym 1 hour and reading 30 minutes, add them 3) Open any screen — e.g.: open stats 4) Locate a feature — e.g.: where is the calendar 5) Set a task goal — e.g.: set gym goal to 2 hours 6) Delete a task — e.g.: delete gym 7) Complete or uncheck — e.g.: complete gym, or: uncheck gym',
   'assistant.unknown': "Didn't get that — try: brief my day, or: add a task tomorrow, or: where is the calendar",
   'assistant.brief': '{date}: {total} tasks, {done} done — real time {actual}.',
   'assistant.brief_missed': 'Yesterday ({date}) you missed {count} tasks: {names}.',
@@ -1754,6 +1767,10 @@ en: {
   'assistant.completed_none': 'Nothing left in {date} — all done.',
   'assistant.completed': 'Completed: {names}.',
   'assistant.completed_partial': 'Completed: {names} (not found: {missing}).',
+  'assistant.uncompleted': 'Unchecked: {names}.',
+  'assistant.uncompleted_partial': 'Unchecked: {names} (not found: {missing}).',
+  'assistant.uncompleted_all': 'Unchecked all tasks in {date} ({count}).',
+  'assistant.uncompleted_none': 'No done tasks in {date} to uncheck.',
   'assistant.deleted_partial': 'Deleted {names} (not found: {missing}).',
   'assistant.deleted_none': 'No task named {names} in the shown day or today.',
   'assistant.goal_notfound': 'No task named "{name}" in the shown day or today.',
@@ -1777,6 +1794,15 @@ en: {
   'assistant.where_timers': 'Timers live in the side panel of Today — the + button adds a new timer.',
   'assistant.where_taskstats': 'Per-task stats from its menu (⋮) in the bank or Today → Statistics: consistency map and daily time.',
   'assistant.where_tasktype': 'Task type from its menu (⋮) → tap the current type and pick: task, habit, or hobby.',
+  'assistant.where_darkmode': 'Dark mode from the account panel (person icon) → Appearance → dark or light.',
+  'assistant.where_language': 'Language from the account panel (person icon) → Language → العربية or English.',
+  'assistant.where_backup': 'Data backup from the account panel (person icon) → Data: download exports JSON, upload imports it.',
+  'assistant.where_account': 'Account panel from the person icon (header, side bar, or bottom bar): account, appearance, language, and data.',
+
+  // Voice input (Web Speech — free and built into the browser)
+  'voice.listen': 'Voice input',
+  'voice.error': 'Could not recognize speech — try again.',
+  'voice.unsupported': 'Voice input is not supported in this browser.',
 
   // Misc
   'misc.cancel': 'Cancel',

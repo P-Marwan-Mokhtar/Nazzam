@@ -28,6 +28,7 @@ const ESM_FILES = [
   'app/js/main.js',
   'app/js/state.js',
   'app/js/utils.js',
+  'app/js/voice.js',
   'app/js/render.js',
   'app/js/routing.js',
   'app/js/dataStore.js',

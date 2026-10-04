@@ -44,6 +44,7 @@
 | `auth.js` | الدخول إجباري (`ensureAuth` / `openAuthGate`)، الجلسة المجهولة والربط بإيميل، تغيير الباسورد، مسح الحساب، `clearDeviceCaches()` |
 | `accountMenu.js` | لوحة الحساب المنسدلة (`toggleAccountPanel`): الحساب + المظهر + اللغة + تصدير JSON/ICS + مسح الكاش — تُفتح من 3 أزرار (هيدر/جانبي/سفلي) |
 | `assistant.js` | مساعد نظم (شات قواعد محلية بلا AI): زر عائم + `toggleAssistant` + تنفيذ الأوامر عبر الدوال الأصلية فقط (الفهم في `parseAssistantCommand` بـ `utils.js`) |
+| `voice.js` | الإدخال الصوتي (Web Speech المجاني): `toggleVoice` لصف البنك (يملأ الحقل) والمساعد (يملأ ويبعت)، والحالة في `ui.voiceListening` |
 | `routing.js` | مزامنة الشاشة مع الرابط: `#stats` / `#week` / `#timeblock` / `#smartlists` + استهلاك `#checkout=` و `?billing=paymob` (مرة واحدة) |
 | `i18n.js` | عربي/إنجليزي: `t(key, params)` + `initLang/setLang/getLang` + `applyStaticTranslations()` لعناصر `data-i18n` — اللغة محفوظة في `nazam-lang` وبتقلب `dir` تلقائيًا |
 | `plans.js` | مصدر حقيقة الخطط: `free` / `trial` (7 أيام تلقائيًا، مرة واحدة للأبد) / `pro` — `PLAN_LIMITS` + `PRO_FEATURES` + `settlePlan()` |

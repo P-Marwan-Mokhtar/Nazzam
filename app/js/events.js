@@ -19,6 +19,7 @@ import { startOpenTimer } from './timers.js';
 import { closeSmartLists, smartTab, smartToggleDone, smartToDay } from './smartLists.js';
 import { openTemplateReplaceConfirm, saveDayRoutine } from './templates.js';
 import { pushDayTrash } from './drafts.js';
+import { toggleVoice } from './voice.js';
 import { gateFree, enforceLimit, enforceTaskNameLimit } from './upgrade.js';
 
 // قايمة المزيد بتاع مهمة اليوم: بتفتح لتحت لو فيه مساحة كفاية تحت الزرار،
@@ -230,6 +231,9 @@ export function renameTaskEverywhere(oldName, newName){
 // لإضافة زر جديد: ضيف data-action في الـ HTML + مفتاح بنفس الاسم هنا.
 // ============================================================
 const contentActions = {
+  'voice-bank': async () => {
+    toggleVoice('bank', null);
+  },
   'toggle-bank': async () => {
     if(ui.bankOpen){
       ui.bankOpen = false;

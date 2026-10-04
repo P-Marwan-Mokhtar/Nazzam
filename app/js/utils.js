@@ -229,8 +229,10 @@ const ASSISTANT_TODAY_WORDS = ['لليوم', 'في اليوم', 'to today', 'to 
 
 // أفعال الإنجاز ("خلص كل المهام" / "خلص المذاكرة") — الترتيب: الأطول أولًا.
 // تُفحص بعد المسح (بلا تعارض لفظي) وقبل الإضافة.
-const ASSISTANT_DONE_VERBS = ['خلصهم', 'خلصي', 'خلص', 'انهي', 'كمل', 'finished', 'complete', 'finish'];
+const ASSISTANT_DONE_VERBS = ['خلصهم', 'خلصي', 'خلص', 'انهي', 'كمل', 'انجز', 'finished', 'complete', 'finish'];
 const ASSISTANT_ALL_WORDS = ['كلهم', 'كل', 'جميعا', 'جميع', 'all', 'everything'];
+// إلغاء الإنجاز ("شيل الصح من المذاكرة") — أفعال صريحة، أو "رجع" مع نفي الإنجاز
+const ASSISTANT_UNDONE_VERBS = ['شيل الصح', 'شيلي الصح', 'الغي الانجاز', 'الغي انجاز', 'uncheck', 'mark undone', 'reopen'];
 
 // أفعال المسح ("امسح مذاكرة وجيم") — تُفحص قبل الإضافة.
 // الترتيب مقصود: الصيغ الأطول أولًا عشان find يلقط الفعل الكامل ("امسحهم" قبل "امسح").
@@ -259,7 +261,12 @@ const ASSISTANT_TARGETS = [
   { id: 'recurrence', words: ['التكرار', 'تكرار', 'recurrence', 'repeat', 'تتكرر', 'ايام التكرار'] },
   { id: 'reminder', words: ['التذكير', 'تذكير', 'التنبيه', 'تنبيه', 'تذكيرات', 'reminder', 'notification'] },
   { id: 'subtasks', words: ['المهام الفرعيه', 'مهام فرعيه', 'فرعيه', 'subtask'] },
-  { id: 'theme', words: ['المظهر', 'الثيم', 'الوضع الداكن', 'الداكن', 'الالوان', 'الألوان', 'theme', 'dark mode'] },
+  { id: 'darkmode', words: ['الوضع الداكن', 'وضع ليلي', 'دارك', 'dark'] },
+  { id: 'theme', words: ['المظهر', 'الثيم', 'الالوان', 'الألوان', 'theme'] },
+  { id: 'darkmode', words: ['الوضع الداكن', 'وضع ليلي', 'دارك', 'dark'] },
+  { id: 'language', words: ['اللغه', 'اللغة', 'لغه', 'لغة', 'انجليزي', 'عربي', 'language', 'english', 'arabic'] },
+  { id: 'backup', words: ['نسخه احتياطيه', 'نسخه', 'باك اب', 'باكاب', 'تصدير', 'استيراد', 'export', 'import', 'backup'] },
+  { id: 'account', words: ['الحساب', 'حسابي', 'البروفايل', 'account', 'profile'] },
   { id: 'bank', words: ['بنك المهام', 'البنك', 'bank'] },
   { id: 'timers', words: ['المؤقتات', 'المؤقت', 'مؤقت', 'timer', 'التايمر'] },
   { id: 'today', words: ['مهام اليوم', 'اليوم', 'today', 'tasks', 'home', 'الرييسيه', 'الرئيسيه', 'الرئيسية'] },
@@ -438,6 +445,19 @@ export function parseAssistantCommand(rawText, lang){
   const has = (...words) => words.some(w => text.includes(w));
 
   if(ASSISTANT_HELP_WORDS.some(w => text.includes(w))) return { intent: 'help' };
+
+  // إلغاء الإنجاز ("شيل الصح من المذاكرة" / "رجع المذاكرة غير منجزة") —
+  // قبل المسح عشان "شيل" العامة متبلعوش، وبعده يكمل الفحص لو مفيش أسماء
+  const undoneVerb = ASSISTANT_UNDONE_VERBS.find(v => text.includes(v));
+  const undoneRevert = /(^|\s)رجع(?=\s|$)/.test(text) && /(غير منجزه|مش منجزه|غير مكتمله|مش مكتمله|not done|incomplete)/.test(text);
+  if(undoneVerb || undoneRevert){
+    const key = undoneVerb || 'رجع';
+    const rest = text.slice(text.indexOf(key) + key.length);
+    const names = assistantSplitList(rest)
+      .map(s => assistantCleanName(s).replace(/^(من)(?=\s|$)/, '').replace(/\s*(غير منجزه|مش منجزه|غير مكتمله|مش مكتمله|not done|incomplete)\s*/g, ' ').trim().slice(0, 200))
+      .filter(Boolean);
+    return { intent: 'uncomplete', names };
+  }
 
   // مسح مهمة/مهام: الفعل + قائمة أسماء ("امسح مذاكرة وجيم") — التنفيذ بسلة
   // المهملات الأصلية مع التراجع، والبحث متسامح في المنفذ (بلا "ال" أيضًا)

@@ -31,6 +31,7 @@ import { positionTaskMoreFixed, useFixedDropdown } from './events.js';
 import { openSmartLists } from './smartLists.js';
 import { closeAccountPanel, isAccountPanelOpen, toggleAccountPanel } from './accountMenu.js';
 import { closeAssistant, toggleAssistant, wireAssistantInput } from './assistant.js';
+import { stopVoice } from './voice.js';
 import { addDays, todayStr } from './utils.js';
 import { waitForServerPlan } from './billing.js';
 
@@ -635,6 +636,7 @@ async function startApp(){
       if(document.getElementById('templatesOverlay').classList.contains('open')) closeTemplatesModal();
       if(document.getElementById('templatesReplaceOverlay').classList.contains('open')) closeReplaceDialog();
       if(document.getElementById('notificationSettingsOverlay').classList.contains('open')) closeNotificationSettingsModal();
+      if(ui.voiceListening) stopVoice();
       if(ui.assistantOpen) closeAssistant();
       if(document.getElementById('timelineTaskOverlay').classList.contains('open')) closeTimelineTaskPopup();
       const rm = document.getElementById('tbRangeMenu');

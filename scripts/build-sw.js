@@ -52,6 +52,7 @@ const PRECACHE_URLS = [
   './js/billing.js',
   './js/state.js',
   './js/utils.js',
+  './js/voice.js',
   './js/render.js',
   './js/routing.js',
   './js/dataStore.js',

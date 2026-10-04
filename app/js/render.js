@@ -22,6 +22,7 @@ import { formatTimeArabic } from './timePicker.js';
 import { renderWeekView } from './weekView.js';
 import { syncHashWithState } from './routing.js';
 import { renderSmartLists } from './smartLists.js';
+import { isVoiceSupported } from './voice.js';
 
 // Auto-Recurrence logic: نضيف المهام المتكررة لليوم/الأيام الجاية لو يوم الأسبوع ده من ضمن أيامها، مرة واحدة بس لكل (تاريخ + مهمة).
 // معزولة في دالة مستقلة عشان تُستخدم مع أي تاريخ (مش بس اليوم المختار)، زي أيام عرض الأسبوع.
@@ -213,6 +214,7 @@ export function render(){
           ${addArrowPopover}
         </div>
         <button class="add-btn icon-only add-keyword-btn" id="addKeywordBtn" title="${t('bank.add_title')}"><span class="material-icons">add</span></button>
+        ${isVoiceSupported() ? `<button class="add-btn icon-only add-voice-btn ${ui.voiceListening && ui.voiceTarget === 'bank' ? 'listening' : ''}" data-action="voice-bank" type="button" title="${t('voice.listen')}" aria-label="${t('voice.listen')}"><svg class="voice-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>` : ''}
       </div>
     `;
 
