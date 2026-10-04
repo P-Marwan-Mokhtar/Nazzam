@@ -20,7 +20,8 @@ export function renderHeader(p) {
         <a href="${p}#how" data-lp="nav.focus">كيف يعمل</a>
         <a href="${p}#plan" data-lp="nav.plan">التخطيط</a>
         <a href="${p}#stats" data-lp="nav.stats">الإحصائيات</a>
-        <a href="${p}#features" data-lp="nav.features">المميزات</a>
+        <a href="${p}#extras" data-lp="nav.extras">أدوات ذكية</a>
+        <a href="${p}#features" data-lp="nav.features">الجولة</a>
         <a href="${p}#pricing" data-lp="nav.pricing">الأسعار</a>
       </nav>
       <div class="nav-actions">
@@ -38,7 +39,8 @@ export function renderHeader(p) {
         <a href="${p}#how" data-lp="nav.focus">كيف يعمل</a>
         <a href="${p}#plan" data-lp="nav.plan">التخطيط</a>
         <a href="${p}#stats" data-lp="nav.stats">الإحصائيات</a>
-        <a href="${p}#features" data-lp="nav.features">المميزات</a>
+        <a href="${p}#extras" data-lp="nav.extras">أدوات ذكية</a>
+        <a href="${p}#features" data-lp="nav.features">الجولة</a>
         <a href="${p}#pricing" data-lp="nav.pricing">الأسعار</a>
       </div>
       <div class="nav-mobile-group">
@@ -59,7 +61,8 @@ export function renderFooter(p) {
           <h4 data-lp="footer.product">المنتج</h4>
           <ul>
               <li><a href="${p}#stats" data-lp="nav.stats">الإحصائيات</a></li>
-              <li><a href="${p}#features" data-lp="nav.features">المميزات</a></li>
+              <li><a href="${p}#extras" data-lp="nav.extras">أدوات ذكية</a></li>
+              <li><a href="${p}#features" data-lp="nav.features">الجولة</a></li>
               <li><a href="${p}#pricing" data-lp="nav.pricing">الأسعار</a></li>
           </ul>
         </div>
