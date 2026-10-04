@@ -232,7 +232,8 @@ const ASSISTANT_TODAY_WORDS = ['لليوم', 'في اليوم', 'to today', 'to 
 const ASSISTANT_DONE_VERBS = ['خلصهم', 'خلصي', 'خلص', 'انهي', 'كمل', 'انجز', 'finished', 'complete', 'finish'];
 const ASSISTANT_ALL_WORDS = ['كلهم', 'كل', 'جميعا', 'جميع', 'all', 'everything'];
 // إلغاء الإنجاز ("شيل الصح من المذاكرة") — أفعال صريحة، أو "رجع" مع نفي الإنجاز
-const ASSISTANT_UNDONE_VERBS = ['شيل الصح', 'شيلي الصح', 'الغي الانجاز', 'الغي انجاز', 'uncheck', 'mark undone', 'reopen'];
+const ASSISTANT_UNDONE_VERBS = ['شيل الصح', 'شيلي الصح', 'الغي الانجاز', 'الغي انجاز', 'رجعهم', 'رجعيهم', 'uncheck', 'mark undone', 'reopen'];
+const ASSISTANT_UNDONE_MARKERS = ['غير منجزه', 'مش منجزه', 'غير منجزين', 'مش منجزين', 'غير منجز', 'مش منجز', 'غير مكتمله', 'مش مكتمله', 'غير مكتمل', 'not done', 'incomplete'];
 
 // أفعال المسح ("امسح مذاكرة وجيم") — تُفحص قبل الإضافة.
 // الترتيب مقصود: الصيغ الأطول أولًا عشان find يلقط الفعل الكامل ("امسحهم" قبل "امسح").
@@ -449,12 +450,15 @@ export function parseAssistantCommand(rawText, lang){
   // إلغاء الإنجاز ("شيل الصح من المذاكرة" / "رجع المذاكرة غير منجزة") —
   // قبل المسح عشان "شيل" العامة متبلعوش، وبعده يكمل الفحص لو مفيش أسماء
   const undoneVerb = ASSISTANT_UNDONE_VERBS.find(v => text.includes(v));
-  const undoneRevert = /(^|\s)رجع(?=\s|$)/.test(text) && /(غير منجزه|مش منجزه|غير مكتمله|مش مكتمله|not done|incomplete)/.test(text);
+  const undoneMarks = ASSISTANT_UNDONE_MARKERS.join('|');
+  const undoneRevert = /(^|\s)رجع(?=\s|$)/.test(text) && new RegExp(undoneMarks).test(text);
   if(undoneVerb || undoneRevert){
+    if(/(^|\s)(كلهم|كل|جميعا|جميع|all|everything)(?=\s|$)/.test(text)) return { intent: 'uncomplete_all' };
     const key = undoneVerb || 'رجع';
     const rest = text.slice(text.indexOf(key) + key.length);
+    const markRe = new RegExp('\\s*(' + undoneMarks + ')\\s*', 'g');
     const names = assistantSplitList(rest)
-      .map(s => assistantCleanName(s).replace(/^(من)(?=\s|$)/, '').replace(/\s*(غير منجزه|مش منجزه|غير مكتمله|مش مكتمله|not done|incomplete)\s*/g, ' ').trim().slice(0, 200))
+      .map(s => assistantCleanName(s).replace(/^(من)(?=\s|$)/, '').replace(markRe, ' ').trim().slice(0, 200))
       .filter(Boolean);
     return { intent: 'uncomplete', names };
   }

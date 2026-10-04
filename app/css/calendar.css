@@ -440,11 +440,24 @@
   width: 100%;
   border: 1px solid var(--paper-line);
   border-radius: 10px;
-  padding: 14px 16px 14px 40px;
+  padding: 14px 40px 14px 16px;
   font-family: inherit;
   font-size: 0.92rem;
   background: var(--paper);
   color: var(--ink);
+}
+/* عدسة البحث جوّه الحقل في بدايته (يمين في العربي) — كانت بلا تموضع فتظهر ملزوقة من بره */
+.bank-search-icon {
+  position: absolute;
+  right: 12px;
+  left: auto;
+  color: var(--ink-soft);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+.bank-search-icon .material-icons {
+  font-size: 20px;
 }
 .bank-search input:focus {
   border-color: var(--pen);

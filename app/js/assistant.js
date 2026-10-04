@@ -370,8 +370,14 @@ export async function sendAssistantMessage(prefill){
     await executeComplete({ all: true, names: [] });
   } else if(cmd.intent === 'complete'){
     await executeComplete({ all: false, names: cmd.names || [] });
+  } else if(cmd.intent === 'uncomplete_all'){
+    await executeComplete({ all: true, names: [], undo: true });
   } else if(cmd.intent === 'uncomplete'){
-    await executeComplete({ all: false, names: cmd.names || [], undo: true });
+    if(!cmd.names || !cmd.names.length){
+      pushMessage('bot', t('assistant.delete_noname'));
+    } else {
+      await executeComplete({ all: false, names: cmd.names, undo: true });
+    }
   } else if(cmd.intent === 'update'){
     await executeUpdate(cmd);
   } else if(cmd.intent === 'goto'){

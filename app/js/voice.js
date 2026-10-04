@@ -51,13 +51,30 @@ export function stopVoice(){
 
 // target: 'bank' (يملأ حقل الإضافة — التأكيد يدوي بزر +) | 'assistant' (يملأ ويبعت)
 // onFinal: تُستدعى مرة واحدة مع النص النهائي (للبنك null، وللمساعد الإرسال)
-export function toggleVoice(target, onFinal){
+export async function toggleVoice(target, onFinal){
   if(!isVoiceSupported()){
     showToast(t('voice.unsupported'));
     return;
   }
   if(ui.voiceListening){
     stopVoice();
+    return;
+  }
+  // فحص العتاد أولًا: يطلع طلب إذن الميكروفون، ويكشف غيابه أو حظره أو السياق
+  // غير الآمن — بدل ما ندخل التعرف ويفشل فورًا برسالة عامة
+  if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+    try{
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(tr => { try{ tr.stop(); }catch(e){} });
+    }catch(err){
+      const n = err && err.name;
+      if(n === 'NotFoundError' || n === 'OverconstrainedError') showToast(t('voice.no_mic'));
+      else if(n === 'NotAllowedError' || n === 'SecurityError') showToast(t('voice.denied'));
+      else showToast(t('voice.error'));
+      return;
+    }
+  } else {
+    showToast(t('voice.insecure'));
     return;
   }
   const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -99,8 +116,14 @@ export function toggleVoice(target, onFinal){
   rec.onerror = (e) => {
     const err = e && e.error;
     stopVoice();
-    // aborted = إيقاف مقصود من المستخدم — بلا تنبيه. الباقي يستحق توضيحًا.
-    if(err && err !== 'aborted') showToast(t('voice.error'));
+    // aborted = إيقاف مقصود من المستخدم، وno-speech = ضغطة بلا كلام — بلا تنبيه.
+    // الباقي برسالة مخصصة: الحظر (صلاحية/متصفح حاجب) مقابل عطل الخدمة.
+    if(!err || err === 'aborted' || err === 'no-speech') return;
+    if(err === 'not-allowed' || err === 'service-not-allowed'){
+      showToast(t('voice.denied'));
+    } else {
+      showToast(t('voice.net'));
+    }
   };
   rec.onend = () => {
     // انتهاء طبيعي (وقفة المستخدم أو مهلة المتصفح): نثبت آخر نص ونقفل الحالة

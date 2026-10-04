@@ -360,6 +360,13 @@ test('parseAssistantCommand إلغاء الإنجاز', () => {
   const u3 = parseAssistantCommand('uncheck gym', 'en');
   assert.equal(u3.intent, 'uncomplete');
   assert.deepEqual(u3.names, ['gym']);
+
+  const u4 = parseAssistantCommand('رجعهم غير منجزين', 'ar');
+  assert.equal(u4.intent, 'uncomplete');
+  assert.deepEqual(u4.names, []);
+
+  assert.deepEqual(parseAssistantCommand('شيل الصح من كل المهام', 'ar'), { intent: 'uncomplete_all' });
+  assert.deepEqual(parseAssistantCommand('رجعهم كلهم غير منجزين', 'ar'), { intent: 'uncomplete_all' });
 });
 
 test('parseAssistantCommand وجهة الإضافة (يوم/بنك/الاتنين)', () => {

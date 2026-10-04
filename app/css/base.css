@@ -371,8 +371,8 @@ html[dir="ltr"] .bank-search-icon {
   right: auto;
 }
 html[dir="ltr"] .bank-search input {
-  padding-left: 16px;
-  padding-right: 40px;
+  padding-left: 40px;
+  padding-right: 16px;
 }
 html[dir="ltr"] .bank-search-clear {
   left: auto;

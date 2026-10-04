@@ -947,6 +947,10 @@ ar: {
   // الإدخال الصوتي (Web Speech — مجاني ومدمج في المتصفح)
   'voice.listen': 'إدخال صوتي',
   'voice.error': 'تعذر التعرف على الصوت — جرّب مجددًا.',
+  'voice.denied': 'الميكروفون محظور — اسمح به من إعدادات المتصفح ثم جرّب مجددًا.',
+  'voice.no_mic': 'لا يوجد ميكروفون متصل بهذا الجهاز — وصّل ميكروفونًا وجرّب مجددًا.',
+  'voice.insecure': 'الإدخال الصوتي يحتاج اتصالًا آمنًا (HTTPS) — افتح التطبيق من رابطه الرسمي.',
+  'voice.net': 'خدمة التعرف الصوتي غير متاحة حاليًا (متصفحات مثل Brave تحجبها — جرّب Chrome).',
   'voice.unsupported': 'الإدخال الصوتي غير مدعوم على هذا المتصفح.',
 
   // Misc
@@ -1802,6 +1806,10 @@ en: {
   // Voice input (Web Speech — free and built into the browser)
   'voice.listen': 'Voice input',
   'voice.error': 'Could not recognize speech — try again.',
+  'voice.denied': 'Microphone is blocked — allow it in browser settings and try again.',
+  'voice.no_mic': 'No microphone found on this device — plug one in and try again.',
+  'voice.insecure': 'Voice input needs a secure connection (HTTPS) — open the app from its official link.',
+  'voice.net': 'Speech service unavailable right now (browsers like Brave block it — try Chrome).',
   'voice.unsupported': 'Voice input is not supported in this browser.',
 
   // Misc
