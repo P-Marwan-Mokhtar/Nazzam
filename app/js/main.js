@@ -50,11 +50,16 @@ import { waitForServerPlan } from './billing.js';
     if(authed === false){
       const splash = document.getElementById('bootSplash');
       if(splash) splash.remove();
+      // زر المساعد بره حاوية #app (المخفية قبل الدخول) — نخفيه صراحةً في شاشة الدخول
+      const gateFab = document.getElementById('assistantFab');
+      if(gateFab) gateFab.style.display = 'none';
       initLang(); // قبل بوابة الدخول عشان تترسم بلغته المحفوظة (نفس مفتاح اللاندينج)
       openAuthGate();
       return;
     }
     document.getElementById('app').style.display = '';
+    const appFab = document.getElementById('assistantFab');
+    if(appFab) appFab.style.display = '';
     if(authed === 'offline'){
       showToast(t('app.offline_boot'));
     }
