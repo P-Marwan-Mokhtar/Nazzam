@@ -941,13 +941,12 @@ ar: {
   'assistant.where_tasktype': 'نوع المهمة من قائمتها (⋮) ← اضغط على النوع الحالي واختر: مهمة أو عادة أو هواية.',
   'assistant.where_darkmode': 'الوضع الداكن من لوحة الحساب (أيقونة الشخص) ← المظهر ← داكن أو فاتح.',
   'assistant.where_language': 'اللغة من لوحة الحساب (أيقونة الشخص) ← اللغة ← العربية أو English.',
-  'assistant.where_backup': 'نسخة البيانات من لوحة الحساب (أيقونة الشخص) ← البيانات: زر التنزيل للتصدير (JSON) وزر الرفع للاستيراد.',
-  'assistant.where_account': 'لوحة الحساب من أيقونة الشخص (في الهيدر أو الشريط الجانبي أو السفلي): الحساب والمظهر واللغة والبيانات.',
+  'assistant.where_backup': 'نسخة البيانات من لوحة الحساب (أيقونة الشخص) ← البيانات: زر التنزيل للتصدير (JSON) وزر الرفع للاستيراد.',  'assistant.where_account': 'لوحة الحساب من أيقونة الشخص (في الهيدر أو الشريط الجانبي أو السفلي): الحساب والمظهر واللغة والبيانات.',
 
   // الإدخال الصوتي (Web Speech — مجاني ومدمج في المتصفح)
   'voice.listen': 'إدخال صوتي',
   'voice.error': 'تعذر التعرف على الصوت — جرّب مجددًا.',
-  'voice.denied': 'الميكروفون محظور — اسمح به من إعدادات المتصفح ثم جرّب مجددًا.',
+  'voice.denied': 'الميكروفون محظور — اسمح به ثم جرّب مجددًا.',
   'voice.no_mic': 'لا يوجد ميكروفون متصل بهذا الجهاز — وصّل ميكروفونًا وجرّب مجددًا.',
   'voice.insecure': 'الإدخال الصوتي يحتاج اتصالًا آمنًا (HTTPS) — افتح التطبيق من رابطه الرسمي.',
   'voice.net': 'خدمة التعرف الصوتي غير متاحة حاليًا (متصفحات مثل Brave تحجبها — جرّب Chrome).',
@@ -1806,7 +1805,7 @@ en: {
   // Voice input (Web Speech — free and built into the browser)
   'voice.listen': 'Voice input',
   'voice.error': 'Could not recognize speech — try again.',
-  'voice.denied': 'Microphone is blocked — allow it in browser settings and try again.',
+  'voice.denied': 'Microphone is blocked — allow it and try again.',
   'voice.no_mic': 'No microphone found on this device — plug one in and try again.',
   'voice.insecure': 'Voice input needs a secure connection (HTTPS) — open the app from its official link.',
   'voice.net': 'Speech service unavailable right now (browsers like Brave block it — try Chrome).',
