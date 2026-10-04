@@ -95,8 +95,10 @@ function renderRecurrenceDaysGrid(){
   });
 }
 
-// تمييز البريست المطابق للأيام المختارة (يومي/عمل/عطلة/مرة واحدة) — أي تعديل
+// تمييز البريست المطابق للأيام المختارة (مخصص/يومي/عمل/عطلة) — أي تعديل
 // يدوي على الشبكة بيوقع التمييز لأنه بقى مخصص.
+// "مخصص" بشبكة فاضية = مرة واحدة (الحفظ يمسح القاعدة) — فالاستبدال بلا فقد.
+// دوسة زرار "مخصص" نفسه تصفّر الشبكة لبداية مخصصة جديدة.
 // العطلة وأيام العمل حسب لغة الواجهة (عربي: جمعة/سبت — إنجليزي: سبت/أحد)،
 // فالثوابت هنا دالة مش كائن ثابت عشان متتجمدش على أول لغة.
 function recurrencePresetDays(name){
@@ -109,10 +111,18 @@ function recurrencePresetDays(name){
 
 function syncRecurrencePresets(){
   const sorted = [...ui.pendingRecurrenceDays].sort((a,b) => a-b).join(',');
+  // "مخصص" حالة احتياطية: تنور لما الاختيار لا يطابق أي بريست جاهز
+  // (مش لما يبقى فاضي بس) — عشان مفيش حالة من غير تمييز أبدًا
+  let matched = false;
   document.querySelectorAll('#recurrencePresets [data-preset]').forEach(b => {
+    if(b.dataset.preset === 'custom') return;
     const preset = recurrencePresetDays(b.dataset.preset);
-    b.classList.toggle('active', preset.join(',') === sorted);
+    const on = preset.join(',') === sorted;
+    b.classList.toggle('active', on);
+    if(on) matched = true;
   });
+  const customBtn = document.querySelector('#recurrencePresets [data-preset="custom"]');
+  if(customBtn) customBtn.classList.toggle('active', !matched);
 }
 
 async function saveRecurrence(){

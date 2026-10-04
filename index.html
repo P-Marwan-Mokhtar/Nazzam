@@ -113,6 +113,7 @@
         <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
         <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
         <symbol id="i-radio-unchecked" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+        <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
       </defs>
     </svg>
 
@@ -638,7 +639,123 @@
       </section>
 
       <!-- ============================================================
-           تفاصيل صغيرة… تصنع فرقًا كبيرًا — تبويبات وصور
+            أدوات ذكية — bento لباقي المميزات (بلا صور)
+      ============================================================ -->
+      <section class="section" id="extras">
+        <div class="container">
+          <div class="sec-head reveal">
+            <h2 data-lp="extras.title">أدوات ذكية ليوم أسهل</h2>
+            <p class="sec-lead" data-lp="extras.lead">مساعد يلخص يومك، وقوائم ذكية مرتبة، وإدخال صوتي، ووضع داكن مريح — تفاصيل صغيرة تصنع فرقًا كبيرًا.</p>
+          </div>
+          <div class="bento-grid reveal" id="miniGrid">
+            <article class="mg-card mg-hero">
+              <div class="mg-head">
+                <div class="fsc-copy">
+                  <h3 class="fsc-name" data-lp="more.g3t">مساعد نظم</h3>
+                  <p class="fsc-desc" data-lp="more.g3d">لخص يومك وأضف مهام واسأله عن أي ميزة — بالعربية والإنجليزية.</p>
+                </div>
+              </div>
+              <div class="mg-mock mg-chat" aria-hidden="true">
+                <div class="mini-bot">
+                  <span data-lp="more.as_greet">مرحبًا! يمكنني تلخيص يومك أو إضافة مهمة.</span>
+                  <span class="mini-sugs"><span class="mini-sug" data-lp="more.as_c1">لخص يومي</span><span class="mini-sug" data-lp="more.as_c2">أضف مذاكرة غدًا</span></span>
+                </div>
+                <div class="mini-user" data-lp="more.as_u">أضف اجتماع غدًا الساعة 3 عصرًا</div>
+                <div class="mini-bot" data-lp="more.as_b">تمت إضافة "اجتماع" إلى الغد 3:00 م.</div>
+                <div class="mini-input"><span data-lp="more.as_ph">اسألني: لخص يومي، أضف مهمة غدًا…</span><span class="mini-send"></span></div>
+              </div>
+            </article>
+            <article class="mg-card mg-hero">
+              <div class="mg-head">
+                <div class="fsc-copy">
+                  <h3 class="fsc-name"><span data-lp="more.g2t">القوائم الذكية</span> <span class="mg-pro">Pro</span></h3>
+                  <p class="fsc-desc" data-lp="more.g2d">متأخرة واليوم وغدًا والأسبوع القادم والعالية — مرتبة تلقائيًا.</p>
+                </div>
+              </div>
+              <div class="mg-mock" aria-hidden="true">
+                <div class="mini-tabs">
+                  <span class="mini-tab"><span data-lp="more.st_overdue">متأخرة</span> <b>50+</b></span>
+                  <span class="mini-tab on"><span data-lp="more.st_today">اليوم</span> <b>7</b></span>
+                  <span class="mini-tab"><span data-lp="more.st_tomorrow">غدًا</span> <b>3</b></span>
+                  <span class="mini-tab"><span data-lp="more.st_week">هذا الأسبوع</span> <b>23</b></span>
+                </div>
+                <div class="mini-row"><span class="mini-check"></span><span class="mini-col"><span class="mini-name" data-lp="more.sr1t">اجتماع فريق التصميم</span><span class="mini-sub" data-lp="more.sr1d">اليوم</span></span><span class="mini-time" data-lp="more.sr1time">٣:٠٠ م</span></div>
+                <div class="mini-row"><span class="mini-check"></span><span class="mini-col"><span class="mini-name" data-lp="more.sr2t">مراجعة المشروع</span><span class="mini-sub" data-lp="more.sr2d">اليوم</span></span><span class="mini-time" data-lp="more.sr2time">9:00 ص</span></div>
+                <div class="mini-row"><span class="mini-check"></span><span class="mini-col"><span class="mini-name" data-lp="more.sr3t">رياضة</span><span class="mini-sub" data-lp="more.sr3d">اليوم</span></span><span class="mini-time" data-lp="more.sr3time">12:30 م</span></div>
+              </div>
+            </article>
+            <article class="mg-card">
+              <div class="mg-head">
+                <div class="fsc-copy">
+                  <h3 class="fsc-name" data-lp="more.g1t">عرض الأسبوع</h3>
+                  <p class="fsc-desc" data-lp="more.g1d">مهامك موزعة على أيام الأسبوع في نظرة واحدة.</p>
+                </div>
+              </div>
+              <div class="mg-mock mg-weekcols" aria-hidden="true">
+                <div class="mini-wcol"><span class="mini-whead" data-lp="more.wd0">الأحد</span><span class="mini-wdone" data-lp="more.wdone0">4/4 أنجزت</span><span class="mini-wtask"><span class="mini-box"></span><span data-lp="more.wt0">رياضة</span></span><span class="mini-wtask"><span class="mini-box"></span><span data-lp="more.wt1">اجتماع</span></span><span class="mini-wtask"><span class="mini-box"></span><span data-lp="more.wt2">مشروع</span></span><span class="mini-wtask"><span class="mini-box"></span><span data-lp="more.wt3">قراءة</span></span></div>
+                <div class="mini-wcol"><span class="mini-whead" data-lp="more.wd1">الاثنين</span><span class="mini-wdone" data-lp="more.wdone1">4/5 أنجزت</span><span class="mini-wtask"><span class="mini-box"></span><span data-lp="more.wt0">رياضة</span></span><span class="mini-wtask"><span class="mini-box"></span><span data-lp="more.wt1">اجتماع</span></span><span class="mini-wtask"><span class="mini-box"></span><span data-lp="more.wt2">مشروع</span></span><span class="mini-wtask"><span class="mini-box"></span><span data-lp="more.wt3">قراءة</span></span></div>
+                <div class="mini-wcol"><span class="mini-whead" data-lp="more.wd2">الثلاثاء</span><span class="mini-wdone" data-lp="more.wdone2">2/6 أنجزت</span><span class="mini-wtask"><span class="mini-box"></span><span data-lp="more.wt0">رياضة</span></span><span class="mini-wtask"><span class="mini-box"></span><span data-lp="more.wt1">اجتماع</span></span><span class="mini-wtask"><span class="mini-box"></span><span data-lp="more.wt2">مشروع</span></span><span class="mini-wtask"><span class="mini-box"></span><span data-lp="more.wt3">قراءة</span></span></div>
+              </div>
+            </article>
+            <article class="mg-card">
+              <div class="mg-head">
+                <div class="fsc-copy">
+                  <h3 class="fsc-name" data-lp="more.g5t">تجربة مريحة</h3>
+                  <p class="fsc-desc" data-lp="more.g5d">وضع ليلي مريح و8 ألوان لطابعك الخاص، ويعمل دون اتصال والمزامنة تتم تلقائيًا.</p>
+                </div>
+              </div>
+              <div class="mg-themebox" aria-hidden="true">
+                <div class="mini-applabel" data-lp="more.theme_app">المظهر</div>
+                <div class="mg-seg">
+                  <span data-lp="more.theme_light">فاتح</span><span class="on" data-lp="more.theme_dark">داكن</span>
+                </div>
+                <div class="mg-swatches" aria-hidden="true">
+                  <span style="--sw:#9aa1ab"></span><span style="--sw:#d98c15"></span><span style="--sw:#b4728a"></span><span style="--sw:#6b5b95"></span><span style="--sw:#3e7a5c"></span><span class="on" style="--sw:#3a6fa5"></span><span style="--sw:#2f7d76"></span><span style="--sw:#a6565c"></span>
+                </div>
+              </div>
+            </article>
+            <article class="mg-card">
+              <div class="mg-head">
+                <div class="fsc-copy">
+                  <h3 class="fsc-name" data-lp="more.auto_t">تنظيم تلقائي</h3>
+                  <p class="fsc-desc" data-lp="more.auto_d">تكرار أسبوعي وتذكيرات ونقل — بلا تدخل منك.</p>
+                </div>
+              </div>
+              <div class="mg-mock" aria-hidden="true">
+                <div class="mg-seg mini-seg">
+                  <span class="on" data-lp="more.og_s0">مخصص</span><span data-lp="more.og_s1">كل يوم</span><span data-lp="more.og_s2">أيام العمل</span>
+                </div>
+                <div class="mg-days">
+                  <span class="mini-day" data-lp="more.od0">أحد</span><span class="mini-day on" data-lp="more.od1">اثنين</span><span class="mini-day" data-lp="more.od2">ثلاثاء</span><span class="mini-day on" data-lp="more.od3">أربعاء</span><span class="mini-day" data-lp="more.od4">خميس</span><span class="mini-day" data-lp="more.od5">جمعة</span><span class="mini-day" data-lp="more.od6">سبت</span>
+                </div>
+                <div class="mini-movelabel" data-lp="more.og_move">نقل إلى</div>
+                <div class="mg-chips">
+                  <span class="mini-chip" data-lp="more.og_m0">غدًا</span>
+                  <span class="mini-chip" data-lp="more.og_m1">بعد غد</span>
+                  <span class="mini-chip" data-lp="more.og_m2">اختيار يوم…</span>
+                </div>
+              </div>
+            </article>
+            <article class="mg-card mg-wide">
+              <div class="fsc-copy">
+                <h3 class="fsc-name" data-lp="more.g4t">الإدخال الصوتي</h3>
+                <p class="fsc-desc" data-lp="more.g4d">قل المهمة بصوتك وسيكتبها — في البنك أو المحادثة.</p>
+              </div>
+              <div class="mg-voicecol" aria-hidden="true">
+                <div class="mg-mock mg-voicerow">
+                  <div class="mg-wave">
+                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                  </div>
+                  <span class="mini-micbtn"><svg class="ic" aria-hidden="true"><use href="#i-mic"/></svg></span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+</section>
+
+      <!-- ============================================================
+            تفاصيل صغيرة… تصنع فرقًا كبيرًا — تبويبات وصور
       ============================================================ -->
       <section class="section" id="features">
         <div class="container">
@@ -686,7 +803,7 @@
                     <span class="fsc-chip" aria-hidden="true"><svg class="ic"><use href="#i-bell"/></svg></span>
                     <div class="fsc-copy">
                       <h3 class="fsc-name" data-lp="more.f4n">التنبيهات</h3>
-                      <p class="fsc-desc" data-lp="more.f4d">تذكيرات تصل في معادها إشعارًا حتى مع إغلاق التطبيق، أو ملخصًا صباحيًا.</p>
+                      <p class="fsc-desc" data-lp="more.f4d">تذكيرات تصل في موعدها إشعارًا حتى مع إغلاق التطبيق، أو ملخصًا صباحيًا.</p>
                     </div>
                   </div>
                 </article>
@@ -711,7 +828,7 @@
 </section>
 
       <!-- ============================================================
-           الأسعار — تجربة ٧ أيام + خطط
+            الأسعار — تجربة ٧ أيام + خطط
       ============================================================ -->
       <section class="section band-alt" id="pricing">
         <div class="container">

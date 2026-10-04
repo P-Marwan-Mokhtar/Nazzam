@@ -396,38 +396,43 @@
 .assistant-action-btn:hover { background: var(--pen-soft); }
 .assistant-input-row {
   display: flex;
-  gap: 8px;
-  padding: 10px 12px;
-  border-top: 1px solid var(--paper-line);
-  background: var(--card);
+  align-items: center;
+  gap: 4px;
+  margin: 10px 12px 12px;
+  background: var(--paper);
+  border: 1px solid var(--paper-line);
+  border-radius: 12px;
+  padding: 5px;
+  transition: border-color 0.12s ease;
 }
+.assistant-input-row:focus-within { border-color: var(--pen); }
 .assistant-input-row input {
   flex: 1;
   min-width: 0;
-  border: 1px solid var(--paper-line);
-  border-radius: 10px;
-  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  padding: 10px 8px;
   font-family: inherit;
   font-size: 0.9rem;
-  background: var(--paper);
   color: var(--ink);
   outline: none;
 }
-.assistant-input-row input:focus { border-color: var(--pen); }
 .assistant-send {
   flex: 0 0 42px;
   width: 42px;
   height: 42px;
   border-radius: 10px;
   border: none;
-  background: var(--pen);
-  color: #fff;
+  background: transparent;
+  color: var(--pen);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.15s ease;
 }
-.assistant-send:hover { filter: brightness(0.94); }
+.assistant-send:hover { background: var(--pen-soft); }
 .assistant-send .material-icons { font-size: 20px; }
 html[dir="rtl"] .assistant-send .material-icons { transform: scaleX(-1); }
 
