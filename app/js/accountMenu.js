@@ -345,7 +345,10 @@ function handleAction(btn){
   } else if(ap === 'assistant-fab-toggle'){
     setAssistantFabEnabled(!isAssistantFabEnabled());
     renderAccountPanelAfterChange();
-  } else if(ap === 'lang-toggle'){    const next = getLang() === 'ar' ? 'en' : 'ar';
+  } else if(ap === 'lang-toggle'){
+    // تبديل اللغة يقلب الاتجاه والتخطيط كله — نغلق اللوحة بدل تركها عائمة
+    closeAccountPanel();
+    const next = getLang() === 'ar' ? 'en' : 'ar';
     setLang(next);
     ui.timerPanelRenderedForDate = null;
     applyStaticTranslations();
