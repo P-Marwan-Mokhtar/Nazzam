@@ -47,7 +47,7 @@
   background: #F9F9F9;
 }
 #accountOverlay.is-gate .account-error {
-  background: #fdecea;
+  background: none;
   color: #c0392b;
 }
 #accountOverlay.is-gate .modal-card {
@@ -279,14 +279,14 @@
   padding-top: 8px;
 }
 .account-error {
-  background: #fdecea;
+  background: none;
   color: #c0392b;
-  border-radius: 8px;
-  padding: 9px 12px;
+  border-radius: 0;
+  padding: 2px 2px 8px;
   font-size: 0.82rem;
 }
 .dark-mode .account-error {
-  background: #3d1f1f;
+  background: none;
   color: #ff6b6b;
 }
 .account-hint {
@@ -455,11 +455,16 @@
   gap: 18px;
 }
 .modal-top-logo {
+  display: none;
   width: 72px;
   height: 72px;
   object-fit: contain;
   flex: 0 0 auto;
   cursor: pointer;
+}
+/* اللوجو فوق الكارت في شاشة الدخول فقط — مخفي في مودالات الحساب داخل التطبيق */
+#accountOverlay.is-gate .modal-top-logo {
+  display: block;
 }
 .modal-card {
   background: var(--card);

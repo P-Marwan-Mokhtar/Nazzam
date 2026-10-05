@@ -5,7 +5,7 @@
 import { AUTH_RATE_LIMIT_URL, TURNSTILE_SITE_KEY, supabaseClient } from './config.js';
 import { LOCAL_BACKUP_KEY, BACKUP_OWNER_KEY, LAST_SERVER_TS_KEY, PENDING_SYNC_KEY, SESSION_HINT_KEY, showToast } from './state.js';
 import { t } from './i18n.js';
-import { escapeHtml } from './utils.js';
+import { escapeHtml, escapeAttr } from './utils.js';
 import { openUpgrade } from './upgrade.js';
 
 let turnstileWidgetId = null;
@@ -377,11 +377,14 @@ function renderAccountModal(pwError){
   if(!bodyEl) return;
   if(titleEl) titleEl.textContent = pwOnlyMode ? t('account.change_password') : t('auth.account');
   const errorHtml = pwError ? `<div class="account-error">${escapeHtml(pwError)}</div>` : '';
+  // نفس معاملة بوابة الدخول: الاحتفاظ بما كُتب عند التحذير بدل مسحه
+  const prevNewPw = document.getElementById('newPwInput')?.value || '';
+  const prevConfirmPw = document.getElementById('confirmPwInput')?.value || '';
   const pwFormHtml = `
     <div class="account-form" id="pwForm">
       ${errorHtml}
-      <input type="password" class="account-input" id="newPwInput" placeholder="${t('account.new_password')}" autocomplete="new-password" />
-      <input type="password" class="account-input" id="confirmPwInput" placeholder="${t('account.confirm_new')}" autocomplete="new-password" />
+      <input type="password" class="account-input" id="newPwInput" value="${escapeAttr(prevNewPw)}" placeholder="${t('account.new_password')}" autocomplete="new-password" />
+      <input type="password" class="account-input" id="confirmPwInput" value="${escapeAttr(prevConfirmPw)}" placeholder="${t('account.confirm_new')}" autocomplete="new-password" />
       <button class="account-primary-btn" id="savePwBtn" style="width:100%;">${t('account.save_password')}</button>
     </div>
   `;
@@ -484,12 +487,18 @@ function renderAuthGate(errorMsg){
 
   const errorHtml = errorMsg ? `<div class="account-error">${escapeHtml(errorMsg)}</div>` : '';
 
+  // إعادة الرسم عند الخطأ كانت تمسح كل ما كتبه المستخدم فيضطر لإعادته —
+  // نلتقط القيم الحالية قبل الاستبدال ونعيد زرعها في الحقول
+  const prevEmail = document.getElementById('accEmail')?.value || '';
+  const prevPw = document.getElementById('accPassword')?.value || '';
+  const prevPwC = document.getElementById('accPasswordConfirm')?.value || '';
+
   if(gateMode === 'forgot'){
     bodyEl.innerHTML = `
       <div class="account-hint">${t('auth.forgot_hint')}</div>
       ${errorHtml}
       <div class="account-form" id="accForm">
-        <input type="email" class="account-input" id="accEmail" placeholder="${t('auth.email_placeholder')}" autocomplete="email" />
+        <input type="email" class="account-input" id="accEmail" value="${escapeAttr(prevEmail)}" placeholder="${t('auth.email_placeholder')}" autocomplete="email" />
         <button class="account-primary-btn" id="accSubmitBtn">${t('auth.send_reset')}</button>
       </div>
       <div class="account-switch-line"><button id="accSwitchMode">${t('auth.back_to_login')}</button></div>
@@ -538,13 +547,13 @@ function renderAuthGate(errorMsg){
     bodyEl.innerHTML = `
       ${errorHtml}
       <div class="account-form" id="accForm">
-        <input type="email" class="account-input" id="accEmail" placeholder="${t('auth.email_placeholder')}" autocomplete="email" />
+        <input type="email" class="account-input" id="accEmail" value="${escapeAttr(prevEmail)}" placeholder="${t('auth.email_placeholder')}" autocomplete="email" />
         <div class="account-pass-wrap">
-          <input type="password" class="account-input" id="accPassword" placeholder="${t('auth.password_placeholder')}" autocomplete="new-password" />
+          <input type="password" class="account-input" id="accPassword" value="${escapeAttr(prevPw)}" placeholder="${t('auth.password_placeholder')}" autocomplete="new-password" />
           <button type="button" class="account-pass-toggle" id="accPassToggle" tabindex="-1"><span class="material-icons">visibility</span></button>
         </div>
         <div class="account-pass-wrap">
-          <input type="password" class="account-input" id="accPasswordConfirm" placeholder="${t('auth.password_confirm_placeholder')}" autocomplete="new-password" />
+          <input type="password" class="account-input" id="accPasswordConfirm" value="${escapeAttr(prevPwC)}" placeholder="${t('auth.password_confirm_placeholder')}" autocomplete="new-password" />
           <button type="button" class="account-pass-toggle" id="accPassConfirmToggle" tabindex="-1"><span class="material-icons">visibility</span></button>
         </div>
         <button class="account-primary-btn" id="accSubmitBtn">${t('auth.create_account')}</button>
@@ -574,9 +583,9 @@ function renderAuthGate(errorMsg){
   bodyEl.innerHTML = `
     ${errorHtml}
     <div class="account-form" id="accForm">
-      <input type="email" class="account-input" id="accEmail" placeholder="${t('auth.login_placeholder')}" autocomplete="email" />
-      <div class="account-pass-wrap">
-        <input type="password" class="account-input" id="accPassword" placeholder="${t('auth.password_label')}" autocomplete="current-password" />
+      <input type="email" class="account-input" id="accEmail" value="${escapeAttr(prevEmail)}" placeholder="${t('auth.login_placeholder')}" autocomplete="email" />
+        <div class="account-pass-wrap">
+          <input type="password" class="account-input" id="accPassword" value="${escapeAttr(prevPw)}" placeholder="${t('auth.password_label')}" autocomplete="current-password" />
         <button type="button" class="account-pass-toggle" id="accPassToggle" tabindex="-1"><span class="material-icons">visibility</span></button>
       </div>
       <button class="account-primary-btn" id="accSubmitBtn">${t('auth.login_button')}</button>
