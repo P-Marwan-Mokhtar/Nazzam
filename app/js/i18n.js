@@ -883,6 +883,9 @@ ar: {
 
   // مساعد نظم (شات القواعد المحلي) — كل المخرجات بالعربية الفصحى
   'assistant.title': 'مساعد نظم',
+  'assistant.fab_title': 'زر المساعد العائم',
+  'assistant.fab_show': 'إظهار',
+  'assistant.fab_hide': 'إخفاء',
   'assistant.input_ph': 'اسألني: لخص يومي، أضف مهمة غدًا…',
   'assistant.send': 'إرسال',
   'assistant.empty': 'ابدأ بسؤال — مثال: لخص يومي',
@@ -1741,6 +1744,9 @@ en: {
 
   // Nazzam assistant (local rule-based chat)
   'assistant.title': 'Nazzam Assistant',
+  'assistant.fab_title': 'Floating assistant button',
+  'assistant.fab_show': 'Show',
+  'assistant.fab_hide': 'Hide',
   'assistant.input_ph': 'Ask me: brief my day, add a task tomorrow…',
   'assistant.send': 'Send',
   'assistant.empty': 'Start with a question — e.g.: brief my day',

@@ -30,7 +30,7 @@ import { wireOnboarding, checkOnboarding, closeOnboarding } from './onboarding.j
 import { positionTaskMoreFixed, useFixedDropdown } from './events.js';
 import { openSmartLists } from './smartLists.js';
 import { closeAccountPanel, isAccountPanelOpen, toggleAccountPanel } from './accountMenu.js';
-import { closeAssistant, toggleAssistant, wireAssistantInput } from './assistant.js';
+import { closeAssistant, toggleAssistant, wireAssistantInput, isAssistantFabEnabled } from './assistant.js';
 import { stopVoice } from './voice.js';
 import { addDays, todayStr } from './utils.js';
 import { waitForServerPlan } from './billing.js';
@@ -59,7 +59,7 @@ import { waitForServerPlan } from './billing.js';
     }
     document.getElementById('app').style.display = '';
     const appFab = document.getElementById('assistantFab');
-    if(appFab) appFab.style.display = '';
+    if(appFab) appFab.style.display = isAssistantFabEnabled() ? '' : 'none';
     if(authed === 'offline'){
       showToast(t('app.offline_boot'));
     }

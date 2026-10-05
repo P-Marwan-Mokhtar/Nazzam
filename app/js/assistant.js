@@ -23,6 +23,18 @@ import { openSmartLists } from './smartLists.js';
 import { enforceTaskNameLimit, gateFree } from './upgrade.js';
 import { isVoiceSupported, stopVoice, toggleVoice } from './voice.js';
 
+// إظهار الزر العائم اختياري (الافتراضي: مخفي) — محفوظ محليًا لكل جهاز
+const FAB_PREF_KEY = 'nazam-assistant-fab';
+export function isAssistantFabEnabled(){
+  try{ return localStorage.getItem(FAB_PREF_KEY) === '1'; }catch{ return false; }
+}
+export function setAssistantFabEnabled(on){
+  try{
+    if(on) localStorage.setItem(FAB_PREF_KEY, '1');
+    else localStorage.removeItem(FAB_PREF_KEY);
+  }catch{}
+}
+
 // أسماء الوجهات من مفاتيح i18n الموجودة أصلًا (بلا مفاتيح جديدة)
 const TARGET_PLACE_KEY = {
   today: 'nav.tasks_today',

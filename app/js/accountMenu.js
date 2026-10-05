@@ -15,6 +15,7 @@ import { currentUserEmail, signOutUser, openPasswordChange, refreshAccountModal,
 import { renderStatsView, renderTaskStatsView } from './stats.js';
 import { openUpgrade, gateFree } from './upgrade.js';
 import { exportCalendarAsICS } from './icalExport.js';
+import { isAssistantFabEnabled, setAssistantFabEnabled } from './assistant.js';
 
 let isOpen = false;
 
@@ -50,7 +51,7 @@ export function closeAccountPanel(){
 function setAssistantFabForPanel(panelOpen){
   const fab = document.getElementById('assistantFab');
   if(!fab) return;
-  fab.style.display = panelOpen ? 'none' : '';
+  fab.style.display = (panelOpen || !isAssistantFabEnabled()) ? 'none' : '';
 }
 
 export function isAccountPanelOpen(){
@@ -232,7 +233,21 @@ function renderAccountBody(){
     </div>
   `;
 
-  body.innerHTML = accountBlock + appearanceBlock + langBlock + dataBlock;
+  // ---- قسم المساعد: إظهار/إخفاء الزر العائم (الافتراضي: مخفي) ----
+  const fabOn = isAssistantFabEnabled();
+  const assistantBlock = `
+    <div class="ap-section">
+      <div class="lang-row">
+        <div class="ap-section-title"><span class="material-icons">smart_toy</span> ${t('assistant.fab_title')}</div>
+        <button type="button" class="lang-switch-btn" data-ap="assistant-fab-toggle" title="${t('assistant.fab_title')}">
+          <span class="material-icons">${fabOn ? 'visibility' : 'visibility_off'}</span>
+          <span>${fabOn ? t('assistant.fab_hide') : t('assistant.fab_show')}</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  body.innerHTML = accountBlock + appearanceBlock + langBlock + assistantBlock + dataBlock;
   body.querySelectorAll('[data-ap]').forEach(btn => {
     btn.onclick = () => handleAction(btn);
   });
@@ -261,8 +276,10 @@ function handleAction(btn){
     setAccent(btn.dataset.accent, onAppearanceChanged);
     showToast(t('theme.accent_selected', { name: t('theme.accent_' + btn.dataset.accent) }));
     renderAccountPanelAfterChange();
-  } else if(ap === 'lang-toggle'){
-    const next = getLang() === 'ar' ? 'en' : 'ar';
+  } else if(ap === 'assistant-fab-toggle'){
+    setAssistantFabEnabled(!isAssistantFabEnabled());
+    renderAccountPanelAfterChange();
+  } else if(ap === 'lang-toggle'){    const next = getLang() === 'ar' ? 'en' : 'ar';
     setLang(next);
     ui.timerPanelRenderedForDate = null;
     applyStaticTranslations();
