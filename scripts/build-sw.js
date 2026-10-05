@@ -195,9 +195,14 @@ const swSource =
 '  // طلبات التنقّل (فتح الصفحة نفسها): stale-while-revalidate — بنخدم النسخة\n' +
 '  // المخزّنة فورًا (حتى لو مفيش نت) وبنجدّدها من الشبكة في الخلفية لما يبقى متصل.\n' +
 '  // ده بيضمن إن التطبيق يفتح فورًا أوفلاين بدل ما يستنى طلب الشبكة يفشل.\n' +
+'  // القراءة من كاش الإصدار الحالي أولًا ثم الاحتياط العام: كاش قديم محتفظ به\n' +
+'  // (تثبيت ناقص على نت متقطع) لا يجب أن يحجب نسخًا أحدث — وإلا علقت ملفات\n' +
+'  // قديمة للأبد (قائمة جديدة + ترجمة قديمة) مهما أُعيد الفتح.\n' +
 "  if (req.mode === 'navigate') {\n" +
 '    event.respondWith(\n' +
-"      caches.match('./index.html').then((cached) => {\n" +
+"      caches.open(CACHE_NAME).then((cache) =>\n" +
+"        cache.match('./index.html').then((cached) => cached || caches.match('./index.html'))\n" +
+'      ).then((cached) => {\n' +
 '        const networkFetch = fetch(req)\n' +
 '          .then((res) => {\n' +
 '            if (res && res.status === 200) {\n' +
@@ -214,8 +219,11 @@ const swSource =
 '  }\n' +
 '\n' +
 '  // باقي ملفات هيكل التطبيق (JS/CSS/الأيقونات): stale-while-revalidate\n' +
+'  // (نفس قاعدة القراءة: الكاش الحالي أولًا ثم الاحتياط القديم)\n' +
 '  event.respondWith(\n' +
-'    caches.match(req).then((cached) => {\n' +
+'    caches.open(CACHE_NAME).then((cache) =>\n' +
+'      cache.match(req).then((cached) => cached || caches.match(req))\n' +
+'    ).then((cached) => {\n' +
 '      const networkFetch = fetch(req)\n' +
 '        .then((res) => {\n' +
 '          if (res && res.status === 200) {\n' +

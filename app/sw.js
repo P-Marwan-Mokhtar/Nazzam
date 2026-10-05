@@ -5,7 +5,7 @@
 // رقم الإصدار (CACHE_VERSION) بيتغيّر تلقائيًا مع أي تغيير في المحتوى.
 // ============================================================
 
-const CACHE_VERSION = 'vf09b79a9bc';
+const CACHE_VERSION = 'vdcc3610995';
 const CACHE_NAME = 'daily-tasks-shell-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -146,9 +146,14 @@ self.addEventListener('fetch', (event) => {
   // طلبات التنقّل (فتح الصفحة نفسها): stale-while-revalidate — بنخدم النسخة
   // المخزّنة فورًا (حتى لو مفيش نت) وبنجدّدها من الشبكة في الخلفية لما يبقى متصل.
   // ده بيضمن إن التطبيق يفتح فورًا أوفلاين بدل ما يستنى طلب الشبكة يفشل.
+  // القراءة من كاش الإصدار الحالي أولًا ثم الاحتياط العام: كاش قديم محتفظ به
+  // (تثبيت ناقص على نت متقطع) لا يجب أن يحجب نسخًا أحدث — وإلا علقت ملفات
+  // قديمة للأبد (قائمة جديدة + ترجمة قديمة) مهما أُعيد الفتح.
   if (req.mode === 'navigate') {
     event.respondWith(
-      caches.match('./index.html').then((cached) => {
+      caches.open(CACHE_NAME).then((cache) =>
+        cache.match('./index.html').then((cached) => cached || caches.match('./index.html'))
+      ).then((cached) => {
         const networkFetch = fetch(req)
           .then((res) => {
             if (res && res.status === 200) {
@@ -165,8 +170,11 @@ self.addEventListener('fetch', (event) => {
   }
 
   // باقي ملفات هيكل التطبيق (JS/CSS/الأيقونات): stale-while-revalidate
+  // (نفس قاعدة القراءة: الكاش الحالي أولًا ثم الاحتياط القديم)
   event.respondWith(
-    caches.match(req).then((cached) => {
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.match(req).then((cached) => cached || caches.match(req))
+    ).then((cached) => {
       const networkFetch = fetch(req)
         .then((res) => {
           if (res && res.status === 200) {

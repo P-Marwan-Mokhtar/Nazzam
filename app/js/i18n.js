@@ -49,7 +49,9 @@ export function initLang(){
 
 // ---- Translation lookup ----
 export function t(key, params){
-  const val = (T[currentLang] || T.ar)[key] || T.ar[key] || key;
+  // احتياطي متدرج: لغة المستخدم ← العربية ← الإنجليزية ← المفتاح الخام
+  // (يمنع ظهور مفاتيح خام لو ملف ترجمة قديم عالق في الكاش مع كود جديد)
+  const val = (T[currentLang] || T.ar)[key] || T.ar[key] || T.en[key] || key;
   if(!params) return val;
   return val.replace(/\{(\w+)\}/g, (_, k) => params[k] !== undefined ? params[k] : `{${k}}`);
 }
