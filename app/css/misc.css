@@ -297,7 +297,8 @@
   position: fixed;
   inset-inline-end: 18px;
   bottom: 18px;
-  z-index: 400;
+  /* تحت كل المودالات (200+) وفوق المحتوى — عشان ميظهرش فوق نافذة الحساب وغيرها */
+  z-index: 190;
   width: 52px;
   height: 52px;
   border-radius: 50%;
