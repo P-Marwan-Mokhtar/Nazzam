@@ -593,6 +593,7 @@
   width: min(320px, calc(100vw - 32px));
   max-height: calc(100vh - 90px);
   overflow-y: auto;
+  overflow-x: hidden;
   background: var(--popup);
   border: 1px solid var(--popup-border);
   border-radius: 16px;
@@ -769,6 +770,120 @@
 .lang-switch-btn .material-icons {
   font-size: 16px;
   color: var(--pen);
+}
+/* القائمة الرئيسية للوحة الحساب: 4 صفوف قصيرة بدل السكشنات الطويلة */
+.ap-menu {
+  padding-bottom: 2px;
+}
+.ap-menu-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 8px;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--popup-border);
+  color: var(--ink);
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.ap-menu-row:last-child {
+  border-bottom: 0;
+}
+.ap-menu-row:hover {
+  background: var(--pen-soft);
+  border-radius: 10px;
+}
+.ap-menu-ic {
+  color: var(--pen);
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.ap-menu-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.ap-menu-text strong {
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.ap-menu-text span {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.ap-menu-chev {
+  color: var(--ink-soft);
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-inline-start: auto;
+}
+/* رأس الصفحة الفرعية: زر رجوع + عنوان */
+.ap-subhead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0 10px;
+}
+.ap-subhead strong {
+  font-size: 0.9rem;
+}
+.ap-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--paper-line);
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+}
+.ap-back-btn:hover {
+  background: var(--pen-soft);
+  border-color: var(--pen);
+}
+.ap-back-btn .material-icons {
+  font-size: 18px;
+}
+/* حركة التنقل بين القائمة والصفحات الفرعية — انزلاق خفيف مع تلاشي */
+@keyframes ap-slide-fwd-rtl {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes ap-slide-back-rtl {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes ap-slide-fwd-ltr {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes ap-slide-back-ltr {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.ap-slide-fwd {
+  animation: ap-slide-fwd-rtl 0.2s ease;
+}
+.ap-slide-back {
+  animation: ap-slide-back-rtl 0.2s ease;
+}
+html[dir="ltr"] .ap-slide-fwd {
+  animation-name: ap-slide-fwd-ltr;
+}
+html[dir="ltr"] .ap-slide-back {
+  animation-name: ap-slide-back-ltr;
 }
 /* صف أزرار البيانات الأربعة — أيقونات فقط جنب بعض */
 .ap-data-row {

@@ -18,6 +18,10 @@ import { exportCalendarAsICS } from './icalExport.js';
 import { isAssistantFabEnabled, setAssistantFabEnabled } from './assistant.js';
 
 let isOpen = false;
+// الصفحة الفرعية المفتوحة داخل اللوحة: main = القائمة الرئيسية القصيرة
+let panelView = 'main';
+// اتجاه حركة التنقل للدخول/الرجوع — يُستهلك مرة واحدة عند الرسم
+let panelSlideDir = '';
 
 // حفظ المظهر عند التغيير + إعادة رسم الشاشات القلابة تلقائيًا بألوان الثيم الجديد
 function onAppearanceChanged(){
@@ -33,6 +37,7 @@ export function toggleAccountPanel(anchor){
   }
   const panel = document.getElementById('accountPanel');
   if(!panel) return;
+  panelView = 'main';
   renderAccountBody(panel);
   positionPanel(panel, anchor);
   panel.classList.add('open');
@@ -44,6 +49,7 @@ export function closeAccountPanel(){
   const panel = document.getElementById('accountPanel');
   if(panel) panel.classList.remove('open');
   isOpen = false;
+  panelView = 'main';
   setAssistantFabForPanel(false);
 }
 
@@ -247,9 +253,61 @@ function renderAccountBody(){
     </div>
   `;
 
-  body.innerHTML = accountBlock + appearanceBlock + langBlock + assistantBlock + dataBlock;
+  // ---- القائمة الرئيسية: 4 صفوف فقط — اللوحة قصيرة دائمًا ----
+  const rtl = getLang() !== 'en';
+  const chevIcon = rtl ? 'chevron_left' : 'chevron_right';
+  const menuRow = (view, icon, label, hint) => `
+    <button type="button" class="ap-menu-row" data-ap="goto" data-view="${view}">
+      <span class="material-icons ap-menu-ic">${icon}</span>
+      <span class="ap-menu-text"><strong>${label}</strong>${hint ? `<span>${hint}</span>` : ''}</span>
+      <span class="material-icons ap-menu-chev">${chevIcon}</span>
+    </button>
+  `;
+  const themeHint = `${isDark ? t('theme.dark') : t('theme.light')} · ${t('theme.accent_' + accentId)}`;
+  const prefsHint = `${lang === 'ar' ? 'عربي' : 'English'} · ${isAssistantFabEnabled() ? t('assistant.fab_visible') : t('assistant.fab_hidden')}`;
+  const menuHtml = `
+    <div class="ap-section ap-menu">
+      ${menuRow('account', 'account_circle', t('nav.account'), escapeHtml(currentUserEmail || ''))}
+      ${menuRow('appearance', 'palette', t('nav.theme'), themeHint)}
+      ${menuRow('prefs', 'translate', t('account.prefs_title'), prefsHint)}
+      ${menuRow('data', 'import_export', t('nav.data'), '')}
+    </div>
+  `;
+
+  // ---- الصفحات الفرعية: زر رجوع + عنوان ثم محتوى القسم كاملًا ----
+  const backIcon = rtl ? 'arrow_forward' : 'arrow_back';
+  const subHead = (title) => `
+    <div class="ap-subhead">
+      <button type="button" class="ap-back-btn" data-ap="back" title="${t('account.back')}" aria-label="${t('account.back')}">
+        <span class="material-icons">${backIcon}</span>
+      </button>
+      <strong>${title}</strong>
+    </div>
+  `;
+  const subViews = {
+    account: [t('nav.account'), accountBlock],
+    appearance: [t('nav.theme'), appearanceBlock],
+    prefs: [t('account.prefs_title'), langBlock + assistantBlock],
+    data: [t('nav.data'), dataBlock],
+  };
+
+  if(panelView === 'main' || !subViews[panelView]){
+    body.innerHTML = menuHtml;
+  } else {
+    const [subTitle, subContent] = subViews[panelView];
+    body.innerHTML = subHead(subTitle) + subContent;
+  }
+  // حركة التنقل فقط (دخول/رجوع) — تبديل المظهر أو اللغة يعيد الرسم بلا حركة
+  if(panelSlideDir){
+    body.classList.remove('ap-slide-fwd', 'ap-slide-back');
+    void body.offsetWidth;
+    body.classList.add(panelSlideDir === 'fwd' ? 'ap-slide-fwd' : 'ap-slide-back');
+    panelSlideDir = '';
+  }
   body.querySelectorAll('[data-ap]').forEach(btn => {
-    btn.onclick = () => handleAction(btn);
+    // إيقاف الفقاعة: إعادة الرسم تفصل الزر عن الـ DOM في نفس الضغطة،
+    // فيظن معالج document أن الضغطة خارج اللوحة فيغلقها فورًا
+    btn.onclick = (e) => { e.stopPropagation(); handleAction(btn); };
   });
 }
 
@@ -276,6 +334,14 @@ function handleAction(btn){
     setAccent(btn.dataset.accent, onAppearanceChanged);
     showToast(t('theme.accent_selected', { name: t('theme.accent_' + btn.dataset.accent) }));
     renderAccountPanelAfterChange();
+  } else if(ap === 'goto'){
+    panelView = btn.dataset.view || 'main';
+    panelSlideDir = 'fwd';
+    renderAccountBody();
+  } else if(ap === 'back'){
+    panelView = 'main';
+    panelSlideDir = 'back';
+    renderAccountBody();
   } else if(ap === 'assistant-fab-toggle'){
     setAssistantFabEnabled(!isAssistantFabEnabled());
     renderAccountPanelAfterChange();
