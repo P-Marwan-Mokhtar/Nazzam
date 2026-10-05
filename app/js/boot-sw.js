@@ -7,6 +7,9 @@
 // بتشتغل وتختفي الغلطة كلها. بما معناه التطبيق بيصلّح نفسه من غير unregister.
 (function () {
   if (!("serviceWorker" in navigator)) return;
+  // هل كانت الصفحة تحت سيطرة SW أصلًا؟ أول تثبيت (مستخدم جديد) لا يستحق ريلود.
+  var hadController = false;
+  try { hadController = !!navigator.serviceWorker.controller; } catch (e) {}
   try {
     navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" });
 
@@ -14,6 +17,14 @@
     // مش في main.js — عشان السكربت ده بيشتغل حتى لو main.js فشل أساسًا بسبب
     // الكاش القديم، فيبقى التحديث بيتم دايماً.
     navigator.serviceWorker.addEventListener("controllerchange", function () {
+      // أول تثبيت عند مستخدم جديد: لا تحديث أصلًا — التخطي يمنع ريلودًا
+      // بعد ثانية أو اثنتين على شاشة الدخول.
+      if (!hadController) { hadController = true; return; }
+      // شاشة الدخول (#app مخفية): الريلود يقاطع كتابة البريد بلا أي فائدة.
+      try {
+        var app = document.getElementById("app");
+        if (app && app.style.display === "none") return;
+      } catch (e) {}
       window.location.reload();
     });
 
