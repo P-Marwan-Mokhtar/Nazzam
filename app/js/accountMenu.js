@@ -36,12 +36,21 @@ export function toggleAccountPanel(anchor){
   positionPanel(panel, anchor);
   panel.classList.add('open');
   isOpen = true;
+  setAssistantFabForPanel(true);
 }
 
 export function closeAccountPanel(){
   const panel = document.getElementById('accountPanel');
   if(panel) panel.classList.remove('open');
   isOpen = false;
+  setAssistantFabForPanel(false);
+}
+
+// زر المساعد العائم فوق لوحة الحساب (z أعلى) — نخفيه طول ما اللوحة مفتوحة
+function setAssistantFabForPanel(panelOpen){
+  const fab = document.getElementById('assistantFab');
+  if(!fab) return;
+  fab.style.display = panelOpen ? 'none' : '';
 }
 
 export function isAccountPanelOpen(){

@@ -230,6 +230,20 @@ export function renameTaskEverywhere(oldName, newName){
 // كل معالج بيستقبِل زرار الضغطة نفسه (btn) وبيقرأ منه dataset.id/choice/value/name.
 // لإضافة زر جديد: ضيف data-action في الـ HTML + مفتاح بنفس الاسم هنا.
 // ============================================================
+// فتح صف إضافة البنك والتركيز على حقله — مشتركة بين زراري الحالات الفاضية
+// (بنك/يوم) عشان الوجهة فقط هي اللي تختلف، والباقي واحد
+function focusBankAddInput(){
+  if(!ui.bankOpen){
+    ui.bankOpen = true;
+    ui.justOpenedBank = true;
+  }
+  render();
+  afterRender(() => {
+    const input = document.getElementById('newKeywordInput');
+    if(input) input.focus();
+  });
+}
+
 const contentActions = {
   'voice-bank': async () => {
     toggleVoice('bank', null);
@@ -334,17 +348,15 @@ const contentActions = {
     render();
   },
   'focus-add-task': async () => {
-    if(!ui.bankOpen){
-      ui.bankOpen = true;
-      ui.justOpenedBank = true;
-    }
-    render();
-    afterRender(() => {
-      const input = document.getElementById('newKeywordInput');
-      if(input) input.focus();
-    });
+    // زرار حالة "اليوم فاضي" — الوجهة الافتراضية اليوم (وتتغير يدويًا من السهم)
+    ui.pendingTaskPlace = 'today';
+    focusBankAddInput();
   },
-  'focus-add-keyword': async () => contentActions['focus-add-task'](),
+  'focus-add-keyword': async () => {
+    // زرار حالة "القائمة فاضية" — الوجهة الافتراضية البنك (وتتغير يدويًا من السهم)
+    ui.pendingTaskPlace = 'bank';
+    focusBankAddInput();
+  },
   'clear-bank-search': async () => {
     ui.bankSearchQuery = '';
     ui.bankDisplayLimit = 10;
