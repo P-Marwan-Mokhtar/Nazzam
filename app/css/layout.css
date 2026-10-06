@@ -202,6 +202,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  position: relative;
   animation: timerFadeIn 0.25s ease;
   transition:
     border-color 0.2s ease,
@@ -293,6 +294,81 @@
   letter-spacing: 0.5px;
   direction: ltr;
 }
+/* شريط تقدم هدف المؤقت (المؤقتات المرتبطة بمهمة لها هدف) — تحت الوقت والأزرار */
+.timer-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.timer-progress {
+  flex: 1;
+  min-width: 0;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--pen-soft);
+  overflow: hidden;
+}
+.timer-progress-pct {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+.timer-progress-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: var(--pen);
+  transition: width 0.6s linear;
+}
+.timer-item.countdown-ended .timer-progress-fill {
+  background: var(--done);
+}
+/* قائمة المزيد للمؤقت (إعادة/حذف) — عائمة فوق البطاقة */
+.timer-more-dropdown {
+  position: absolute;
+  top: 46px;
+  inset-inline-end: 10px;
+  z-index: 50;
+  background: var(--popup);
+  border: 1px solid var(--popup-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-hover);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.timer-more-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  background: none;
+  border: 0;
+  border-radius: 8px;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: start;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.timer-more-item:hover {
+  background: var(--pen-soft);
+}
+.timer-more-item .material-icons {
+  font-size: 19px;
+  color: var(--pen);
+}
+.timer-more-item.danger .material-icons {
+  color: var(--missed);
+}
 .timer-controls {
   display: flex;
   gap: 6px;
@@ -312,6 +388,15 @@
 }
 .timer-btn:active {
   transform: scale(0.92);
+}
+/* زر المزيد بلا خلفية — أيقونة بلون أزرار المزيد في باقي التطبيق */
+.timer-btn.timer-more-btn {
+  background: none;
+  color: var(--ink-soft);
+}
+.timer-btn.timer-more-btn:hover {
+  background: var(--paper);
+  color: var(--ink);
 }
 .timer-btn .material-icons {
   font-size: 19px;

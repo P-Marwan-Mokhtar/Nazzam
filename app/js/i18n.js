@@ -346,6 +346,9 @@ ar: {
   'timer.toggle_play': 'تشغيل',
   'timer.delete': 'حذف',
   'timer.deleted': 'تم حذف المؤقت "{name}"',
+  'timer.more': 'المزيد',
+  'timer.restart': 'إعادة',
+  'timer.restarted': 'أُعيد المؤقت "{name}" من البداية',
   'timer.no_duration': 'يرجى تحديد مدة أكبر من صفر',
 
   // Stats
@@ -1210,6 +1213,9 @@ en: {
   'timer.toggle_play': 'Play',
   'timer.delete': 'Delete',
   'timer.deleted': 'Timer "{name}" deleted',
+  'timer.more': 'More',
+  'timer.restart': 'Restart',
+  'timer.restarted': 'Timer "{name}" restarted from beginning',
   'timer.no_duration': 'Please select a duration greater than zero',
 
   // Stats

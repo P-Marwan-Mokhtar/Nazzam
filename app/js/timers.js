@@ -52,6 +52,21 @@ function findLinkedTask(timer){
   return findTaskByName(timer ? timer.name : '');
 }
 
+// تقدم هدف المؤقت: الهدف من مدة المهمة المرتبطة، وإلا هدف المؤقت نفسه
+// (العد التنازلي). الإجمالي = الفعلي المتراكم للمهمة + الجزء الحي من الجلسة
+// الذي لم يُحجز بعد في actualDuration. تُستخدم في وضع التركيز ولوحة المؤقتات.
+function timerGoalProgress(timer){
+  const task = findLinkedTask(timer);
+  const goalMin = task ? parseDurationToMinutes(task.duration) : 0;
+  const goalMs = goalMin > 0 ? goalMin * 60000 : (timer.mode === 'countdown' ? (timer.targetMs || 0) : 0);
+  if(goalMs <= 0) return null;
+  const elapsed = timer.running ? getElapsedMs(timer) : (timer.elapsedMs || 0);
+  const taskActualMs = task ? parseDurationToMinutes(task.actualDuration) * 60000 : 0;
+  const liveMs = Math.max(0, elapsed - Math.max(0, timer.loggedMs || 0));
+  const totalMs = taskActualMs + liveMs;
+  return { goalMs, totalMs, pct: Math.min(100, (totalMs / goalMs) * 100) };
+}
+
 function commitTimerToTask(timer, silent = false){
   const totalMs = getElapsedMs(timer);
   const loggedMs = Math.max(0, timer.loggedMs || 0);
@@ -162,10 +177,26 @@ export async function moveMissedSelected(){
 const moveMissedBtn = document.getElementById('moveMissedBtn');
 if(moveMissedBtn) moveMissedBtn.onclick = moveMissedSelected;
 
+// قائمة المزيد للمؤقت (إعادة/حذف) — تُرسم بكلاس open حسب ui.openTimerMoreId
+function buildTimerMoreHtml(timer){
+  return `
+    <div class="timer-more-dropdown open">
+      <button type="button" class="timer-more-item" data-action="restart-timer" data-id="${escapeAttr(timer.id)}">
+        <span class="material-icons">refresh</span><span>${t('timer.restart')}</span>
+      </button>
+      <button type="button" class="timer-more-item danger" data-action="delete-timer" data-id="${escapeAttr(timer.id)}">
+        <span class="material-icons">delete</span><span>${t('timer.delete')}</span>
+      </button>
+    </div>
+  `;
+}
+
 function buildTimerItemHtml(timer){
   const isCountdown = timer.mode === 'countdown';
   const remainingMs = isCountdown ? Math.max(0, timer.targetMs - getElapsedMs(timer)) : getElapsedMs(timer);
   const ended = isCountdown && remainingMs <= 0;
+  const gp = timerGoalProgress(timer);
+  const pct = gp ? gp.pct.toFixed(1) : '0.0';
   return `
     <div class="timer-item ${timer.running ? 'running' : ''} ${ended ? 'countdown-ended' : ''}" data-timer-id="${escapeAttr(timer.id)}">
       <div class="timer-item-top">
@@ -182,11 +213,13 @@ function buildTimerItemHtml(timer){
           <button class="timer-btn timer-toggle-btn ${timer.running ? 'is-running' : ''}" data-action="toggle-timer" data-id="${escapeAttr(timer.id)}" title="${timer.running ? t('timer.toggle_pause') : t('timer.toggle_play')}">
             <span class="material-icons">${timer.running ? 'pause' : 'play_arrow'}</span>
           </button>
-          <button class="timer-btn timer-delete-btn" data-action="delete-timer" data-id="${escapeAttr(timer.id)}" title="${t('timer.delete')}">
-            <span class="material-icons">delete</span>
+          <button class="timer-btn timer-more-btn" data-action="timer-more" data-id="${escapeAttr(timer.id)}" title="${t('timer.more')}">
+            <span class="material-icons">more_vert</span>
           </button>
         </div>
       </div>
+      ${ui.openTimerMoreId === timer.id ? buildTimerMoreHtml(timer) : ''}
+      ${gp ? `<div class="timer-progress-row"><div class="timer-progress"><span class="timer-progress-fill" data-pct="${pct}" style="width:${pct}%"></span></div><span class="timer-progress-pct">${Math.round(gp.pct)}%</span></div>` : ``}
     </div>
   `;
 }
@@ -231,6 +264,45 @@ function updateTimerItemEl(el, timer){
   const clockEl = el.querySelector('.timer-clock');
   const clockText = formatElapsed(remainingMs);
   if(clockEl && clockEl.textContent !== clockText) clockEl.textContent = clockText;
+
+  // قائمة المزيد — تُدرج حيًا في العنصر مع توصيل أزرارها فورًا (اللوحة تُحدَّث
+  // في مكانها ولا تُعاد بناؤها، فالاعتماد على renderTimerPanel وحده لا يُظهرها)
+  const shouldMoreOpen = ui.openTimerMoreId === timer.id;
+  let moreEl = el.querySelector('.timer-more-dropdown');
+  if(shouldMoreOpen && !moreEl){
+    const tmp = document.createElement('div');
+    tmp.innerHTML = buildTimerMoreHtml(timer).trim();
+    moreEl = tmp.firstElementChild;
+    moreEl.querySelectorAll('button[data-action]').forEach(b => {
+      b.onclick = (ev) => onTimerItemButton(b, ev);
+    });
+    el.insertBefore(moreEl, el.querySelector('.timer-progress-row'));
+  } else if(!shouldMoreOpen && moreEl){
+    moreEl.remove();
+  }
+
+  // شريط تقدم الهدف — يتحدث مع كل tick بلا إعادة بناء العنصر
+  let progRow = el.querySelector('.timer-progress-row');
+  let progFill = el.querySelector('.timer-progress-fill');
+  const gp = timerGoalProgress(timer);
+  if(gp){
+    if(!progRow){
+      progRow = document.createElement('div');
+      progRow.className = 'timer-progress-row';
+      progRow.innerHTML = `<div class="timer-progress"><span class="timer-progress-fill"></span></div><span class="timer-progress-pct"></span>`;
+      el.appendChild(progRow);
+      progFill = progRow.querySelector('.timer-progress-fill');
+    }
+    const pctStr = gp.pct.toFixed(1);
+    if(progFill && progFill.dataset.pct !== pctStr){
+      progFill.dataset.pct = pctStr;
+      progFill.style.width = pctStr + '%';
+      const pctLabel = progRow.querySelector('.timer-progress-pct');
+      if(pctLabel) pctLabel.textContent = `${Math.round(gp.pct)}%`;
+    }
+  } else if(progRow){
+    progRow.remove();
+  }
 
   const toggleBtn = el.querySelector('.timer-toggle-btn');
   if(toggleBtn){
@@ -383,12 +455,53 @@ export function renderTimerPanel(){
   if(popFixedBtn) popFixedBtn.onclick = () => chooseTimerType('fixed');
 
   timerPanelEl.querySelectorAll('button[data-action]').forEach(btn => {
-    btn.onclick = async () => {
+    btn.onclick = (e) => onTimerItemButton(btn, e);
+  });
+}
+
+// معالج أزرار عنصر المؤقت — دالة مستقلة ليعاد استخدامها مع أزرار قائمة المزيد
+// المدرجة حيًا في العنصر (التوصيل العام لا يطالها لأن اللوحة تُحدَّث في مكانها)
+async function onTimerItemButton(btn, e){
       const action = btn.dataset.action;
       const id = btn.dataset.id;
       const list = getDayTimers(ui.selectedDate);
       const timer = list.find(x => x.id === id);
       if(!timer) return;
+
+      if(action === 'timer-more'){
+        // إيقاف الفقاعة: إعادة البناء تفصل الزر في نفس الضغطة فيظن معالج
+        // document أنها خارج القائمة فيغلقها فورًا (نفس خلل لوحة الحساب)
+        e.stopPropagation();
+        ui.openTimerMoreId = ui.openTimerMoreId === id ? null : id;
+        renderTimerPanel();
+        return;
+      }
+      if(action === 'restart-timer'){
+        ui.openTimerMoreId = null;
+        // لقطة للتراجع قبل التصفير
+        const snap = { elapsedMs: timer.elapsedMs || 0, loggedMs: timer.loggedMs || 0, running: timer.running, alerted: timer.alerted };
+        revertTimerFromTask(timer); // خصم ما سجله المؤقت من الفعلي — المهمة ترجع زي ما كانت
+        timer.elapsedMs = 0;
+        timer.loggedMs = 0;
+        timer.alerted = false;
+        timer.running = false;
+        timer.startedAt = null;
+        render();
+        renderTimerPanel();
+        await saveData();
+        showUndoToast(t('timer.restarted', {name: timer.name}), async () => {
+          timer.elapsedMs = snap.elapsedMs;
+          timer.loggedMs = snap.loggedMs;
+          timer.running = snap.running;
+          timer.startedAt = snap.running ? Date.now() : null;
+          timer.alerted = snap.alerted;
+          restoreTimerToTask(timer); // التراجع يرجع المخصوم من الفعلي
+          render();
+          renderTimerPanel();
+          await saveData();
+        });
+        return;
+      }
 
       if(action === 'focus-timer'){
         openFocusMode(id);
@@ -416,6 +529,7 @@ export function renderTimerPanel(){
       }
       else if(action === 'delete-timer'){
         // حذف فوري + توست تراجع، متسق مع باقي حذف التطبيق (بدل نافذة confirm القديمة)
+        ui.openTimerMoreId = null;
         const deletedDate = ui.selectedDate;
         const removedTimer = timer;
         const removedIndex = list.indexOf(timer);
@@ -433,8 +547,6 @@ export function renderTimerPanel(){
           await saveData();
         });
       }
-    };
-  });
 }
 
 export function ensureAudioContext(){
@@ -603,17 +715,10 @@ export function renderFocusMode(){
   const elapsed = timer.running ? getElapsedMs(timer) : (timer.elapsedMs || 0);
   const task = findLinkedTask(timer);
   const typeInfo = task && task.type ? TASK_TYPES[taskTypeKey(task.type)] : null;
-  // الهدف: من المهمة لو ليها مدة، وإلا هدف المؤقت نفسه لو محدد المدة
-  const goalMin = task ? parseDurationToMinutes(task.duration) : 0;
-  const goalMs = goalMin > 0 ? goalMin * 60000 : (timer.mode === 'countdown' ? timer.targetMs : 0);
-
-  // إجمالي الوقت الفعلي (للشريط وتسمية «الوقت الفعلي»): الوقت الفعلي المتراكم
-  // للمهمة + الجزء الحي من المؤقت اللي لسه متسجلش (لأن الجلسة بتتحجز جوه
-  // actualDuration بس لما المؤقت يوقف). الأرقام الكبيرة بتفضل وقت التايمر نفسه.
-  const taskActualMs = task ? parseDurationToMinutes(task.actualDuration) * 60000 : 0;
-  const loggedMs = Math.max(0, timer.loggedMs || 0);
-  const liveMs = Math.max(0, elapsed - loggedMs);
-  const totalMs = taskActualMs + liveMs;
+  // تقدم الهدف بالدالة المشتركة (نفس منطق اللوحة — بلا تكرار)
+  const gp = timerGoalProgress(timer);
+  const goalMs = gp ? gp.goalMs : 0;
+  const totalMs = gp ? gp.totalMs : 0;
 
   const nameEl = document.getElementById('focusTaskName');
   const iconEl = document.getElementById('focusTaskIcon');

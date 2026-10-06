@@ -251,6 +251,10 @@ async function startApp(){
       ui.timerTypePopoverOpen = false;
       renderTimerPanel();
     }
+    if(ui.openTimerMoreId && !e.target.closest('.timer-more-dropdown') && !e.target.closest('.timer-more-btn')){
+      ui.openTimerMoreId = null;
+      renderTimerPanel();
+    }
     if(ui.tbSideOpen && !e.target.closest('.timeblock-side') && !e.target.closest('#tbToggleSideBtn')){
       closeTbSide();
     }
@@ -633,7 +637,7 @@ async function startApp(){
       if(upgradeOverlay.classList.contains('open')) closeUpgrade();
       if(pickerOverlay.classList.contains('open')) closeDurationPicker();
       if(ui.timerTypePopoverOpen){ ui.timerTypePopoverOpen = false; renderTimerPanel(); }
-      if(document.getElementById('subtasksOverlay').classList.contains('open')) closeSubtasksModal();
+      if(ui.openTimerMoreId){ ui.openTimerMoreId = null; renderTimerPanel(); }      if(document.getElementById('subtasksOverlay').classList.contains('open')) closeSubtasksModal();
       if(document.getElementById('recurrenceOverlay').classList.contains('open')) closeRecurrenceModal();
       if(document.getElementById('taskNoteOverlay').classList.contains('open')) closeTaskNoteModal();
       if(document.getElementById('taskDetailsOverlay').classList.contains('open')) closeTaskDetails();

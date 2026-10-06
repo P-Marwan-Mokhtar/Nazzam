@@ -118,6 +118,7 @@ export const ui = {
   addArrowJustOpened: false,  // true لمرة واحدة بس لحظة فتح بوب السهم — عشان أنيميشن الدخول يشتغل عند الفتح مش مع كل render
   pendingNewTimerName: '',  // اسم التايمر المنتظر اختيار نوعه (مفتوح / محدد)
   timerTypePopoverOpen: false,  // هل بوب أوفر اختيار نوع المؤقت (مفتوح/محدد) مفتوح من زرار +
+  openTimerMoreId: null,  // المؤقت اللي قائمة المزيد (إعادة/حذف) مفتوحة له دلوقتي
   pickerMode: 'task',  // 'task'/'actual' لتحديد هدف المهمة, 'timer' للمؤقت
   alertAudioCtx: null,
   openDurationPopoverTaskId: null,  // المهمة اللي فاتح لها بوب أب (الهدف/الوقت الفعلي) دلوقتي
