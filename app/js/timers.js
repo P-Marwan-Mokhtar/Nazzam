@@ -202,7 +202,6 @@ function buildTimerItemHtml(timer){
       <div class="timer-item-top">
         <span class="timer-name">${escapeHtml(timer.name)}</span>
         ${isCountdown ? `<span class="timer-target-label"><span class="material-icons">hourglass_bottom</span>${formatHM(timer.targetMs)}</span>` : ``}
-        <span class="timer-status-dot"></span>
       </div>
       <div class="timer-item-bottom">
         <span class="timer-clock" id="timerClock_${escapeAttr(timer.id)}">${formatElapsed(remainingMs)}</span>
@@ -250,7 +249,7 @@ function updateTimerItemEl(el, timer){
     if(!labelEl){
       labelEl = document.createElement('span');
       labelEl.className = 'timer-target-label';
-      topEl.insertBefore(labelEl, el.querySelector('.timer-status-dot'));
+      topEl.appendChild(labelEl);
     }
     const targetText = formatHM(timer.targetMs);
     if(labelEl.dataset.target !== targetText){
@@ -628,8 +627,22 @@ export async function resumeExistingTimer(name, mode){
 // آخر حفظ دوري للمؤقتات الشغالة (يُستخدم داخل tickTimers تحت)
 let lastTimerPersist = 0;
 
-export function tickTimers(){
-  const timers = state.timers[ui.selectedDate];
+// تحديث الشريط والنسبة حيًا مع كل ثانية — الـ tick كان يحدث نص الساعة فقط
+// فيتجمد الشريط حتى أول render (إيقاف/انتهاء). الكتابة كل ثانية على عنصرين رخيصة.
+function updateTimerProgressLive(timer){
+  const gp = timerGoalProgress(timer);
+  if(!gp) return;
+  const clockEl = document.getElementById(`timerClock_${timer.id}`);
+  const itemEl = clockEl ? clockEl.closest('.timer-item') : null;
+  if(!itemEl) return;
+  const fill = itemEl.querySelector('.timer-progress-fill');
+  if(fill) fill.style.width = gp.pct + '%';
+  const label = itemEl.querySelector('.timer-progress-pct');
+  const pctInt = `${Math.round(gp.pct)}%`;
+  if(label && label.textContent !== pctInt) label.textContent = pctInt;
+}
+
+export function tickTimers(){  const timers = state.timers[ui.selectedDate];
   let timersChanged = false;
   let anyRunning = false;
   if(timers){
@@ -641,6 +654,7 @@ export function tickTimers(){
       if(timer.mode === 'countdown'){
         const remaining = timer.targetMs - elapsed;
         if(el) el.textContent = formatElapsed(Math.max(0, remaining));
+        updateTimerProgressLive(timer);
         if(remaining <= 0 && !timer.alerted){
           commitTimerToTask(timer, true); // العد خلص — وقت العد يتسجل في المهمة المرتبطة تلقائيًا (من غير توست، التنبيه بيكفي)
           timer.alerted = true;
@@ -656,6 +670,7 @@ export function tickTimers(){
         }
       } else {
         if(el) el.textContent = formatElapsed(elapsed);
+        updateTimerProgressLive(timer);
       }
     });
   }

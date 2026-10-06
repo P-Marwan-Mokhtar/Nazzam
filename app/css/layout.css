@@ -257,28 +257,6 @@
   border-color: var(--pen);
   box-shadow: 0 0 0 3px var(--pen-soft);
 }
-.timer-status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--ink-soft);
-  flex: 0 0 auto;
-}
-.timer-item.running .timer-status-dot {
-  background: var(--done);
-  animation: timerPulse 1.4s ease-in-out infinite;
-}
-@keyframes timerPulse {
-  0%,
-  100% {
-    opacity: 1;
-    box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.35);
-  }
-  50% {
-    opacity: 0.6;
-    box-shadow: 0 0 0 5px rgba(46, 125, 50, 0);
-  }
-}
 .timer-item-bottom {
   display: flex;
   align-items: center;
@@ -299,7 +277,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 10px;
 }
 .timer-progress {
   flex: 1;
