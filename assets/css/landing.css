@@ -2156,6 +2156,8 @@ html[dir="rtl"] .hero-title {
   .fsc-shot { height: 300px; }
   .fs-dot { width: 8px; height: 8px; }
   .fs-dot.on { width: 20px; }
+  /* البطاقة بعرض الشاشة — قناع التلاشي كان يأكل من أطرافها */
+  .fs-viewport { -webkit-mask-image: none; mask-image: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
