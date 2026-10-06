@@ -17,12 +17,11 @@ export function renderHeader(p) {
         <img src="app/img/nazzam-logo.png" alt="نظّم" class="logo-mark" width="80" height="80" decoding="async" fetchpriority="high" />
       </a>
       <nav class="nav-links" aria-label="التنقل الرئيسي">
-        <a href="${p}#how" data-lp="nav.focus">كيف يعمل</a>
         <a href="${p}#plan" data-lp="nav.plan">التخطيط</a>
         <a href="${p}#stats" data-lp="nav.stats">الإحصائيات</a>
-        <a href="${p}#extras" data-lp="nav.extras">أدوات ذكية</a>
-        <a href="${p}#features" data-lp="nav.features">الجولة</a>
+        <a href="${p}#extras" data-lp="nav.features">المميزات</a>
         <a href="${p}#pricing" data-lp="nav.pricing">الأسعار</a>
+        <a href="${p}#faq" data-lp="nav.faq">الأسئلة الشائعة</a>
       </nav>
       <div class="nav-actions">
         <button type="button" class="nav-lang-btn lp-lang-btn" aria-label="تغيير اللغة"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a13.5 13.5 0 010 18M12 3a13.5 13.5 0 000 18"/></svg></button>
@@ -36,12 +35,11 @@ export function renderHeader(p) {
     <div class="nav-mobile" id="navMobile">
       <div class="nav-mobile-group">
         <span class="nav-mobile-label" data-lp="nav.system">النظام</span>
-        <a href="${p}#how" data-lp="nav.focus">كيف يعمل</a>
         <a href="${p}#plan" data-lp="nav.plan">التخطيط</a>
         <a href="${p}#stats" data-lp="nav.stats">الإحصائيات</a>
-        <a href="${p}#extras" data-lp="nav.extras">أدوات ذكية</a>
-        <a href="${p}#features" data-lp="nav.features">الجولة</a>
+        <a href="${p}#extras" data-lp="nav.features">المميزات</a>
         <a href="${p}#pricing" data-lp="nav.pricing">الأسعار</a>
+        <a href="${p}#faq" data-lp="nav.faq">الأسئلة الشائعة</a>
       </div>`;
 }
 
@@ -57,9 +55,9 @@ export function renderFooter(p) {
           <h4 data-lp="footer.product">المنتج</h4>
           <ul>
               <li><a href="${p}#stats" data-lp="nav.stats">الإحصائيات</a></li>
-              <li><a href="${p}#extras" data-lp="nav.extras">أدوات ذكية</a></li>
-              <li><a href="${p}#features" data-lp="nav.features">الجولة</a></li>
+              <li><a href="${p}#extras" data-lp="nav.features">المميزات</a></li>
               <li><a href="${p}#pricing" data-lp="nav.pricing">الأسعار</a></li>
+              <li><a href="${p}#faq" data-lp="nav.faq">الأسئلة الشائعة</a></li>
           </ul>
         </div>
         <div class="footer-col">

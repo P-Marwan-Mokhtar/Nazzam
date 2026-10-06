@@ -712,7 +712,7 @@ if (burger && header) {
 (async function checkLoggedInState() {
   let isLoggedIn = false;
   try {
-    const { supabaseClient } = await import('./app/js/config.js');
+    const { supabaseClient } = await import('../../app/js/config.js');
     if (supabaseClient) {
       const { data: { session } } = await supabaseClient.auth.getSession();
       isLoggedIn = !!(session && session.user && !session.user.is_anonymous);
@@ -750,7 +750,7 @@ if (burger && header) {
     // فالتبديل في أي اتجاه آمن). بلا دورة معروفة → "إدارة اشتراكك".
     // الفشل الصامت = إبقاء الأزرار (checkout.html تحرس نفسها بنفس الفحص).
     try{
-      const { fetchServerSubscription, isServerProActive } = await import('./app/js/billing.js');
+      const { fetchServerSubscription, isServerProActive } = await import('../../app/js/billing.js');
       const sub = await fetchServerSubscription();
       if(isServerProActive(sub)){
         const cycle = (sub && (sub.plan_cycle === 'monthly' || sub.plan_cycle === 'yearly')) ? sub.plan_cycle : null;

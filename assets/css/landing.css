@@ -146,9 +146,9 @@ button { font-family: inherit; cursor: pointer; background: none; border: none; 
   transition: background var(--t-med) ease, border-color var(--t-med) ease;
 }
 
-.btn-primary { background: var(--blue); color: #fff; box-shadow: var(--shadow-blue); }
+.btn-primary { background: linear-gradient(135deg, #1a93f2, var(--blue-deep)); color: #fff; box-shadow: var(--shadow-blue); }
 
-.btn-primary:hover { background: #35a0f0; }
+.btn-primary:hover { background: linear-gradient(135deg, #35a0f0, var(--blue)); box-shadow: 0 10px 28px var(--blue-glow); }
 
 .btn-primary:active { transform: scale(0.98); }
 
@@ -310,9 +310,17 @@ body.menu-open { overflow: hidden; }
 }
 /* ---------- 5) الهيرو ---------- */
 
-.hero { position: relative; padding-top: clamp(140px, 16vh, 176px); padding-bottom: clamp(56px, 8vh, 96px); text-align: center; overflow: hidden; border-bottom: 1px solid var(--line); }
+.hero { position: relative; padding-top: clamp(140px, 16vh, 176px); padding-bottom: 0; text-align: center; overflow: hidden; border-bottom: 1px solid var(--line); }
 
-.hero-aura { display: none; }
+.hero-aura {
+  display: block;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(640px 340px at 50% -90px, rgba(9, 127, 232, 0.2), transparent 70%),
+    linear-gradient(180deg, rgba(9, 127, 232, 0.09), transparent 62%);
+}
 
 .hero-dots { display: none; }
 
@@ -327,9 +335,22 @@ body.menu-open { overflow: hidden; }
   padding-block: 0.04em;
 }
 @media (max-width: 560px) {
-  .hero-title { font-size: clamp(1.7rem, 8.2vw, 2.35rem); line-height: 1.28; } }
+  .hero-title { font-size: clamp(1.7rem, 8.2vw, 2.35rem); line-height: 1.28; }
+  /* العربي أصغر ~85% على الموبايل أيضًا مع مساحة تنفس أكبر */
+  html[dir="rtl"] .hero-title { font-size: clamp(1.45rem, 7vw, 2rem); line-height: 1.4; } }
+/* ضبط العنوان للعربية: الحرف العربي أكبر بصريًا — حجم ~85% من الإنجليزي،
+   وارتفاع سطر مريح للنقط والحروف، وتباعد حروف صفري، وتوازن الأسطر */
+html[dir="rtl"] .hero-title {
+  font-weight: 700;
+  font-size: clamp(2.1rem, 5.1vw, 3.75rem);
+  line-height: 1.35;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
 
 .hero-title .line { display: block; overflow: visible; padding-block: 0.02em; }
+/* سطر العنوان الثاني فارغ حاليًا (العنوان سطر واحد) — إخفاؤه لئلا يترك فراغًا */
+.hero-title .line:has(> span:empty) { display: none; }
 
 .hero-title .line > span { display: inline-block; padding-block: 0.02em; }
 
@@ -354,29 +375,19 @@ body.menu-open { overflow: hidden; }
 .hero-media-wrap { position: relative; margin-top: clamp(40px, 6vh, 64px); }
 
 .hero-media { position: relative; }
-/* ظل ملامسة ناعم تحت لقطة الهيرو — إحساس أن الصورة واقفة */
+/* بلا ظل أرضي — الصورة ملتصقة بحافة الهيرو السفلية */
 
-.hero-media::after {
-  content: '';
-  position: absolute;
-  inset-inline: 8%;
-  bottom: -16px;
-  height: 26px;
-  background: radial-gradient(ellipse at center, rgba(15, 23, 43, 0.2) 0%, rgba(15, 23, 43, 0) 70%);
-  filter: blur(4px);
-  z-index: 1;
-  pointer-events: none;
-}
 /* لقطة الهيرو الحقيقية */
 
 .hero-shot {
   position: relative; z-index: 2;
-  border-radius: 10px; overflow: hidden;
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow-sm);
+  border-radius: 10px 10px 0 0; overflow: hidden;
+  border: 1px solid var(--line); border-bottom: none;
+  box-shadow: 0 -8px 24px -16px rgba(15, 23, 43, 0.15);
   background: #fff;
   max-width: 100%;
   margin-inline: auto;
+  margin-bottom: -1px;
 }
 
 .hero-shot img {
@@ -563,7 +574,7 @@ body.menu-open { overflow: hidden; }
   font-style: normal;
   font-weight: 400;
   font-display: block;
-  src: url('app/fonts/material-icons.woff2') format('woff2');
+  src: url('/app/fonts/material-icons.woff2') format('woff2');
 }
 
 .how-demo { margin-top: var(--s5); }
@@ -2053,7 +2064,13 @@ body.menu-open { overflow: hidden; }
 
 .feat-strip { max-width: 100%; margin-inline: auto; }
 
-.fs-viewport { overflow: hidden; padding-block: 10px; }
+.fs-viewport {
+  overflow: hidden;
+  padding-block: 10px;
+  /* تلاشي ناعم على الحافتين بدل القص الحاد للبطاقات الجانبية */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+}
 
 .fs-track {
   display: flex; align-items: center; gap: 16px; direction: rtl;
@@ -2148,6 +2165,8 @@ body.menu-open { overflow: hidden; }
 
 /* ---------- 11c) بنتو الأدوات: شبكة متفاوتة بموكات مطابقة للتطبيق ---------- */
 #extras, #features { border-top: 1px solid var(--line); }
+/* إخفاء مؤقت لسكشن الديمو (#how) — موجود في الـ DOM والكود، يُعاد بإزالة السطر */
+#how { display: none; }
 .bento-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -2173,6 +2192,20 @@ body.menu-open { overflow: hidden; }
 /* منع أي خروج عن الكارت في الشبكة */
 .mg-card, .mg-mock { min-width: 0; }
 .mg-card:hover { border-color: var(--blue); transform: translateY(-3px); box-shadow: var(--shadow-sm); }
+/* كروت زجاجية: خلفية شفافة مع تمويه — تُرى فوق الغسيل المتدرج للسكشن */
+#extras {
+  background:
+    radial-gradient(720px 340px at 12% 0%, rgba(9, 127, 232, 0.09), transparent 70%),
+    radial-gradient(680px 320px at 88% 100%, rgba(9, 127, 232, 0.07), transparent 70%),
+    linear-gradient(180deg, transparent, rgba(9, 127, 232, 0.04) 30%, rgba(9, 127, 232, 0.04) 70%, transparent);
+}
+.mg-card {
+  background: rgba(255, 255, 255, 0.62);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 8px 32px rgba(9, 127, 232, 0.1);
+}
 .mg-head { display: flex; align-items: flex-start; gap: 12px; }
 .mg-head .fsc-chip { margin-top: 0; flex: none; }
 .mg-card .fsc-copy { min-width: 0; }

@@ -62,10 +62,10 @@ const ESM_FILES = [
   'app/js/accountMenu.js',
   'app/js/assistant.js',
   'app/js/billing.js',
-  'landing.js',
-  'landing-i18n.js',
-  'components.js',
-  'checkout.js',
+  'assets/js/landing.js',
+  'assets/js/landing-i18n.js',
+  'assets/js/components.js',
+  'assets/js/checkout.js',
 ];
 
 // سكربتات كلاسيكية (وسم <script> عادي) — تُغلَّف iife حفاظًا على النطاق
@@ -75,8 +75,8 @@ const CLASSIC_FILES = [
   'app/js/boot-theme.js',
   'app/js/boot-more.js',
   'app/js/clarity.js',
-  'landing-head.js',
-  'clarity-loader.js',
+  'assets/js/landing-head.js',
+  'assets/js/clarity-loader.js',
   'sw.js',
   'app/sw.js',
 ];

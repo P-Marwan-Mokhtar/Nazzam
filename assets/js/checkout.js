@@ -8,8 +8,8 @@
 //   ثم مودال الترقية بالدورة المختارة) — نفس المسار الاحتياطي القديم.
 // ============================================================
 
-import { supabaseClient, CREATE_CHECKOUT_URL } from './app/js/config.js';
-import { fetchServerSubscription, isServerProActive } from './app/js/billing.js';
+import { supabaseClient, CREATE_CHECKOUT_URL } from '../../app/js/config.js';
+import { fetchServerSubscription, isServerProActive } from '../../app/js/billing.js';
 import { tLanding } from './landing-i18n.js';
 
 const radios = [...document.querySelectorAll('input[name="plan"]')];

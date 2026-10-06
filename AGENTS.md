@@ -4,10 +4,10 @@
 
 ## البنية العامة
 
-- `index.html` + `landing.css` + `landing.js` + `landing-head.js` + `clarity-loader.js` — صفحة الهبوط (تعرض التطبيق وتربطه، وقسم `#pricing` هو مرجع أسعار الخطط).
-- `landing-i18n.js` — قاموس عربي/إنجليزي للهبوط (`STRINGS` + `applyLandingLang/toggleLandingLang`) — النصوص عبر `data-lp` (نص) / `data-lp-html` / `data-lp-alt` / `data-lp-aria`، والمفتاح نفس مفتاح التطبيق `nazam-lang` (التبديل = حفظ + reload).
-- `components.js` — الهيدر والفوتر المشتركان لكل صفحات اللاندينج (`renderHeader(prefix)` + `renderFooter(prefix)`)، بيرسمهم `landing.js` تلقائيًا في `<header id="siteHeader">` و `<footer class="footer">` الفاضيين. `prefix = ''` للرئيسية و `'./'` للصفحات الفرعية.
-- `checkout.html` + `checkout.js` — صفحة الدفع الوسيطة (بتحوّل لـ `app/#checkout=monthly|yearly` مع نية محفوظة `nazam-pending-plan`).
+- `index.html` + `assets/css/landing.css` + `assets/js/landing.js` + `assets/js/landing-head.js` + `assets/js/clarity-loader.js` — صفحة الهبوط (تعرض التطبيق وتربطه، وقسم `#pricing` هو مرجع أسعار الخطط). أصول اللاندينج كلها تحت `assets/` (الصفحات و`sw.js` و`vercel.json` في الجذر إجباريًا).
+- `assets/js/landing-i18n.js` — قاموس عربي/إنجليزي للهبوط (`STRINGS` + `applyLandingLang/toggleLandingLang`) — النصوص عبر `data-lp` (نص) / `data-lp-html` / `data-lp-alt` / `data-lp-aria`، والمفتاح نفس مفتاح التطبيق `nazam-lang` (التبديل = حفظ + reload).
+- `assets/js/components.js` — الهيدر والفوتر المشتركان لكل صفحات اللاندينج (`renderHeader(prefix)` + `renderFooter(prefix)`)، بيرسمهم `landing.js` تلقائيًا في `<header id="siteHeader">` و `<footer class="footer">` الفاضيين. `prefix = ''` للرئيسية و `'./'` للصفحات الفرعية.
+- `checkout.html` + `assets/js/checkout.js` — صفحة الدفع الوسيطة (بتحوّل لـ `app/#checkout=monthly|yearly` مع نية محفوظة `nazam-pending-plan`).
 - `privacy.html` / `terms.html` / `refund.html` / `404.html` — صفحات ثابتة بنفس هيدر/فوتر اللاندينج.
 - `sw.js` (الجذر) — Service Worker للاندينج (مكتوب يدويًا، حدّث `PRECACHE_URLS` + `CACHE_VERSION` عند إضافة ملفات هبوط جديدة).
 - `app/` — التطبيق نفسه:
