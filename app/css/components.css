@@ -178,17 +178,22 @@
   text-decoration: line-through;
   color: var(--missed);
 }
-.task-row.priority-high {
-  border: 1px solid var(--missed);
+/* لون الأولوية على إطار دائرة الاختبار فقط (لا على صف المهمة كلها)،
+   ويُستثنى المكتمل/الفائت عشان يفضل لون الإنجاز/الفوات */
+.task-row.priority-high:not(.done):not(.missed) .task-check {
+  color: var(--missed);
 }
-.task-row.priority-medium {
-  border: 1px solid #d98c15;
+.task-row.priority-medium:not(.done):not(.missed) .task-check {
+  color: #d98c15;
 }
-.task-row.priority-low {
-  border: 1px solid var(--done);
+.task-row.priority-low:not(.done):not(.missed) .task-check {
+  color: var(--done);
 }
-.dark-mode .task-row.priority-medium {
-  border-color: #f0ab2e;
+.dark-mode .task-row.priority-medium:not(.done):not(.missed) .task-check {
+  color: #f0ab2e;
+}
+.task-row.priority-high:not(.done):not(.missed) .task-check:hover {
+  background: var(--missed-soft);
 }
 .hours-input {
   width: 130px;
