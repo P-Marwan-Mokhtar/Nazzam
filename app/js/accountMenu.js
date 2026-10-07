@@ -350,6 +350,9 @@ function handleAction(btn){
     closeAccountPanel();
     const next = getLang() === 'ar' ? 'en' : 'ar';
     setLang(next);
+    // اللغة تُزامَن مع الحساب (لرسائل المتابعة بالبريد) — الحفظ الدوري
+    // وحده لا يكفي لأن التبديل قد يكون التغيير الوحيد في الجلسة.
+    saveData();
     ui.timerPanelRenderedForDate = null;
     applyStaticTranslations();
     render();

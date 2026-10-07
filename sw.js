@@ -8,7 +8,7 @@
 // Worker بتاعه هو (app/sw.js)، وده مكمّل له وميفضّلش عليه.
 // ============================================================
 
-const CACHE_VERSION = 'landing-v145';
+const CACHE_VERSION = 'landing-v146';
 const CACHE_NAME = 'nazzam-site-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -19,6 +19,8 @@ const PRECACHE_URLS = [
   './assets/js/landing-i18n.js',
   './assets/js/components.js',
   './assets/js/checkout.js',
+  './unsubscribe.html',
+  './assets/js/unsubscribe.js',
   './assets/js/clarity-loader.js',
   './assets/js/landing-head.js',
   './app/js/vendor/chart.umd.min.js',

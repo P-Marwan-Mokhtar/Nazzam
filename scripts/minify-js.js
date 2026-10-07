@@ -66,6 +66,7 @@ const ESM_FILES = [
   'assets/js/landing-i18n.js',
   'assets/js/components.js',
   'assets/js/checkout.js',
+  'assets/js/unsubscribe.js',
 ];
 
 // سكربتات كلاسيكية (وسم <script> عادي) — تُغلَّف iife حفاظًا على النطاق
@@ -107,6 +108,7 @@ const HTML_FILES = [
   'index.html',
   'app/index.html',
   'checkout.html',
+  'unsubscribe.html',
   'privacy.html',
   'terms.html',
   'refund.html',

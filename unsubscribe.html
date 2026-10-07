@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>إلغاء الاشتراك — نظّم</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <script src="assets/js/landing-head.js"></script>
+  <meta name="description" content="إلغاء الاشتراك في رسائل المتابعة من نظّم." />
+  <link rel="icon" href="app/icons/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/landing.css" />
+  <style>
+    .unsub{width:min(560px,92vw);margin:0 auto;padding:148px 0 64px;text-align:center}
+    .unsub-card{border:1px solid var(--line);border-radius:16px;background:#fff;padding:32px 28px}
+    .unsub-card img{width:64px;height:auto;display:block;margin:0 auto}
+    .unsub-card h1{font-family:var(--font-display);font-size:1.35rem;font-weight:800;margin:16px 0 8px}
+    .unsub-card p{color:var(--ink-2);font-size:.92rem;line-height:2}
+    .unsub-actions{margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+    .btn{border-radius:999px;padding:12px 22px;font-weight:800;font-size:.92rem;border:1px solid transparent;display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+    .btn-primary{background:var(--ink);color:#fff}
+    .btn-ghost{background:#fff;border-color:var(--line);color:var(--ink);text-decoration:none}
+  </style>
+</head>
+<body>
+  <header class="nav" id="siteHeader"></header>
+
+  <main class="unsub">
+    <div class="unsub-card" id="unsubCard"></div>
+  </main>
+
+  <footer class="footer"></footer>
+
+  <script type="module" src="assets/js/landing.js"></script>
+  <script type="module" src="assets/js/unsubscribe.js"></script>
+</body>
+</html>

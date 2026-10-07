@@ -51,3 +51,15 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/polar-webhook/deno.json"
 entrypoint = "./functions/polar-webhook/index.ts"
+
+[functions.send-engagement-emails]
+enabled = true
+verify_jwt = false
+import_map = "./functions/send-engagement-emails/deno.json"
+entrypoint = "./functions/send-engagement-emails/index.ts"
+
+[functions.email-unsubscribe]
+enabled = true
+verify_jwt = false
+import_map = "./functions/email-unsubscribe/deno.json"
+entrypoint = "./functions/email-unsubscribe/index.ts"

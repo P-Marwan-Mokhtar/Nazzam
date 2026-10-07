@@ -33,6 +33,10 @@ export const CANCEL_SUBSCRIPTION_URL = `${SUPABASE_URL}/functions/v1/cancel-subs
 // والدالة تمسح صفه واشتراكاته ثم مستخدم المصادقة — لا يقبل user_id إطلاقًا).
 export const DELETE_ACCOUNT_URL = `${SUPABASE_URL}/functions/v1/delete-account`;
 
+// Edge Function الخاصة بإلغاء الاشتراك في رسائل المتابعة (JSON API تخدم
+// صفحة unsubscribe.html العامة — الرابط موقّع لكل مستخدم، بلا تسجيل دخول).
+export const EMAIL_UNSUBSCRIBE_URL = `${SUPABASE_URL}/functions/v1/email-unsubscribe`;
+
 // لو مكتبة Supabase (js/vendor/supabase.js) لأي سبب متحملتش، منسيبش الخطأ ده
 // يوقف كل شجرة الـ imports بتاعة main.js (ده اللي كان بيسبب شاشة فاضية تمامًا
 // من غير أي رسالة). بدل كده supabaseClient بتبقى null، والدوال اللي بتستخدمها

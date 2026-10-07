@@ -4,7 +4,7 @@
   "outputDirectory": "public",
   "headers": [
     {
-      "source": "/(sw.js|app/sw.js|index.html|app/index.html|privacy.html|terms.html|refund.html|checkout.html|404.html|assets/js/checkout.js|assets/js/clarity-loader.js|assets/js/landing-head.js|assets/js/landing.js|assets/css/landing.css|assets/js/components.js|app/manifest.json)",
+        "source": "/(sw.js|app/sw.js|index.html|app/index.html|privacy.html|terms.html|refund.html|checkout.html|unsubscribe.html|404.html|assets/js/checkout.js|assets/js/unsubscribe.js|assets/js/clarity-loader.js|assets/js/landing-head.js|assets/js/landing.js|assets/css/landing.css|assets/js/components.js|app/manifest.json)",
       "headers": [
         { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
       ]
@@ -41,7 +41,7 @@
       ]
     },
     {
-      "source": "/(checkout.html|privacy.html|terms.html|refund.html|404.html)",
+        "source": "/(checkout.html|unsubscribe.html|privacy.html|terms.html|refund.html|404.html)",
       "headers": [
         {
           "key": "Content-Security-Policy",

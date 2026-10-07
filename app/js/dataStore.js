@@ -3,7 +3,7 @@
 // ============================================================
 
 import { supabaseClient } from './config.js';
-import { t } from './i18n.js';
+import { t, setLang } from './i18n.js';
 import { detectTimezone, todayStr, uid } from './utils.js';
 import { LOCAL_BACKUP_KEY, BACKUP_OWNER_KEY, LAST_SERVER_TS_KEY, PENDING_SYNC_KEY, THEME_PREF_KEY, showToast, state, ui } from './state.js';
 import { currentUserId, ensureAuth } from './auth.js';
@@ -331,6 +331,10 @@ function sanitizeNotificationSettings(obj){
 function sanitizeLoadedState(obj){
   if(!isPlainObject(obj)) return null;
   const out = {};
+  // لغة الواجهة: تُحفظ فقط لو قيمتها صريحة 'ar' | 'en' (تُزامَن مع الحساب
+  // لاستخدامها في رسائل المتابعة بالبريد). الغياب يُتجاهل عمدًا — فالنسخ
+  // القديمة بلا حقل اللغة يجب ألا تقلب تفضيل الجهاز الحالي للعربية.
+  if(obj.lang === 'ar' || obj.lang === 'en') out.lang = obj.lang;
   out.keywords = sanitizeList(obj.keywords, sanitizeNamedItem) || [];
   // سقف البنك: ملف ملعوب بآلاف الأسماء يُقصّ بدل ما يجمّد الرسم
   if(out.keywords.length > MAX_KEYWORDS) out.keywords = out.keywords.slice(0, MAX_KEYWORDS);
@@ -525,6 +529,10 @@ function applyLoadedState(parsed, opts){
   if(parsed.darkMode !== undefined){
     state.darkMode = parsed.darkMode;
   }
+  // لغة الواجهة من النسخة المحمّلة (سيرفر/نسخة محلية/استيراد): تُطبَّق عبر
+  // setLang الأصلية (اتجاه + أسماء أيام + تخزين محلي) بدل ضبط state مباشرة.
+  // الغائب (نسخ قديمة) يُتجاهل فيبقى تفضيل الجهاز الحالي.
+  if(parsed.lang === 'ar' || parsed.lang === 'en') setLang(parsed.lang);
   // الألوان المميزة لكل وضع (مستقلة)، مع ترقية تلقائية من الثيمات القديمة لو موجودة
   if(isValidAccent(parsed.accentLight)) state.accentLight = parsed.accentLight;
   if(isValidAccent(parsed.accentDark)) state.accentDark = parsed.accentDark;
