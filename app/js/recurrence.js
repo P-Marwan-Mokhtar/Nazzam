@@ -13,7 +13,12 @@ import { openCalendarModal } from './calendar.js';
 // منفصل تمامًا عن قاعدة التكرار (recurringTasks): القاعدة بتفضل كما هي،
 // والمنقول هو occurrence واحدة فقط. بيحافظ على كل الحقول (نوع/أولوية/وقت/
 // تذكير/ملاحظة/مهام فرعية) وبيصفّر reminded عشان التذكير يضرب في اليوم الجديد.
-export async function moveSingleTask(taskId, fromDateStr, targetDateStr){
+// opts.silent (للترحيل الجماعي): ينقل الحالة فقط بلا render/توست/saveData —
+// والمتصل هو المسؤول عن رسم وحفظ واحد في النهاية (رسم لكل عنصر في حلقة
+// جماعية بيقطّع الدفعة: توستات فوق بعض وحفظات متزاحمة، فكانت ضغطة "ترحيل
+// المحدد" بتنقل مهمة واحدة بس).
+export async function moveSingleTask(taskId, fromDateStr, targetDateStr, opts){
+  const silent = !!(opts && opts.silent);
   if(!taskId || !fromDateStr || !targetDateStr) return false;
   if(fromDateStr === targetDateStr) return false;
   const srcList = state.days[fromDateStr] || [];
@@ -42,6 +47,8 @@ export async function moveSingleTask(taskId, fromDateStr, targetDateStr){
   state.pinnedInjected[targetDateStr][removed.name] = true;
   ui.pendingMoveTaskId = null;
   ui.openTaskMoreId = null;
+  // المسار الصامت يرجع فورًا بعد نقل الحالة — بلا أي آثار جانبية للواجهة
+  if(silent) return true;
   render();
   // التوست فورًا قبل الحفظ — الحفظ فيه debounce ورفع شبكة بيأخروه
   showUndoToast(`تم نقل "${removed.name}"`, async () => {

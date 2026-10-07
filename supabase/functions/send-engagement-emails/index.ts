@@ -7,7 +7,8 @@
 // الأنواع (تُسجَّل في email_log لمنع التكرار):
 //   welcome    : بعد ساعة من إنشاء الحساب (مرة واحدة، خلال أول 3 أيام فقط
 //                حتى لا تصل للمستخدمين القدامى عند أول تشغيل)
-//   activation : سجّل منذ 48 ساعة ولم يضف أي مهمة بعد (مرة واحدة، خلال أول 14 يومًا)
+//   activation : سجّل منذ 48 ساعة ولم يضف أي مهمة (مرة واحدة — تشمل
+//                الحسابات القديمة التي لم تستخدم التطبيق أبدًا)
 //   dormant_7  : كان نشطًا ثم غاب 7 أيام (مرة واحدة)
 //   dormant_14 : غاب 14 يومًا (مرة واحدة)
 //   dormant_30 : غاب 30 يومًا (مرة واحدة)
@@ -569,7 +570,7 @@ Deno.serve(async (req) => {
       // اختيار النوع (رسالة واحدة لكل مستخدم في التشغيلة)
       let pick: EmailType | null = null;
       if (!sentSet.has("welcome") && ageH >= 1 && ageH < 72) pick = "welcome";
-      else if (!sentSet.has("activation") && ageH >= 48 && ageH < 24 * 14 && !hasAnyTask) pick = "activation";
+      else if (!sentSet.has("activation") && ageH >= 48 && !hasAnyTask) pick = "activation";
       else if (hasAnyTask && idleD >= 30 && !sentSet.has("dormant_30")) pick = "dormant_30";
       else if (hasAnyTask && idleD >= 14 && !sentSet.has("dormant_14")) pick = "dormant_14";
       else if (hasAnyTask && idleD >= 7 && !sentSet.has("dormant_7")) pick = "dormant_7";

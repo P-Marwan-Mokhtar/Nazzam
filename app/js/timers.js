@@ -154,12 +154,19 @@ export async function moveMissedSelected(){
     ? [...listEl.querySelectorAll('input[data-missed-id]:checked')].map(el => el.dataset.missedId)
     : [];
   if(!checked.length){ showToast(t('missed.none_selected')); return; }
+  // نقل صامت جماعي: رسم وحفظ وتنبيه واحد في النهاية بدل واحد لكل مهمة
+  // (الرسم المتكرر داخل الحلقة كان يقطّع الدفعة فتُنقل مهمة واحدة فقط).
+  // try/catch لكل عنصر: عنصر تالف لا يُجهض باقي المحدد.
   const moved = [];
   for(const id of checked){
-    const cur = (state.days[yesterday] || []).find(x => x.id === id);
-    if(!cur || cur.done || cur._dupOf) continue;
-    const res = await moveSingleTask(id, yesterday, today);
-    if(res === true) moved.push({ id, fromDate: yesterday });
+    try{
+      const cur = (state.days[yesterday] || []).find(x => x.id === id);
+      if(!cur || cur.done || cur._dupOf) continue;
+      const res = await moveSingleTask(id, yesterday, today, { silent: true });
+      if(res === true) moved.push({ id, fromDate: yesterday });
+    }catch(e){
+      console.error('Move missed task failed:', e);
+    }
   }
   closeMissedTasksModal();
   render();
@@ -167,7 +174,7 @@ export async function moveMissedSelected(){
   if(!moved.length){ showToast(t('missed.none_moved')); return; }
   showUndoToast(t('missed.moved'), async () => {
     for(const m of moved){
-      try{ await moveSingleTask(m.id, today, m.fromDate); }catch(e){}
+      try{ await moveSingleTask(m.id, today, m.fromDate, { silent: true }); }catch(e){}
     }
     render();
     await saveData();
