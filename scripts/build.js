@@ -21,6 +21,7 @@ const PUBLISH = [
   'index.html',
   '404.html',
   'checkout.html',
+  'unsubscribe.html',
   'privacy.html',
   'terms.html',
   'refund.html',
