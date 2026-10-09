@@ -431,7 +431,7 @@ const contentActions = {
   },
   'toggle-day-view': async () => {
     ui.dayViewMode = ui.dayViewMode === 'list' ? 'chips' : 'list';
-    try{ localStorage.setItem('nazam-day-view-mode', ui.dayViewMode); }catch(e){}
+    try{ localStorage.setItem('nazam-day-view-mode-v2', ui.dayViewMode); }catch(e){}
     render();
   },
   // حفظ اليوم المعروض كروتين من شريط اليوم نفسه (سياق الفعل الطبيعي) —

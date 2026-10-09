@@ -145,7 +145,7 @@ export const ui = {
   bankFilterInputOpen: false,  // هل حقل إضافة فلتر جديد ظاهر تحت زرار الفلاتر
   dayStatusFilter: 'all',  // فلتر حالة مهام اليوم: all | pending | done
   dayStatusFilterOpen: false,  // هل قائمة فلتر الحالة مفتوحة دلوقتي
-  dayViewMode: (() => { try { return localStorage.getItem('nazam-day-view-mode') === 'chips' ? 'chips' : 'list'; } catch(e){ return 'list'; } })(),  // عرض مهام اليوم: list (الافتراضي: سطر كامل لكل مهمة) | chips (بطاقات مدمجة)
+  dayViewMode: (() => { try { return localStorage.getItem('nazam-day-view-mode-v2') === 'chips' ? 'chips' : 'list'; } catch(e){ return 'list'; } })(),  // عرض مهام اليوم: list (الافتراضي: سطر كامل لكل مهمة) | chips (بطاقات مدمجة) — مفتاح v2 لتجاهل تفضيل chips المحفوظ من عهد الافتراضي القديم
   dayTypeFilter: 'all',  // فلتر نوع مهام اليوم: all | task | habit | hobby
   dayTypeFilterOpen: false,  // هل قائمة فلتر النوع مفتوحة دلوقتي
   dayActionsOpen: false,  // هل لوحة خيارات اليوم (الـ 3 فلاتر في زرار واحد) مفتوحة دلوقتي

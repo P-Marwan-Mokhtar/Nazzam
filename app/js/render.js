@@ -428,7 +428,7 @@ export function render(){
         <span class="material-icons">menu_open</span>
       </button>
       <div class="day-actions-wrap">
-      <button class="day-actions-toggle ${ui.dayViewMode === 'list' ? 'open' : ''}" data-action="toggle-day-view" type="button" title="${t('day.view_mode_title')}">
+      <button class="day-actions-toggle ${ui.dayViewMode === 'chips' ? 'open' : ''}" data-action="toggle-day-view" type="button" title="${t('day.view_mode_title')}">
         <span class="material-icons">${ui.dayViewMode === 'list' ? 'view_list' : 'view_module'}</span>
       </button>
       <button class="day-actions-toggle" data-action="save-day-routine" type="button" title="${t('template.save_day_routine')}">
