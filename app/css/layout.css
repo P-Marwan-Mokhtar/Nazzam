@@ -991,18 +991,19 @@
   }
   .day-split-divider span{ display:none; }
   .day-split-divider:hover{ background:var(--pen); }
-  /* الطي من زر Today وحده: إخفاء القائمة والخط، وتمدد اليوم لعمود واحد */
-  body.bank-side-collapsed .day-split{ grid-template-columns:minmax(0, 1fr); }
+  /* الطي من زر Today وحده: إخفاء البنك والمقبض، ويمتد اليوم وحده بطول الشاشة */
+  body.bank-side-collapsed .day-split{ grid-template-columns:minmax(0, 1fr); grid-template-rows:minmax(0, 1fr); }
 }
 /* رؤوس اليوم شفافة ومدمجة على كل الشاشات — لا صناديق منفصلة */
 .day-split-day .date-nav,
 .day-split-day .section-title{
   background:transparent; border-radius:0; box-shadow:none;
 }
-/* الطي يعمل على كل الشاشات (عريضة وضيقة): إخفاء القائمة والمقبض.
-   محدد أقوى من أي قاعدة عرض/طول (بما فيها سلسلة list-scroll) */
-body.bank-side-collapsed .day-split .day-split-bank.bank-wrap,
-body.bank-side-collapsed .day-split .day-split-divider{ display:none; }
+/* الإخفاء الكامل للبنك والمقبض على المكدس الصغير فقط (<900px) */
+@media (max-width: 899px){
+  body.bank-side-collapsed .day-split .day-split-bank.bank-wrap,
+  body.bank-side-collapsed .day-split .day-split-divider{ display:none; }
+}
 
 /* تحت 900px (تلفون وأجهزة متوسطة): إلغاء تغليف الأعمدة (display:contents) ليبقى ترتيب الموبايل
    الأصلي — شريط التاريخ وزر العودة لليوم فوق القائمة كما كان تمامًا */
@@ -1516,7 +1517,7 @@ html[dir="rtl"] .filter-strip-scroll{
   body:has(#content .day-split) .main-col{ padding:0; }
   body:has(#content .day-split) .side-nav{ background:var(--v-col); }
   body:has(#content .day-split) .day-split{ gap:0; grid-template-columns:max(min(var(--bank-w, 32%), 420px), 360px) 1px minmax(0, 1fr); }
-  body:has(#content .day-split).bank-side-collapsed .day-split{ grid-template-columns:minmax(0, 1fr); }
+  body:has(#content .day-split).bank-side-collapsed .day-split{ grid-template-columns:minmax(0, 1fr); grid-template-rows:minmax(0, 1fr); }
   body:has(#content .day-split) .day-split-bank.bank-wrap,
   body:has(#content .day-split) .day-split-day{
     background:var(--v-col);
@@ -1557,5 +1558,12 @@ html[dir="rtl"] .filter-strip-scroll{
     flex:1 1 auto; min-height:0; overflow-y:auto;
     overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
   }
+}
+
+/* الإخفاء الحقيقي للبنك والمقبض عند الطي (≥900px): أولوية أعلى من
+   سلسلة الارتفاع التي كانت تُبقيهما ظاهرين — فيمتد اليوم وحده */
+@media (min-width: 900px){
+  body:has(#content .day-split).bank-side-collapsed .day-split .day-split-bank.bank-wrap,
+  body:has(#content .day-split).bank-side-collapsed .day-split .day-split-divider{ display:none; }
 }
 
