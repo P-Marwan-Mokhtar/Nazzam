@@ -911,25 +911,28 @@
    الشاشة بدقة على العريض — بلا قياس JS وبلا اختلاف بين الوضعين.
    اللوح نفسه بحجم المحتوى دائمًا (radius ظاهر)، والقوائم وحدها
    تسكرول داخليًا. لا شيء هنا يخص الموبايل (مقفول ≥900px).
+   التقييد مشروط بوجود التقسيم في الـ DOM مباشرة (:has) — مصدر
+   حقيقة واحد بلا مزامنة JS.
    ============================================================ */
 @media (min-width: 900px){
-  body.is-day-view .wrap{ height:calc(100dvh - 24px); overflow:hidden; }
-  body.is-day-view .app-main{ min-height:0; }
-  body.is-day-view .main-layout{ flex:1 1 auto; min-height:0; }
-  body.is-day-view .main-col{ min-height:0; display:flex; flex-direction:column; }
-  body.is-day-view #content{ flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
-  body.is-day-view .day-view{ flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
-  body.is-day-view .day-split{ flex:1 1 auto; min-height:0; align-items:stretch; }
-  body.is-day-view .day-split-day,
-  body.is-day-view .day-split-bank.bank-wrap{ display:flex; flex-direction:column; min-height:0; }
-  body.is-day-view .day-split-bank .bank-content{ display:flex; flex-direction:column; flex:1 1 auto; min-height:0; }
-  body.is-day-view .day-split-bank .keyword-list,
-  body.is-day-view .task-list.view-list{
+  body:has(#content .day-split) .wrap{ height:calc(100dvh - 24px); overflow:hidden; }
+  body:has(#content .day-split) .app-shell{ min-height:0; }
+  body:has(#content .day-split) .app-main{ min-height:0; }
+  body:has(#content .day-split) .main-layout{ flex:1 1 auto; min-height:0; }
+  body:has(#content .day-split) .main-col{ min-height:0; display:flex; flex-direction:column; }
+  body:has(#content .day-split) #content{ flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+  body:has(#content .day-split) .day-view{ flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+  body:has(#content .day-split) .day-split{ flex:1 1 auto; min-height:0; align-items:stretch; }
+  body:has(#content .day-split) .day-split-day,
+  body:has(#content .day-split) .day-split-bank.bank-wrap{ display:flex; flex-direction:column; min-height:0; }
+  body:has(#content .day-split) .day-split-bank .bank-content{ display:flex; flex-direction:column; flex:1 1 auto; min-height:0; }
+  body:has(#content .day-split) .day-split-bank .keyword-list,
+  body:has(#content .day-split) .task-list.view-list{
     flex:1 1 auto; min-height:0; overflow-y:auto;
     overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
   }
   /* وضع الرقائق بحجم محتواه الطبيعي (بلا تمدد لأسطر الالتفاف) */
-  body.is-day-view .task-list:not(.view-list){
+  body:has(#content .day-split) .task-list:not(.view-list){
     flex:none; align-content:flex-start;
   }
 }
@@ -959,13 +962,13 @@
   .day-split-bank .keyword-list{ flex-direction:column; flex-wrap:nowrap; align-items:stretch; gap:0; }
   .day-split-bank .keyword-row{
     flex:0 0 auto; width:100%;
-    min-height:54px; padding:10px 0;
+    min-height:54px; padding:10px 12px;
     background:transparent;
-    border:none; border-bottom:1px solid var(--rowline); border-radius:0;
+    border:1px solid transparent; border-bottom-color:var(--rowline); border-radius:10px;
     box-shadow:none;
   }
-  .day-split-bank .keyword-row:last-child{ border-bottom:none; }
-  .day-split-bank .keyword-row:hover{ background:var(--lift-2); }
+  .day-split-bank .keyword-row:last-child{ border-bottom-color:transparent; }
+  .day-split-bank .keyword-row:hover{ background:var(--lift-2); border-color:transparent; }
   /* إخفاء سهم الطي لأعلى — الطي الجانبي وحده هو المتاح */
   .day-split-bank .bank-toggle-arrow{ display:none; }
   /* عنوان البنك ثابت على سطح المكتب — الطي للجوال فقط */
@@ -1010,6 +1013,20 @@ body.bank-side-collapsed .day-split .day-split-divider{ display:none; }
   .day-split .today-btn{ order:-1; }
   /* زر الطي الجانبي بلا معنى في العرض المكدس — مخفي */
   .section-title .day-bank-toggle{ display:none; }
+  /* سكرول قائمة البنك داخل الكارت فقط بسقف ارتفاع — بدل تمدد الصفحة كلها */
+  .day-split-bank .keyword-list{
+    max-height:320px;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+  /* نفس الكلام لمهام اليوم: سكرول داخلي بسقف داخل الكارت */
+  .day-split-day .task-list{
+    max-height:320px;
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+  }
 }
 
 /* خط فاصل فوق صف Today يفصله عما فوقه (كل الشاشات والوضعين) */
@@ -1121,6 +1138,11 @@ button:not(:disabled){ cursor:pointer; }
 *{ scrollbar-color:color-mix(in srgb, var(--ink-soft) 35%, transparent) transparent; }
 
 .timer-col{ border-inline-start:none; padding:12px; flex-basis:320px; }
+@media (min-width: 1237px){
+  /* توحيد الفجوة حول المؤقت مع فجوة المقبض (12px): بلا خط فاصل
+     وبلا حشو مضاعف على جهة عمود اليوم */
+  .timer-col{ border-inline-start:none; padding-inline-start:0; }
+}
 .app-shell{ overflow-x:clip; }
 .timer-item,
 .timer-item-bottom{ min-width:0; }
@@ -1133,17 +1155,17 @@ button:not(:disabled){ cursor:pointer; }
   color:var(--ink-soft);
 }
 .add-row .add-btn.add-keyword-btn:hover{
-  background:var(--v-acc-soft);
+  background:var(--pen-soft);
   border-color:transparent;
-  color:var(--v-acc);
+  color:var(--pen);
 }
 .add-row input:not(:placeholder-shown) ~ .add-keyword-btn{
-  background:var(--v-acc);
+  background:var(--pen);
   border-color:transparent;
   color:#fff;
 }
 .add-row input:not(:placeholder-shown) ~ .add-keyword-btn:hover{
-  background:color-mix(in srgb, var(--v-acc) 85%, #fff);
+  background:color-mix(in srgb, var(--pen) 85%, #fff);
   color:#fff;
 }
 .side-nav{
@@ -1256,8 +1278,8 @@ button:not(:disabled){ cursor:pointer; }
 }
 .add-row input::placeholder{ color:var(--ink-faint); }
 .add-row:focus-within{
-  border-color:var(--v-acc);
-  box-shadow:0 0 0 2px var(--v-acc-soft);
+  border-color:var(--pen);
+  box-shadow:0 0 0 2px var(--pen-soft);
 }
 .add-row .add-btn.icon-only{
   width:36px; height:36px; flex-basis:36px;

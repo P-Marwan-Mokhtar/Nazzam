@@ -385,9 +385,9 @@ export function render(){
       if(visibleKeywords.length > 10){
         const showAll = ui.bankDisplayLimit >= visibleKeywords.length;
         html += `
-          <button class="keyword-row" data-action="${showAll ? 'bank-show-less' : 'bank-show-more'}" style="background: var(--paper); border: 1.5px solid var(--pen); color: var(--pen); cursor: pointer; font-weight: 700; align-items: center; gap: 4px;">
-            <span class="material-icons" style="font-size: 18px;">${showAll ? 'expand_less' : 'expand_more'}</span>
+          <button class="keyword-row" data-action="${showAll ? 'bank-show-less' : 'bank-show-more'}" style="background: transparent; border: 1px solid var(--pen); border-radius: 10px; padding-inline: 14px; color: var(--pen); cursor: pointer; font-weight: 700; align-items: center; justify-content: space-between;" title="${showAll ? t('bank.show_less') : t('bank.show_more')}">
             <span class="keyword-name">${showAll ? t('bank.show_less') : t('bank.show_more')}</span>
+            <span class="material-icons" style="font-size: 18px;">${showAll ? 'expand_less' : 'expand_more'}</span>
           </button>
         `;
       }

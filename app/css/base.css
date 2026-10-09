@@ -111,6 +111,11 @@ html[dir="ltr"] {
 .dark-mode .wrap {
   background: var(--paper);
 }
+/* الفاتح: الـ wrap شفاف مثل الداكن — لتبرز الكروت البيضاء على رمادي الصفحة */
+body:not(.dark-mode) .wrap {
+  background: transparent;
+  box-shadow: none;
+}
 
 * {
   box-sizing: border-box;
@@ -145,8 +150,6 @@ body {
   padding: 0;
 }
 body {
-  background: radial-gradient(var(--paper-line) 1px, transparent 1px);
-  background-size: 22px 22px;
   background-color: var(--paper);
   font-family: "Inter", "Almarai", sans-serif;
   line-height: 1.7;
