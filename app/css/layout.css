@@ -950,7 +950,7 @@
 @media (min-width: 900px){
   /* إلصاق العمود الأوسط بكل الحواف (وضع اليوم فقط — باقي الصفحات
      بحشوها الطبيعي، والموبايل بقواعده الخاصة) */
-  body.is-day-view .main-col{ padding:12px; }
+  body.is-day-view .main-col{ padding:0 12px; }
   /* عمودان ملتصقان بطول الشاشة: القائمة جهة البداية واليوم بعدها مباشرة.
      شبكة صريحة (بدل flex) — القائمة الجانبية مقيدة بين 360px حد أدنى
      و420px حد أقصى حتى تبقى الأولوية لمهام اليوم: تتسع مع السحب حتى 420px فقط ولا تتجاوزها */
@@ -1140,8 +1140,8 @@ button:not(:disabled){ cursor:pointer; }
 .timer-col{ border-inline-start:none; padding:12px; flex-basis:320px; }
 @media (min-width: 1237px){
   /* توحيد الفجوة حول المؤقت مع فجوة المقبض (12px): بلا خط فاصل
-     وبلا حشو مضاعف على جهة عمود اليوم */
-  .timer-col{ border-inline-start:none; padding-inline-start:0; }
+     وبلا حشو مضاعف على جهة عمود اليوم — ومحاذاة رأسية مع الكروت */
+  .timer-col{ border-inline-start:none; padding-inline-start:0; padding-top:0; padding-bottom:0; }
 }
 .app-shell{ overflow-x:clip; }
 .timer-item,
@@ -1504,5 +1504,58 @@ html[dir="rtl"] .filter-strip-scroll{
   .side-nav.side-nav .side-nav-head .side-nav-btn:last-child{ flex:none; }
   .side-nav.side-nav .side-nav-btn .side-nav-label{ display:none; }
   .side-nav.side-nav .side-nav-divider{ width:30px; }
+}
+
+/* ============================================================
+   وضع "القطعة الواحدة" (سطح المكتب ≥1237px في عرض اليوم فقط):
+   الأعمدة الأربعة (الجانبي + القائمة + اليوم + المؤقت) ملتصقة
+   بلا فجوات ولا استدارة — يفصل بينها خط واحد فقط.
+   ============================================================ */
+@media (min-width: 1237px){
+  body:has(#content .day-split) .wrap{ overflow:hidden; }
+  body:has(#content .day-split) .main-col{ padding:0; }
+  body:has(#content .day-split) .side-nav{ background:var(--v-col); }
+  body:has(#content .day-split) .day-split{ gap:0; grid-template-columns:max(min(var(--bank-w, 32%), 420px), 360px) 1px minmax(0, 1fr); }
+  body:has(#content .day-split).bank-side-collapsed .day-split{ grid-template-columns:minmax(0, 1fr); }
+  body:has(#content .day-split) .day-split-bank.bank-wrap,
+  body:has(#content .day-split) .day-split-day{
+    background:var(--v-col);
+    border:none;
+    border-radius:0;
+    box-shadow:none;
+  }
+  /* المقبض خط 1px + مساحة إمساك غير مرئية حوله */
+  body:has(#content .day-split) .day-split-divider{
+    position:relative;
+    flex:0 0 1px; align-self:stretch; cursor:col-resize; touch-action:none;
+    display:block; background:var(--paper-line); border:none; padding:0; margin:0;
+  }
+  body:has(#content .day-split) .day-split-divider::after{
+    content:""; position:absolute; inset:0 -6px;
+  }
+  body:has(#content .day-split) .day-split-divider:hover{ background:var(--pen); }
+  body:has(#content .day-split) .timer-col{
+    padding:0;
+    border-inline-start:1px solid var(--paper-line);
+    display:flex; flex-direction:column; min-height:0;
+  }
+  /* #timerPanel غلاف وسيط بين العمود والكارت — يجب أن يملأ هو أيضًا
+     وإلا انقطعت سلسلة المرونة وبقي الكارت بحجم محتواه */
+  body:has(#content .day-split) .timer-col > #timerPanel{
+    flex:1 1 auto; min-height:0;
+    display:flex; flex-direction:column;
+  }
+  body:has(#content .day-split) .timer-panel-card{
+    background:var(--v-col);
+    border:none;
+    border-radius:0;
+    box-shadow:none;
+    flex:1 1 auto; min-height:0;
+    display:flex; flex-direction:column;
+  }
+  body:has(#content .day-split) .timer-panel-card .timer-list{
+    flex:1 1 auto; min-height:0; overflow-y:auto;
+    overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
+  }
 }
 
