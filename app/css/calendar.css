@@ -292,10 +292,16 @@
 .bank-toggle-arrow.open {
   transform: rotate(180deg);
 }
+/* الموبايل والبنك مطوي (بلا محتوى): تقليل الحشو السفلي للعنوان */
+@media (max-width: 899px) {
+  .bank-wrap:not(:has(.bank-content)) .bank-toggle {
+    padding-bottom: 6px;
+  }
+}
 .bank-content {
   margin: 0;
   padding: 0 16px 16px;
-  border-top: 1px solid var(--paper-line);
+  border-top: none;
   padding-top: 14px;
   transform-origin: top;
 }
@@ -446,11 +452,10 @@
   background: var(--paper);
   color: var(--ink);
 }
-/* عدسة البحث جوّه الحقل في بدايته (يمين في العربي) — كانت بلا تموضع فتظهر ملزوقة من بره */
+/* عدسة البحث جوّه الحقل في بدايته — منطقية الاتجاه لكلا اللغتين */
 .bank-search-icon {
   position: absolute;
-  right: 12px;
-  left: auto;
+  inset-inline-start: 12px;
   color: var(--ink-soft);
   pointer-events: none;
   display: flex;

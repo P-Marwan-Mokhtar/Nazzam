@@ -382,7 +382,6 @@ function heatmapHtml(name, occurrences){
 // شاشة إحصائيات مهمة واحدة — بتتفتح من قائمة (المزيد) في بنك المهام
 export function renderTaskStatsView(name){
   const s = computeTaskStats(name);
-  const scheduled = !!taskScheduleDays(name);
 
   // بيانات مخطط الوقت اليومي (آخر 14 يومًا): الدقائق الفعلية لكل يوم —
   // من occurrences الجاهزة (مستبعد منها المستقبل أصلًا).
@@ -423,9 +422,9 @@ export function renderTaskStatsView(name){
           <small>${t('stats.completion_rate')}</small>
         </div>
         <div class="stats-summary-pill">
-          <span class="material-icons">bolt</span>
-          <strong>${s.streak}</strong>
-          <small>${pl(s.streak, t(scheduled ? 'stats.streak_session' : 'stats.streak_day'), t(scheduled ? 'stats.streak_sessions' : 'stats.streak_days'))}</small>
+          <span class="material-icons">schedule</span>
+          <strong>${formatHM(s.totalActualMs)}</strong>
+          <small>${t('stats.total_time')}</small>
         </div>
         <div class="stats-summary-pill">
           <span class="material-icons">emoji_events</span>

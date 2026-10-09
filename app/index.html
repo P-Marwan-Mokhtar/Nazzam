@@ -1086,6 +1086,24 @@
       </div>
     </div>
 
+    <!-- المؤقتات: زر عائم + نافذة منبثقة بنمط المساعد (بدل عمود المؤقتات) -->
+    <button class="assistant-fab timer-fab" id="timerFab" type="button" data-i18n-title="timer.panel_title" title="المؤقتات" aria-label="المؤقتات">
+      <span class="material-icons">timer</span>
+    </button>
+    <div class="modal-overlay assistant-overlay" id="timerOverlay">
+      <div class="assistant-panel timer-panel" role="dialog" aria-modal="true" aria-labelledby="timerPanelTitle">
+        <div class="assistant-head">
+          <span class="material-icons">timer</span>
+          <h2 id="timerPanelTitle" data-i18n="timer.panel_title">المؤقتات</h2>
+          <button class="icon-btn" id="closeTimerBtn" type="button" data-i18n-title="c.close" title="إغلاق">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+        <div class="timer-panel-body" id="timerPopupBody">
+        </div>
+      </div>
+    </div>
+
     <script src="js/vendor/supabase.js" defer></script>
     <script src="js/vendor/chart.umd.min.js" defer></script>
     <script

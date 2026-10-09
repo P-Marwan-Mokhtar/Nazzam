@@ -13,7 +13,7 @@ import { emptyStateHtml, escapeAttr, escapeHtml, fmtDay, fromISO, highlightMatch
 import { t, formatHM } from './i18n.js';
 import { PRIORITY_LABELS, TASK_TYPES, contentEl, getDaySortMode, state, taskTypeKey, ui } from './state.js';
 import { saveData } from './dataStore.js';
-import { attachEvents, positionTaskMoreFixed, useFixedDropdown } from './events.js';
+import { attachEvents, positionFilterMoreFixed, positionTaskMoreFixed, useFixedDropdown } from './events.js';
 import { buildFilterDropdown, hideDurationPopover } from './popovers.js';
 import { computeTaskStreak, renderStatsView, renderTaskStatsView, taskScheduleDays } from './stats.js';
 import { renderTimeBlockView, setTbStretch } from './timeBlocking.js';
@@ -97,6 +97,20 @@ export function render(){
   const isFullView = !!ui.weekViewOpen || !!ui.timeBlockViewOpen || !!ui.statsViewOpen || !!ui.taskStatsName || !!ui.smartListsOpen;
   const listScrollActive = !isFullView && ui.dayViewMode === 'list';
   document.body.classList.toggle('list-scroll', listScrollActive);
+  // وضع اليوم يُرفع فورًا مع الشاشات الكاملة — وإلا تتسرب قواعده
+  // (‎#content ‏overflow:hidden‎) إلى الإحصائيات/الأسبوع/الجدول وتخنق سكرول ‎.main-col‎
+  // (كان يُضبط في attachEvents فقط الذي لا يُستدعى في الشاشات الكاملة).
+  document.body.classList.toggle('is-day-view', !isFullView);
+  // الشاشات الكاملة بلا قوائم يوم — أي حالة ⋮ عالقة من عرض اليوم تُصفَّر
+  // بلا رسم إضافي حتى لا تحاول متابعة السكرول تموضع زر غير موجود
+  if(isFullView){
+    ui.openFilterMoreId = null;
+    ui.openFilterMorePos = null;
+    ui.openTaskMoreId = null;
+    ui.openKeywordMoreId = null;
+    ui.openTaskMorePos = null;
+    ui.openTaskMoreUp = false;
+  }
   // إحداثيات الـ fixed صالحة مع السكرول الداخلي أو الموبايل بس — غير كده بتتنضف
   // عشان القايمة المطلقة ماتاخدش top/left قديمة
   if(!useFixedDropdown()) ui.openTaskMorePos = null;
@@ -140,23 +154,18 @@ export function render(){
 
   html += `<div class="day-view ${entrance ? 'animate-in' : ''}">`;
 
-  html += `
-    <div class="date-nav">
-      <button class="nav-btn" id="prevBtn" aria-label="${t('day.prev')}"><span class="material-icons">chevron_right</span></button>
-      <div class="date-display">
-        <div class="day-name">${fmtDay(ui.selectedDate)}</div>
-        <div class="day-sub">${dayTasks.length ? `${dayTasks.length === 1 ? t('day.count_done_one', {total: dayTasks.length}) : t('day.count_done', {done: doneCount, total: dayTasks.length})}${totalHoursText ? ` • ${totalHoursText}` : ''}` : t('day.no_tasks_recorded')}</div>
-      </div>
-      <button class="nav-btn" id="nextBtn" aria-label="${t('day.next')}"><span class="material-icons">chevron_left</span></button>
-    </div>
-  `;
-  if(!isToday){
-    html += `<button class="today-btn" id="todayBtn">${t('day.go_today')}</button>`;
-  }
+  // تجريبي (قابل للعكس): حاوية التقسيم الجانبي — القائمة (أولًا: جهة البداية)
+  // ثم المقبض ثم اليوم. تُفعَّل بالـ CSS على العريض فقط، وتحتفظ بنسبة العرض
+  // في --bank-w ليُعيد كل رسم إنتاجها.
+  // شريط التاريخ داخل عمود اليوم حصرًا (فوق Today فقط) — لا يمتد فوق القائمة.
+  const splitW = (ui.daySplit && typeof ui.daySplit.w === 'number') ? ui.daySplit.w : 0.32;
+  html += `<div class="day-split" style="--bank-w:${Math.round(splitW * 100)}%">`;
 
   // Keyword Bank Section
-  const bankIsOpen = ui.bankOpen || ui.closingBank;
-  html += `<div class="bank-wrap">`;
+  // على 900px فأعلى البنك مفتوح دائمًا — الطي للشاشات الأصغر فقط
+  const isWideBank = (typeof window !== 'undefined') && window.innerWidth >= 900;
+  const bankIsOpen = isWideBank || ui.bankOpen || ui.closingBank;
+  html += `<div class="bank-wrap day-split-bank">`;
   html += `<button class="bank-toggle" data-action="toggle-bank" type="button">
     <span class="bank-toggle-label">${t('bank.title')}</span>
     <span class="bank-toggle-arrow ${ui.bankOpen ? 'open' : ''}"><span class="material-icons">expand_more</span></span>
@@ -219,7 +228,7 @@ export function render(){
     `;
 
     html += `<div class="filter-chips-wrap ${!ui.mobileFiltersOpen ? 'mobile-closed' : ''} ${ui.closingMobileFilters ? 'mobile-closed-anim' : ''} ${ui.justOpenedMobileFilters ? 'mobile-opening' : ''}" id="filterChipsWrap">`;
-    html += `<div class="filter-chips">`;
+    html += `<div class="filter-strip">`;
     html += `
       <div class="bank-filters-panel-wrap">
         <button class="filter-chip bank-filters-toggle ${ui.bankFilterInputOpen ? 'open' : ''} ${hasActiveFilter ? 'has-active' : ''}" id="bankFiltersToggleBtn" data-action="toggle-bank-filter-input" type="button" title="${t('bank.filter_add_title')}">
@@ -229,6 +238,7 @@ export function render(){
           <input type="text" id="newFilterInput" placeholder="${t('bank.filter_placeholder')}" maxlength="40" />
         </div>
       </div>`;
+    html += `<div class="filter-strip-scroll" id="filterStripScroll"><div class="filter-chips">`;
     html += `<button class="filter-chip ${ui.activeFilter === 'all' ? 'active' : ''}" data-action="select-filter" data-filter-id="all">${t('c.all')}</button>`;
     const sortedFilters = [...state.filters].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
     sortedFilters.forEach(f => {
@@ -251,7 +261,7 @@ export function render(){
                 <span class="material-icons">more_vert</span>
               </button>
             </span>
-            <div class="filter-more-dropdown ${ui.openFilterMoreId === f.id ? 'open' : ''}">
+            <div class="filter-more-dropdown ${ui.openFilterMoreId === f.id ? 'open' : ''}"${ui.openFilterMoreId === f.id && ui.openFilterMorePos ? ` style="top:${ui.openFilterMorePos.top}px;left:${ui.openFilterMorePos.left}px;"` : ''}>
               <button class="tmd-btn" data-action="toggle-pin-filter" data-id="${escapeAttr(f.id)}">
                 <span class="material-icons">push_pin</span><span>${f.pinned ? t('bank.unpin') : t('bank.pin')}</span>
               </button>
@@ -268,18 +278,19 @@ export function render(){
     });
     html += `</div>`;
     html += `</div>`;
-
     html += `
-      <div class="bank-search-divider-wrap">
-        <div class="bank-filters-divider"></div>
-        <button class="bank-search-reveal ${searchOpen ? 'open' : ''}" data-action="toggle-bank-search" type="button" title="${t('bank.search_placeholder')}" aria-label="${t('bank.search_placeholder')}" aria-expanded="${searchOpen ? 'true' : 'false'}">
-          <span class="material-icons">${searchOpen ? 'expand_less' : 'search'}</span>
-        </button>
-      </div>
+      <button class="bank-search-reveal ${searchOpen ? 'open' : ''}" data-action="toggle-bank-search" type="button" title="${t('bank.search_placeholder')}" aria-label="${t('bank.search_placeholder')}" aria-expanded="${searchOpen ? 'true' : 'false'}">
+        <span class="material-icons">${searchOpen ? 'expand_less' : 'search'}</span>
+      </button>
+    </div>`;
+    html += `</div>`; // close .filter-chips-wrap
+    html += `
       <div class="bank-search-collapsible ${searchOpen ? 'open' : ''}">
         <div class="bank-search-collapsible-inner">
           <div class="bank-search">
+            <span class="bank-search-icon" aria-hidden="true"><span class="material-icons">search</span></span>
             <input type="text" id="bankSearchInput" placeholder="${t('bank.search_placeholder')}" value="${escapeAttr(ui.bankSearchQuery)}" />
+            <span class="search-kbd" id="bankSearchKbd" title="Ctrl K">Ctrl K</span>
             <button class="bank-search-clear" id="bankSearchClear" title="${t('bank.search_clear')}" style="${ui.bankSearchQuery ? '' : 'display:none'}"><span class="material-icons">close</span></button>
           </div>
         </div>
@@ -387,6 +398,23 @@ export function render(){
     html += `</div>`; 
   }
   html += `</div>`; // close .bank-wrap
+  // تجريبي: مقبض التحجيم بين العمودين ثم عمود اليوم (العريض فقط بالـ CSS)
+  html += `<div class="day-split-divider" id="daySplitDivider" title="${t('day.split_resize')}"><span></span></div>`;
+  html += `<div class="day-split-day">`;
+  // شريط التاريخ داخل عمود اليوم حصرًا (فوق Today فقط) — لا يمتد فوق القائمة
+  html += `
+    <div class="date-nav">
+      <button class="nav-btn" id="prevBtn" aria-label="${t('day.prev')}"><span class="material-icons">chevron_right</span></button>
+      <div class="date-display">
+        <div class="day-name">${fmtDay(ui.selectedDate)}</div>
+        <div class="day-sub">${dayTasks.length ? `${dayTasks.length === 1 ? t('day.count_done_one', {total: dayTasks.length}) : t('day.count_done', {done: doneCount, total: dayTasks.length})}${totalHoursText ? ` • ${totalHoursText}` : ''}` : t('day.no_tasks_recorded')}</div>
+      </div>
+      <button class="nav-btn" id="nextBtn" aria-label="${t('day.next')}"><span class="material-icons">chevron_left</span></button>
+    </div>
+  `;
+  if(!isToday){
+    html += `<button class="today-btn" id="todayBtn">${t('day.go_today')}</button>`;
+  }
 
   // Daily Tasks Section
   const dayFilterLabels = { all: t('day.filter_all'), pending: t('day.filter_pending'), done: t('day.filter_done') };
@@ -396,6 +424,9 @@ export function render(){
   html += `
     <div class="section-title" >
       <span>${t('day.title')}</span>
+      <button class="day-actions-toggle day-bank-toggle ${!(ui.daySplit && ui.daySplit.collapsed) ? 'open' : ''}" data-action="toggle-bank-side" type="button" title="${(ui.daySplit && ui.daySplit.collapsed) ? t('day.bank_expand') : t('day.bank_collapse')}">
+        <span class="material-icons">menu_open</span>
+      </button>
       <div class="day-actions-wrap">
       <button class="day-actions-toggle ${ui.dayViewMode === 'list' ? 'open' : ''}" data-action="toggle-day-view" type="button" title="${t('day.view_mode_title')}">
         <span class="material-icons">${ui.dayViewMode === 'list' ? 'view_list' : 'view_module'}</span>
@@ -620,7 +651,8 @@ export function render(){
     html += `</div>`;
   }
 
-  html += `</div>`;
+  html += `</div>`; // close .day-split-day
+  html += `</div>`; // close .day-split
 
   ui.justOpenedBank = false;
   ui.justReturnedFromStats = false;
@@ -661,6 +693,10 @@ export function render(){
     // القايمة اتفتحت من غير إحداثيات (زي التبديل من chips لـ list والقايمة مفتوحة) — نحسبها بعد الرسم
     if(useFixedDropdown() && (ui.openTaskMoreId || ui.openKeywordMoreId) && !ui.openTaskMorePos){
       positionTaskMoreFixed(ui.openTaskMoreId || ui.openKeywordMoreId);
+    }
+    // قائمة ⋮ الفلتر مثبتة دائمًا بإحداثيات الشاشة (الشريط مقصوص دائمًا)
+    if(ui.openFilterMoreId){
+      positionFilterMoreFixed();
     }
     if(ui.timerPanelRenderedForDate !== ui.selectedDate){
       renderTimerPanel();

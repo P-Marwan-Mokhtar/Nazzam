@@ -118,15 +118,15 @@ export const TASK_TYPES = {
 
 | Variable | Light | Dark | الوظيفة |
 |----------|-------|------|---------|
-| `--paper` | `#f4f5f7` | `#15171a` | خلفية الصفحة |
+| `--paper` | `#f4f5f7` | `#0a0a0a` | خلفية الصفحة |
 | `--ink` | `#1f2328` | `#e8eaee` | النص الأساسي |
 | `--ink-soft` | `#6b7280` | `#9aa1ab` | النص الثانوي |
 | `--pen` | حسب الـ accent | حسب الـ accent | اللون المميز (يتغير حسب الباليتة) |
 | `--pen-soft` | حسب الـ accent | حسب الـ accent | خلفية اللون المميز |
 | `--done` | `#3e7a5c` | `#489970` | أخضر (إنجاز/هواية) |
 | `--missed` | `#c5382e` | `#ff6b5e` | أحمر (فوات/أعلى أهمية) |
-| `--card` | `#ffffff` | `#1e2025` | خلفية الكرت |
-| `--popup` | من CSS (`.dark-mode`) | من CSS (`.dark-mode`) | خلفية البوب أبات — مش في الباليتة الـ inline، بتتورث من كلاس الوضع |
+| `--card` | `#ffffff` | `#111111` | خلفية الكرت |
+| `--popup` | من CSS (`.dark-mode`) `#ffffff` | من CSS (`.dark-mode`) `#161616` | خلفية البوب أبات — مش في الباليتة الـ inline، بتتورث من كلاس الوضع |
 
 ### الألوان المميزة (ACCENTS في theme.js):
 
@@ -142,7 +142,7 @@ export const TASK_TYPES = {
 - **فلتر الحالة**: الكل / مكتملة / غير مكتملة — `ui.dayStatusFilter`
 - **فلتر النوع**: الكل / مهمة / عادة / هواية — `ui.dayTypeFilter`
 - **الترتيب**: `none` / `priority` / `title` / `created` — عبر `getDaySortMode/setDaySortMode(dateStr)` في `state.js` (الدالة المركزية الوحيدة، بترجع للأصلي عبر `_taskOrderCache` قبل أي فرز).
-- **عرض اليوم**: `chips` (الافتراضي المدمج) / `list` (سطر كامل + سكرول داخلي على العريض ≥1237px) — محفوظ في `nazam-day-view-mode` — `ui.dayViewMode`.
+- **عرض اليوم**: `list` (الافتراضي: سطر كامل لكل مهمة) / `chips` (بطاقات مدمجة) — محفوظ في `nazam-day-view-mode` — `ui.dayViewMode`.
 - **الفلاتر ظاهرة افتراضيًا** (`mobileFiltersOpen: true` في state.js).
 - **الفلتر بيتعامل مع `t.type || 'task'`** — المهام القديمة بلا نوع بتتفلتر تحت "مهام".
 

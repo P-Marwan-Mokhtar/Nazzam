@@ -289,7 +289,9 @@ export function renderTimeBlockView(){
   for(let h = startHour; h <= endHour; h++){
     const top = (h - startHour) * HOUR_PX;
     hoursHtml += `<div class="tbw-hour-line" style="top:${Math.min(top, trackHeight - 1)}px"></div>`;
-    hourLabelsHtml += `<span class="tbw-hour-label" style="top:${Math.min(top - 7, trackHeight - 18)}px">${formatTimeArabic(String(h % 24).padStart(2, '0') + ':00')}</span>`;
+    // التسمية الأولى كانت عند top:-7px فتختبئ خلف الهيدر اللاصق (sticky بلا شفافية) —
+    // تُثبَّت عند 0 حتى تظهر كاملة داخل المسار
+    hourLabelsHtml += `<span class="tbw-hour-label" style="top:${Math.max(0, Math.min(top - 7, trackHeight - 18))}px">${formatTimeArabic(String(h % 24).padStart(2, '0') + ':00')}</span>`;
   }
 
   let nowLineHtml = '';
@@ -549,7 +551,7 @@ function renderTimeBlockWeekView(){
   for(let h = startHour; h <= endHour; h++){
     const top = (h - startHour) * HOUR_PX;
     hoursHtml += `<div class="tbw-hour-line" style="top:${Math.min(top, trackHeight - 1)}px"></div>`;
-    hourLabelsHtml += `<span class="tbw-hour-label" style="top:${Math.min(top - 7, trackHeight - 18)}px">${formatTimeArabic(String(h % 24).padStart(2, '0') + ':00')}</span>`;
+    hourLabelsHtml += `<span class="tbw-hour-label" style="top:${Math.max(0, Math.min(top - 7, trackHeight - 18))}px">${formatTimeArabic(String(h % 24).padStart(2, '0') + ':00')}</span>`;
   }
 
   let colsHtml = '';

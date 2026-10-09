@@ -14,28 +14,28 @@
   #weekViewBtn {
     display: none;
   }
-/* فروع بوب السهم في صف الإضافة على الموبايل: بتفتح كـ dropdown تحت البند نفسه
-      بعرض البوب كله — مش fixed في نص الشاشة (كان بيغطي البوب الأساسي وبيكسر السكرول).
-      المرساة على النهاية المنطقية فلوّمت مع العربية والإنجليزية من غير ما يخرج بره الشاشة */
-   .add-arrow-sub,
-   html[dir="ltr"] .add-arrow-sub {
-     position: absolute;
-     top: calc(100% + 4px);
-     inset-inline: 0;
-     transform: translateY(6px);
-     width: 100%;
-     max-width: 100%;
-     max-height: 45vh;
-     overflow-y: auto;
-     -webkit-overflow-scrolling: touch;
-     box-shadow: var(--shadow-lg, var(--shadow));
-   }
-  .add-arrow-sub.open,
-  html[dir="ltr"] .add-arrow-sub.open {
-    transform: translateY(0);
-  }
   /* قايمة الفلتر بتفضل 140px (نفس الديسكتوب) — الـ max-height الكبيرة بتعدّي
      حدود الشاشة على الموبايل فالسكرول بيبان باطل، والسقف الصغير ده سكرول ثابت */
+}
+/* فروع بوب السهم في صف الإضافة (كل العروض واللغتين): بتنسدل تحت البند
+   نفسه بعرض البوب — الانبثاق الجانبي كان يتقص من حافة اللوح في العربي
+   والإنجليزي على اللوحات الضيقة. المرساة منطقية فلا تخرج بره الشاشة */
+.add-arrow-sub,
+html[dir="ltr"] .add-arrow-sub {
+  position: absolute;
+  top: calc(100% + 4px);
+  inset-inline: 0;
+  transform: translateY(6px);
+  width: 100%;
+  max-width: 100%;
+  max-height: 45vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: var(--shadow-lg, var(--shadow));
+}
+.add-arrow-sub.open,
+html[dir="ltr"] .add-arrow-sub.open {
+  transform: translateY(0);
 }
 
 /* ===== عرض الأسبوع ===== */
@@ -413,13 +413,17 @@ body.locked-view .main-col {
   display: grid;
   grid-template-columns: repeat(7, minmax(110px, 1fr)) 56px;
   margin-top: 16px;
-  border: 1px solid var(--paper-line);
-  border-top: none;
+  /* بلا حدود على الشبكة نفسها: حد الشبكة المستقيم كان يلتقي زوايا
+     الرأس اللاصق المدورة أثناء السكرول فيظهر مكسورًا — الحدود على
+     المسارين الخارجيين أدناه، والعلوي ترسمه الرؤوس */
+  border: none;
   border-radius: 12px;
   /* clip مش auto: بيقص الزوائد مع الحفاظ على الـ radius، ومبينشئش
      حاوية سكرول — فـ sticky الهيدر الرأسي بيفضل شغال مع سكرول الصفحة.
-     (auto كانت بتخلي الشبكة هي حاوية السكرول فيهرب الهيدر مع المحتوى) */
-  overflow-x: clip;
+     (auto كانت بتخلي الشبكة هي حاوية السكرول فيهرب الهيدر مع المحتوى)
+     والمحور الرأسي clip أيضًا حتى تُقص خلفيات الرؤوس على استدارة
+     الزوايا العلوية ولا تخرج مربعة فوق الكارت */
+  overflow: clip;
 }
 @media (max-width: 1100px) {
   /* الشاشات الضيقة: الأعمدة أعرض من الحاوية — سكرول أفقي عادي
@@ -493,6 +497,15 @@ body.locked-view .main-col {
 .tbw-col-track {
   position: relative;
   cursor: pointer;
+}
+/* الحدّان الجانبيان للإطار على المسارين الخارجيين فقط (أول عمود
+   لجهة البداية وعمود الساعات لجهة النهاية — منطقي للاتجاهين) —
+   فيبدآن تحت الرأس اللاصق ولا يلتقيان بزواياه المدورة أثناء السكرول */
+.tbw-grid > .tbw-col:first-child > .tbw-col-track {
+  border-inline-start: 1px solid var(--paper-line);
+}
+.tbw-grid > .tbw-hours > .tbw-hours-track {
+  border-inline-end: 1px solid var(--paper-line);
 }
 .tbw-hours {
   display: flex;
@@ -745,7 +758,8 @@ body.locked-view .main-col {
   margin-bottom: 0;
 }
 .timeblock-side-card {
-  background: var(--paper-line);
+  background: var(--card);
+  border: 1px solid var(--paper-line);
   border-radius: var(--radius);
   box-shadow: var(--shadow-hover);
   padding: 14px;
@@ -1098,6 +1112,16 @@ body.locked-view .main-col.tb-stretch {
   position: sticky;
   top: 0;
   z-index: 6;
+}
+/* أثناء السكرول الرأس اللاصق يلتصق بحافة حاوية السكرول المستطيلة فيخرج
+   مربعًا من استدارة الشبكة — فتُعطى الاستدارة العلوية للرأس نفسه
+   (أول عمود لجهة البداية وعمود الساعات لجهة النهاية، بالخصائص المنطقية
+   حتى تنعكس مع العربية والإنجليزية)، فتبقى الزوايا مدورة ثابتًا ومتحركًا */
+.timeblock-calendar-col .tbw-col:first-child .tbw-col-head {
+  border-start-start-radius: 11px;
+}
+.timeblock-calendar-col .tbw-hours-head {
+  border-start-end-radius: 11px;
 }
 .timeblock-calendar-col .tbw-hours-head {
   background: var(--card);

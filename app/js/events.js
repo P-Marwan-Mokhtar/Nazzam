@@ -4,9 +4,9 @@
 
 import { t } from './i18n.js';
 import { addDays, normalizeArabic, reorderArrayById, todayStr, uid } from './utils.js';
-import { contentEl, getDaySortMode, setDaySortMode, showToast, showUndoToast, state, ui } from './state.js';
+import { contentEl, getDaySortMode, saveDaySplit, setDaySortMode, showToast, showUndoToast, state, ui } from './state.js';
 import { saveData } from './dataStore.js';
-import { hideDurationPopover, showDurationPopover, wireCustomSelects, wireDragAndDrop } from './popovers.js';
+import { hideDurationPopover, showDurationPopover, wireCustomSelects, wireDaySplitResize, wireDragAndDrop, wireFilterStrip, wirePanelsFit } from './popovers.js';
 import { afterRender, render } from './render.js';
 import { openRecurrenceModal } from './recurrence.js';
 import { openSubtasksModal } from './subtasks.js';
@@ -56,8 +56,10 @@ export function isWideListScroll(){
 
 // القايمة fixed بإحداثيات محسوبة (مقيدة بالشاشة) في وضع السكرول الداخلي
 // وعلى الموبايل (≤640px) — عشان مفيش قايمة تطلع بره الشاشة وتعمل overflow.
+// (وكذلك في التقسيم العريض: الألواح متمررة داخليًا منذ تلميع Vercel-like)
 export function useFixedDropdown(){
-  return isWideListScroll() || window.innerWidth <= 640;
+  if(isWideListScroll() || window.innerWidth <= 640) return true;
+  return window.innerWidth >= 1237 && !!document.querySelector('#content .day-split');
 }
 
 // تموضع قايمة المزيد كـ fixed في وضع السكرول الداخلي (list-scroll): القايمة
@@ -79,6 +81,27 @@ export function positionTaskMoreFixed(id){  const wrap = document.querySelector(
   dropdown.style.left = ui.openTaskMorePos.left + 'px';
   ui.openTaskMoreUp = up;
   wrap.classList.toggle('open-up', up);
+  return true;
+}
+
+// تموضع قائمة ⋮ الفلتر كـ fixed بإحداثيات الشاشة (نفس نمط قوائم المهام):
+// شريط الفلاتر مقصوص أفقيًا دائمًا (بلا فيض للصفحة)، فالقائمة المطلقة
+// تُقص بداخله — التثبيت يُخرجها فوق كل شيء. تُحفظ الإحداثيات في
+// ui.openFilterMorePos لتُزرع inline عند كل رسم (مثل مهام اليوم).
+export function positionFilterMoreFixed(){
+  const wrap = document.querySelector(`.filter-chip-outer[data-wrap-id="${ui.openFilterMoreId}"]`);
+  const btn = wrap ? wrap.querySelector('.filter-chip-more') : null;
+  const dropdown = wrap ? wrap.querySelector('.filter-more-dropdown.open') : null;
+  if(!wrap || !btn || !dropdown) return false;
+  const r = btn.getBoundingClientRect();
+  const ddW = dropdown.offsetWidth || 160;
+  const ddH = dropdown.offsetHeight || 0;
+  const up = (ddH === 0) || ((window.innerHeight - r.bottom) < ddH + 8);
+  const left = Math.max(8, Math.min(r.left, window.innerWidth - ddW - 8));
+  const top = up ? Math.max(8, r.top - ddH - 4) : r.bottom + 4;
+  ui.openFilterMorePos = { top: Math.round(top), left: Math.round(left) };
+  dropdown.style.top = ui.openFilterMorePos.top + 'px';
+  dropdown.style.left = ui.openFilterMorePos.left + 'px';
   return true;
 }
 
@@ -249,6 +272,11 @@ const contentActions = {
     toggleVoice('bank', null);
   },
   'toggle-bank': async () => {
+    // زر البنك يعمل تحت 900px فقط — من 900px فأعلى (التقسيم الجانبي)
+    // البنك مفتوح دائمًا كعنوان ثابت بلا طي، والطي الجانبي له زر مستقل بجانب Today
+    if(window.innerWidth >= 900 && document.querySelector('#content .day-split')){
+      return;
+    }
     if(ui.bankOpen){
       ui.bankOpen = false;
       ui.closingBank = true;
@@ -266,6 +294,13 @@ const contentActions = {
       ui.justOpenedBank = true;
       render();
     }
+  },
+  // تجريبي: طي القائمة جانبًا / إظهارها (التقسيم العريض) — يُحفظ محليًا
+  'toggle-bank-side': async () => {
+    if(!ui.daySplit) ui.daySplit = { w: 0.32, collapsed: false };
+    ui.daySplit.collapsed = !ui.daySplit.collapsed;
+    saveDaySplit();
+    render();
   },
   'toggle-task': async (btn) => {
     const { id } = btn.dataset;
@@ -676,8 +711,12 @@ const contentActions = {
   'toggle-filter-more': async (btn) => {
     const { id } = btn.dataset;
     ui.openFilterMoreId = ui.openFilterMoreId === id ? null : id;
+    if(!ui.openFilterMoreId) ui.openFilterMorePos = null;
     render();
-    if(ui.openFilterMoreId === id) fitSubPopovers();
+    if(ui.openFilterMoreId === id){
+      fitSubPopovers();
+      afterRender(() => { positionFilterMoreFixed(); });
+    }
   },
   'toggle-bank-filter-input': async () => {
     ui.bankFilterInputOpen = !ui.bankFilterInputOpen;
@@ -1062,6 +1101,20 @@ export function attachEvents(){
     render();
     saveData();
   });
+  // تجريبي: كلاس طي القائمة جانبًا على body + توصيل مقبض التحجيم (العريض فقط)
+  document.body.classList.toggle('bank-side-collapsed', !!(ui.daySplit && ui.daySplit.collapsed));
+  // تجريبي: كلاس وضع اليوم (بديل :has لتوافق كل المتصفحات) — تنسيق
+  // إلصاق الأعمدة يُطبَّق على main-col فقط في هذا الوضع
+  document.body.classList.toggle('is-day-view', !!document.querySelector('#content .day-split'));
+  wireDaySplitResize();
+  wirePanelsFit();
+  wireFilterStrip();
+  // شارة Ctrl K تركز حقل البحث (تعيين مباشر آمن مع كل رسم)
+  const bankSearchKbd = document.getElementById('bankSearchKbd');
+  if(bankSearchKbd) bankSearchKbd.onclick = () => {
+    const inp = document.getElementById('bankSearchInput');
+    if(inp) inp.focus();
+  };
   // أي render لاحق والبوب الفرعي مفتوح (بحث البنك أثناء الكتابة مثلًا):
   // نعيد فحص جهته بدل ما يرجع للافتراضي ويتقص
   fitSubPopovers();

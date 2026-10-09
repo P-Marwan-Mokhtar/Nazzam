@@ -319,6 +319,7 @@ function updateTimerItemEl(el, timer){
 }
 
 export function renderTimerPanel(){
+  placeTimerPanel();
   // بنحفظ نص الـ input الحالي قبل إعادة بناء الـ header، عشان الـ render ميمسحش اللي المستخدم كاتبه
   const prevInput = document.getElementById('newTimerInput');
   const prevValue = prevInput ? prevInput.value : '';
@@ -562,6 +563,59 @@ export function ensureAudioContext(){
   }catch(e){ /* المتصفح مايدعمش الصوت */ }
 }
 
+// ------------------------------------------------------------------
+// نافذة المؤقتات المنبثقة (زر عائم بنمط المساعد) — اللوحة نفسها تُرسم
+// في #timerPanel أينما كان في الـ DOM، فالنقل من العمود الجانبي
+// للنافذة لا يغيّر أي منطق.
+// ------------------------------------------------------------------
+export function isTimerPanelOpen(){ return !!ui.timerPanelOpen; }
+
+export function openTimerPanel(){
+  ui.timerPanelOpen = true;
+  const overlay = document.getElementById('timerOverlay');
+  if(overlay) overlay.classList.add('open');
+  renderTimerPanel();
+  updateTimerFab();
+  const input = document.getElementById('newTimerInput');
+  if(input) setTimeout(() => { try{ input.focus({ preventScroll: true }); }catch(e){ try{ input.focus(); }catch(_){} } }, 60);
+}
+
+export function closeTimerPanel(){
+  ui.timerPanelOpen = false;
+  const overlay = document.getElementById('timerOverlay');
+  if(overlay) overlay.classList.remove('open');
+}
+
+export function toggleTimerPanel(){
+  if(isTimerPanelOpen()) closeTimerPanel();
+  else openTimerPanel();
+}
+
+// نقطة النبض على الزر العائم أثناء تشغيل أي مؤقت — تُستدعى مع كل tick
+// (كل ثانية) ومع كل رسم للوحة، فالحالة حية دائمًا بلا استعلامات إضافية
+export function updateTimerFab(){
+  const fab = document.getElementById('timerFab');
+  if(!fab) return;
+  const timers = state.timers[ui.selectedDate] || [];
+  fab.classList.toggle('running', timers.some(x => x.running));
+}
+
+// موضع اللوحة حسب العرض — عمود جانبي على الواسع (≥1237px) ولوحة
+// مكدسة تحت المهام تحت 900px، وداخل النافذة المنبثقة بينهما.
+// العنصر نفسه ينتقل (بلا إعادة بناء) فالحالة والتركيز والكتابة لا تتأثر
+export function placeTimerPanel(){
+  const col = document.querySelector('.timer-col');
+  const slot = document.getElementById('timerPopupBody');
+  if(!col || !slot || !timerPanelEl) return;
+  const w = window.innerWidth;
+  const target = (w >= 1237 || w < 900) ? col : slot;
+  if(timerPanelEl.parentElement !== target){
+    target.appendChild(timerPanelEl);
+    // اللوحة غادرت النافذة (تكبير/تصغير حي) — إغلاق النافذة الفارغة
+    if(target !== slot && ui.timerPanelOpen) closeTimerPanel();
+  }
+}
+
 function playAlertSound(){
   try{
     ensureAudioContext();
@@ -694,6 +748,7 @@ export function tickTimers(){  const timers = state.timers[ui.selectedDate];
   }
 
   // وضع التركيز بيتحدث مع كل ثانية (الدالة بتتجاهل نفسها لو الـ overlay مقفول)
+  updateTimerFab();
   renderFocusMode();
 }
 

@@ -14,9 +14,9 @@ const BASE_LIGHT = {
 };
 
 const BASE_DARK = {
-  'paper': '#15171a', 'paper-line': '#2b2e34', 'ink': '#e8eaee', 'ink-soft': '#9aa1ab',
+  'paper': '#0a0a0a', 'paper-line': 'rgba(255,255,255,0.08)', 'ink': '#e8eaee', 'ink-soft': '#9aa1ab',
   'done': '#489970', 'done-soft': '#1a3024', 'missed': '#ff6b5e', 'missed-soft': '#3a1c1c',
-  'card': '#1e2025'
+  'card': '#111111'
 };
 
 // الألوان المميزة الهادية. كل لون ليه نسخة للوضع الفاتح ونسخة للوضع الداكن

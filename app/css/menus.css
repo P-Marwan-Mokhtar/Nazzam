@@ -941,7 +941,7 @@ html[dir="ltr"] .ap-slide-back {
 }
 .ap-danger-link .material-icons{font-size:16px}
 .ap-danger-link:hover{background:var(--missed-soft);color:var(--missed)}
-.dark-mode .ap-danger-zone{border-top-color:#2b2e34}
+.dark-mode .ap-danger-zone{border-top-color:var(--paper-line)}
 /* خطة الاشتراك — تصميم نظيف زي الشركات الكبيرة: سطر واحد خفيف */
 .ap-plan-card{
   display:flex;align-items:center;gap:12px;

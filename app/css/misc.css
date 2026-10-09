@@ -226,6 +226,7 @@
 }
 
 /* ===== تخطيط موحّد: خلفية واحدة (نقاط) والـ components أقسام فوقها ===== */
+/* معطّلة مؤقتًا (تتجاوز قواعد التلميع) — تُحذف أو تُعاد بعد مراجعة الشكل
 .header-card,
 .date-nav,
 .section-title,
@@ -236,6 +237,7 @@
   border: 1px solid var(--paper-line);
   background-color: var(--card);
 }
+*/
 .task-row {
   box-shadow: none;
   border: 1px solid var(--paper-line);
@@ -315,6 +317,51 @@
 .assistant-fab:hover { filter: brightness(0.94); }
 .assistant-fab:active { transform: scale(0.94); }
 .assistant-fab .material-icons { font-size: 26px; }
+
+/* ===== نافذة المؤقتات المنبثقة (زر عائم بنمط المساعد) =====
+   الزر فوق زر المساعد، والنافذة بنفس مقاس لوحة الشات — بلا تكرار:
+   كل البنية من كلاسات المساعد، وهنا الفروق فقط */
+.timer-fab { display: none; }
+/* الزر العائم لشريحة 900–1236px فقط — سطح المكتب عمود جانبي،
+   وتحت 900px اللوحة تحت المهام كما كانت */
+@media (min-width: 900px) and (max-width: 1236px) {
+  .timer-fab { display: flex; bottom: 18px; inset-inline-end: 84px; }
+}
+/* العمود الجانبي مخفي فقط في شريحة الزر العائم (فارغ هناك —
+   اللوحة منتقلة للنافذة)، وظاهر عمودًا فوقها وتحتها مكدسًا */
+@media (min-width: 900px) and (max-width: 1236px) {
+  .timer-col { display: none; }
+}
+/* نقطة النبض أثناء تشغيل أي مؤقت — نفس نبض "بيكتب…" */
+.timer-fab.running::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 8px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--done);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--done) 30%, transparent);
+  animation: assistantBlink 1.1s ease-in-out infinite;
+}
+.timer-panel-body {
+  overflow-y: auto;
+  padding: 12px;
+  min-height: 120px;
+  background: var(--paper);
+}
+/* الكارت الداخلي يذوب في اللوحة (خلفية وحدود اللوحة تكفي) */
+.timer-panel .timer-panel-card {
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+}
+/* عنوان اللوحة الداخلي مكرر مع ترويسة النافذة — يُخفى هنا فقط ويبقى في العمود الجانبي */
+.timer-panel .timer-panel-title {
+  display: none;
+}
 
 .assistant-overlay { z-index: 401; }
 .assistant-panel {
@@ -475,6 +522,7 @@ html[dir="rtl"] .assistant-send .material-icons { transform: scaleX(-1); }
 }
 @media (prefers-reduced-motion: reduce) {
   .add-voice-btn.listening, .assistant-mic.listening { animation: none; }
+  .timer-fab.running::after { animation: none; }
 }
 
 @media (max-width: 640px) {

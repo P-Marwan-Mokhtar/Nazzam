@@ -18,7 +18,7 @@ import { closeSubtasksModal } from './subtasks.js';
 import { closeTaskDetails } from './taskDetails.js';
 import { closeTaskNoteModal } from './taskNote.js';
 import { closeTemplatesModal, closeReplaceDialog, openTemplatesModal, renderTemplatesModal } from './templates.js';
-import { checkMissedTasksPopup, closeMissedTasksModal, renderTimerPanel, tickTimers } from './timers.js';
+import { checkMissedTasksPopup, closeMissedTasksModal, closeTimerPanel, placeTimerPanel, renderTimerPanel, tickTimers, toggleTimerPanel } from './timers.js';
 import { closeDurationPicker, commitDurationPicker } from './wheelPicker.js';
 import { toggleWeekView } from './weekView.js';
 import { closeTimelineTaskPopup, closeTbSide, toggleTimeBlockView } from './timeBlocking.js';
@@ -27,7 +27,7 @@ import { applyTheme, closeAppearanceModal } from './theme.js';
 import { initMonitoring, trackView } from './monitoring.js';
 import { closeUpgrade, gateFree, maybeShowTrialNudge, openUpgrade, setBillingCycle } from './upgrade.js';
 import { wireOnboarding, checkOnboarding, closeOnboarding } from './onboarding.js';
-import { positionTaskMoreFixed, useFixedDropdown } from './events.js';
+import { positionFilterMoreFixed, positionTaskMoreFixed, useFixedDropdown } from './events.js';
 import { openSmartLists } from './smartLists.js';
 import { closeAccountPanel, isAccountPanelOpen, toggleAccountPanel } from './accountMenu.js';
 import { closeAssistant, toggleAssistant, wireAssistantInput, isAssistantFabEnabled } from './assistant.js';
@@ -53,6 +53,8 @@ import { waitForServerPlan } from './billing.js';
       // زر المساعد بره حاوية #app (المخفية قبل الدخول) — نخفيه صراحةً في شاشة الدخول
       const gateFab = document.getElementById('assistantFab');
       if(gateFab) gateFab.style.display = 'none';
+      const gateTimerFab = document.getElementById('timerFab');
+      if(gateTimerFab) gateTimerFab.style.display = 'none';
       initLang(); // قبل بوابة الدخول عشان تترسم بلغته المحفوظة (نفس مفتاح اللاندينج)
       openAuthGate();
       return;
@@ -60,6 +62,8 @@ import { waitForServerPlan } from './billing.js';
     document.getElementById('app').style.display = '';
     const appFab = document.getElementById('assistantFab');
     if(appFab) appFab.style.display = isAssistantFabEnabled() ? '' : 'none';
+    const appTimerFab = document.getElementById('timerFab');
+    if(appTimerFab) appTimerFab.style.display = '';
     if(authed === 'offline'){
       showToast(t('app.offline_boot'));
     }
@@ -219,6 +223,9 @@ async function startApp(){
     if(ui.assistantOpen && !e.target.closest('#assistantOverlay .assistant-panel') && !e.target.closest('#assistantFab') && !e.target.closest('[data-assist-action]')){
       closeAssistant();
     }
+    if(ui.timerPanelOpen && !e.target.closest('#timerOverlay .assistant-panel') && !e.target.closest('#timerFab')){
+      closeTimerPanel();
+    }
     if(ui.bankFilterInputOpen && !e.target.closest('.bank-filters-panel-wrap')){
       ui.bankFilterInputOpen = false;
       render();
@@ -264,12 +271,29 @@ async function startApp(){
     }
   });
 
-  // القايمة المفتوحة fixed (سكرول داخلي أو موبايل) فبنتابع أي سكرول/ريسايز —
+  // القوائم المفتوحة fixed (سكرول داخلي أو موبايل) فبنتابع أي سكرول/ريسايز —
   // بنحرّكها مع الزرار، ولو الزرار خرج بره الشاشة بنقفلها.
   // غير كده القايمة مطلقة مع الصفحة فبننضف أي إحداثيات fixed قديمة.
+  // (قائمة ⋮ الفلتر مثبتة دائمًا لأن شريطها مقصوص، فتُتابَع مثل قوائم المهام
+  // مع السكرول الداخلي العمودي — سكرول الشريط الأفقي نفسه يغلقها في popovers.js).
   let taskMoreFollowQueued = false;
   const followTaskMoreDropdown = () => {
     taskMoreFollowQueued = false;
+    // قائمة الفلتر أولًا — مستقلة عن قوائم المهام وقد تكون مفتوحة معها
+    if(ui.openFilterMoreId){
+      const fBtn = document.querySelector(`.filter-chip-outer[data-wrap-id="${ui.openFilterMoreId}"] .filter-chip-more`);
+      if(!fBtn){ ui.openFilterMoreId = null; ui.openFilterMorePos = null; render(); }
+      else {
+        const fr = fBtn.getBoundingClientRect();
+        if(fr.bottom < 0 || fr.top > window.innerHeight){
+          ui.openFilterMoreId = null;
+          ui.openFilterMorePos = null;
+          render();
+        } else {
+          positionFilterMoreFixed();
+        }
+      }
+    }
     const activeId = ui.openTaskMoreId || ui.openKeywordMoreId;
     if(!activeId) return;
     if(!useFixedDropdown()){
@@ -300,6 +324,32 @@ async function startApp(){
   };
   document.addEventListener('scroll', queueTaskMoreFollow, true);
   window.addEventListener('resize', queueTaskMoreFollow);
+  // عبور نقطة التقسيم الجانبي (900px) يعيد الرسم في عرض اليوم فقط —
+  // حتى يظهر البنك المفتوح دائمًا في التقسيم ويعود لحالته تحتها
+  // (بلا رسم مع كل resize أثناء السحب حتى لا يضيع التركيز)
+  try{
+    const bankBp = window.matchMedia('(min-width: 900px)');
+    let lastBankWide = bankBp.matches;
+    const onBankBp = (e) => {
+      const wide = e.matches;
+      if(wide === lastBankWide) return;
+      lastBankWide = wide;
+      placeTimerPanel();
+      if(!ui.statsViewOpen && !ui.weekViewOpen && !ui.timeBlockViewOpen && !ui.taskStatsName && !ui.smartListsOpen){
+        render();
+      }
+    };
+    if(bankBp.addEventListener) bankBp.addEventListener('change', onBankBp);
+    else if(bankBp.addListener) bankBp.addListener(onBankBp);
+  }catch(e){}
+  // عبور نقطة عمود المؤقتات (1237px): نقل اللوحة بين العمود والنافذة
+  // (العنصر نفسه ينتقل بلا إعادة رسم — الحالة والكتابة محفوظتان)
+  try{
+    const timerBp = window.matchMedia('(min-width: 1237px)');
+    const onTimerBp = () => { placeTimerPanel(); };
+    if(timerBp.addEventListener) timerBp.addEventListener('change', onTimerBp);
+    else if(timerBp.addListener) timerBp.addListener(onTimerBp);
+  }catch(e){}
 
   const toggleStatsView = () => {
     const wasOpen = ui.statsViewOpen;
@@ -548,6 +598,16 @@ async function startApp(){
   });
   wireAssistantInput();
 
+  // المؤقتات (نافذة منبثقة بنمط المساعد): زر عائم + إغلاق
+  const timerFab = document.getElementById('timerFab');
+  if(timerFab) timerFab.onclick = (e) => { e.stopPropagation(); toggleTimerPanel(); };
+  const closeTimerBtn = document.getElementById('closeTimerBtn');
+  if(closeTimerBtn) closeTimerBtn.onclick = closeTimerPanel;
+  const timerOverlay = document.getElementById('timerOverlay');
+  if(timerOverlay) timerOverlay.addEventListener('click', (e) => {
+    if(e.target === timerOverlay) closeTimerPanel();
+  });
+
   // Modal الترحيبي الاحترافي (onboarding.js): يظهر لأول زيارة فقط
   wireOnboarding();
   checkOnboarding();
@@ -647,6 +707,7 @@ async function startApp(){
       if(document.getElementById('notificationSettingsOverlay').classList.contains('open')) closeNotificationSettingsModal();
       if(ui.voiceListening) stopVoice();
       if(ui.assistantOpen) closeAssistant();
+      if(ui.timerPanelOpen) closeTimerPanel();
       if(document.getElementById('timelineTaskOverlay').classList.contains('open')) closeTimelineTaskPopup();
       const rm = document.getElementById('tbRangeMenu');
       if(rm && rm.classList.contains('open')) rm.classList.remove('open');

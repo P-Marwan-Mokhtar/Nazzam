@@ -539,9 +539,9 @@
 .side-nav-btn:active {
   transform: scale(0.92);
 }
-/* النشط ستايل TickTick: الأيقونة ملونة فقط من غير خلفية */
+/* النشط موحد في الوضعين: خلفية الثيم الخافتة وأيقونة بلون الثيم */
 .side-nav-btn.active {
-  background: transparent;
+  background: var(--pen-soft);
   color: var(--pen);
   box-shadow: none;
 }
@@ -843,7 +843,8 @@
     min-height: 0;
   }
   body.list-scroll .main-layout {
-    min-height: 0;
+    flex:1 1 auto;
+    min-height:0;
   }
   body.list-scroll .main-col {
     min-height: 0;
@@ -903,5 +904,583 @@
       background: color-mix(in srgb, var(--ink-soft) 75%, transparent);
     }
   }
+}
+
+/* ============================================================
+   توحيد الارتفاع للوضعين (قائمة ورقائق): سلسلة flex واحدة تملأ
+   الشاشة بدقة على العريض — بلا قياس JS وبلا اختلاف بين الوضعين.
+   اللوح نفسه بحجم المحتوى دائمًا (radius ظاهر)، والقوائم وحدها
+   تسكرول داخليًا. لا شيء هنا يخص الموبايل (مقفول ≥900px).
+   ============================================================ */
+@media (min-width: 900px){
+  body.is-day-view .wrap{ height:calc(100dvh - 24px); overflow:hidden; }
+  body.is-day-view .app-main{ min-height:0; }
+  body.is-day-view .main-layout{ flex:1 1 auto; min-height:0; }
+  body.is-day-view .main-col{ min-height:0; display:flex; flex-direction:column; }
+  body.is-day-view #content{ flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+  body.is-day-view .day-view{ flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+  body.is-day-view .day-split{ flex:1 1 auto; min-height:0; align-items:stretch; }
+  body.is-day-view .day-split-day,
+  body.is-day-view .day-split-bank.bank-wrap{ display:flex; flex-direction:column; min-height:0; }
+  body.is-day-view .day-split-bank .bank-content{ display:flex; flex-direction:column; flex:1 1 auto; min-height:0; }
+  body.is-day-view .day-split-bank .keyword-list,
+  body.is-day-view .task-list.view-list{
+    flex:1 1 auto; min-height:0; overflow-y:auto;
+    overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
+  }
+  /* وضع الرقائق بحجم محتواه الطبيعي (بلا تمدد لأسطر الالتفاف) */
+  body.is-day-view .task-list:not(.view-list){
+    flex:none; align-content:flex-start;
+  }
+}
+
+/* ============================================================
+   تجريبي قابل للعكس (commit واحد): تقسيم القائمة واليوم جنبًا إلى
+   جنب من 900px فأعلى (تحتها مكدس كالموبايل) + زر طي القائمة جانبًا
+   + مقبض سحب للتحكم في عرض العمودين (محفوظ محليًا).
+   القائمة أولًا في الـ DOM = جهة البداية (يمين في العربية).
+   للتراجع الكامل: احذف هذا القسم وحده — لا شيء غيره يعتمد عليه.
+   ملاحظة: ممنوع dotted/dashed هنا (قرار المشروع) — كل الحدود solid.
+   ============================================================ */
+/* زر القائمة بجانب Today يعمل على كل الشاشات (طي/إظهار) */
+
+@media (min-width: 900px){
+  /* إلصاق العمود الأوسط بكل الحواف (وضع اليوم فقط — باقي الصفحات
+     بحشوها الطبيعي، والموبايل بقواعده الخاصة) */
+  body.is-day-view .main-col{ padding:12px; }
+  /* عمودان ملتصقان بطول الشاشة: القائمة جهة البداية واليوم بعدها مباشرة.
+     شبكة صريحة (بدل flex) — القائمة الجانبية مقيدة بين 360px حد أدنى
+     و420px حد أقصى حتى تبقى الأولوية لمهام اليوم: تتسع مع السحب حتى 420px فقط ولا تتجاوزها */
+  .day-split{ display:grid; grid-template-columns:max(min(var(--bank-w, 32%), 420px), 360px) 12px minmax(0, 1fr); align-items:start; }
+  .day-split-bank{ min-width:0; max-width:none; }
+  /* لوح القائمة شفاف بلا خلفية (ملتصق على الخلفية مباشرة) */
+  .day-split-bank.bank-wrap{ background:transparent; border-radius:0; box-shadow:none; border-inline-end:1px solid var(--paper-line); }
+  /* مهام القائمة صفوف بطول العرض بدل الرقائق */
+  .day-split-bank .keyword-list{ flex-direction:column; flex-wrap:nowrap; align-items:stretch; gap:0; }
+  .day-split-bank .keyword-row{
+    flex:0 0 auto; width:100%;
+    min-height:54px; padding:10px 0;
+    background:transparent;
+    border:none; border-bottom:1px solid var(--rowline); border-radius:0;
+    box-shadow:none;
+  }
+  .day-split-bank .keyword-row:last-child{ border-bottom:none; }
+  .day-split-bank .keyword-row:hover{ background:var(--lift-2); }
+  /* إخفاء سهم الطي لأعلى — الطي الجانبي وحده هو المتاح */
+  .day-split-bank .bank-toggle-arrow{ display:none; }
+  /* عنوان البنك ثابت على سطح المكتب — الطي للجوال فقط */
+  .day-split-bank .bank-toggle{ cursor:default; pointer-events:none; background:transparent; }
+  .day-split-day{ flex:1 1 0; min-width:0; padding:0; }
+  /* رؤوس عمود اليوم: شفافة تمامًا (نفس خلفية العمود) بلا فواصل بينها —
+     التاريخ والعداد فوق، و"اليوم" والأيقونات تحتهما بمسافة 4px، وخط
+     شعري واحد أسفل الكتلة كلها. المجموع ≈116px = هيدر القائمة (56)
+     + حقل الإضافة (48) + الهامش (12) في الجهة المقابلة */
+  .day-split-day .date-nav{ margin:0; border-bottom:none; padding-bottom:2px; }
+  .day-split-day .section-title{ margin:4px 0 0; border-top:1px solid var(--v-line); border-bottom:none; padding-bottom:8px; }
+  /* زر القائمة ملاصق لكلمة Today نفسها */
+  .section-title .day-bank-toggle{
+    display:inline-flex; margin-inline-start:8px; margin-inline-end:auto;
+  }
+  /* خط فاصل واضح بطول العمودين — هو نفسه مقبض السحب */
+  .day-split-divider{
+    flex:0 0 1px; align-self:stretch; cursor:col-resize; touch-action:none;
+    display:block; background:var(--paper-line); border:none; padding:0;
+  }
+  .day-split-divider span{ display:none; }
+  .day-split-divider:hover{ background:var(--pen); }
+  /* الطي من زر Today وحده: إخفاء القائمة والخط، وتمدد اليوم لعمود واحد */
+  body.bank-side-collapsed .day-split{ grid-template-columns:minmax(0, 1fr); }
+}
+/* رؤوس اليوم شفافة ومدمجة على كل الشاشات — لا صناديق منفصلة */
+.day-split-day .date-nav,
+.day-split-day .section-title{
+  background:transparent; border-radius:0; box-shadow:none;
+}
+/* الطي يعمل على كل الشاشات (عريضة وضيقة): إخفاء القائمة والمقبض.
+   محدد أقوى من أي قاعدة عرض/طول (بما فيها سلسلة list-scroll) */
+body.bank-side-collapsed .day-split .day-split-bank.bank-wrap,
+body.bank-side-collapsed .day-split .day-split-divider{ display:none; }
+
+/* تحت 900px (تلفون وأجهزة متوسطة): إلغاء تغليف الأعمدة (display:contents) ليبقى ترتيب الموبايل
+   الأصلي — شريط التاريخ وزر العودة لليوم فوق القائمة كما كان تمامًا */
+@media (max-width: 899px){
+  .day-view{ display:flex; flex-direction:column; }
+  .day-split, .day-split-day{ display:contents; }
+  .day-split .date-nav{ order:-1; }
+  .day-split .today-btn{ order:-1; }
+  /* زر الطي الجانبي بلا معنى في العرض المكدس — مخفي */
+  .section-title .day-bank-toggle{ display:none; }
+}
+
+/* خط فاصل فوق صف Today يفصله عما فوقه (كل الشاشات والوضعين) */
+.day-split-day .section-title{ border-top:1px solid var(--v-line); }
+
+/* متغيرات محايدة للوضع الفاتح (الدارك يجاوبها أعلاه) — للهيكل المشترك */
+:root{
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --rowline: rgba(15, 18, 22, 0.07);
+  --hair: rgba(15, 18, 22, 0.09);
+  --ink-faint: #868e98;
+  --lift-1: rgba(15, 18, 22, 0.025);
+  --lift-2: rgba(15, 18, 22, 0.05);
+  --v-app: #f4f5f7;
+  --v-col: #ffffff;
+  --v-card: #eef0f3;
+  --v-line: rgba(15, 18, 22, 0.09);
+  --v-line-hi: rgba(15, 18, 22, 0.18);
+  --v-acc: #3a6fa5;
+  --v-acc-soft: rgba(58, 111, 165, 0.12);
+}
+
+/* ============================================================
+   Visual Polish — Dark Theme فقط (TickTick-like):
+   توحيد القيم (مسافات بمضاعفات 4px + 3 مستويات radius + ألوان
+   طبقات خفيفة + 3 درجات نص) بلا أي تغيير في الوظائف.
+   القسم كله مسبوق بـ .dark-mode فالوضع الفاتح لا يتأثر إطلاقًا.
+   ملاحظة المشروع: ممنوع dotted/dashed — كل الحدود solid.
+   ============================================================ */
+.dark-mode{
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --hair: rgba(255, 255, 255, 0.07);
+  --ink-faint: #6e7681;
+  --lift-1: rgba(255, 255, 255, 0.025);
+  --lift-2: rgba(255, 255, 255, 0.05);
+  --rowline: rgba(255, 255, 255, 0.06);
+  /* نظام محايد (الثيم يثبّت vars الأساسية inline فلا تُجاوَز من CSS):
+     أسطح بأبيض شفاف، وaccent واحد هادئ للتركيز فقط */
+  --v-app: #0a0a0a;
+  --v-col: #111111;
+  --v-card: #161616;
+  --v-line: rgba(255, 255, 255, 0.08);
+  --v-line-hi: rgba(255, 255, 255, 0.14);
+  --v-acc: #5f9cc8;
+  --v-acc-soft: rgba(95, 156, 200, 0.14);
+}
+/* إطار التطبيق مسطّح داكن (بلا نقاط الخلفية) */
+body.dark-mode{ background:var(--v-app); font-family:"Inter", "Almarai", system-ui, sans-serif; }
+.dark-mode .wrap{ background:transparent; box-shadow:none; min-height:calc(100dvh - 24px); }
+.dark-mode .header-card{ background:transparent; box-shadow:none; border-bottom:1px solid var(--v-line); }
+/* أساس تفاعلي موحد: مؤشر + انتقال ناعم سريع (الوضعان) */
+button:not(:disabled){ cursor:pointer; }
+.add-btn.icon-only,
+.day-actions-toggle,
+.nav-btn,
+.timer-btn,
+.filter-chip,
+.task-check,
+.task-more-btn,
+.side-nav-btn,
+.bank-search-reveal{
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, transform 0.12s ease;
+}
+.add-btn.icon-only:active,
+.day-actions-toggle:active,
+.nav-btn:active,
+.timer-btn:active,
+.side-nav-btn:active,
+.filter-chip:active{ transform:scale(0.98); }
+/* أزرار ثانوية موحدة: شفافة بحد رفيع */
+.day-actions-toggle,
+.nav-btn,
+.timer-btn,
+.add-to-day-btn,
+.today-btn{
+  border:1px solid var(--v-line);
+  background:transparent;
+  color:var(--ink-soft);
+}
+.day-actions-toggle:hover,
+.nav-btn:hover,
+.timer-btn:hover,
+.add-to-day-btn:hover,
+.today-btn:hover{
+  color:var(--ink);
+  border-color:var(--v-line-hi);
+  background:var(--lift-1);
+}
+.today-btn{ border-radius:999px; }
+/* إطار متساوٍ 12px حول التطبيق (فوق الموبايل فقط — الموبايل بلا حشو) */
+@media (min-width: 641px){
+  body.dark-mode{ padding:12px; }
+}
+/* أزرار حالات الفراغ ثانوية */
+.empty-state-btn{
+  background:transparent;
+  border:1px solid var(--v-line);
+  color:var(--ink);
+}
+/* سكرول رفيع شفاف يوضح عند التحويم فقط */
+::-webkit-scrollbar{ width:6px; height:6px; }
+::-webkit-scrollbar-thumb{ background:transparent; border-radius:8px; }
+*:hover::-webkit-scrollbar-thumb{ background:color-mix(in srgb, var(--ink-soft) 35%, transparent); }
+::-webkit-scrollbar-thumb:hover{ background:color-mix(in srgb, var(--ink-soft) 70%, transparent); }
+*{ scrollbar-color:color-mix(in srgb, var(--ink-soft) 35%, transparent) transparent; }
+
+.timer-col{ border-inline-start:none; padding:12px; flex-basis:320px; }
+.app-shell{ overflow-x:clip; }
+.timer-item,
+.timer-item-bottom{ min-width:0; }
+/* الزرار الرئيسي بثلاث حالات: شفاف افتراضيًا، ناعم عند التحويم،
+   صلب فقط عند وجود نص (CSS خالص عبر placeholder-shown) */
+.add-row .add-btn.add-keyword-btn{
+  width:32px; height:32px; flex-basis:32px; border-radius:10px;
+  background:transparent;
+  border:1px solid transparent;
+  color:var(--ink-soft);
+}
+.add-row .add-btn.add-keyword-btn:hover{
+  background:var(--v-acc-soft);
+  border-color:transparent;
+  color:var(--v-acc);
+}
+.add-row input:not(:placeholder-shown) ~ .add-keyword-btn{
+  background:var(--v-acc);
+  border-color:transparent;
+  color:#fff;
+}
+.add-row input:not(:placeholder-shown) ~ .add-keyword-btn:hover{
+  background:color-mix(in srgb, var(--v-acc) 85%, #fff);
+  color:#fff;
+}
+.side-nav{
+  background:var(--v-col);
+  border-inline-end:1px solid var(--v-line);
+}
+/* ---------- الأعمدة ألواح عائمة: الفجوة هي المقبض نفسه ---------- */
+.day-split{ gap:0; }
+.day-split-divider{ flex-basis:12px; background:transparent; align-self:stretch; }
+.day-split-divider span{ display:none; }
+.day-split-divider:hover{ background:transparent; }
+/* اللوح: خلفية + حد + استدارة 16 وحشو 16 — مع تصفير حشو العناصر
+   الداخلية الأفقي حتى لا يتضاعف. اللوحان متماثلان عمدًا، والفصل
+   بينهما بالفجوة نفسها */
+.day-split-bank.bank-wrap,
+.day-split-day{
+  background:var(--v-col);
+  border:1px solid var(--v-line);
+  border-radius:16px;
+  padding:8px 16px 16px;
+  box-shadow:none;
+}
+.day-split-bank .bank-toggle{ padding-left:0; padding-right:0; }
+.day-split-bank .bank-content{ padding:0; }
+.bank-content{ border-top:none; }
+.day-split-day .date-nav{ padding:14px 0 2px; }
+.day-split-day .section-title{ padding-left:0; padding-right:0; }
+/* أيقونات التنقل والعرض: بلا دوائر ولا حدود — رمادية تنور عند التحويم */
+.nav-btn{
+  border:none; background:transparent; color:var(--ink-soft);
+}
+.nav-btn:hover{ background:transparent; color:var(--pen); }
+.day-actions-toggle{
+  border-color:transparent; background:transparent;
+}
+.day-actions-toggle:hover{
+  border-color:transparent; background:var(--lift-1); color:var(--ink);
+}
+.day-actions-toggle.open{
+  background:var(--lift-2); color:var(--pen); border-color:transparent;
+}
+.day-actions-toggle .material-icons{ font-size:20px; }
+.timer-panel-card{
+  background:var(--v-col);
+  border:1px solid var(--v-line);
+  border-radius:16px;
+  padding:8px 16px 16px;
+  box-shadow:none;
+}
+/* خط سفلي واحد تحت عنوان المؤقتات فقط */
+.timer-panel-title{
+  border-bottom:1px solid var(--v-line);
+  padding-bottom:8px;
+  margin-bottom:12px;
+}
+/* وضع الرقائق (الافتراضي): حبوب بحد خافت بدل الكروت الصلبة */
+.task-list:not(.view-list) .task-row{
+  background:var(--lift-1);
+  border:1px solid var(--v-line);
+  box-shadow:none;
+}
+.task-list:not(.view-list) .task-row:hover{ background:var(--lift-2); }
+/* ---------- الهيدرز: ارتفاع واحد ومحاذاة واحدة ---------- */
+.bank-toggle,
+.date-nav,
+.section-title,
+.timer-panel-title{
+  min-height:56px;
+}
+.section-title .day-actions-wrap{ margin-inline-start:auto; }
+.section-title > span:first-child,
+.bank-toggle-label{
+  font-size:1.05rem;
+  font-weight:600;
+  letter-spacing:-0.01em;
+}
+.dark-mode .date-display .day-name{
+  font-size:0.85rem;
+  font-weight:600;
+  color:var(--ink-soft);
+}
+.date-display .day-sub{ font-size:0.75rem; color:var(--ink-faint); }
+
+/* ---------- حقل الإضافة (نفس الستايل) ---------- */
+.add-row{
+  min-height:48px;
+  background:var(--lift-2);
+  border:1px solid var(--hair);
+  border-radius:var(--r-md);
+  padding:4px;
+  padding-inline-start:12px;
+}
+.add-row input{ padding:10px 4px; font-size:0.95rem; }
+.bank-search input{
+  padding-inline-start:36px;
+  padding-inline-end:70px;
+}
+/* شارة اختصار البحث — تختفي عند الكتابة (يظهر زر المسح مكانها) */
+.search-kbd{
+  position:absolute; inset-inline-end:10px; top:50%; translate:0 -50%;
+  font-size:11px; font-weight:600; color:var(--ink-faint);
+  border:1px solid var(--v-line); border-radius:6px;
+  padding:2px 6px; cursor:text; background:transparent; font-family:inherit;
+  transition:opacity 0.15s ease, border-color 0.15s ease;
+}
+.search-kbd:hover{ border-color:var(--v-line-hi); color:var(--ink-soft); }
+.bank-search input:not(:placeholder-shown) ~ .search-kbd{ opacity:0; }
+@media (max-width: 640px){
+  .search-kbd{ display:none; }
+}
+.add-row input::placeholder{ color:var(--ink-faint); }
+.add-row:focus-within{
+  border-color:var(--v-acc);
+  box-shadow:0 0 0 2px var(--v-acc-soft);
+}
+.add-row .add-btn.icon-only{
+  width:36px; height:36px; flex-basis:36px;
+  color:var(--pen); background:transparent; border-radius:8px;
+}
+.add-row .add-btn.icon-only:hover{
+  color:var(--pen); background:color-mix(in srgb, var(--pen) 14%, transparent);
+}
+.add-row .add-btn.icon-only .material-icons{ font-size:20px; }
+.add-arrow-btn{ color:var(--ink-soft); }
+.add-arrow-btn:hover{ color:var(--pen); }
+
+/* ---------- Filter Chips ---------- */
+.filter-chips{ gap:8px; margin-bottom:12px; }
+.filter-chip,
+.filter-chip-wrap,
+.filter-chip.bank-filters-toggle{
+  min-height:32px;
+  padding-top:4px; padding-bottom:4px;
+  background:transparent;
+  border:1px solid var(--v-line);
+  color:var(--ink-soft);
+}
+.filter-chip:hover,
+.filter-chip-wrap:hover{ border-color:var(--v-line-hi); color:var(--ink); }
+.filter-chip-label{ color:inherit; padding-top:2px; padding-bottom:2px; }
+/* النشط موحد في الوضعين: خلفية الثيم الخافتة ونص بلون الثيم */
+.filter-chip.active,
+.filter-chip-wrap.active{
+  background:var(--pen-soft);
+  border-color:transparent;
+  color:var(--pen);
+}
+.filter-chip-wrap.active .filter-chip-label,
+.filter-chip-wrap.active .filter-chip-more{ color:var(--pen); }
+/* نقط الـ ⋮ في الفلاتر ظاهرة دائمًا (عادت للسلوك الأصلي بقرار صريح) */
+/* زرار الفلتر والبحث بنفس ارتفاع الـ chips + إصلاح تداخل زر البحث مع الخط */
+.bank-filters-toggle{ width:32px; height:32px; }
+.bank-search-divider-wrap{
+  display:flex; align-items:center; gap:8px; margin-bottom:12px;
+}
+.bank-search-divider-wrap .bank-filters-divider{ flex:1 1 auto; margin:0; background:var(--hair); }
+.bank-search-reveal{
+  position:static; translate:none; width:32px; height:32px;
+  border-radius:50%; border:1px solid var(--hair);
+  background:var(--lift-1); color:var(--ink-soft);
+}
+.bank-search-reveal .material-icons{ font-size:18px; }
+.bank-search-reveal:hover{ color:var(--pen); border-color:color-mix(in srgb, var(--pen) 45%, transparent); }
+.bank-search-reveal.open{ color:var(--pen); border-color:color-mix(in srgb, var(--pen) 45%, transparent); }
+.bank-add-task-row{ margin-bottom:12px; }
+
+/* ---------- صفوف المهام (القائمة + اليوم) ---------- */
+.task-list{ gap:6px; }
+.task-list.view-list .task-row{
+  background:transparent;
+  border:none;
+  box-shadow:none;
+  border-radius:var(--r-md);
+  min-height:48px;
+  padding:8px 12px;
+  gap:8px;
+}
+.task-list.view-list .task-row:hover{ background:var(--lift-2); }
+.task-row.drag-over{
+  background:color-mix(in srgb, var(--pen) 12%, transparent);
+  box-shadow:none; transform:none;
+}
+.task-check{ width:32px; height:32px; color:var(--ink-soft); }
+.task-check .material-icons{ font-size:20px; }
+.task-check:hover{ color:var(--pen); background:color-mix(in srgb, var(--pen) 12%, transparent); }
+.task-row.done{ background:color-mix(in srgb, var(--done) 7%, transparent); }
+.task-row.done .task-check{ color:var(--done); }
+.task-row.done .task-name{ color:var(--ink-faint); }
+/* زرار ⋮ ظاهر دائمًا (عاد للسلوك الأصلي بقرار صريح) */
+/* زرار ⋮ في صف القائمة مدفوع لأقصى الطرف (space-between مع الاسم) */
+.keyword-icons{ margin-inline-start:auto; }
+.task-name,
+.keyword-name{ font-size:0.875rem; font-weight:400; }
+
+/* ---------- كروت Timers ---------- */
+.timer-list{ gap:12px; }
+/* خلفية كارت المؤقت بلون الألواح المحايد (بدل المزرق) */
+.timer-item{ background:var(--v-col); }
+
+/* ---------- السايدبار: رمادي هادئ + نقطة مميزة (دارك للنشطة) ---------- */
+.side-nav-btn{ color:var(--ink-soft); position:relative; }
+.side-nav-btn .material-icons{ font-size:18px; }
+.side-nav-btn:hover{ color:var(--ink); background:var(--lift-2); }
+.side-nav-divider{ background:color-mix(in srgb, var(--ink-soft) 35%, transparent); }
+
+/* ---------- فواصل صفوف TickTick: خط شعري بين الصفوف فقط ---------- */
+.task-list{ gap:0; }
+.task-list:not(.view-list){ gap:8px; }
+.day-split-day .task-list{ margin-top:12px; }
+.task-list.view-list .task-row{
+  position:relative;
+  min-height:54px;
+  padding:10px 0;
+}
+.task-list.view-list .task-row::after{
+  content:"";
+  position:absolute; bottom:0;
+  inset-inline-start:0; inset-inline-end:0;
+  height:1px;
+  background:var(--rowline);
+  transition:opacity 0.15s ease;
+  pointer-events:none;
+}
+/* آخر صف بلا خط تحته */
+.task-list.view-list .task-row:last-child::after{ content:none; }
+/* الخط يختفي عن الصف المحوَّم والذي فوقه لخلفية نظيفة */
+.task-list.view-list .task-row:hover::after,
+.task-list.view-list .task-row:has(+ .task-row:hover)::after{ opacity:0; }
+
+/* ---------- سلسلة ارتفاعات list-scroll + التقسيم (دارك): اللوح يملأ
+   المتاح تمامًا بلا قص، والقوائم وحدها تسكرول داخليًا (الهيدرز ثابتة).
+   القوائم المنبثقة للمهام fixed أصلًا في هذا الوضع فلا تُقص. ---------- */
+body.list-scroll .day-split{ flex:1 1 auto; min-height:0; }
+body.list-scroll .day-split-day,
+body.list-scroll .day-split-bank.bank-wrap{
+  display:flex; flex-direction:column; min-height:0;
+}
+body.list-scroll .day-split-bank .bank-content{
+  display:flex; flex-direction:column; flex:1 1 auto; min-height:0;
+}
+body.list-scroll .day-split-bank .keyword-list{
+  flex:1 1 auto; min-height:0; overflow-y:auto;
+  overscroll-behavior:contain;
+}
+
+/* ---------- الألواح محدودة بالشاشة مع سكرول داخلي (دارك عريض):
+   الشكل كما هو، لكن اللوح لا يتجاوز الشاشة أبدًا — الارتفاع الدقيق
+   يُحسب من JS (fitPanelsToViewport) لأن الهيدر متغير ---------- */
+@media (min-width: 1237px){
+  .day-split-bank.bank-wrap,
+  .day-split-day{
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    scrollbar-width:thin;
+  }
+  /* قوائم المزيد داخل الألواح المتمررة: مثبتة بإحداثيات JS (مثل وضع
+     القائمة) حتى لا تُقص — تُستدعى من useFixedDropdown */
+  #content .day-split .task-more-menu-wrap .task-more-dropdown.open{
+    position:fixed;
+    top:auto; bottom:auto; left:auto; right:auto;
+    margin:0;
+    z-index:200;
+  }
+}
+
+
+/* ============================================================
+   شريط الفلاتر بسطر واحد (تجريبي قابل للعكس): زر ثابت للفلتر في
+   البداية + chips بسكرول أفقي + زر بحث ثابت في النهاية — بلا التفاف
+   نهائيًا. يعمل بالعربية والإنجليزية (الاتجاه منطقي تلقائيًا).
+   ============================================================ */
+.filter-strip{
+  display:flex; align-items:center; gap:8px;
+  min-height:40px; margin-bottom:12px;
+}
+.filter-strip .bank-filters-panel-wrap{ flex:0 0 auto; }
+.filter-strip-scroll{
+  flex:1 1 auto; min-width:0;
+  display:flex; align-items:center;
+  overflow-x:auto; overflow-y:hidden;
+  scrollbar-width:none;
+  padding-inline:4px;
+}
+.filter-strip-scroll::-webkit-scrollbar{ display:none; }
+.filter-strip .filter-chips{
+  display:flex; flex-wrap:nowrap; align-items:center; gap:8px;
+  margin:0; padding:0;
+  width:max-content; min-width:100%;
+}
+.filter-strip .filter-chip,
+.filter-strip .filter-chip-outer,
+.filter-strip .filter-chip-edit{ flex:0 0 auto; }
+.filter-strip .filter-chip-label{ white-space:nowrap; }
+.filter-strip .bank-search-reveal{
+  flex:0 0 auto;
+  position:static; translate:none;
+  width:32px; height:32px; border-radius:50%;
+}
+/* قائمة ⋮ الفلتر مثبتة بإحداثيات الشاشة (positionFilterMoreFixed) لأن
+   الشريط مقصوص دائمًا — بلا فيض للصفحة إطلاقًا */
+.filter-strip .filter-more-dropdown.open{
+  position:fixed;
+  top:auto; bottom:auto; left:auto; right:auto;
+  margin:0;
+  z-index:200;
+}
+/* قناع التلاشي يُرفع أثناء فتح القائمة حتى لا يخفيها (تخرج عن الصندوق) */
+.filter-strip:has(.filter-more-dropdown.open, .filter-add-popover.open) .filter-strip-scroll{
+  -webkit-mask-image:none;
+  mask-image:none;
+}
+/* تلاشي منطقي الاتجاه على الحافة التي تخفي محتوى (يضبطها JS) */
+.filter-strip-scroll{
+  --fs:0px; --fe:0px;
+}
+html[dir="ltr"] .filter-strip-scroll{
+  -webkit-mask-image:linear-gradient(to right, transparent 0, #000 var(--fs), #000 calc(100% - var(--fe)), transparent 100%);
+  mask-image:linear-gradient(to right, transparent 0, #000 var(--fs), #000 calc(100% - var(--fe)), transparent 100%);
+}
+html[dir="rtl"] .filter-strip-scroll{
+  -webkit-mask-image:linear-gradient(to left, transparent 0, #000 var(--fs), #000 calc(100% - var(--fe)), transparent 100%);
+  mask-image:linear-gradient(to left, transparent 0, #000 var(--fs), #000 calc(100% - var(--fe)), transparent 100%);
+}
+.filter-strip-scroll.dragging{ user-select:none; }
+.filter-strip-scroll.dragging button{ pointer-events:none; }
+
+/* ============================================================
+   الشريط الجانبي أيقونات فقط دائمًا على الديسكتوب: بلا زر طي ولا
+   تسميات — يتفوق على قواعد التوسيع أيًا كانت حالة الكلاس المخزنة.
+   ============================================================ */
+@media (min-width: 1350px){
+  .side-nav-collapse-btn{ display:none; }
+  .side-nav.side-nav{ flex-basis:64px; align-items:center; padding:12px 8px; }
+  .side-nav.side-nav .side-nav-btn{ width:46px; justify-content:center; gap:4px; padding:0; }
+  .side-nav.side-nav .side-nav-head{ flex-direction:column; }
+  .side-nav.side-nav .side-nav-head .side-nav-btn:last-child{ flex:none; }
+  .side-nav.side-nav .side-nav-btn .side-nav-label{ display:none; }
+  .side-nav.side-nav .side-nav-divider{ width:30px; }
 }
 

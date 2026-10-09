@@ -75,12 +75,16 @@ export const ui = {
   editingFilterId: null,
   activeFilter: 'all',
   bankOpen: true,
+  // تجريبي (قابل للعكس): تقسيم القائمة واليوم جنبًا إلى جنب على العريض —
+  // نسبة عرض القائمة + طيّها جانبًا، محفوظة محليًا فقط (ليست من بيانات الحساب)
+  daySplit: (() => { try{ const o = JSON.parse(localStorage.getItem('nazam-day-split-v1')); if(o && typeof o.w === 'number' && o.w >= 0.1 && o.w <= 0.7) return { w: o.w, collapsed: o.collapsed === true }; }catch(e){} return { w: 0.32, collapsed: false }; })(),
   justOpenedBank: true,
   justChangedFilter: false,  // true لمرة واحدة بس لما تتغيّر الفلتر، عشان مهام البنك اللي تحتها تعمل fade-in
   closingBank: false,
   bankCloseTimeoutId: null,
   bankSearchQuery: '',
   bankSearchOpen: false, // حقل بحث البنك متمدد (أيقونة تتمدد عند الضغط — ضد زحمة سطرين إدخال)
+  filterStripScrollX: null, // موضع سكرول شريط الفلاتر الأفقي — يُحفظ مع كل تمرير ويُستعاد بعد كل رسم (وإلا قفز للبداية)
   globalSearchQuery: '',  // نص البحث الحالي في نافذة "البحث في كل المهام" (عبر كل الأيام)
   mobileFiltersOpen: true,  // الفلاتر ظاهرة افتراضياً، بتنفتح/بتتقفل بالزرار
   justOpenedMobileFilters: false,  // true لمرة واحدة بس لحظة فتح لوحة الفلاتر على الموبايل — عشان الأنيميشن يشتغل عند الفتح مش مع كل render
@@ -101,6 +105,8 @@ export const ui = {
   openTaskMoreId: null,  // المهمة اللي فاتح لها قائمة (المزيد) دلوقتي
   openTaskMoreUp: false,  // قايمة المزيد بتاعت المهمة الحالية بتفتح لفوق (مفيش مساحة تحت) — بتتحسب في events.js
   openTaskMorePos: null,  // إحداثيات القايمة المفتوحة {top, left} في وضع السكرول الداخلي (fixed عشان تهرب من قصّ الحاوية)
+  openFilterMoreId: null,  // الفلتر اللي قايمته (⋮) مفتوحة دلوقتي
+  openFilterMorePos: null,  // إحداثياتها {top, left} — مثبتة دائمًا لأن شريط الفلاتر مقصوص دائمًا
   openKeywordMoreId: null,  // المهمة اللي في البنك فاتح لها قائمة (المزيد) دلوقتي
   taskStatsName: null,  // اسم المهمة اللي شاشة إحصائياتها (من قائمة المزيد في البنك) مفتوحة دلوقتي
   editingTaskId: null,
@@ -139,7 +145,7 @@ export const ui = {
   bankFilterInputOpen: false,  // هل حقل إضافة فلتر جديد ظاهر تحت زرار الفلاتر
   dayStatusFilter: 'all',  // فلتر حالة مهام اليوم: all | pending | done
   dayStatusFilterOpen: false,  // هل قائمة فلتر الحالة مفتوحة دلوقتي
-  dayViewMode: (() => { try { return localStorage.getItem('nazam-day-view-mode') === 'list' ? 'list' : 'chips'; } catch(e){ return 'chips'; } })(),  // عرض مهام اليوم: chips (الافتراضي المدمج) | list (سطر كامل لكل مهمة)
+  dayViewMode: (() => { try { return localStorage.getItem('nazam-day-view-mode') === 'chips' ? 'chips' : 'list'; } catch(e){ return 'list'; } })(),  // عرض مهام اليوم: list (الافتراضي: سطر كامل لكل مهمة) | chips (بطاقات مدمجة)
   dayTypeFilter: 'all',  // فلتر نوع مهام اليوم: all | task | habit | hobby
   dayTypeFilterOpen: false,  // هل قائمة فلتر النوع مفتوحة دلوقتي
   dayActionsOpen: false,  // هل لوحة خيارات اليوم (الـ 3 فلاتر في زرار واحد) مفتوحة دلوقتي
@@ -152,6 +158,7 @@ export const ui = {
   smartListsOpen: false,  // لما تبقى true، #content بيعرض القوائم الذكية بدل مهام اليوم
   smartListKey: 'today',  // القائمة الذكية المعروضة: 'today' | 'overdue' | 'week' | 'no-time' | 'high'
   assistantOpen: false,  // هل لوحة مساعد نظم (الشات) مفتوحة دلوقتي
+  timerPanelOpen: false,  // هل نافذة المؤقتات المنبثقة (الزر العائم) مفتوحة دلوقتي
   assistantMessages: [],  // سجل محادثة المساعد {role, text, actions} — حالة واجهة فقط، لا تُحفظ ولا تُزامَن
   voiceListening: false,  // هل الميكروفون (Web Speech) يستمع حاليًا
   voiceTarget: null,  // هدف الإملاء الصوتي: 'bank' (حقل الإضافة) | 'assistant' (الشات)
@@ -270,4 +277,10 @@ export function setDaySortMode(dateStr, mode){
   state._sortMode[dateStr] = mode;
   state._sortPriority[dateStr] = (mode === 'priority');
   return true;
+}
+
+// حفظ إعداد التقسيم الجانبي (عرض القائمة + طيّها) محليًا فقط — يُستدعى
+// بعد كل تبديل أو سحب للمقبض (تجريبي، ليس من بيانات الحساب المزامَنة)
+export function saveDaySplit(){
+  try{ localStorage.setItem('nazam-day-split-v1', JSON.stringify({ w: ui.daySplit.w, collapsed: ui.daySplit.collapsed })); }catch(e){}
 }
