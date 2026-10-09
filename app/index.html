@@ -992,71 +992,29 @@
       </div>
     </div>
 
-<!-- Modal الترحيبي: جولة تعريفية احترافية (5 محطات) بموكابات حقيقية من داخل الموقع -->
+<!-- Modal الترحيبي: جولة تعريفية تفاعلية (نص + لوحة عرض حية تُبنى من JS) -->
     <div class="modal-overlay onboarding-overlay" id="onboardingOverlay">
-      <div class="modal-card onboarding-card" style="max-width: 460px">
-        <div class="modal-header">
-          <h2 data-i18n="onboard.welcome">أهلاً بك في نظّم</h2>
-          <button class="icon-btn" id="closeOnboardingBtn" title="إغلاق" data-i18n-title="c.close">
-            <span class="material-icons">close</span>
-          </button>
+      <div class="modal-card ob-modal" role="dialog" aria-modal="true" aria-labelledby="obTitle">
+        <div class="ob-txt">
+          <div class="ob-top">
+            <span id="obCount"></span>
+            <button class="ob-skip" id="closeOnboardingBtn" type="button" data-i18n="tour.skip">تخطَّ الجولة</button>
+          </div>
+          <div class="ob-seg" id="obBar" aria-hidden="true"></div>
+          <div class="ob-copy" id="obCopy">
+            <h2 id="obTitle"></h2>
+            <p class="ob-sub" id="obSub"></p>
+            <ul class="ob-pts" id="obPts"></ul>
+          </div>
+          <div class="ob-foot">
+            <button class="ob-prev" id="obPrev" type="button" data-i18n="tour.back">السابق</button>
+            <button class="ob-next" id="onboardingNextBtn" type="button">
+              <span id="onboardingNextLabel" data-i18n="tour.next">التالي</span>
+            </button>
+          </div>
+          <div class="ob-keys"><span data-i18n="onboard.keys_nav">التنقّل: ← →</span><span data-i18n="onboard.keys_skip">للتخطّي: Esc</span></div>
         </div>
-        <div class="modal-body onboarding-body">
-          <span class="step-kicker" id="onboardingStepKicker">1/5</span>
-          <div class="onboarding-step active" data-step="0">
-            <div class="onboarding-icon"><span class="material-icons">list_alt</span></div>
-            <h3 class="onboarding-step-title" data-i18n="onboard.add_title">كل مهامك في القائمة</h3>
-            <div class="onboard-features">
-              <div class="onboard-feature"><span class="material-icons">edit</span><span data-i18n="onboard.add_f1">كتابة سريعة</span></div>
-              <div class="onboard-feature"><span class="material-icons">sell</span><span data-i18n="onboard.add_f2">تصنيف بالنوع</span></div>
-              <div class="onboard-feature"><span class="material-icons">repeat</span><span data-i18n="onboard.add_f3">عادات متكررة</span></div>
-            </div>
-          </div>
-          <div class="onboarding-step" data-step="1">
-            <div class="onboarding-icon"><span class="material-icons">calendar_view_week</span></div>
-            <h3 class="onboarding-step-title" data-i18n="onboard.plan_title">خطط يومك في الجدول الزمني</h3>
-            <div class="onboard-features">
-              <div class="onboard-feature"><span class="material-icons">schedule</span><span data-i18n="onboard.plan_f1">وقت ومدة</span></div>
-              <div class="onboard-feature"><span class="material-icons">calendar_month</span><span data-i18n="onboard.plan_f2">عرض الأسبوع</span></div>
-              <div class="onboard-feature"><span class="material-icons">drag_indicator</span><span data-i18n="onboard.plan_f3">سحب بين الأيام</span></div>
-            </div>
-          </div>
-          <div class="onboarding-step" data-step="2">
-            <div class="onboarding-icon"><span class="material-icons">timer</span></div>
-            <h3 class="onboarding-step-title" data-i18n="onboard.focus_title">ركّز وابدأ التنفيذ</h3>
-            <div class="onboard-features">
-              <div class="onboard-feature"><span class="material-icons">timer</span><span data-i18n="onboard.focus_f1">مؤقت بضغطة</span></div>
-              <div class="onboard-feature"><span class="material-icons">history</span><span data-i18n="onboard.focus_f2">تسجيل تلقائي</span></div>
-              <div class="onboard-feature"><span class="material-icons">center_focus_strong</span><span data-i18n="onboard.focus_f3">وضع التركيز</span></div>
-            </div>
-          </div>
-          <div class="onboarding-step" data-step="3">
-            <div class="onboarding-icon"><span class="material-icons">insights</span></div>
-            <h3 class="onboarding-step-title" data-i18n="onboard.grow_title">تطوّرك تحت عينك</h3>
-            <div class="onboard-features">
-              <div class="onboard-feature"><span class="material-icons">grid_on</span><span data-i18n="onboard.grow_f1">خريطة الالتزام</span></div>
-              <div class="onboard-feature"><span class="material-icons">local_fire_department</span><span data-i18n="onboard.grow_f2">سلسلة الالتزام</span></div>
-              <div class="onboard-feature"><span class="material-icons">pie_chart</span><span data-i18n="onboard.grow_f3">إحصائيات الوقت</span></div>
-            </div>
-          </div>
-          <div class="onboarding-step" data-step="4">
-            <div class="onboarding-icon"><span class="material-icons">flag</span></div>
-            <h3 class="onboarding-step-title" data-i18n="onboard.goal_title">ابدأ بخطوة جاهزة</h3>
-            <div class="goal-chips" id="onboardingGoals"></div>
-          </div>
-          <div class="onboarding-step" data-step="5">
-            <div class="onboarding-icon"><span class="material-icons">rocket_launch</span></div>
-            <span class="ob-trial-badge"><span class="material-icons">workspace_premium</span><span data-i18n="onboard.trial_title">كل شيء جاهز — ابدأ</span></span>
-            <p class="onboarding-step-sub" id="onboardingTrialText"></p>
-          </div>
-        </div>
-        <div class="onboarding-progress" aria-hidden="true"><span id="onboardingProgressFill"></span></div>
-        <div class="onboarding-footer">
-          <button class="onboarding-skip-btn" id="onboardingSkipBtn" type="button" data-i18n="onboard.skip">تخطي</button>
-          <button class="onboarding-next-btn" id="onboardingNextBtn" type="button">
-            <span id="onboardingNextLabel" data-i18n="onboard.next">التالي</span>
-          </button>
-        </div>
+        <div class="ob-vis"><div class="ob-stage" id="obStage"></div></div>
       </div>
     </div>
 

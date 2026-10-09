@@ -69,7 +69,7 @@
 | `timePicker.js` | منتقي وقت التذكير (HH:MM) المبني على `wheelPicker` |
 | `wheelPicker.js` | منتقي المدد (ساعات/دقائق) + `openDurationPicker/openActualDurationPicker` |
 | `utils.js` | دوال نقية فقط (ليها اختبارات): `escapeHtml/escapeAttr/todayStr/uid/normalizeArabic/highlightMatch/reorderArrayById/...` |
-| `onboarding.js` | الجولة التعريفية (6 خطوات، `GOAL_PRESETS` للزرع) — الختم حسابي `state.onboardingSeen` يُزامَن فلا يتكرر على جهاز جديد |
+| `onboarding.js` | الجولة التعريفية التفاعلية (7 محطات بلوحة عرض حية تُبنى من JS + مفاتيح `tour.*`، ومحطة اللون تطبّق الثيم الحقيقي، و`GOAL_PRESETS` للزرع) — الختم حسابي `state.onboardingSeen` يُزامَن فلا يتكرر على جهاز جديد |
 | `icalExport.js` | تصدير snapshot بصيغة `.ics` (RFC 5545) — Pro (`icsExport`) |
 | `monitoring.js` | تتبع أخطاء محلي فقط (console + عدادات جلسة) — بلا Sentry |
 | `clarity.js` / `boot-*.js` | سكربتات `<head>` المتزامنة: `boot-redirect` (تحويل اللاندينج حسب `SESSION_HINT_KEY`)، `boot-theme` (منع وميض الثيم)، `boot-sw` (تسجيل SW)، `boot-more`، `clarity` (إحصائيات استخدام) |
