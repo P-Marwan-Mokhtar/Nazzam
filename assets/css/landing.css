@@ -2640,6 +2640,7 @@ html[dir="rtl"] .hero-title {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-width: 0;
 }
 .tfs-panel h3 { font-size: 1rem; display: flex; align-items: center; gap: 8px; }
 .tfs-panel h3 .ic { width: 18px; height: 18px; color: var(--blue); }
@@ -2655,8 +2656,8 @@ html[dir="rtl"] .hero-title {
 .tfs-name { font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
 .tfs-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); animation: tfs-pulse 1.4s infinite; }
 @keyframes tfs-pulse { 50% { opacity: 0.3; } }
-.tfs-row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
-.tfs-time { font-size: 1.625rem; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; direction: ltr; }
+.tfs-row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; min-width: 0; gap: 8px; }
+.tfs-time { font-size: clamp(1.15rem, 5vw, 1.625rem); font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; direction: ltr; flex: none; }
 .tfs-card:not(.run) .tfs-time { color: var(--ink-2); }
 .tfs-btns { display: flex; gap: 6px; }
 .tfs-btns button { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line); display: grid; place-items: center; color: var(--ink-2); background: #fff; cursor: pointer; transition: background var(--t-fast), color var(--t-fast); }
@@ -2690,6 +2691,14 @@ html[dir="rtl"] .hero-title {
 @media (max-width: 900px) {
   .tfs-stage { grid-template-columns: 1fr; }
   .tfs-panel { border-inline-end: 0; border-bottom: 1px solid var(--line); }
+}
+@media (max-width: 640px) {
+  .tfs-panel { padding: 18px 14px; }
+  .tfs-btns { gap: 4px; }
+  .tfs-btns button { width: 30px; height: 30px; }
+  .tfs-big { font-size: 44px; }
+  .tfs-ctl { gap: 10px; }
+  .tfs-fin { padding: 10px 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .tfs-dot { animation: none; }
