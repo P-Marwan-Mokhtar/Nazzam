@@ -838,6 +838,101 @@ if ('serviceWorker' in navigator) {
 // الموقع يشتغل دون اتصال بدل نسخة قديمة.
 // updateViaCache: 'none' يخلي المتصفح يفحص sw.js من السيرفر مباشرة كل
 // مرة عشان أي تحديث للهبوط يوصّل فورًا.
+// ===== قسم المؤقّت ووضع التركيز: عرض تفاعلي مستقل (بيانات زائفة للعرض فقط) =====
+(function initFocusDemo() {
+  const list = document.getElementById('tfsList');
+  if (!list) return;
+  const lang = getLandingLang();
+  const arDigits = lang !== 'en';
+  const num = (v) => {
+    const s = String(v);
+    return arDigits ? s.replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[+d]) : s;
+  };
+  const pctSign = arDigits ? '٪' : '%';
+  const fmt = (s) => [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60]
+    .map((n) => num(String(n).padStart(2, '0'))).join(':');
+  const SVG_PA = '<svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1.2"/><rect x="14" y="4" width="4" height="16" rx="1.2"/></svg>';
+  const SVG_PL = '<svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>';
+  const SVG_FC = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><circle cx="12" cy="12" r="2.5"/></svg>';
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const T = [
+    { n: tLanding('focus.t0'), s: 7135, p: 9000, r: true },
+    { n: tLanding('focus.t1'), s: 1828, p: 3600, r: false },
+    { n: tLanding('focus.t2'), s: 3777, p: 5400, r: false },
+  ];
+  let f = 0;
+  const $ = (id) => document.getElementById(id);
+  function render() {
+    list.innerHTML = T.map((t, i) => (
+      '<div class="tfs-card' + (i === f ? ' sel' : '') + (t.r ? ' run' : '') + '">'
+      + '<div class="tfs-name">' + (t.r ? '<span class="tfs-dot"></span>' : '') + esc(t.n) + '</div>'
+      + '<div class="tfs-row"><b class="tfs-time" dir="ltr"></b><div class="tfs-btns">'
+      + '<button data-f="' + i + '" title="' + esc(tLanding('focus.focus_btn')) + '" aria-label="' + esc(tLanding('focus.focus_btn')) + '" class="' + (i === f ? 'on' : '') + '">' + SVG_FC + '</button>'
+      + '<button data-p="' + i + '" aria-label="' + esc(t.r ? tLanding('focus.pause') : tLanding('focus.play')) + '">' + (t.r ? SVG_PA : SVG_PL) + '</button>'
+      + '</div></div></div>'
+    )).join('');
+    update();
+  }
+  function update() {
+    const t = T[f];
+    const clocks = list.querySelectorAll('.tfs-time');
+    clocks.forEach((el, i) => { el.textContent = fmt(T[i].s); });
+    $('tfsBig').textContent = fmt(t.s);
+    $('tfsName').textContent = t.n;
+    $('tfsState').textContent = t.r ? tLanding('focus.focusing') : tLanding('focus.paused');
+    $('tfsScreen').classList.toggle('paused', !t.r);
+    const p = Math.min(100, (t.s / t.p) * 100);
+    $('tfsGoalFill').style.width = p + '%';
+    $('tfsGoalR').textContent = num(Math.round(p)) + pctSign;
+    $('tfsGoalL').textContent = tLanding('focus.planned').replace('{time}', fmt(t.p).replace(/^0/, ''));
+    $('tfsPlay').innerHTML = t.r ? SVG_PA : SVG_PL;
+    $('tfsPlay').setAttribute('aria-label', t.r ? tLanding('focus.pause') : tLanding('focus.play'));
+  }
+  function tog(i) {
+    const was = T[i].r;
+    T.forEach((t) => { t.r = false; });
+    T[i].r = !was;
+    f = i;
+    render();
+  }
+  list.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.dataset.f != null) { f = +b.dataset.f; render(); }
+    else tog(+b.dataset.p);
+  });
+  $('tfsPlay').addEventListener('click', () => tog(f));
+  $('tfsFinish').addEventListener('click', () => {
+    T[f].r = false;
+    render();
+    const ts = $('tfsToast');
+    ts.textContent = tLanding('focus.logged').replace('{time}', fmt(T[f].s));
+    ts.classList.add('on');
+    setTimeout(() => ts.classList.remove('on'), 2600);
+  });
+  const add = () => {
+    const inp = $('tfsIn');
+    const v = inp.value.trim();
+    if (!v || T.length >= 5) return;
+    T.forEach((t) => { t.r = false; });
+    T.unshift({ n: v, s: 0, p: 3600, r: true });
+    f = 0;
+    inp.value = '';
+    render();
+  };
+  $('tfsAdd').addEventListener('click', add);
+  $('tfsIn').addEventListener('keydown', (e) => { if (e.key === 'Enter') add(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.code !== 'Space' || /INPUT|BUTTON|TEXTAREA/.test(document.activeElement.tagName)) return;
+    const sec = document.getElementById('focus');
+    if (!sec) return;
+    const r = sec.getBoundingClientRect();
+    if (r.top < innerHeight * 0.6 && r.bottom > innerHeight * 0.3) { e.preventDefault(); tog(f); }
+  });
+  render();
+  setInterval(() => { T.forEach((t) => { if (t.r) t.s++; }); update(); }, 1000);
+})();
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).catch((e) => {

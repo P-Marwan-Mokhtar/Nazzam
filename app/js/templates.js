@@ -313,6 +313,13 @@ export async function saveDayRoutine(){
     return it;
   });
   const base = t('template.routine_name', { date: fmtDay(date) });
+  // اليوم نفسه محفوظ من قبل؟ نسأل عن الاستبدال بدل تكديس نسخ مرقمة —
+  // بنفس آلية القوالب المكررة (إلغاء = إبقاء القديم كما هو)
+  const existingDay = state.templates.find(x => x.kind === 'day' && normalizeArabic(x.name) === normalizeArabic(base));
+  if(existingDay){
+    openTemplateReplaceConfirm(existingDay.id, { kind: 'day', items }, existingDay.name);
+    return;
+  }
   let name = base, n = 2;
   while(state.templates.some(x => normalizeArabic(x.name) === normalizeArabic(name))){ name = `${base} (${n++})`; }
   state.templates.push({ id: uid(), name, kind: 'day', items });

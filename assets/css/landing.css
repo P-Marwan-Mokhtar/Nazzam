@@ -185,15 +185,35 @@ body.menu-open { overflow: hidden; }
 
 .nav {
   position: fixed; inset-inline: 0; top: 0; z-index: 100;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  background: transparent;
   border-bottom: 1px solid transparent;
   transition: border-color var(--t-med) ease, box-shadow var(--t-med) ease;
 }
 
-.nav.is-scrolled { border-bottom-color: var(--line); box-shadow: 0 8px 32px -20px rgba(15, 23, 43, 0.2); }
+.nav.is-scrolled { border-bottom-color: transparent; box-shadow: none; }
 
-.nav-inner { display: flex; align-items: center; gap: var(--s4); padding-block: 12px; transition: padding var(--t-med) ease; }
+.nav-inner { display: flex; align-items: center; gap: var(--s4); padding-block: 12px; border-radius: 18px; border: 1px solid transparent; transition: padding var(--t-med) ease, background var(--t-med) ease, box-shadow var(--t-med) ease, border-color var(--t-med) ease, margin var(--t-med) ease, max-width var(--t-med) ease; }
+
+.nav.is-scrolled .nav-inner {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-color: var(--line);
+  box-shadow: 0 8px 32px -20px rgba(15, 23, 43, 0.2);
+  padding-block: 9px;
+  padding-inline: 18px;
+  margin-top: 10px;
+  /* بعرض المحتوى نفسه (داخل حشو الحاوية) لا بعرضها الكامل */
+  margin-inline: 80px;
+}
+@media (max-width: 1100px) {
+  .nav.is-scrolled .nav-inner { margin-inline: 64px; }
+}
+@media (max-width: 760px) {
+  .nav.is-scrolled .nav-inner { margin-inline: 24px; }
+}
+@media (min-width: 1361px) {
+  .nav.is-scrolled .nav-inner { max-width: 1040px; margin-inline: auto; }
+}
 
 .nav.is-scrolled .nav-inner { padding-block: 9px; }
 
@@ -2421,14 +2441,14 @@ html[dir="rtl"] .hero-title {
 .price-card {
   position: relative; background: var(--surface);
   border: 1px solid var(--line); border-radius: 10px;
-  padding: var(--s4) var(--s4) var(--s3); text-align: right;
+  padding: 24px 24px 20px; text-align: right;
   display: flex; flex-direction: column;
   transition: border-color var(--t-med) ease;
 }
 
 .price-card:hover { border-color: var(--ink-3); }
 
-.price-card.featured { border-color: var(--blue); background: var(--blue-tint); }
+.price-card.featured { border: 1.5px solid var(--blue); background: var(--surface); }
 
 .price-card.featured:hover { border-color: var(--blue-deep); }
 
@@ -2443,19 +2463,19 @@ html[dir="rtl"] .hero-title {
 
 .price-num { margin-top: 10px; display: flex; align-items: baseline; justify-content: flex-start; gap: 8px; }
 
-.price-num .digits { font-family: var(--font-latin); font-size: clamp(2.4rem, 4vw, 3rem); font-weight: 700; color: var(--ink); }
+.price-num .digits { font-family: var(--font-latin); font-size: clamp(2rem, 3.2vw, 2.4rem); font-weight: 700; color: var(--ink); }
 
 .price-num small { font-size: 0.85rem; color: var(--ink-2); }
 
-.price-for { color: var(--ink-2); font-size: 0.88rem; margin-top: 6px; }
+.price-for { color: var(--ink-2); font-size: 0.85rem; margin-top: 4px; }
 
-.price-feats { margin-top: var(--s3); display: flex; flex-direction: column; gap: 11px; text-align: start; flex: 1; }
+.price-feats { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; text-align: start; flex: 1; }
 
-.price-feats li { display: flex; align-items: center; gap: 9px; font-size: 0.9rem; font-weight: 500; }
+.price-feats li { display: flex; align-items: center; gap: 9px; font-size: 0.85rem; font-weight: 400; color: var(--ink-2); }
 
-.price-feats .ic { width: 17px; height: 17px; color: var(--mk-green); stroke-width: 2.5; }
+.price-feats .ic { width: 15px; height: 15px; color: var(--mk-green); stroke-width: 2.5; flex: none; }
 
-.price-btn { width: 100%; margin-top: var(--s3); }
+.price-btn { width: 100%; margin-top: 18px; }
 
 /* شارة الخطة الحالية للمشترك (بدل زر اشتراك — غير قابلة للنقر) */
 .current-plan-btn { opacity: 0.7; cursor: default; pointer-events: none; }
@@ -2595,3 +2615,77 @@ html[dir="rtl"] .hero-title {
 [dir="ltr"] .fs-track { direction: ltr; }
 
 [dir="ltr"] .fs-card { direction: ltr; }
+
+/* ---------- 21) المؤقّت ووضع التركيز (عرض تفاعلي) ---------- */
+.tfs-stage {
+  display: grid;
+  grid-template-columns: 0.95fr 1.1fr;
+  margin-top: var(--s6);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.tfs-panel {
+  padding: 26px;
+  background: #f6f8fb;
+  border-inline-end: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.tfs-panel h3 { font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+.tfs-panel h3 .ic { width: 18px; height: 18px; color: var(--blue); }
+.tfs-add { display: flex; align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 4px 6px 4px 12px; transition: border-color var(--t-fast); }
+.tfs-add:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-tint); }
+.tfs-add input { flex: 1; border: 0; background: none; outline: 0; padding: 8px 4px; font-size: 0.85rem; font-family: inherit; min-width: 0; color: var(--ink); }
+.tfs-add input::placeholder { color: var(--ink-3); }
+.tfs-plus { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; color: var(--blue); border: 0; background: none; cursor: pointer; transition: background var(--t-fast); }
+.tfs-plus:hover { background: var(--blue-tint); }
+.tfs-plus .ic { width: 18px; height: 18px; }
+.tfs-card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; transition: border-color 0.25s, box-shadow 0.25s; }
+.tfs-card.sel { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-tint); }
+.tfs-name { font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+.tfs-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); animation: tfs-pulse 1.4s infinite; }
+@keyframes tfs-pulse { 50% { opacity: 0.3; } }
+.tfs-row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+.tfs-time { font-size: 1.625rem; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; direction: ltr; }
+.tfs-card:not(.run) .tfs-time { color: var(--ink-2); }
+.tfs-btns { display: flex; gap: 6px; }
+.tfs-btns button { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line); display: grid; place-items: center; color: var(--ink-2); background: #fff; cursor: pointer; transition: background var(--t-fast), color var(--t-fast); }
+.tfs-btns button:hover { background: #f6f8fb; color: var(--ink); }
+.tfs-btns button:active { transform: scale(0.94); }
+.tfs-btns button.on { background: var(--blue-tint); color: var(--blue); border-color: transparent; }
+.tfs-btns .ic { width: 16px; height: 16px; }
+/* شاشة التركيز */
+.tfs-screen { position: relative; margin: 14px; border-radius: 20px; background: #fff; border: 1px solid var(--line-soft); color: var(--ink); min-height: 440px; display: grid; place-items: center; overflow: hidden; isolation: isolate; padding: 30px 20px; text-align: center; }
+.tfs-screen::before { content: ""; position: absolute; width: 520px; height: 520px; border-radius: 50%; background: radial-gradient(closest-side, rgba(9, 127, 232, 0.1), transparent); top: -210px; left: 50%; transform: translateX(-50%); z-index: -1; }
+.tfs-x { position: absolute; top: 14px; inset-inline-start: 14px; color: var(--ink-3); display: grid; place-items: center; width: 30px; height: 30px; }
+.tfs-x .ic { width: 16px; height: 16px; }
+.tfs-pill { display: inline-flex; align-items: center; gap: 9px; border: 1px solid var(--line); background: var(--paper); border-radius: 99px; padding: 6px 16px; font-size: 0.85rem; font-weight: 500; color: var(--ink); }
+.tfs-pill .tfs-dot { background: var(--blue); }
+.tfs-screen.paused .tfs-pill .tfs-dot { animation: none; background: var(--ink-3); }
+.tfs-big { font-size: clamp(50px, 8vw, 80px); font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; direction: ltr; line-height: 1.1; margin-top: 20px; color: var(--ink); transition: opacity 0.3s; }
+.tfs-screen.paused .tfs-big { opacity: 0.45; }
+.tfs-goal { width: min(320px, 80%); margin: 20px auto 0; }
+.tfs-goal .tfs-goal-lbl { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--ink-2); margin-bottom: 8px; }
+.tfs-goal .tfs-goal-track { height: 4px; border-radius: 9px; background: var(--line-soft); overflow: hidden; }
+.tfs-goal .tfs-goal-track i { display: block; height: 100%; background: var(--blue); border-radius: 9px; transition: width 1s linear; }
+.tfs-ctl { display: flex; gap: 12px; justify-content: center; align-items: center; margin-top: 26px; }
+.tfs-fin { border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 12px; padding: 12px 20px; font-size: 0.9rem; font-family: inherit; cursor: pointer; transition: background 0.15s; font-weight: 600; }
+.tfs-fin:hover { background: var(--line-soft); }
+.tfs-pp { width: 52px; height: 52px; border-radius: 50%; background: var(--blue); color: #fff; border: 0; display: grid; place-items: center; cursor: pointer; transition: transform 0.15s; box-shadow: 0 12px 28px -10px rgba(9, 127, 232, 0.5); }
+.tfs-pp:hover { transform: scale(1.06); }
+.tfs-pp:active { transform: scale(0.96); }
+.tfs-pp .ic { width: 20px; height: 20px; }
+.tfs-toast { position: absolute; bottom: 44px; inset-inline: 0; font-size: 0.8rem; color: var(--blue-deep); opacity: 0; transform: translateY(6px); transition: 0.4s; pointer-events: none; }
+.tfs-toast.on { opacity: 1; transform: none; }
+@media (max-width: 900px) {
+  .tfs-stage { grid-template-columns: 1fr; }
+  .tfs-panel { border-inline-end: 0; border-bottom: 1px solid var(--line); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tfs-dot { animation: none; }
+  .tfs-goal .tfs-goal-track i { transition: none; }
+}

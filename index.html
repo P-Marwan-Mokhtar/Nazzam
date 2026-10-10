@@ -141,7 +141,7 @@
           </p>
           <div class="hero-cta anim" style="--ad: 0.4s">
             <a href="app/" class="btn btn-primary btn-lg" id="heroStartBtn" data-lp="hero.start">ابدأ مجانًا</a>
-            <a href="#how" class="btn btn-ghost btn-lg" data-lp="hero.discover">شاهده عمليًا</a>
+            <a href="#plan" class="btn btn-ghost btn-lg" data-lp="hero.discover">اكتشف المميزات</a>
           </div>
         </div>
 
@@ -638,6 +638,42 @@
       </section>
 
       <!-- ============================================================
+            المؤقّت ووضع التركيز — عرض تفاعلي
+      ============================================================ -->
+      <section class="section" id="focus">
+        <div class="container">
+          <div class="sec-head reveal">
+            <h2 data-lp-html="focus.title">اعرف أين يذهب وقتك</h2>
+            <p class="sec-lead" data-lp="focus.lead">شغّل مؤقتًا على أي مهمة، وادخل وضع التركيز بنقرة، وشاهد وقتك الفعلي في إحصاءاتك.</p>
+          </div>
+
+          <div class="tfs-stage reveal">
+            <div class="tfs-panel">
+              <h3><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg><span data-lp="focus.panel_title">مؤقّتات اليوم</span></h3>
+              <div class="tfs-add">
+                <input id="tfsIn" data-lp-ph="focus.add_ph" placeholder="اسم المهمة التي ستعمل عليها…" maxlength="40" aria-label="اسم المهمة" />
+                <button class="tfs-plus" id="tfsAdd" data-lp-title="focus.add_title" title="إضافة مؤقّت" aria-label="إضافة مؤقّت"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+              </div>
+              <div id="tfsList" style="display:grid;gap:12px"></div>
+            </div>
+            <div class="tfs-screen" id="tfsScreen">
+              <span class="tfs-x" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
+              <div>
+                <span class="tfs-pill"><span class="tfs-dot"></span><span id="tfsState">قيد التركيز</span> · <span id="tfsName"></span></span>
+                <div class="tfs-big" id="tfsBig">00:00:00</div>
+                <div class="tfs-goal"><div class="tfs-goal-lbl"><span id="tfsGoalL"></span><span id="tfsGoalR"></span></div><div class="tfs-goal-track"><i id="tfsGoalFill"></i></div></div>
+                <div class="tfs-ctl">
+                  <button class="tfs-fin" id="tfsFinish"><span data-lp="focus.finish">إنهاء المهمة</span></button>
+                  <button class="tfs-pp" id="tfsPlay" aria-label="تشغيل أو إيقاف"></button>
+                </div>
+              </div>
+              <div class="tfs-toast" id="tfsToast"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
             أدوات ذكية — bento لباقي المميزات (بلا صور)
       ============================================================ -->
       <section class="section" id="extras">
@@ -749,79 +785,6 @@
                 </div>
               </div>
             </article>
-          </div>
-        </div>
-</section>
-
-      <!-- ============================================================
-            تفاصيل صغيرة… تصنع فرقًا كبيرًا — تبويبات وصور
-      ============================================================ -->
-      <section class="section" id="features">
-        <div class="container">
-          <div class="sec-head reveal">
-            <h2 data-lp="more.title">الشمول دون تعقيد.</h2>
-            <p class="sec-lead" data-lp="more.lead">نظرة سريعة على الأدوات التي تُبقي يومك يسير بسلاسة.</p>
-          </div>
-
-          <div class="feat-strip reveal" id="featSlider">
-            <div class="fs-viewport" id="fsViewport">
-              <div class="fs-track" id="fsTrack">
-                <article class="fs-card on" data-slide="0">
-                  <div class="fsc-shot"><img data-src="app/img/features/search.png" data-lp-alt="more.f1n" alt="البحث في جميع المهام" loading="lazy" decoding="async" /></div>
-                  <div class="fsc-body">
-                    <span class="fsc-chip" aria-hidden="true"><svg class="ic"><use href="#i-search"/></svg></span>
-                    <div class="fsc-copy">
-                      <h3 class="fsc-name" data-lp="more.f1n">البحث في جميع المهام</h3>
-                      <p class="fsc-desc" data-lp="more.f1d">اكتب أي كلمة وستجد كل المهام والعادات وقائمة المهام المطابق لها.</p>
-                    </div>
-                  </div>
-                </article>
-                <article class="fs-card" data-slide="1">
-                  <div class="fsc-shot"><img data-src="app/img/features/drafts.png" data-lp-alt="more.f2n" alt="المسودات" loading="lazy" decoding="async" /></div>
-                  <div class="fsc-body">
-                    <span class="fsc-chip" aria-hidden="true"><svg class="ic"><use href="#i-file"/></svg></span>
-                    <div class="fsc-copy">
-                      <h3 class="fsc-name" data-lp="more.f2n">المسودات</h3>
-                      <p class="fsc-desc" data-lp="more.f2d">كل ما تحذفه يبقى محفوظًا في قائمة المسودات وتسترجعه بضغطة واحدة.</p>
-                    </div>
-                  </div>
-                </article>
-                <article class="fs-card" data-slide="2">
-                  <div class="fsc-shot"><img data-src="app/img/features/templates.png" data-lp-alt="more.f3n" alt="قوالب المهام" loading="lazy" decoding="async" /></div>
-                  <div class="fsc-body">
-                    <span class="fsc-chip" aria-hidden="true"><svg class="ic"><use href="#i-copy"/></svg></span>
-                    <div class="fsc-copy">
-                      <h3 class="fsc-name" data-lp="more.f3n">قوالب المهام</h3>
-                      <p class="fsc-desc" data-lp="more.f3d">مهامك المتكررة محفوظة كقوالب جاهزة — تضيفها لأي يوم بضغطة واحدة.</p>
-                    </div>
-                  </div>
-                </article>
-                <article class="fs-card" data-slide="3">
-                  <div class="fsc-shot"><img data-src="app/img/features/notifications.png" data-lp-alt="more.f4n" alt="التنبيهات" loading="lazy" decoding="async" /></div>
-                  <div class="fsc-body">
-                    <span class="fsc-chip" aria-hidden="true"><svg class="ic"><use href="#i-bell"/></svg></span>
-                    <div class="fsc-copy">
-                      <h3 class="fsc-name" data-lp="more.f4n">التنبيهات</h3>
-                      <p class="fsc-desc" data-lp="more.f4d">تذكيرات تصل في موعدها إشعارًا حتى مع إغلاق التطبيق، أو ملخصًا صباحيًا.</p>
-                    </div>
-                  </div>
-                </article>
-                <article class="fs-card" data-slide="4">
-                  <div class="fsc-shot"><img data-src="app/img/features/task-details.png" data-lp-alt="more.f5n" alt="تفاصيل المهمة" loading="lazy" decoding="async" /></div>
-                  <div class="fsc-body">
-                    <span class="fsc-chip" aria-hidden="true"><svg class="ic"><use href="#i-list"/></svg></span>
-                    <div class="fsc-copy">
-                      <h3 class="fsc-name" data-lp="more.f5n">تفاصيل المهمة</h3>
-                      <p class="fsc-desc" data-lp="more.f5d">اضغط على أي مهمة: الأهمية والوقت والملاحظة والمهام الفرعية في نافذة واحدة.</p>
-                    </div>
-                  </div>
-                </article>
-              </div>
-            </div>
-
-            <div class="fs-controls">
-              <div class="fs-dots" id="fsDots" role="group" data-lp-aria="more.dots" aria-label="مؤشرات الشريحة"></div>
-            </div>
           </div>
         </div>
 </section>
