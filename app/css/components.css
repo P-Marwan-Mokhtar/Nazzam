@@ -1307,8 +1307,10 @@ html[dir="ltr"] .filter-more-dropdown.flip {
 .custom-select-menu {
   position: absolute;
   top: calc(100% + 6px);
-  right: 0;
-  left: 0;
+  inset-inline-start: 0;
+  min-width: 100%;
+  width: max-content;
+  max-width: min(220px, 70vw);
   background: var(--popup);
   border: 1px solid var(--popup-border);
   border-radius: 10px;
@@ -1335,6 +1337,9 @@ html[dir="ltr"] .filter-more-dropdown.flip {
   font-size: 0.88rem;
   cursor: pointer;
   color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .custom-select-option:hover {
   background: var(--paper);
@@ -1465,6 +1470,13 @@ html[dir="ltr"] .filter-more-dropdown.flip {
   background: var(--paper);
   color: var(--ink);
 }
+
+/* صف تحرير البنك بسطر واحد مدمج — بلا التفاف ولا نمو يحرك السكرول */
+.keyword-row.editing { flex-wrap: nowrap; min-height: 0; }
+.keyword-row.editing .edit-input { flex: 1 1 auto; min-width: 0; }
+.keyword-row.editing .custom-select { flex: 0 1 96px; min-width: 0; max-width: 120px; }
+.keyword-row.editing .custom-select-trigger { padding: 7px 8px; font-size: 0.85rem; }
+.keyword-row.editing .icon-btn { flex: 0 0 auto; }
 
 .empty-state {
   display: flex;
