@@ -401,17 +401,20 @@ html[dir="rtl"] .hero-title {
 
 .hero-shot {
   position: relative; z-index: 2;
-  border-radius: 10px 10px 0 0; overflow: hidden;
-  border: 1px solid var(--line); border-bottom: none;
+  border-radius: 22px 22px 0 0; overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.75); border-bottom: none;
   box-shadow: 0 -8px 24px -16px rgba(15, 23, 43, 0.15);
-  background: #fff;
+  background: rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(22px) saturate(1.2); -webkit-backdrop-filter: blur(22px) saturate(1.2);
   max-width: 100%;
   margin-inline: auto;
   margin-bottom: -1px;
+  padding: 10px 10px 0;
 }
 
 .hero-shot img {
   width: 100%; height: auto; display: block;
+  border-radius: 10px 10px 0 0;
   image-rendering: -webkit-optimize-contrast;
 }
 /* ---------- 6) نظام الموك-أب (واجهة التطبيق) ---------- */
@@ -2624,7 +2627,7 @@ html[dir="rtl"] .hero-title {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 28px;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 24px 48px -32px rgba(15, 23, 43, 0.18);
   overflow: hidden;
 }
 .tfs-panel {
