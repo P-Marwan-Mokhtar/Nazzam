@@ -73,6 +73,193 @@
 .dark-mode #accountOverlay.is-gate {
   background: #F9F9F9;
 }
+
+/* ============================================================
+   بوابة الدخول: صفحة كاملة بشاشة مقسومة (نموذج + معاينة) —
+   تصميم فقط: كل الحقول والمنطق كما هي، والنصوص عبر i18n،
+   والمعاينة صورة التطبيق الحقيقية بلا نصوص.
+   ============================================================ */
+.gate-preview { display: none; }
+.gate-topbar { display: none; }
+#accountOverlay.is-gate {
+  background: var(--paper);
+  padding: 0;
+}
+#accountOverlay.is-gate.open {
+  display: block;
+  overflow-y: auto;
+}
+#accountOverlay.is-gate.open .modal-card { animation: none; }
+#accountOverlay.is-gate .modal-card {
+  max-width: none;
+  width: 100%;
+  min-height: 100dvh;
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  padding: 0;
+  overflow: visible;
+  background: var(--card);
+}
+#accountOverlay.is-gate .gate-formcol {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 32px clamp(24px, 6vw, 72px);
+  max-width: 640px;
+  width: 100%;
+  margin-inline: auto;
+  min-height: 100dvh;
+}
+#accountOverlay.is-gate .gate-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+.gate-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--ink);
+  font-family: inherit;
+  padding: 0;
+}
+.gate-brand img { width: 44px; height: 44px; border-radius: 10px; }
+#accountOverlay.is-gate .gate-formcol > * { width: 100%; max-width: 400px; margin-inline: auto; }
+#accountOverlay.is-gate .account-input { padding: 13px 14px; border-radius: 12px; }
+#accountOverlay.is-gate .account-primary-btn,
+#accountOverlay.is-gate .account-google-btn { padding: 13px; border-radius: 12px; }
+.gate-lang {
+  background: var(--card);
+  border: 1px solid var(--paper-line);
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-family: inherit;
+}
+.gate-lang:hover { color: var(--ink); }
+#accountOverlay.is-gate .modal-header,
+#accountOverlay.is-gate .modal-body,
+#accountOverlay.is-gate #turnstileContainer { grid-column: 1; }
+#accountOverlay.is-gate.gate-minor .modal-header { display: flex; }
+#accountOverlay.is-gate:not(.gate-minor) .modal-header { display: none; }
+#accountOverlay.is-gate .modal-body { padding: 0; overflow: visible; }
+#accountOverlay.is-gate .gate-preview {
+  display: flex;
+  flex-direction: column;
+  grid-column: 2;
+  grid-row: 1 / 4;
+  background: linear-gradient(180deg, #cfe1f8, #e9f1fc 55%, #f8fafc);
+  padding: 56px 48px 0;
+  min-height: 100dvh;
+  overflow: hidden;
+  position: relative;
+}
+.gate-visual-title {
+  font-size: clamp(1.6rem, 2.6vw, 2.3rem);
+  line-height: 1.25;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  margin: 0 0 8px;
+  max-width: 16em;
+}
+.gate-visual-sub { color: #475569; margin: 0 0 26px; font-size: 1rem; }
+.gate-shot {
+  position: absolute;
+  z-index: 1;
+  inset-inline-start: 52px;
+  top: clamp(250px, 36vh, 350px);
+  width: 150%;
+  max-width: none;
+  height: auto;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 8px rgba(255, 255, 255, 0.45), 0 50px 90px -30px rgba(15, 23, 42, 0.5);
+}
+/* عنوان البوابة + تبويبات signin/signup */
+.gate-hero h1 { font-size: 1.9rem; line-height: 1.3; font-weight: 800; color: var(--ink); margin: 0 0 6px; }
+.gate-hero p { color: var(--ink-soft); margin: 0 0 18px; font-size: 0.95rem; }
+.gate-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--paper);
+  border: 1px solid var(--paper-line);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 18px;
+}
+.gate-tabs button {
+  padding: 8px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.gate-tabs button[aria-pressed="true"] {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 1px 4px rgba(15, 23, 43, 0.14);
+}
+/* عنوان البوابة + تبويبات signin/signup */
+.gate-hero h1 { font-size: 1.9rem; line-height: 1.3; font-weight: 800; color: var(--ink); margin: 0 0 6px; }
+.gate-hero p { color: var(--ink-soft); margin: 0 0 18px; font-size: 0.95rem; }
+.gate-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--paper);
+  border: 1px solid var(--paper-line);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 18px;
+}
+.gate-tabs button {
+  padding: 8px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.gate-tabs button[aria-pressed="true"] {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 1px 4px rgba(15, 23, 43, 0.14);
+}
+/* مقياس قوة كلمة المرور (signup فقط) */
+.gate-strength { display: none; margin: -2px 0 10px; }
+.gate-strength.on { display: block; }
+.gate-strength .bars { display: flex; gap: 5px; }
+.gate-strength .bars i { flex: 1; height: 4px; border-radius: 99px; background: var(--paper-line); transition: 0.25s; }
+.gate-strength small { display: block; margin-top: 5px; color: var(--ink-soft); font-size: 0.75rem; }
+/* سطر قانوني (signup فقط) */
+.gate-legal { margin-top: 16px; color: var(--ink-soft); font-size: 0.75rem; text-align: center; line-height: 1.7; }
+.gate-legal a { color: var(--ink); font-weight: 700; }
+@media (max-width: 900px) {
+  #accountOverlay.is-gate .modal-card { grid-template-columns: 1fr; }
+  #accountOverlay.is-gate .gate-preview { display: none; }
+  #accountOverlay.is-gate .gate-formcol { min-height: 100dvh; padding-top: 76px; justify-content: flex-start; }
+}
 .account-status {
   display: flex;
   align-items: center;
@@ -462,9 +649,9 @@
   flex: 0 0 auto;
   cursor: pointer;
 }
-/* اللوجو فوق الكارت في شاشة الدخول فقط — مخفي في مودالات الحساب داخل التطبيق */
+/* اللوجو فوق الكارت أُلغي من البوابة الجديدة (شعارها داخل الشريط العلوي) */
 #accountOverlay.is-gate .modal-top-logo {
-  display: block;
+  display: none;
 }
 .modal-card {
   background: var(--card);

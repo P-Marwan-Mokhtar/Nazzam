@@ -566,15 +566,28 @@
     <!-- Modal الحساب: ربط الحساب المجهول بإيميل/باسورد أو تسجيل الدخول -->
     <div class="modal-overlay" id="accountOverlay">
       <img src="img/nazzam-logo.png" alt="نظّم" class="modal-top-logo" width="72" height="72" />
-      <div class="modal-card" style="max-width: 420px">
-        <div class="modal-header">
-          <h2 id="accountModalTitle" data-i18n="modal.account">الحساب</h2>
-          <button class="icon-btn" id="closeAccountBtn" title="إغلاق" data-i18n-title="c.close">
-            <span class="material-icons">close</span>
-          </button>
+      <div class="modal-card gate-card">
+        <div class="gate-formcol">
+          <div class="gate-topbar">
+            <button class="gate-brand" id="gateBrandBtn" type="button" aria-label="نظّم">
+              <img src="img/nazzam-logo.png" alt="" width="44" height="44" />
+            </button>
+            <button class="gate-lang" id="gateLangBtn" type="button">EN</button>
+          </div>
+          <div class="modal-header">
+            <h2 id="accountModalTitle" data-i18n="modal.account">الحساب</h2>
+            <button class="icon-btn" id="closeAccountBtn" title="إغلاق" data-i18n-title="c.close">
+              <span class="material-icons">close</span>
+            </button>
+          </div>
+          <div class="modal-body" id="accountBody"></div>
+          <div id="turnstileContainer"></div>
         </div>
-        <div class="modal-body" id="accountBody"></div>
-        <div id="turnstileContainer"></div>
+        <div class="gate-preview" aria-hidden="true">
+          <h2 class="gate-visual-title" data-i18n="auth.gate_v_title">يومك كله في مكان واحد</h2>
+          <p class="gate-visual-sub" data-i18n="auth.gate_v_sub">خطّط، تتبّع وقتك، وركّز، بلا تعقيد.</p>
+          <img class="gate-shot" src="img/shots/app.png" alt="" decoding="async" />
+        </div>
       </div>
     </div>
 

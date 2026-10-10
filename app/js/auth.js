@@ -4,7 +4,7 @@
 
 import { AUTH_RATE_LIMIT_URL, TURNSTILE_SITE_KEY, supabaseClient } from './config.js';
 import { LOCAL_BACKUP_KEY, BACKUP_OWNER_KEY, LAST_SERVER_TS_KEY, PENDING_SYNC_KEY, SESSION_HINT_KEY, showToast } from './state.js';
-import { t } from './i18n.js';
+import { t, getLang, setLang, applyStaticTranslations } from './i18n.js';
 import { escapeHtml, escapeAttr } from './utils.js';
 import { openUpgrade } from './upgrade.js';
 
@@ -355,11 +355,11 @@ const GOOGLE_ICON_SVG = `<svg viewBox="0 0 48 48" width="18" height="18" aria-hi
 
 function googleBlockHtml(){
   return `
-    <div class="account-divider"><span>${t('auth.or')}</span></div>
     <button class="account-google-btn" id="accGoogleBtn" type="button">
       ${GOOGLE_ICON_SVG}
       <span>${t('auth.google_continue')}</span>
     </button>
+    <div class="account-divider"><span>${t('auth.or')}</span></div>
   `;
 }
 
@@ -478,6 +478,46 @@ export function backToLanding(){
   window.location.href = new URL('../', window.location.href).href;
 }
 
+// تبويبات البوابة (حساب جديد/دخول): نفس التبديل القديم بروابط أسفل النموذج
+function wireGateTabs(){
+  document.querySelectorAll('#accountBody .gate-tabs [data-gmode]').forEach(btn => {
+    btn.onclick = () => {
+      const mode = btn.dataset.gmode;
+      if(mode !== 'signup' && mode !== 'signin') return;
+      gateMode = mode;
+      renderAuthGate();
+    };
+  });
+}
+
+// مقياس قوة كلمة المرور في إنشاء الحساب (عرض فقط — حد الطول 6 كما هو)
+function updateGateStrength(){
+  const inp = document.getElementById('accPassword');
+  const box = document.getElementById('gateStrength');
+  if(!inp || !box) return;
+  const v = inp.value || '';
+  let n = 0;
+  if(v.length >= 8) n++;
+  if(/[A-Zء-غ]/.test(v) && /[a-z\d]/.test(v)) n++;
+  if(/\d/.test(v)) n++;
+  if(/[^\w\s]/.test(v) || v.length >= 12) n++;
+  const labels = [t('auth.pw_weak'), t('auth.pw_fair'), t('auth.pw_good'), t('auth.pw_strong')];
+  box.classList.toggle('on', v.length > 0);
+  box.querySelectorAll('.bars i').forEach((el, i) => {
+    el.style.background = i < n ? ['#d6453a', '#e0a63a', '#4a90e2', '#3e7a5c'][Math.max(0, n - 1)] : '';
+  });
+  const lab = document.getElementById('gateStrengthLabel');
+  if(lab) lab.textContent = v ? labels[Math.max(0, n - 1)] : '';
+}
+
+function wireGateStrength(){
+  const inp = document.getElementById('accPassword');
+  if(!inp || inp.dataset.strengthWired) return;
+  inp.dataset.strengthWired = '1';
+  inp.addEventListener('input', updateGateStrength);
+  updateGateStrength();
+}
+
 function renderAuthGate(errorMsg){
   const bodyEl = document.getElementById('accountBody');
   const titleEl = document.getElementById('accountModalTitle');
@@ -492,6 +532,14 @@ function renderAuthGate(errorMsg){
   const prevEmail = document.getElementById('accEmail')?.value || '';
   const prevPw = document.getElementById('accPassword')?.value || '';
   const prevPwC = document.getElementById('accPasswordConfirm')?.value || '';
+
+  // زر اللغة الثابت (خارج النموذج المعاد رسمه) + تمييز التدفقات الفرعية
+  // (نسيان/تم الإرسال) لإظهار عنوان المودال الأصلي بدل العنوان التسويقي
+  const langBtn = document.getElementById('gateLangBtn');
+  if(langBtn) langBtn.textContent = getLang() === 'ar' ? 'EN' : 'عربي';
+  const gateMinor = gateMode === 'forgot' || gateMode === 'forgot-sent' || gateMode === 'confirm-sent';
+  const ovGate = document.getElementById('accountOverlay');
+  if(ovGate) ovGate.classList.toggle('gate-minor', gateMinor);
 
   if(gateMode === 'forgot'){
     bodyEl.innerHTML = `
@@ -545,6 +593,12 @@ function renderAuthGate(errorMsg){
 
   if(gateMode === 'signup'){
     bodyEl.innerHTML = `
+      <div class="gate-hero"><h1>${t('auth.gate_h_up')}</h1><p>${t('auth.gate_s_up')}</p></div>
+      <div class="gate-tabs" role="tablist">
+        <button type="button" data-gmode="signup" aria-pressed="true">${t('auth.create_account')}</button>
+        <button type="button" data-gmode="signin" aria-pressed="false">${t('auth.login_button')}</button>
+      </div>
+      ${googleBlockHtml()}
       ${errorHtml}
       <div class="account-form" id="accForm">
         <input type="email" class="account-input" id="accEmail" value="${escapeAttr(prevEmail)}" placeholder="${t('auth.email_placeholder')}" autocomplete="email" />
@@ -552,17 +606,19 @@ function renderAuthGate(errorMsg){
           <input type="password" class="account-input" id="accPassword" value="${escapeAttr(prevPw)}" placeholder="${t('auth.password_placeholder')}" autocomplete="new-password" />
           <button type="button" class="account-pass-toggle" id="accPassToggle" tabindex="-1"><span class="material-icons">visibility</span></button>
         </div>
+        <div class="gate-strength" id="gateStrength"><div class="bars"><i></i><i></i><i></i><i></i></div><small id="gateStrengthLabel"></small></div>
         <div class="account-pass-wrap">
           <input type="password" class="account-input" id="accPasswordConfirm" value="${escapeAttr(prevPwC)}" placeholder="${t('auth.password_confirm_placeholder')}" autocomplete="new-password" />
           <button type="button" class="account-pass-toggle" id="accPassConfirmToggle" tabindex="-1"><span class="material-icons">visibility</span></button>
         </div>
         <button class="account-primary-btn" id="accSubmitBtn">${t('auth.create_account')}</button>
       </div>
-      ${googleBlockHtml()}
-      <div class="account-switch-line">${t('auth.has_account')} <button id="accSwitchMode">${t('auth.sign_in_link')}</button></div>
+      <p class="gate-legal">${t('auth.legal_up', { terms: `<a href="../terms.html">${t('auth.legal_terms')}</a>`, privacy: `<a href="../privacy.html">${t('auth.legal_privacy')}</a>` })}</p>
     `;
+    wireGateTabs();
     wirePasswordToggle('accPassword', 'accPassToggle');
     wirePasswordToggle('accPasswordConfirm', 'accPassConfirmToggle');
+    wireGateStrength();
     const submit = () => {
       // النقرة المزدوجة أثناء التحدي تشغّل turnstile مرتين فيتصادمان (110200)
       if(accountFormBusy) return;
@@ -573,7 +629,6 @@ function renderAuthGate(errorMsg){
     };
     document.getElementById('accSubmitBtn').onclick = submit;
     wireEnterSubmit('#accForm', submit);
-    document.getElementById('accSwitchMode').onclick = () => { gateMode = 'signin'; renderAuthGate(); };
     document.getElementById('accGoogleBtn').onclick = signInWithGoogle;
     wireModalLogo();
     return;
@@ -581,6 +636,12 @@ function renderAuthGate(errorMsg){
 
   // الوضع الافتراضي: تسجيل الدخول
   bodyEl.innerHTML = `
+    <div class="gate-hero"><h1>${t('auth.gate_h_in')}</h1><p>${t('auth.gate_s_in')}</p></div>
+    <div class="gate-tabs" role="tablist">
+      <button type="button" data-gmode="signup" aria-pressed="false">${t('auth.create_account')}</button>
+      <button type="button" data-gmode="signin" aria-pressed="true">${t('auth.login_button')}</button>
+    </div>
+    ${googleBlockHtml()}
     ${errorHtml}
     <div class="account-form" id="accForm">
       <input type="email" class="account-input" id="accEmail" value="${escapeAttr(prevEmail)}" placeholder="${t('auth.login_placeholder')}" autocomplete="email" />
@@ -591,9 +652,8 @@ function renderAuthGate(errorMsg){
       <button class="account-primary-btn" id="accSubmitBtn">${t('auth.login_button')}</button>
     </div>
     <div class="account-switch-line"><button id="accForgotBtn">${t('auth.forgot_link')}</button></div>
-    ${googleBlockHtml()}
-    <div class="account-switch-line">${t('auth.no_account')} <button id="accSwitchMode">${t('auth.signup_link')}</button></div>
   `;
+  wireGateTabs();
   wirePasswordToggle('accPassword', 'accPassToggle');
   const submit = () => {
     if(accountFormBusy) return;
@@ -604,7 +664,6 @@ function renderAuthGate(errorMsg){
   document.getElementById('accSubmitBtn').onclick = submit;
   wireEnterSubmit('#accForm', submit);
   document.getElementById('accForgotBtn').onclick = () => { gateMode = 'forgot'; renderAuthGate(); };
-  document.getElementById('accSwitchMode').onclick = () => { gateMode = 'signup'; renderAuthGate(); };
   document.getElementById('accGoogleBtn').onclick = signInWithGoogle;
   wireModalLogo();
 }
@@ -955,8 +1014,23 @@ export function verifyIdentityForDelete(){
 
 export function openAuthGate(){
   gateMode = 'signin';
+  // العناصر الثابتة (data-i18n) لا تُترجم تلقائيًا عند الإقلاع المباشر
+  // على البوابة — نطبقها هنا وإلا بقيت بالعربية مع محتوى إنجليزي
+  applyStaticTranslations();
   renderAuthGate();
   wireModalLogo();
+  // عناصر الشريط العلوي الثابتة (خارج النموذج المعاد رسمه) — توصيل مرة واحدة
+  const brandBtn = document.getElementById('gateBrandBtn');
+  if(brandBtn && !brandBtn.dataset.wired){ brandBtn.dataset.wired = '1'; brandBtn.onclick = backToLanding; }
+  const langBtn = document.getElementById('gateLangBtn');
+  if(langBtn && !langBtn.dataset.wired){
+    langBtn.dataset.wired = '1';
+    langBtn.onclick = () => {
+      setLang(getLang() === 'ar' ? 'en' : 'ar');
+      applyStaticTranslations();
+      renderAuthGate();
+    };
+  }
   const overlay = document.getElementById('accountOverlay');
   overlay.classList.add('open', 'is-gate');
 }
