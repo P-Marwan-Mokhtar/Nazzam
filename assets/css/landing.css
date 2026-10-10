@@ -202,6 +202,8 @@ body.menu-open { overflow: hidden; }
   padding-block: 9px;
   padding-inline: 18px;
   margin-top: 10px;
+  /* width:auto بدل 100% الخاصة بالحاوية — حتى لا تتجاوز الهوامش عرض الشاشة */
+  width: auto;
   /* بعرض المحتوى نفسه (داخل حشو الحاوية) لا بعرضها الكامل */
   margin-inline: 80px;
 }
@@ -209,7 +211,8 @@ body.menu-open { overflow: hidden; }
   .nav.is-scrolled .nav-inner { margin-inline: 64px; }
 }
 @media (max-width: 760px) {
-  .nav.is-scrolled .nav-inner { margin-inline: 24px; }
+  .nav.is-scrolled .nav-inner { margin-inline: 12px; gap: 12px; padding-inline: 12px; overflow: hidden; }
+  .nav.is-scrolled .nav-actions { min-width: 0; gap: 8px; }
 }
 @media (min-width: 1361px) {
   .nav.is-scrolled .nav-inner { max-width: 1040px; margin-inline: auto; }
