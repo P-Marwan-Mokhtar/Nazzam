@@ -1193,6 +1193,34 @@ button:not(:disabled){ cursor:pointer; }
 .day-split-bank .bank-content{ padding:0; }
 .bank-content{ border-top:none; }
 .day-split-day .date-nav{ padding:14px 0 2px; }
+/* صف تقدم اليوم: الأرقام على الجانبين والخط بينهما مكان سطر الملخص القديم */
+.day-progress-wrap{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:6px 0 2px;
+}
+.day-progress-num{
+  font-size:0.72rem;
+  color:var(--ink-soft);
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.day-progress{
+  flex:1;
+  min-width:0;
+  height:4px;
+  border-radius:99px;
+  background:var(--rowline);
+  overflow:hidden;
+}
+.day-progress i{
+  display:block;
+  height:100%;
+  background:var(--pen);
+  border-radius:99px;
+  transition:width 0.3s ease;
+}
 .day-split-day .section-title{ padding-left:0; padding-right:0; }
 /* أيقونات التنقل والعرض: بلا دوائر ولا حدود — رمادية تنور عند التحويم */
 .nav-btn{
@@ -1244,7 +1272,6 @@ button:not(:disabled){ cursor:pointer; }
   letter-spacing:-0.01em;
 }
 .dark-mode .date-display .day-name{
-  font-size:0.85rem;
   font-weight:600;
   color:var(--ink-soft);
 }

@@ -407,9 +407,13 @@ export function render(){
       <button class="nav-btn" id="prevBtn" aria-label="${t('day.prev')}"><span class="material-icons">chevron_right</span></button>
       <div class="date-display">
         <div class="day-name">${fmtDay(ui.selectedDate)}</div>
-        <div class="day-sub">${dayTasks.length ? `${dayTasks.length === 1 ? t('day.count_done_one', {total: dayTasks.length}) : t('day.count_done', {done: doneCount, total: dayTasks.length})}${totalHoursText ? ` • ${totalHoursText}` : ''}` : t('day.no_tasks_recorded')}</div>
       </div>
       <button class="nav-btn" id="nextBtn" aria-label="${t('day.next')}"><span class="material-icons">chevron_left</span></button>
+    </div>
+    <div class="day-progress-wrap">
+      <span class="day-progress-num">${doneCount}/${dayTasks.length}</span>
+      <div class="day-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${dayTasks.length ? Math.round((doneCount / dayTasks.length) * 100) : 0}"><i style="width:${dayTasks.length ? Math.round((doneCount / dayTasks.length) * 100) : 0}%"></i></div>
+      ${dayTasks.length ? `<span class="day-progress-num">${t('day.remaining', { count: dayTasks.length - doneCount })}${totalActualMinutes > 0 ? ` • ${formatHM(totalActualMinutes * 60000)}` : ''}</span>` : ``}
     </div>
   `;
   if(!isToday){
