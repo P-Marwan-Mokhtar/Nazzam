@@ -9,6 +9,47 @@ export function afterRender(cb){
   requestAnimationFrame(() => requestAnimationFrame(cb));
 }
 
+// إعادة بناء الـ DOM كانت تصفّر سكرول القوائم (العنصر نفسه يتبدل) —
+// فنحفظ مواضع التمرير قبل الرسم ونستعيدها بعده، فيثبت السكرول مع كل أكشن.
+// سكرول العمود يُستعاد فقط داخل نفس الشاشة (التنقل بين الشاشات يبدأ من الأول)
+function currentViewKey(){
+  if(ui.taskStatsName) return 'taskstats';
+  if(ui.statsViewOpen) return 'stats';
+  if(ui.weekViewOpen) return 'week';
+  if(ui.timeBlockViewOpen) return 'timeblock';
+  if(ui.smartListsOpen) return 'smart';
+  return 'day';
+}
+
+function captureContentScroll(){
+  const at = (sel) => {
+    const el = contentEl.querySelector(sel);
+    return el ? el.scrollTop : null;
+  };
+  const mainCol = document.querySelector('.main-col');
+  return {
+    view: currentViewKey(),
+    keywordList: at('.keyword-list'),
+    taskList: at('.task-list'),
+    mainCol: mainCol ? mainCol.scrollTop : null,
+  };
+}
+
+function restoreContentScroll(saved){
+  if(!saved) return;
+  const put = (sel, top) => {
+    if(top === null || top === undefined) return;
+    const el = contentEl.querySelector(sel);
+    if(el) el.scrollTop = top;
+  };
+  put('.keyword-list', saved.keywordList);
+  put('.task-list', saved.taskList);
+  if(saved.view === currentViewKey() && saved.mainCol !== null && saved.mainCol !== undefined){
+    const mainCol = document.querySelector('.main-col');
+    if(mainCol) mainCol.scrollTop = saved.mainCol;
+  }
+}
+
 import { emptyStateHtml, escapeAttr, escapeHtml, fmtDay, fromISO, highlightMatch, normalizeArabic, parseDurationToMinutes, todayStr, uid } from './utils.js';
 import { t, formatHM } from './i18n.js';
 import { PRIORITY_LABELS, TASK_TYPES, contentEl, getDaySortMode, state, taskTypeKey, ui } from './state.js';
@@ -90,6 +131,10 @@ export function render(){
   hideDurationPopover();
   syncHashWithState();
   updateSideNavActive();
+  // حفظ السكرول قبل أي استبدال للـ DOM — يُستعاد بعد الرسم عبر afterRender
+  // (يعمل لكل المسارات بما فيها الشاشات الكاملة ذات الرسم المتزامن)
+  const savedScroll = captureContentScroll();
+  afterRender(() => restoreContentScroll(savedScroll));
   const mainLayoutEl = document.querySelector('.main-layout');
   if(mainLayoutEl) mainLayoutEl.classList.toggle('week-view-active', !!ui.weekViewOpen || !!ui.timeBlockViewOpen || !!ui.statsViewOpen || !!ui.taskStatsName || !!ui.smartListsOpen);
   document.body.classList.toggle('locked-view', !!ui.weekViewOpen || !!ui.timeBlockViewOpen || !!ui.statsViewOpen || !!ui.taskStatsName || !!ui.smartListsOpen);
